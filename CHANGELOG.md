@@ -2,6 +2,33 @@
 
 All notable changes to this assistant. Versions follow [semantic versioning](https://semver.org): MAJOR.MINOR.PATCH.
 
+## 1.2.0 (2026-11-16)
+
+### Added
+- **Welcome setup on first start:** name the assistant, what it calls you, language, call and reading voices,
+  look, hands-free, conversation style and free AI keys (saved only in .env on your PC). Settings → Run setup
+  brings it back.
+- **Any language:** 19 languages with matching voices (English, Urdu, Hindi, Arabic, Pashto, Persian, Bengali,
+  Punjabi, Turkish, French, Spanish, German, Portuguese, Italian, Russian, Chinese, Japanese, Indonesian, Malay),
+  or type any other language.
+- **Activity details:** click any Activity item to see what was asked and its full result (memories, searches,
+  files...), with a Copy button.
+- **write_file / make_folder tools:** files and folders in Desktop, Documents or Downloads are created without
+  PowerShell, so no approval is needed (replacing an existing file still asks).
+- Female reading voices (Sonia, Libby, Ava).
+
+### Changed
+- **Approvals remember your yes:** after you allow PowerShell commands (or locking the PC / Wi-Fi off) once, they
+  aren't asked again until the app restarts. "Only this time" keeps asking; shutdown, restart and deleting files
+  are always asked. Settings → Permissions → "Ask every time again".
+- Live calls show Urdu in Urdu script (Gemini writes it in Hindi letters; it is converted), unless Hindi is chosen.
+- Renaming the assistant renames the Desktop / Start Menu shortcut too.
+- Smoother UI: page transitions, button feedback, dialogs fade in and out, fewer redraws.
+
+### Fixed
+- The theme sometimes switched by itself: tests were writing to the real settings file. Tests now use a
+  separate data folder (JARVIS_DATA_DIR).
+
 ## 1.1.0 (2026-11-16)
 
 ### Added

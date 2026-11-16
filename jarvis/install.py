@@ -62,6 +62,28 @@ def create_shortcuts() -> list[Path]:
     return targets
 
 
+def rename_shortcuts(old: str, new: str) -> list[Path]:
+    """The Desktop / Start Menu shortcut follows the assistant's name ("Maya.lnk" instead of "Jarvis.lnk")."""
+    icon = make_icon()
+    pythonw = ROOT / ".venv" / "Scripts" / "pythonw.exe"
+    shell = subprocess.run(["powershell", "-NoProfile", "-Command",
+                            "[Environment]::GetFolderPath('Desktop'); [Environment]::GetFolderPath('Programs')"],
+                           capture_output=True, text=True).stdout.splitlines()
+    made = []
+    safe = "".join(ch for ch in new if ch not in '\\/:*?"<>|').strip() or "Jarvis"
+    for folder in [line.strip() for line in shell if line.strip()][:2]:
+        olds = [Path(folder) / f"{n}.lnk" for n in {old, "Jarvis"} if n]
+        if not any(o.exists() for o in olds):
+            continue                          # no shortcut there: don't create one unasked
+        lnk = Path(folder) / f"{safe}.lnk"
+        _shortcut(lnk, pythonw, "run.py --app", ROOT, icon, f"{safe} - your personal AI assistant")
+        for o in olds:
+            if o.exists() and o != lnk:
+                o.unlink()
+        made.append(lnk)
+    return made
+
+
 if __name__ == "__main__":
     for p in create_shortcuts():
         print("Created", p)

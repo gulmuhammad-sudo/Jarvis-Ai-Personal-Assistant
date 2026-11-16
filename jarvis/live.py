@@ -19,7 +19,7 @@ from typing import Callable
 
 import numpy as np
 
-from . import memory, schedule, tools
+from . import languages, memory, schedule, tools
 from .brain import system_prompt
 
 try:
@@ -62,7 +62,7 @@ LIVE VOICE CONVERSATION: you are talking with {user} out loud, in real time, lik
 - Speak with a calm, refined British accent, like a loyal butler-engineer.
 - Keep each reply short and natural (one to three sentences) unless asked for detail. Never read out lists,
   markdown, URLs or file paths in full.
-- Language: if {user} speaks Urdu (or Hindi/Roman Urdu), reply in natural spoken Urdu. English gets English.
+- Language: {language}
 - {user} may interrupt you; if so, stop and listen.
 - For anything slow (web search, files), say a few words first ("One moment, Sir") and then use the tool.
 - If {user} says goodbye or asks you to stop listening ("bye", "that's all", "bas", "band karo"), say a very
@@ -312,8 +312,12 @@ class LiveSession:
             self.on_phase(phase)
 
     def _config(self, handle: str | None):
+        lang = languages.clean(schedule.get_setting("language") or "en")
         user, me = memory.call_name(), schedule.agent_name()
-        system = system_prompt() + LIVE_NOTE.format(user=user)
+        lang = languages.clean(schedule.get_setting("language") or "en")
+        lang_line = ("if the user speaks Urdu (or Hindi/Roman Urdu), reply in natural spoken Urdu. English gets English."
+                     if lang == "en" else f"always reply in natural spoken {languages.name(lang)}, whatever language the user uses.")
+        system = system_prompt() + LIVE_NOTE.format(user=user, language=lang_line)
         if self.history:
             system += "\nEarlier in this conversation (typed or spoken before the call):\n" + "\n".join(
                 f"{user}: {u[:300]}\n{me}: {r[:300]}" for u, r in self.history)
@@ -333,7 +337,7 @@ class LiveSession:
             speech_config=types.SpeechConfig(voice_config=types.VoiceConfig(
                 prebuilt_voice_config=types.PrebuiltVoiceConfig(voice_name=self.voice))),
             system_instruction=system,
-            input_audio_transcription=types.AudioTranscriptionConfig(),
+            input_audio_transcription=types.AudioTranscriptionConfig(),   # (Urdu comes back in Hindi letters: see urdu.py)
             output_audio_transcription=types.AudioTranscriptionConfig(),
             tools=[types.Tool(function_declarations=decls)],
             context_window_compression=types.ContextWindowCompressionConfig(sliding_window=types.SlidingWindow()),

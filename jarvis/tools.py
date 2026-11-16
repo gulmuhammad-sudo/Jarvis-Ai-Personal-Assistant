@@ -47,6 +47,14 @@ class ToolContext:
         self.set_name: Callable[[str], str] | None = None           # rename the assistant (HUD)
         self.set_theme: Callable[[str], None] | None = None         # light / dark Command Center (HUD)
         self.set_brain: Callable[[str, str | None], str] | None = None  # choose the AI provider (HUD)
+
+    def approve(self, question: str, kind: str | None = None) -> bool:
+        """Ask before acting. kind groups similar requests: once you allow e.g. "powershell", the HUD stops
+        asking for that kind until the app restarts (never for shutdown/restart or deleting files)."""
+        try:
+            return self.confirm(question, kind=kind)
+        except TypeError:                     # a confirm() that doesn't know about kinds (console)
+            return self.confirm(question)
         self.language = "en"
 
 
@@ -226,6 +234,43 @@ def forget_memory(inp: dict, ctx: ToolContext) -> str:
     return memory.forget(int(inp["id"]))
 
 
+_USER_DIRS = ("Desktop", "Documents", "Downloads", "Pictures", "Music", "Videos", "OneDrive")
+
+
+def _user_path(raw: str) -> Path:
+    """A path inside your own folders (Desktop, Documents, Downloads...). Anything else is refused."""
+    home = Path(os.environ.get("USERPROFILE", str(Path.home())))
+    p = Path(os.path.expandvars(os.path.expanduser(raw.strip().strip('"'))))
+    if not p.is_absolute():
+        first = p.parts[0].lower() if p.parts else ""
+        p = home / p if first in (d.lower() for d in _USER_DIRS) else home / "Documents" / p
+    p = p.resolve()
+    allowed = [(home / d).resolve() for d in _USER_DIRS]
+    if not any(p == a or a in p.parents for a in allowed) or ROOT.resolve() in [p, *p.parents]:
+        raise ValueError(f"I only create files inside your Desktop, Documents, Downloads, Pictures, Music or Videos folders, not {p}.")
+    return p
+
+
+def write_file(inp: dict, ctx: ToolContext) -> str:
+    p = _user_path(inp["path"])
+    text = str(inp.get("content", ""))
+    if p.exists() and p.is_dir():
+        return f"{p} is a folder."
+    append = bool(inp.get("append"))
+    if p.exists() and not append and not ctx.approve(f"{p.name} already exists in {p.parent}. Replace it?", kind="overwrite"):
+        return "Okay, I left the existing file alone."
+    p.parent.mkdir(parents=True, exist_ok=True)
+    with open(p, "a" if append else "w", encoding="utf-8", newline="") as f:
+        f.write(text)
+    return f"{'Added to' if append else 'Saved'} {p} ({len(text)} characters)."
+
+
+def make_folder(inp: dict, ctx: ToolContext) -> str:
+    p = _user_path(inp["path"])
+    p.mkdir(parents=True, exist_ok=True)
+    return f"Folder ready: {p}"
+
+
 def edit_memory(inp: dict, ctx: ToolContext) -> str:
     return memory.edit(int(inp["id"]), inp["fact"])
 
@@ -329,7 +374,7 @@ def look_at_screen(_: dict, ctx: ToolContext) -> list[dict] | str:
 def run_powershell(inp: dict, ctx: ToolContext) -> str:
     cmd = inp["command"]
     why = inp.get("reason", "")
-    if not ctx.confirm(f"{_sched.agent_name()} wants to run this PowerShell command{f' ({why})' if why else ''}:\n    {cmd}"):
+    if not ctx.approve(kind="powershell", question=f"{_sched.agent_name()} wants to run this PowerShell command{f' ({why})' if why else ''}:\n    {cmd}"):
         return "The user declined to run this command."
     try:
         r = _ps(cmd, timeout=int(inp.get("timeout_seconds", 120)))
@@ -343,7 +388,7 @@ def run_powershell(inp: dict, ctx: ToolContext) -> str:
 
 
 def lock_computer(_: dict, ctx: ToolContext) -> str:
-    if not ctx.confirm("Lock the computer now?"):
+    if not ctx.approve("Lock the computer now?", kind="lock"):
         return "The user declined."
     subprocess.run(["rundll32.exe", "user32.dll,LockWorkStation"], check=False)
     return "Computer locked."
@@ -392,6 +437,14 @@ TOOLS: list[tuple[dict, Callable[[dict, ToolContext], Any]]] = [
     ({"name": "recall_memories", "description": "List everything in long-term memory with ids.", "input_schema": _obj({})}, recall_memories),
     ({"name": "forget_memory", "description": "Delete a long-term memory by id.",
       "input_schema": _obj({"id": {"type": "integer"}}, ["id"])}, forget_memory),
+    ({"name": "write_file",
+      "description": "Create (or replace / append to) a text file: .txt, .md, .py, .html, .csv, .json and so on. "
+                     "Use this instead of PowerShell to make files. path: e.g. 'Desktop/todo.txt' or a full path inside "
+                     "Desktop, Documents or Downloads (a bare name goes to Documents). New files need no approval.",
+      "input_schema": _obj({"path": {"type": "string"}, "content": {"type": "string"},
+                            "append": {"type": "boolean"}}, ["path", "content"])}, write_file),
+    ({"name": "make_folder", "description": "Create a folder inside Desktop, Documents or Downloads (no approval needed).",
+      "input_schema": _obj({"path": {"type": "string"}}, ["path"])}, make_folder),
     ({"name": "edit_memory", "description": "Change the text of a long-term memory by id (call recall_memories first for the ids).",
       "input_schema": _obj({"id": {"type": "integer"}, "fact": {"type": "string"}}, ["id", "fact"])}, edit_memory),
     ({"name": "merge_memories",
@@ -437,8 +490,21 @@ _HANDLERS = {d["name"]: fn for d, fn in TOOLS}
 SERVER_TOOLS = [{"type": "web_search_20260209", "name": "web_search", "max_uses": 5}]
 
 
+RESULT_HOOK: Callable[[str, dict, Any, bool], None] | None = None   # the HUD shows results in Activity
+
+
 def execute(name: str, tool_input: dict, ctx: ToolContext) -> tuple[Any, bool]:
     """Run a tool. Returns (content, is_error)."""
+    out, err = _execute(name, tool_input, ctx)
+    if RESULT_HOOK:
+        try:
+            RESULT_HOOK(name, tool_input if isinstance(tool_input, dict) else {}, out, err)
+        except Exception:
+            pass
+    return out, err
+
+
+def _execute(name: str, tool_input: dict, ctx: ToolContext) -> tuple[Any, bool]:
     fn = _HANDLERS.get(name)
     if fn is None:
         return f"Unknown tool: {name}", True
@@ -756,9 +822,9 @@ def close_app(inp: dict, ctx: ToolContext) -> str:
     force = bool(inp.get("force"))
     targets = _PROC_ALIASES.get(name.lower(), [name.removesuffix(".exe")])
     if any(t.lower() in _PROTECTED for t in targets):
-        if not ctx.confirm(f"'{name}' is part of Windows or Jarvis itself. Close it anyway?"):
+        if not ctx.approve(f"'{name}' is part of Windows or Jarvis itself. Close it anyway?", kind="close_system"):
             return "Okay, I left it running."
-    if force and not ctx.confirm(f"Force-close {name}? Unsaved work in it will be lost."):
+    if force and not ctx.approve(f"Force-close {name}? Unsaved work in it will be lost.", kind="force_close"):
         return "Okay, I didn't force-close it."
     if not psutil:
         return "Can't list running apps (psutil missing)."
@@ -772,7 +838,7 @@ def close_app(inp: dict, ctx: ToolContext) -> str:
     titles = [t for t in _ps(f"Get-Process -Id {pids} -ErrorAction SilentlyContinue | "
                              "ForEach-Object { $_.MainWindowTitle }").stdout.splitlines() if t.strip()]
     unsaved = [t for t in titles if t.lstrip().startswith("*") or "unsaved" in t.lower()]
-    if unsaved and not ctx.confirm(f"{name} has unsaved work ({unsaved[0][:60]}). Close it anyway? It may ask you to save."):
+    if unsaved and not ctx.approve(f"{name} has unsaved work ({unsaved[0][:60]}). Close it anyway? It may ask you to save.", kind="close_unsaved"):
         return f"Okay, I left {name} open because it has unsaved work."
     for n in names:  # polite close first (the app can still ask to save), then force if asked
         subprocess.run(["taskkill", "/IM", n] + (["/F"] if force else []) + ["/T"], capture_output=True, text=True)
@@ -795,7 +861,7 @@ def power_action(inp: dict, ctx: ToolContext) -> str:
     if action not in labels:
         return f"Unknown action {action}."
     when = f" in {delay} seconds" if action in ("shutdown", "restart") and delay else ""
-    if not ctx.confirm(f"{_sched.agent_name()} wants to {labels[action]}{when}. Save your work first. Go ahead?"):
+    if not ctx.approve(f"{_sched.agent_name()} wants to {labels[action]}{when}. Save your work first. Go ahead?", kind="power"):
         return "Cancelled. Nothing was changed."
     if action == "shutdown":
         subprocess.run(["shutdown", "/s", "/t", str(delay)], check=False)
@@ -859,7 +925,7 @@ def wireless(inp: dict, ctx: ToolContext) -> str:
     if device == "WiFi" and not turn_on:
         extra = f" I'll switch it back on after {back_in} minutes." if back_in else \
             " While it's off I can't think or understand speech (I need the internet), so turn it back on from the taskbar."
-        if not ctx.confirm(f"Turn Wi-Fi off?{extra}"):
+        if not ctx.approve(f"Turn Wi-Fi off?{extra}", kind="wifi_off"):
             return "Okay, Wi-Fi stays on."
     state = _radio(device, "On" if turn_on else "Off")[0]
     if state == "missing":
@@ -955,7 +1021,7 @@ def clean_folder(inp: dict, ctx: ToolContext) -> str:
         return f"Nothing to clean: no files older than {days} days in {folder}."
     total = sum(f.stat().st_size for f in files) / 2**20
     preview = ", ".join(f.name for f in files[:6]) + (f" and {len(files) - 6} more" if len(files) > 6 else "")
-    if not ctx.confirm(f"Move {len(files)} files ({total:.0f} MB) older than {days} days from {folder} to the Recycle Bin?\n    {preview}\n"
+    if not ctx.approve(kind="clean", question=f"Move {len(files)} files ({total:.0f} MB) older than {days} days from {folder} to the Recycle Bin?\n    {preview}\n"
                        "(You can restore them from the Recycle Bin.)"):
         return "Okay, I didn't touch anything."
     moved = 0

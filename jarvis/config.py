@@ -5,8 +5,9 @@ import threading
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
-DATA_DIR = ROOT / "data"
-DATA_DIR.mkdir(exist_ok=True)
+# JARVIS_DATA_DIR: a different data folder (tests and test copies never touch your real settings)
+DATA_DIR = Path(os.environ["JARVIS_DATA_DIR"]) if os.environ.get("JARVIS_DATA_DIR") else ROOT / "data"
+DATA_DIR.mkdir(parents=True, exist_ok=True)
 MEMORY_FILE = DATA_DIR / "memory.json"
 NOTES_DIR = DATA_DIR / "notes"
 NOTES_DIR.mkdir(exist_ok=True)

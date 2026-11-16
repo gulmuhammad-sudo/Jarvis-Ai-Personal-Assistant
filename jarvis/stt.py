@@ -82,9 +82,15 @@ def _confident(r: dict) -> bool:
 
 
 def _whisper(wav: bytes, mode: str) -> str:
-    """mode 'ur' = Urdu; anything else = automatic English/Urdu."""
+    """mode 'ur' = Urdu; 'auto'/'en' = automatic English/Urdu; another language code = that language."""
+    from . import languages
+    other = mode not in ("ur", "en", "auto") and not mode.startswith("custom:")
     if mode == "ur":
         r = _whisper_once(wav, "ur", URDU_MODEL)
+    elif other:                                            # e.g. Arabic, Hindi, French: tell Whisper
+        r = _whisper_once(wav, languages.stt_code(mode), URDU_MODEL)
+    elif mode.startswith("custom:"):
+        r = _whisper_once(wav, None, URDU_MODEL)           # any language: let large-v3 detect it
     else:
         r = _whisper_once(wav, None)                       # let Whisper detect the language
         lang = r["language"]

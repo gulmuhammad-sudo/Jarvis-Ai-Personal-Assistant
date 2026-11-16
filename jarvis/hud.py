@@ -26,7 +26,7 @@ from urllib.parse import parse_qs
 
 from . import __version__
 from . import live as live_mod
-from . import alerts, approvals, gpu, memory, schedule, stt, tools, tts
+from . import alerts, approvals, gpu, languages, memory, schedule, stt, tools, tts, urdu
 from .brain import make_brain
 from .config import NOTES_DIR
 from .providers import provider_status
@@ -73,9 +73,9 @@ class Hub:
         self.ctx.set_theme = self.set_theme
         self.ctx.set_brain = self.set_brain
         self.brain = make_brain(self.ctx, on_text=self.on_text, on_tool=self.on_tool)
-        self.language = schedule.get_setting("language", "en")
-        if self.language == "ur":
-            self.brain.set_language("ur")
+        self.language = languages.clean(schedule.get_setting("language", "en"))
+        if self.language != "en":
+            self.brain.set_language(self.language)
         self.ctx.language = self.language
         self.weather: dict | None = None
         self.recording = None               # the native-mic Recording in progress
@@ -85,6 +85,9 @@ class Hub:
         self._live_user = ""
         self.voice_engine = schedule.get_setting("voice_engine", "live")
         self.last_source = "typed"          # how the last request came in (voice requests get voice approvals)
+        self.trusted: set[str] = set()      # approval kinds you already allowed this session
+        self._ids, self._open_tools = 0, {} # Activity: tool id -> waiting for its result
+        tools.RESULT_HOOK = self._tool_result
         self.voice_mode = schedule.get_setting("hands_free", True) is not False   # hands-free from the moment the app opens
         self.brain.set_voice_mode(self.voice_mode)
         self._standby: threading.Thread | None = None   # hands-free (Live): waits locally for your voice
@@ -128,11 +131,32 @@ class Hub:
         self.recent_replies = [(t, r) for t, r in self.recent_replies if time.time() - t < 120][-6:]
         self.recent_replies.append((time.time(), text))
 
+    def _next_id(self) -> str:
+        self._ids += 1
+        return f"a{self._ids}"
+
     def on_tool(self, name: str, args: dict) -> None:
         if name != "switching_model":
             self.tool_calls += 1
         short = ", ".join(f"{k}={str(v)[:50]}" for k, v in args.items())
-        self.emit("tool", keep=True, name=name, args=short)
+        tid = self._next_id()
+        if name in tools._HANDLERS:
+            self._open_tools.setdefault(name, []).append(tid)
+        try:
+            full = json.dumps(args, ensure_ascii=False, indent=1)[:3000]
+        except (TypeError, ValueError):
+            full = str(args)[:3000]
+        self.emit("tool", keep=True, name=name, args=short, id=tid, detail=full, pending=name in tools._HANDLERS)
+
+    def _tool_result(self, name: str, args: dict, out, err: bool) -> None:
+        """A tool finished: its result goes to the Activity panel (click an item to read it)."""
+        waiting = self._open_tools.get(name) or []
+        if not waiting:
+            return
+        tid = waiting.pop(0)
+        if isinstance(out, list):              # a screenshot: the picture went to the AI
+            out = "Screenshot taken and shown to the AI."
+        self.emit("tool_result", keep=True, id=tid, name=name, result=str(out)[:4000], error=bool(err))
 
     def notify(self, msg: str, kind: str = "reminder") -> None:
         self.emit("notify", keep=True, text=msg, kind=kind)
@@ -147,7 +171,7 @@ class Hub:
                          daemon=True).start()
 
     def set_language(self, lang: str) -> None:
-        self.language = "ur" if lang == "ur" else "en"
+        self.language = languages.clean(lang)
         self.ctx.language = self.language
         schedule.set_setting("language", self.language)
         self.brain.set_language(self.language)
@@ -155,7 +179,16 @@ class Hub:
 
     def set_name(self, name: str) -> str:
         """Rename the assistant. Every open window reloads with the new name; nothing else changes."""
+        old = schedule.agent_name()
         name = schedule.set_agent_name(name)          # ValueError for an unusable name
+        if old != name:                               # the Desktop / Start Menu shortcut is renamed too
+            def shortcuts() -> None:
+                try:
+                    from . import install
+                    install.rename_shortcuts(old, name)
+                except Exception as e:
+                    print(f"[rename] couldn't rename the shortcut: {e}")
+            threading.Thread(target=shortcuts, daemon=True).start()
         if hasattr(self.brain, "refresh_system"):
             self.brain.refresh_system()
         if TITLE_HOOK:
@@ -181,6 +214,7 @@ class Hub:
     def standby_wanted(self) -> bool:
         return bool(self.voice_mode and self.voice_engine == "live" and recorder and live_mod.available()
                     and os.environ.get("JARVIS_HANDSFREE", "on") != "off"      # test copies don't grab the mic
+                    and bool(schedule.get_setting("setup_done"))                # not while the welcome setup is open
                     and not (self.live and self.live.active) and not self.recording
                     and not (len(self._live_errors) >= 2 and time.time() - self._live_errors[-2] < 120))
 
@@ -298,6 +332,77 @@ class Hub:
             self.standby_start(0.5)
         return got
 
+    # ---------- first-run setup ----------
+    KEYS = {"gemini": "GEMINI_API_KEY", "groq": "GROQ_API_KEY", "openrouter": "OPENROUTER_API_KEY"}
+
+    def setup_info(self) -> dict:
+        prof = memory.profile()
+        return {"done": bool(schedule.get_setting("setup_done")), "name": schedule.agent_name(),
+                "call": prof.get("call", ""), "user_name": prof.get("name", ""), "language": self.language,
+                "languages": languages.choices(), "theme": schedule.theme(), "hands_free": self.voice_mode,
+                "engine": self.voice_engine, "live_voice": live_mod.voice(), "live_voices": live_mod.VOICES,
+                "reading_voice": schedule.get_setting("reading_voice") or tts.DEFAULT_VOICE,
+                "reading_voices": [{"id": v, "name": n} for v, n in tts.VOICES if not v.startswith("ur-")],
+                "keys": {k: bool(os.environ.get(env)) for k, env in self.KEYS.items()}}   # never the keys themselves
+
+    def apply_setup(self, d: dict) -> dict:
+        """Save everything from the setup wizard at once."""
+        problems = []
+        try:
+            if d.get("name"):
+                self.set_name(str(d["name"]))
+        except ValueError as e:
+            problems.append(str(e))
+        prof = memory.profile()
+        for k_in, k_prof in (("call", "call"), ("user_name", "name")):
+            if k_in in d:
+                prof[k_prof] = str(d[k_in] or "").strip()[:100]
+        memory.save_profile(prof)
+        if d.get("language"):
+            self.set_language(str(d["language"]))
+        if d.get("theme") in schedule.THEMES:
+            self.set_theme(d["theme"])
+        if d.get("live_voice") in live_mod.VOICES:
+            schedule.set_setting("live_voice", d["live_voice"])
+        if d.get("reading_voice"):
+            schedule.set_setting("reading_voice", str(d["reading_voice"])[:60])
+        if d.get("engine") in ("live", "classic"):
+            self.voice_engine = d["engine"]
+            schedule.set_setting("voice_engine", self.voice_engine)
+        added = self._save_keys(d.get("keys") or {})
+        if "hands_free" in d:
+            self.toggle_voice_mode(bool(d["hands_free"]))
+        schedule.set_setting("setup_done", True)
+        if hasattr(self.brain, "refresh_system"):
+            self.brain.refresh_system()
+        if self.standby_wanted():
+            self.standby_start(1.0)           # hands-free starts once setup is done
+        self.emit("settings", setup_done=True, assistant_name=schedule.agent_name(), theme=schedule.theme())
+        return {"ok": not problems, "problems": problems, "keys_added": added, **self.setup_info()}
+
+    def _save_keys(self, keys: dict) -> list[str]:
+        """Write new API keys to .env (your PC only) and connect those AIs right away."""
+        from .config import ROOT
+        new = {self.KEYS[k]: str(v).strip() for k, v in keys.items() if k in self.KEYS and str(v or "").strip()}
+        new = {k: v for k, v in new.items() if re.fullmatch(r"[A-Za-z0-9_\-.:]{16,200}", v)}
+        if not new:
+            return []
+        env = ROOT / ".env"
+        lines = env.read_text(encoding="utf-8").splitlines() if env.exists() else []
+        for key, value in new.items():
+            hit = next((i for i, l in enumerate(lines) if l.split("=", 1)[0].strip() == key), None)
+            if hit is None:
+                lines.append(f"{key}={value}")
+            else:
+                lines[hit] = f"{key}={value}"
+            os.environ[key] = value
+        env.write_text("\n".join(lines) + "\n", encoding="utf-8")
+        self.brain = make_brain(self.ctx, on_text=self.on_text, on_tool=self.on_tool)   # pick up the new AIs
+        self.brain.set_voice_mode(self.voice_mode)
+        if self.language != "en":
+            self.brain.set_language(self.language)
+        return [k for k, env_name in self.KEYS.items() if env_name in new]
+
     def set_theme(self, mode: str) -> None:
         schedule.set_setting("theme", mode if mode in schedule.THEMES else "dark")
         self.emit("settings", theme=schedule.theme())
@@ -312,15 +417,22 @@ class Hub:
                 time.sleep(120)
 
     CONFIRM_TIMEOUT = 180
+    # once allowed, these aren't asked again until the app restarts; shutdown, deleting files etc. always ask
+    TRUSTABLE = {"powershell": "PowerShell commands", "lock": "locking the PC", "wifi_off": "turning Wi-Fi off"}
 
-    def confirm(self, question: str) -> bool:
+    def confirm(self, question: str, kind: str | None = None) -> bool:
         """Ask before something risky. Answered by the Allow / Deny buttons, or by voice ("yes" / "nahi")."""
+        if kind and kind in self.trusted:
+            self.emit("tool", keep=True, name="approval", args=f"allowed automatically: you already said yes to {self.TRUSTABLE.get(kind, kind)}",
+                      id=self._next_id(), detail=question)
+            return True
         cid = secrets.token_hex(6)
-        slot = {"event": threading.Event(), "allow": False, "question": question, "asked": time.time()}
+        slot = {"event": threading.Event(), "allow": False, "question": question, "asked": time.time(), "kind": kind}
         self.pending[cid] = slot
         in_call = bool(self.live and self.live.active)
         by_voice = in_call or bool(recorder and (self.voice_mode or self.last_source == "voice"))
-        self.emit("confirm", id=cid, question=question, voice=by_voice, timeout=self.CONFIRM_TIMEOUT)
+        self.emit("confirm", id=cid, question=question, voice=by_voice, timeout=self.CONFIRM_TIMEOUT,
+                  kind=kind, remember=self.TRUSTABLE.get(kind or "", ""))
         if in_call:
             self.live.hold_mic(2.8)          # don't send the spoken question itself to the call
         elif by_voice:
@@ -334,13 +446,19 @@ class Hub:
         self.emit("confirm_done", id=cid)
         return answered and slot["allow"]
 
-    def answer_confirm(self, cid: str, allow: bool, how: str = "click") -> bool:
+    def answer_confirm(self, cid: str, allow: bool, how: str = "click", once: bool = False) -> bool:
         slot = self.pending.get(cid)
         if not slot or slot["event"].is_set():
             return False
         slot["allow"] = bool(allow)
+        kind = slot.get("kind")
+        remembered = bool(allow and not once and kind in self.TRUSTABLE)
+        if remembered:
+            self.trusted.add(kind)            # don't ask again for this kind (until the app restarts)
         slot["event"].set()
-        self.emit("tool", keep=True, name="approval", args=f"{'allowed' if allow else 'denied'} by {how}")
+        self.emit("tool", keep=True, name="approval", id=self._next_id(), detail=slot["question"],
+                  args=f"{'allowed' if allow else 'denied'} by {how}"
+                       + (f"; won't ask again for {self.TRUSTABLE[kind]} until the app restarts" if remembered else ""))
         return True
 
     def voice_answer(self, text: str) -> bool:
@@ -482,16 +600,23 @@ class Hub:
         if self.live:
             self.live.stop(reason)
 
+    def _script(self, text: str) -> str:
+        """Live calls write Urdu in Hindi letters: show it in Urdu script (unless you chose Hindi)."""
+        return text if self.language == "hi" else urdu.from_devanagari(text)
+
     def _live_partial(self, who: str, text: str) -> None:
+        text = self._script(text)
         self.emit("live_partial", who=who, text=text)
         if who == "user" and self.pending:
             self.voice_answer(text)            # "yes" / "nahi" said during a live call
 
     def _live_heard(self, text: str) -> None:
+        text = self._script(text)
         self._live_user = text
         self.emit("user", keep=True, text=text, source="live")
 
     def _live_reply(self, text: str, interrupted: bool) -> None:
+        text = self._script(text)
         self.emit("jarvis", keep=True, text=text, provider="Gemini Live", live=True)
         self.recent_replies = [(t, r) for t, r in self.recent_replies if time.time() - t < 120][-6:]
         self.recent_replies.append((time.time(), text))
@@ -595,7 +720,9 @@ class Hub:
                "turns": len(getattr(self.brain, "turns", [])), "tool_calls": self.tool_calls,
                "computer": platform.node(), "user": memory.call_name(), "loud_alerts": alerts.loud(),
                "assistant_name": schedule.agent_name(), "theme": schedule.theme(),
-               "version": __version__,
+               "version": __version__, "trusted": sorted(self.trusted), "languages": languages.choices(),
+               "language_name": languages.name(self.language), "setup_done": bool(schedule.get_setting("setup_done")),
+               "reading_voice": schedule.get_setting("reading_voice"),
                "hands_free": self.voice_mode, "standby": self.standby_on, "mic_prompt": self.mic_prompt,
                "alert_tone": alerts.tone(), "tones": alerts.TONES,
                "brain": self.brain.options() if hasattr(self.brain, "options") else None,
@@ -689,6 +816,8 @@ class Handler(BaseHTTPRequestHandler):
             chosen = recorder.choose_mic()
             return self._json({"mics": recorder.list_mics(), "chosen": chosen and chosen["name"],
                                "saved": schedule.get_setting("mic")})
+        if path == "/api/setup":
+            return self._json(HUB.setup_info())
         if path == "/api/profile":
             return self._json({"profile": memory.profile(), "fields": memory.PROFILE_FIELDS})
         if path == "/api/voices":
@@ -752,10 +881,17 @@ class Handler(BaseHTTPRequestHandler):
             if HUB.state != "listening":
                 threading.Thread(target=HUB.listen_once, daemon=True).start()
         elif self.path == "/api/confirm":
-            HUB.answer_confirm(str(data.get("id")), bool(data.get("allow")), "click")
+            HUB.answer_confirm(str(data.get("id")), bool(data.get("allow")), "click", once=bool(data.get("once")))
+        elif self.path == "/api/approvals/reset":
+            HUB.trusted.clear()
+            HUB.emit("tool", keep=True, name="approval", args="I'll ask again before every risky action")
+        elif self.path == "/api/setup":
+            return self._json(HUB.apply_setup(data))
         elif self.path == "/api/settings":
             if "voice_mode" in data:
                 HUB.toggle_voice_mode(bool(data["voice_mode"]))
+            if data.get("reading_voice"):
+                schedule.set_setting("reading_voice", str(data["reading_voice"])[:60])
             if data.get("alert_tone") in alerts.TONES:
                 schedule.set_setting("alert_tone", data["alert_tone"])
             if "brain" in data:
@@ -864,7 +1000,7 @@ class Handler(BaseHTTPRequestHandler):
         voice = (q.get("voice") or [None])[0]
         t0 = time.time()
         try:
-            gen = tts.stream(text, voice)
+            gen = tts.stream(text, voice, HUB.language)
             first = next(gen)                  # fail before sending headers if the service is down
         except Exception as e:
             print(f"[speech] stream failed: {type(e).__name__}: {e}")
@@ -891,7 +1027,7 @@ class Handler(BaseHTTPRequestHandler):
         try:
             data = json.loads(self.rfile.read(int(self.headers.get("Content-Length", "0"))) or b"{}")
             text = str(data.get("text", ""))[:3000]
-            audio = tts.synthesize(text, data.get("voice"))
+            audio = tts.synthesize(text, data.get("voice"), HUB.language)
         except Exception as e:  # page falls back to the browser's own voice
             return self._json({"error": f"{type(e).__name__}: {e}"}, 502)
         self.send_response(200)

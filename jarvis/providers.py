@@ -13,7 +13,7 @@ import re
 import time
 from typing import Callable
 
-from . import memory, schedule, tools
+from . import languages, memory, schedule, tools
 from .brain import SYSTEM_PROMPT, VOICE_OFF_NOTE, system_prompt, VOICE_ON_NOTE, ProviderError, make_claude
 from .config import provider_order
 
@@ -118,7 +118,7 @@ class OpenAICompatBrain:
             try:
                 return self.client.chat.completions.create(
                     model=self.model,
-                    messages=[{"role": "system", "content": self.system + (URDU_NOTE if self.language == "ur" else "")}] + self.messages,
+                    messages=[{"role": "system", "content": self.system + (URDU_NOTE if self.language == "ur" else languages.reply_note(self.language))}] + self.messages,
                     tools=self.tool_defs)
             except self.openai.RateLimitError as e:
                 wait = _retry_after(e)
@@ -298,7 +298,7 @@ class MultiBrain:
 
     def set_language(self, lang: str) -> None:
         """'ur' = reply in Urdu (Urdu script, for the Urdu voice); 'en' = English."""
-        note = URDU_NOTE if lang == "ur" else ENGLISH_NOTE
+        note = URDU_NOTE if lang == "ur" else (languages.reply_note(lang) or ENGLISH_NOTE)
         for _, b in self.backends:
             if hasattr(b, "language"):
                 b.language = lang

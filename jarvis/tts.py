@@ -19,6 +19,9 @@ VOICES = [
     ("en-US-ChristopherNeural", "Christopher · American, deep"),
     ("en-US-GuyNeural", "Guy · American"),
     ("en-US-AndrewMultilingualNeural", "Andrew · multilingual"),
+    ("en-GB-SoniaNeural", "Sonia · British (female)"),
+    ("en-GB-LibbyNeural", "Libby · British (female)"),
+    ("en-US-AvaMultilingualNeural", "Ava · multilingual (female)"),
     ("ur-PK-AsadNeural", "Asad · Urdu (Pakistan)"),
     ("ur-PK-UzmaNeural", "Uzma · Urdu (Pakistan)"),
 ]
@@ -26,7 +29,10 @@ DEFAULT_VOICE = os.environ.get("JARVIS_VOICE", "en-GB-RyanNeural")
 URDU_VOICE = os.environ.get("JARVIS_URDU_VOICE", "ur-PK-AsadNeural")
 RATE = os.environ.get("JARVIS_VOICE_SPEED", "+5%")    # e.g. -10%, +0%, +15%
 PITCH = os.environ.get("JARVIS_VOICE_PITCH", "-2Hz")  # slightly lower = calmer
-_ALLOWED = {v for v, _ in VOICES} | {DEFAULT_VOICE, URDU_VOICE}
+from . import languages as _languages
+_ALLOWED = {v for v, _ in VOICES} | {DEFAULT_VOICE, URDU_VOICE} | _languages.all_voices()
+_FEMALE = ("Sonia", "Libby", "Ava", "Uzma", "Jenny", "Aria", "Swara", "Zariyah", "Latifa", "Dilara", "Nabanita",
+           "Emel", "Denise", "Elvira", "Tanja", "Francisca", "Elsa", "Svetlana", "Xiaoxiao", "Nanami", "Gadis", "Yasmin")
 
 
 def available() -> bool:
@@ -37,25 +43,29 @@ def available() -> bool:
         return False
 
 
-def _resolve(text: str, voice: str | None) -> tuple[str, str, str]:
-    """(voice, rate, pitch) for this text: unknown voices become the default; Urdu script gets the Urdu voice."""
+def _resolve(text: str, voice: str | None, lang: str | None = None) -> tuple[str, str, str]:
+    """(voice, rate, pitch) for this text: unknown voices become the default; Urdu script gets the Urdu voice;
+    another chosen language gets that language's voice (same gender as the voice you picked)."""
     voice = voice if voice in _ALLOWED else DEFAULT_VOICE
-    if voice.startswith("en-") and any("؀" <= ch <= "ۿ" for ch in text):
-        voice = URDU_VOICE
+    lang = _languages.clean(lang) if lang else "en"
+    if lang not in ("en", "ur") and voice.startswith("en-") and "Multilingual" not in voice:
+        voice = _languages.voice(lang, female=any(f in voice for f in _FEMALE))
+    elif voice.startswith("en-") and any("؀" <= ch <= "ۿ" for ch in text) and lang in ("en", "ur"):
+        voice = _languages.voice("ur", female=any(f in voice for f in _FEMALE))
     return (voice, "+0%", "+0Hz") if voice.startswith("ur-") else (voice, RATE, PITCH)
 
 
-def _communicate(text: str, voice: str | None):
+def _communicate(text: str, voice: str | None, lang: str | None = None):
     import edge_tts
-    v, rate, pitch = _resolve(text, voice)
+    v, rate, pitch = _resolve(text, voice, lang)
     return edge_tts.Communicate(text, v, rate=rate, pitch=pitch, connect_timeout=8)
 
 
-def synthesize(text: str, voice: str | None = None) -> bytes:
+def synthesize(text: str, voice: str | None = None, lang: str | None = None) -> bytes:
     """Return the whole sentence as MP3. Raises on network/service errors."""
     async def run() -> bytes:
         audio = bytearray()
-        async for chunk in _communicate(text, voice).stream():
+        async for chunk in _communicate(text, voice, lang).stream():
             if chunk["type"] == "audio":
                 audio += chunk["data"]
         return bytes(audio)
@@ -66,13 +76,13 @@ def synthesize(text: str, voice: str | None = None) -> bytes:
     return data
 
 
-def stream(text: str, voice: str | None = None):
+def stream(text: str, voice: str | None = None, lang: str | None = None):
     """Yield MP3 bytes as they arrive, so playback can start after ~1 s instead of after the whole sentence."""
     q: queue.Queue = queue.Queue()
 
     async def run() -> None:
         try:
-            async for chunk in _communicate(text, voice).stream():
+            async for chunk in _communicate(text, voice, lang).stream():
                 if chunk["type"] == "audio":
                     q.put(chunk["data"])
         except Exception as e:

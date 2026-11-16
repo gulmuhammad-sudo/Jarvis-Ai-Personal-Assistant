@@ -15,6 +15,12 @@ If something goes wrong, `data\jarvis.log` says what happened.
 
 ## Make it yours
 
+- **First start:** a short welcome setup asks for the assistant's name, what it calls you, your language (19 built
+  in, or type any other), voices, look, hands-free and your free AI keys. Settings → Assistant → Run setup repeats it.
+- **Approvals:** say "haan" / "yes" once and that kind of action (e.g. PowerShell) isn't asked again until the app
+  restarts. Files in Desktop/Documents/Downloads are created without asking at all.
+- **Activity:** click an item to see exactly what was done and its result.
+
 - **Name:** Settings → **Assistant's name** (or just say "your name is Maya now" / "tumhara naam Friday rakh do").
   The new name is used everywhere: how it introduces itself, Live calls, approvals, the window title and every
   label on screen. Nothing else changes; every skill keeps working. For a female voice pick Kore or Aoede in
