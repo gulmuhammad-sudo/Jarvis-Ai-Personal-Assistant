@@ -89,8 +89,8 @@ def _whisper(wav: bytes, mode: str) -> str:
         r = _whisper_once(wav, "ur", URDU_MODEL)
     elif other:                                            # e.g. Arabic, Hindi, French: tell Whisper
         r = _whisper_once(wav, languages.stt_code(mode), URDU_MODEL)
-    elif mode.startswith("custom:"):
-        r = _whisper_once(wav, None, URDU_MODEL)           # any language: let large-v3 detect it
+    elif mode.startswith("custom:"):                       # typed language: Whisper's code if it has one
+        r = _whisper_once(wav, languages.stt_code(mode), URDU_MODEL)
     else:
         r = _whisper_once(wav, None)                       # let Whisper detect the language
         lang = r["language"]

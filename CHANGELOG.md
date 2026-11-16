@@ -2,6 +2,14 @@
 
 All notable changes to this assistant. Versions follow [semantic versioning](https://semver.org): MAJOR.MINOR.PATCH.
 
+## 1.3.3 (2026-11-16)
+
+### Fixed
+- The clock covered the search bar in smaller windows (moving it had pulled the toolbar into the middle). The
+  toolbar now always stays on the right; the clock is centred in the window only when there is room.
+- Languages typed under "Other" (e.g. Sindhi) now tell speech recognition which language it is (about 70 more
+  Whisper languages), so the wake word and Classic mode no longer guess; Sindhi letters are understood in names.
+
 ## 1.3.2 (2026-11-16)
 
 ### Fixed

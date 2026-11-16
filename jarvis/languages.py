@@ -28,6 +28,19 @@ LANGUAGES: dict[str, tuple] = {
     "ms": ("Malay", "Bahasa Melayu", "ms", "ms-MY-OsmanNeural", "ms-MY-YasminNeural", False),
 }
 MULTILINGUAL = ("en-US-AndrewMultilingualNeural", "en-US-AvaMultilingualNeural")
+# other languages Whisper knows (typed under "Other language"): name -> Whisper code
+WHISPER_CODES = {
+    "sindhi": "sd", "swahili": "sw", "korean": "ko", "nepali": "ne", "tamil": "ta", "telugu": "te", "marathi": "mr",
+    "gujarati": "gu", "kannada": "kn", "malayalam": "ml", "thai": "th", "vietnamese": "vi", "dutch": "nl", "polish": "pl",
+    "ukrainian": "uk", "greek": "el", "hebrew": "he", "kazakh": "kk", "uzbek": "uz", "tagalog": "tl", "filipino": "tl",
+    "somali": "so", "hausa": "ha", "yoruba": "yo", "amharic": "am", "sinhala": "si", "burmese": "my", "khmer": "km",
+    "lao": "lo", "mongolian": "mn", "azerbaijani": "az", "georgian": "ka", "armenian": "hy", "czech": "cs",
+    "romanian": "ro", "hungarian": "hu", "swedish": "sv", "norwegian": "no", "danish": "da", "finnish": "fi",
+    "serbian": "sr", "croatian": "hr", "bosnian": "bs", "slovak": "sk", "slovenian": "sl", "bulgarian": "bg",
+    "lithuanian": "lt", "latvian": "lv", "estonian": "et", "catalan": "ca", "afrikaans": "af", "welsh": "cy",
+    "tajik": "tg", "turkmen": "tk", "tatar": "tt", "maltese": "mt", "icelandic": "is", "irish": "ga", "basque": "eu",
+    "galician": "gl", "belarusian": "be", "macedonian": "mk", "albanian": "sq", "assamese": "as", "odia": "or",
+}
 
 
 def clean(code: str | None) -> str:
@@ -58,7 +71,9 @@ def native(code: str) -> str:
 def stt_code(code: str) -> str | None:
     """What to tell speech recognition (None = detect it)."""
     code = clean(code)
-    return None if code.startswith("custom:") else LANGUAGES[code][2]
+    if code.startswith("custom:"):
+        return WHISPER_CODES.get(code[7:].lower())        # e.g. Sindhi -> "sd"; unknown -> detect it
+    return LANGUAGES[code][2]
 
 
 def voice(code: str, female: bool = False) -> str:

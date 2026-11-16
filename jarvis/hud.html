@@ -168,9 +168,10 @@ body[data-state="listening"] .mic::before { border-color: rgba(var(--c-green), .
 .sysstat .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--green); box-shadow: 0 0 0 3px rgba(var(--c-green), .15); }
 .sysstat.warn b { color: var(--amber); } .sysstat.warn .dot { background: var(--amber); box-shadow: 0 0 0 3px rgba(var(--c-amber), .15); }
 .clockbox { text-align: center; line-height: 1.15; }
-@media (min-width: 1101px) {
-  .clockbox { position: absolute; left: 50%; top: 10px; height: 48px; transform: translateX(-50%); display: flex; flex-direction: column; justify-content: center; pointer-events: none; }
-}
+.sysstat { grid-column: 1; } .toolbar { grid-column: 3; }   /* fixed columns: moving the clock never moves these */
+/* in the middle of the window when there is room for it (placeClock() decides), else between the two */
+.clockbox.centered { position: absolute; left: 50%; top: 10px; height: 48px; transform: translateX(-50%);
+  display: flex; flex-direction: column; justify-content: center; pointer-events: none; }
 #date { color: var(--muted); font-size: 12.5px; letter-spacing: .02em; }
 #clock { font-family: var(--mono); font-size: 23px; font-weight: 500; color: var(--text); letter-spacing: .02em; }
 .toolbar { justify-self: end; display: flex; align-items: center; gap: 6px; min-width: 0; }
@@ -2627,8 +2628,19 @@ $("sReadTest").onclick = () => { voiceId = $("sReadVoice").value; stopSpeaking()
 $("sName").onkeydown = $("sCall").onkeydown = $("sLangOther").onkeydown = e => { if (e.key === "Enter") $("sNext").click(); };
 $("setupAgain").onclick = () => openSetup(true);
 
+// ---------- the clock goes in the middle of the window, but never on top of the search bar ----------
+function placeClock() {
+  const c = document.querySelector(".clockbox"), bar = document.querySelector(".toolbar"), st = $("sysstat");
+  c.classList.remove("centered");
+  if (innerWidth < 1101) return;
+  const w = c.getBoundingClientRect().width, mid = innerWidth / 2;
+  if (mid - w / 2 > st.getBoundingClientRect().right + 20 && mid + w / 2 < bar.getBoundingClientRect().left - 20) c.classList.add("centered");
+}
+window.addEventListener("resize", placeClock);
+
 // ---------- start ----------
 brand();
+requestAnimationFrame(placeClock); setTimeout(placeClock, 600);
 applyTheme();
 openSetup();          // first run: the welcome setup
 sizeCanvases(); drawConstel();
