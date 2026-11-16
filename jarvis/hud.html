@@ -1,0 +1,2119 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script>/* pick the theme before anything is drawn, so there is no dark/light flash */
+(function () { var t = "__THEME__"; try { if (t === "system") t = matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark"; } catch (e) {}
+  document.documentElement.dataset.theme = t === "light" ? "light" : "dark"; })();</script>
+<title>Jarvis Command Center</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Noto+Nastaliq+Urdu:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #05080c;
+  --surface: #0a1017;
+  --surface-2: #0e161f;
+  --hair: rgba(var(--c-ink), 0.09);
+  --hair-2: rgba(var(--c-ink), 0.17);
+  --text: #e6edf4;
+  --muted: #8796a6;
+  --dim: #56667a;
+  --cyan: #5ccfff;             /* the one accent colour */
+  --cyan-ink: rgba(var(--c-accent), 0.12);
+  --green: #4ade80;
+  --amber: #fbbf24;
+  --red: #f87171;
+  --violet: #a78bfa;
+  --blue: #60a5fa;
+  --accent: var(--cyan);
+  --sans: "Inter", "Segoe UI", system-ui, sans-serif;
+  --urdu: "Noto Nastaliq Urdu", "Jameel Noori Nastaleeq", "Urdu Typesetting", serif;
+  --mono: "JetBrains Mono", Consolas, monospace;
+  --head: var(--mono);
+  --r: 12px;
+  --px: 0px; --py: 0px;        /* background parallax, set from the mouse */
+  /* theme tokens (dark). Colours used with opacity are "r, g, b" triplets: rgba(var(--c-accent), .5) */
+  --c-accent: 92, 207, 255; --c-green: 74, 222, 128; --c-amber: 251, 191, 36; --c-red: 248, 113, 113;
+  --c-ink: 150, 185, 215;      /* hairlines, tracks, scrollbars */
+  --c-fill: 255, 255, 255;     /* faint panel tints */
+  --bg-glow: #0b1622; --head: #a9b7c6; --mic-hi: #12202c; --mic-lo: #0a131b; --hero-glow: #0d1c29; --hero-ink: #f2f9ff;
+  --chip-bg: rgba(5, 8, 12, .5); --glass: rgba(5, 9, 13, .78); --code: #b9e6ff; --err-ink: #fecaca; --warn-ink: #fde68a;
+  --alert-red: #1c0c10; --alert-amber: #1c1608; --shadow: rgba(0, 0, 0, .6);
+  color-scheme: dark;
+}
+/* ---------- light theme (Settings → Theme, or the sun/moon button at the top) ---------- */
+:root[data-theme="light"] {
+  --bg: #eef2f6; --surface: #ffffff; --surface-2: #f4f7fa;
+  --text: #0f1b2a; --muted: #4c5c6e; --dim: #7a8899;
+  --cyan: #0369a1; --green: #15803d; --amber: #b45309; --red: #dc2626; --violet: #6d28d9; --blue: #1d4ed8;
+  --c-accent: 3, 105, 161; --c-green: 22, 163, 74; --c-amber: 217, 119, 6; --c-red: 220, 38, 38;
+  --c-ink: 20, 45, 75; --c-fill: 20, 45, 75;
+  --bg-glow: #f9fbfd; --head: #3b4b5d; --mic-hi: #ffffff; --mic-lo: #e7edf3; --hero-glow: #e3eef8; --hero-ink: #0b2236;
+  --chip-bg: rgba(255, 255, 255, .75); --glass: rgba(255, 255, 255, .88); --code: #075985; --err-ink: #991b1b; --warn-ink: #92400e;
+  --alert-red: #fff1f1; --alert-amber: #fff8e8; --shadow: rgba(15, 30, 50, .18);
+  color-scheme: light;
+}
+:root[data-theme="light"] body::after { opacity: .025; }
+:root[data-theme="light"] .heroText .t1 { text-shadow: 0 0 16px color-mix(in srgb, var(--accent) 28%, transparent); }
+:root[data-theme="light"] .modal { background: rgba(15, 30, 50, .35); }
+:root[data-theme="light"] .card { box-shadow: 0 1px 2px rgba(15, 30, 50, .05); }
+body[data-state="thinking"]  { --accent: var(--amber); }
+body[data-state="listening"] { --accent: var(--green); }
+
+* { box-sizing: border-box; }
+html, body { height: 100%; margin: 0; }
+body {
+  background: radial-gradient(1100px 650px at 50% 30%, var(--bg-glow) 0%, var(--bg) 70%);
+  color: var(--text); font-family: var(--sans); font-size: 14.5px; overflow: hidden;
+  -webkit-font-smoothing: antialiased; font-feature-settings: "cv11", "ss01";
+}
+body::before { /* fine dot grid that drifts with the mouse */
+  content: ""; position: fixed; inset: -40px; pointer-events: none;
+  background-image: radial-gradient(rgba(var(--c-ink), .085) 1px, transparent 1.2px);
+  background-size: 24px 24px; transform: translate(var(--px), var(--py));
+  mask-image: radial-gradient(ellipse at 50% 40%, #000 25%, transparent 78%);
+  transition: transform .25s ease-out;
+}
+body::after { /* film grain: stops the flat, rendered look */
+  content: ""; position: fixed; inset: 0; pointer-events: none; z-index: 80; opacity: .05; mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+}
+button { font-family: var(--sans); cursor: pointer; }
+button:focus-visible, input:focus-visible, select:focus-visible { outline: 2px solid var(--cyan); outline-offset: 2px; }
+svg.ic { width: 17px; height: 17px; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0; }
+.num, #clock, .gauge text, .memstats b, .tli .tm, .tli .st, .badge { font-variant-numeric: tabular-nums; }
+
+/* ---------- shell ---------- */
+.shell {
+  position: relative; height: 100vh; display: grid; gap: 10px; padding: 10px;
+  grid-template-columns: 220px minmax(0, 1fr);
+  grid-template-rows: 48px minmax(0, 1fr) 58px;
+  grid-template-areas: "side top" "side main" "foot foot";
+}
+.card {
+  position: relative; isolation: isolate;
+  background: linear-gradient(180deg, rgba(var(--c-fill), .022), rgba(var(--c-fill), .008)), var(--surface);
+  border: 1px solid var(--hair); border-radius: var(--r); padding: 13px 15px;
+  min-height: 0; overflow: hidden; display: flex; flex-direction: column;
+  transition: border-color .25s;
+  --x: -400px; --y: -400px;     /* cursor position inside the card, set from JS */
+}
+.card::before { /* soft light that follows the cursor */
+  content: ""; position: absolute; inset: 0; z-index: -1; pointer-events: none; border-radius: inherit;
+  background: radial-gradient(340px circle at var(--x) var(--y), rgba(var(--c-accent), .065), transparent 65%);
+}
+.card::after { /* border highlight near the cursor */
+  content: ""; position: absolute; inset: -1px; padding: 1px; border-radius: inherit; pointer-events: none;
+  background: radial-gradient(220px circle at var(--x) var(--y), rgba(var(--c-accent), .55), transparent 70%);
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor; mask-composite: exclude;
+}
+.card h3 {
+  margin: 0 0 11px; font-family: var(--sans); font-size: 12px; font-weight: 600; letter-spacing: .1em;
+  color: var(--head); text-transform: uppercase; display: flex; align-items: center; justify-content: space-between; gap: 8px;
+}
+.card h3 > span:first-child::before, .card h3 .ttl::before { content: ""; }
+.card h3 .more { font-family: var(--sans); letter-spacing: 0; font-size: 12px; color: var(--dim); background: none; border: 0; padding: 0; text-transform: none; }
+.card h3 .more:hover { color: var(--cyan); }
+.pill { font-family: var(--sans); font-size: 11px; font-weight: 500; letter-spacing: .08em; color: var(--muted); display: inline-flex; align-items: center; gap: 6px; }
+.pill::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+.pill.live { color: var(--green); }
+
+/* ---------- sidebar ---------- */
+.side { grid-area: side; display: flex; flex-direction: column; gap: 10px; min-height: 0; }
+.logo { height: 48px; display: flex; align-items: center; gap: 10px; padding: 0 12px; }
+.logo .mark { width: 28px; height: 28px; }
+.logo b { font-family: var(--sans); font-weight: 700; font-size: 16px; letter-spacing: .32em; color: var(--text); display: block; line-height: 1.1; max-width: 150px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.logo .mark .m1, .logo .mark .m2 { stroke: var(--cyan); } .logo .mark .m3 { fill: var(--text); }
+.logo small { font-family: var(--sans); font-size: 10px; font-weight: 500; letter-spacing: .18em; color: var(--dim); }
+nav { display: flex; flex-direction: column; gap: 2px; padding: 6px; border: 1px solid var(--hair); border-radius: var(--r); background: var(--surface); }
+.navi {
+  display: flex; align-items: center; gap: 11px; padding: 8px 10px; border-radius: 8px; border: 0;
+  background: none; color: var(--muted); font-size: 14.5px; font-weight: 500; text-align: left; width: 100%; position: relative;
+  transition: color .15s, background .15s;
+}
+.navi:hover { color: var(--text); background: rgba(var(--c-fill), .035); }
+.navi.active { color: var(--text); background: rgba(var(--c-accent), .08); }
+.navi.active::before { content: ""; position: absolute; left: -6px; top: 8px; bottom: 8px; width: 2px; border-radius: 2px; background: var(--cyan); }
+.navi .badge { margin-left: auto; font-family: var(--mono); font-style: normal; font-size: 11.5px; color: var(--dim); }
+.voicecard { flex: 1; align-items: center; justify-content: space-between; text-align: center; min-height: 180px; }
+.voicecard h3 { width: 100%; }
+.unmute { margin-top: 30px; height: 34px; font-size: 12.5px; animation: blink 1.6s infinite; }
+.unmute[hidden] { display: none; }
+#wave { width: 100%; height: 40px; display: block; }
+#vLabel { color: var(--muted); font-size: 13.5px; margin: 4px 0; min-height: 18px; }
+.mic {
+  width: 76px; height: 76px; border-radius: 50%; display: grid; place-items: center; position: relative;
+  border: 1px solid var(--hair-2); background: radial-gradient(circle at 50% 35%, var(--mic-hi), var(--mic-lo));
+  color: var(--text); transition: border-color .2s, transform .15s, box-shadow .3s;
+}
+.mic::before { content: ""; position: absolute; inset: -7px; border-radius: 50%; border: 1px dashed rgba(var(--c-accent), .25); animation: spin 18s linear infinite; }
+.mic:hover { border-color: var(--cyan); transform: scale(1.03); }
+.mic svg.ic { width: 26px; height: 26px; }
+body[data-state="listening"] .mic { border-color: var(--green); color: var(--green); box-shadow: 0 0 0 6px rgba(var(--c-green), .08), 0 0 28px rgba(var(--c-green), .25); }
+body[data-state="listening"] .mic::before { border-color: rgba(var(--c-green), .5); animation-duration: 4s; }
+.mic small { position: absolute; bottom: -26px; left: 50%; transform: translateX(-50%); white-space: nowrap; color: var(--muted); font-size: 12.5px; }
+.focusbtn {
+  height: 38px; border-radius: 10px; border: 1px solid var(--hair-2); background: var(--surface); color: var(--muted);
+  display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 13.5px; font-weight: 500;
+}
+.focusbtn:hover { color: var(--text); }
+.focusbtn.on { color: var(--green); border-color: rgba(var(--c-green), .45); background: rgba(var(--c-green), .06); }
+
+/* ---------- top bar ---------- */
+.top { grid-area: top; display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); align-items: center; gap: 12px; }
+.sysstat { justify-self: start; display: flex; align-items: center; gap: 9px; font-family: var(--sans); font-size: 12px; font-weight: 500; letter-spacing: .08em; color: var(--dim); }
+.sysstat b { color: var(--green); font-weight: 500; }
+.sysstat .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--green); box-shadow: 0 0 0 3px rgba(var(--c-green), .15); }
+.sysstat.warn b { color: var(--amber); } .sysstat.warn .dot { background: var(--amber); box-shadow: 0 0 0 3px rgba(var(--c-amber), .15); }
+.clockbox { text-align: center; line-height: 1.15; }
+#date { color: var(--muted); font-size: 12.5px; letter-spacing: .02em; }
+#clock { font-family: var(--mono); font-size: 23px; font-weight: 500; color: var(--text); letter-spacing: .02em; }
+.toolbar { justify-self: end; display: flex; align-items: center; gap: 6px; min-width: 0; }
+.search { display: flex; align-items: center; gap: 8px; height: 36px; padding: 0 5px 0 11px; border: 1px solid var(--hair-2); border-radius: 10px; background: var(--surface); width: clamp(180px, 18vw, 330px); color: var(--dim); transition: border-color .2s; }
+.search:focus-within { border-color: rgba(var(--c-accent), .5); }
+.search input { flex: 1; min-width: 0; background: none; border: 0; outline: none; color: var(--text); font-family: var(--sans); font-size: 14.5px; }
+.search input::placeholder { color: var(--dim); }
+.search button { background: none; border: 0; color: var(--muted); border-radius: 7px; height: 28px; width: 30px; display: grid; place-items: center; }
+.search button:hover { color: var(--cyan); background: var(--cyan-ink); }
+.iconbtn { width: 36px; height: 36px; border-radius: 10px; border: 1px solid var(--hair-2); background: var(--surface); color: var(--muted); display: grid; place-items: center; transition: color .15s, border-color .15s; }
+.iconbtn:hover { color: var(--text); border-color: rgba(var(--c-accent), .4); }
+.iconbtn.on { color: var(--cyan); }
+.operator { display: flex; align-items: center; gap: 9px; height: 36px; padding: 0 4px 0 11px; border-radius: 10px; border: 1px solid var(--hair-2); background: var(--surface); }
+.operator b { font-size: 13.5px; font-weight: 600; display: block; line-height: 1.1; }
+.operator small { font-size: 10.5px; color: var(--dim); }
+.avatar { width: 26px; height: 26px; border-radius: 8px; display: grid; place-items: center; color: var(--muted); background: rgba(var(--c-fill), .04); }
+
+/* ---------- main / dashboard ---------- */
+.main { grid-area: main; min-height: 0; position: relative; }
+.view { display: none; height: 100%; min-height: 0; }
+.view.active { display: flex; animation: fade .25s ease; }
+.dash { flex-direction: column; gap: 10px; }
+.row { display: grid; gap: 10px; min-height: 0; }
+.row1 { flex: 1.8; grid-template-columns: 250px minmax(0, 1fr) 316px; }
+.row2 { flex: 1; grid-template-columns: minmax(0, 1.45fr) minmax(0, 1fr) minmax(0, .78fr); }
+.row3 { flex: 1; grid-template-columns: minmax(0, 1fr) minmax(0, .82fr) minmax(0, 1.3fr); }
+
+/* core overview */
+.ovlist { display: flex; flex-direction: column; flex: 1; min-height: 0; overflow: auto; }
+.ov { display: flex; align-items: center; gap: 10px; padding: 7px 2px; border-bottom: 1px solid var(--hair); }
+.ov:last-child { border-bottom: 0; }
+.ov .ico { width: 26px; height: 26px; border-radius: 7px; display: grid; place-items: center; background: rgba(var(--c-fill), .04); color: var(--muted); }
+.ov > div { flex: 1; min-width: 0; display: flex; align-items: baseline; justify-content: space-between; gap: 6px; }
+.ov b { font-size: 13.5px; font-weight: 500; color: var(--text); }
+.ov small { font-family: var(--sans); font-size: 12px; font-weight: 500; color: var(--green); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ov small.warn { color: var(--amber); } .ov small.bad { color: var(--red); } .ov small.info { color: var(--cyan); } .ov small.vio { color: var(--violet); }
+
+/* hero */
+.hero { padding: 0; background: radial-gradient(ellipse at 50% 46%, var(--hero-glow) 0%, var(--surface) 68%); }
+#globe { position: absolute; inset: 0; width: 100%; height: 100%; cursor: grab; touch-action: none; }
+#globe.dragging { cursor: grabbing; }
+.heroText { position: absolute; left: 0; right: 0; top: calc((100% - 46px) * .53); transform: translateY(-58%); text-align: center; pointer-events: none; }
+.heroText .t1 { font-family: var(--sans); font-weight: 700; font-size: clamp(28px, 3vw, 44px); letter-spacing: .42em; padding-left: .42em; color: var(--hero-ink);
+  text-shadow: 0 0 18px color-mix(in srgb, var(--accent) 70%, transparent), 0 0 42px color-mix(in srgb, var(--accent) 35%, transparent); transition: text-shadow .4s; }
+.heroText .t2 { display: none; }
+.heroText .t3 { font-family: var(--mono); font-size: 11.5px; letter-spacing: .32em; padding-left: .32em; color: var(--accent); margin-top: 6px; transition: color .4s; }
+#stateLabel { position: absolute; top: 12px; left: 15px; font-family: var(--sans); font-size: 12px; font-weight: 600; letter-spacing: .1em; color: var(--accent); text-transform: uppercase; display: flex; align-items: center; gap: 8px; transition: color .3s; }
+#stateLabel::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 20%, transparent); }
+#modelTag { position: absolute; top: 10px; right: 13px; font-family: var(--sans); font-size: 12px; color: var(--muted); border: 1px solid var(--hair-2); border-radius: 6px; padding: 2px 8px; background: var(--chip-bg); }
+#globeHint { position: absolute; left: 15px; top: 32px; font-family: var(--sans); font-size: 11.5px; color: var(--dim); pointer-events: none; letter-spacing: .04em; }
+#globeRead { position: absolute; right: 13px; top: 38px; font-family: var(--mono); font-size: 11px; color: var(--muted); pointer-events: none; text-align: right; line-height: 1.5; }
+.subs {
+  position: absolute; left: 50%; bottom: 10px; transform: translateX(-50%); width: min(86%, 640px); max-height: 30%;
+  overflow-y: auto; padding: 9px 13px; border-radius: 10px; background: var(--glass); border: 1px solid var(--hair-2);
+  backdrop-filter: blur(8px); font-size: 14.5px; line-height: 1.5; cursor: pointer;
+}
+.subs:empty { display: none; }
+.subs .u { color: var(--muted); font-size: 13.5px; margin-bottom: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.subs .j { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.subs:hover .j { -webkit-line-clamp: unset; }
+.subs .u b, .subs .j b { font-family: var(--sans); font-size: 11px; font-weight: 700; letter-spacing: .1em; margin-right: 8px; }
+.subs .u b { color: var(--dim); } .subs .j b { color: var(--cyan); }
+.subs code { font-family: var(--mono); color: var(--code); }
+
+/* activity feed */
+.feed { display: flex; flex-direction: column; overflow-y: auto; flex: 1; min-height: 0; padding-right: 2px; }
+.fi { display: flex; align-items: center; gap: 10px; padding: 7px 2px; border-bottom: 1px solid var(--hair); animation: rise .3s ease; }
+.fi:hover { background: rgba(var(--c-fill), .02); }
+.fi .ico { width: 26px; height: 26px; border-radius: 7px; display: grid; place-items: center; flex-shrink: 0; background: rgba(var(--c-fill), .04); color: var(--muted); }
+.fi .tx { min-width: 0; flex: 1; }
+.fi .tx b { display: block; font-size: 13.5px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.fi .tx small { display: block; font-size: 12px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.fi .tag { font-family: var(--sans); font-size: 10.5px; font-weight: 600; letter-spacing: .06em; flex-shrink: 0; color: var(--dim); }
+.tag.LIVE { color: var(--green); } .tag.WARN { color: var(--amber); } .tag.ALERT { color: var(--red); } .tag.TIP { color: var(--violet); } .tag.INFO { color: var(--cyan); }
+.fi.WARN .ico { color: var(--amber); } .fi.ALERT .ico { color: var(--red); } .fi.LIVE .ico { color: var(--green); } .fi.TIP .ico { color: var(--violet); } .fi.INFO .ico { color: var(--cyan); }
+.empty { color: var(--muted); font-size: 13px; padding: 6px 2px; }
+
+/* agents */
+.agents { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); grid-auto-rows: 1fr; gap: 8px; flex: 1; min-height: 0; }
+.ag { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: 10px; border: 1px solid var(--hair); background: rgba(var(--c-fill), .015); position: relative; overflow: hidden; min-height: 0; transition: border-color .2s, background .2s, transform .15s; }
+.ag:hover { border-color: var(--hair-2); background: rgba(var(--c-fill), .03); transform: translateY(-1px); }
+.ag .ico { width: 30px; height: 30px; border-radius: 8px; display: grid; place-items: center; flex-shrink: 0; background: rgba(var(--c-fill), .04); }
+.ag b { font-size: 13.5px; font-weight: 500; display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ag small { font-family: var(--sans); font-size: 12px; color: var(--muted); display: flex; align-items: center; gap: 6px; }
+.ag small::before { content: ""; width: 5px; height: 5px; border-radius: 50%; background: var(--dim); }
+.ag.on { border-color: rgba(var(--c-green), .35); background: rgba(var(--c-green), .04); }
+.ag.on small { color: var(--green); } .ag.on small::before { background: var(--green); }
+.ag .bars { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); display: flex; gap: 2px; align-items: center; height: 18px; opacity: 0; transition: opacity .3s; }
+.ag .bars i { width: 2px; background: var(--green); border-radius: 2px; height: 30%; }
+.ag.on .bars { opacity: 1; } .ag.on .bars i { animation: eq .8s ease-in-out infinite alternate; }
+.ag .bars i:nth-child(2n) { animation-delay: .2s; } .ag .bars i:nth-child(3n) { animation-delay: .4s; }
+
+/* timeline */
+.tl { display: flex; flex-direction: column; overflow-y: auto; flex: 1; min-height: 0; position: relative; }
+.tl::before { content: ""; position: absolute; left: 51px; top: 6px; bottom: 6px; width: 1px; background: var(--hair-2); }
+.tli { display: grid; grid-template-columns: 40px 9px minmax(0, 1fr) auto; align-items: center; gap: 9px; padding: 6px 2px; font-size: 13.5px; position: relative; }
+.tli .tm { font-family: var(--mono); color: var(--muted); font-size: 11.5px; }
+.tli .dot { width: 9px; height: 9px; border-radius: 50%; border: 1.5px solid var(--cyan); background: var(--surface); z-index: 1; }
+.tli.done .dot { background: var(--dim); border-color: var(--dim); }
+.tli.soon .dot { border-color: var(--amber); background: var(--amber); }
+.tli .nm { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.tli .st { font-family: var(--mono); color: var(--muted); font-size: 11.5px; }
+.tli.done .nm, .tli.done .st { color: var(--dim); }
+.tli.soon .st { color: var(--amber); }
+
+/* shortcuts */
+.quick { display: flex; flex-direction: column; gap: 5px; flex: 1; min-height: 0; overflow-y: auto; }
+.qbtn { display: flex; align-items: center; gap: 9px; padding: 7px 10px; border-radius: 8px; border: 1px solid var(--hair); background: rgba(var(--c-fill), .015); color: var(--text); font-size: 13.5px; text-align: left; transition: border-color .15s, background .15s; }
+.qbtn:hover { border-color: rgba(var(--c-accent), .4); background: var(--cyan-ink); }
+.qbtn svg.ic { color: var(--muted); width: 15px; height: 15px; }
+.qbtn:hover svg.ic { color: var(--cyan); }
+.qbtn::after { content: "↗"; margin-left: auto; color: var(--dim); font-size: 11px; opacity: 0; transition: opacity .15s; }
+.qbtn:hover::after { opacity: 1; }
+
+/* system monitor */
+.gauges { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 6px; flex: 1; align-items: center; min-height: 0; }
+.gauge { text-align: center; min-height: 0; transition: transform .2s; }
+.gauge:hover { transform: scale(1.05); }
+.gauge svg { width: 100%; max-width: min(92px, 12vh); display: block; margin: 0 auto; }
+.gauge .track { stroke: rgba(var(--c-ink), .10); }
+.gauge .ticks { stroke: rgba(var(--c-ink), .22); }
+.gauge .bar { stroke: var(--cyan); transition: stroke-dashoffset .8s cubic-bezier(.2, .8, .2, 1), stroke .3s; }
+.gauge .bar.warn { stroke: var(--amber); } .gauge .bar.crit { stroke: var(--red); }
+.gauge text { fill: var(--text); font-family: var(--mono); font-weight: 500; }
+.gauge text.l { fill: var(--muted); font-family: var(--sans); font-weight: 600; letter-spacing: .08em; }
+.gauge text.sub { fill: var(--dim); font-family: var(--sans); font-weight: 500; }
+
+/* memory */
+.memwrap { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 12px; flex: 1; min-height: 0; }
+#constel { width: 100%; height: 100%; min-height: 0; }
+.memstats { display: flex; flex-direction: column; justify-content: center; gap: 7px; font-size: 12px; color: var(--muted); }
+.memstats b { display: block; font-family: var(--mono); font-size: 18px; font-weight: 500; color: var(--text); }
+
+/* models */
+.llms { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); grid-auto-rows: min-content; gap: 6px; flex: 1; min-height: 0; overflow-y: auto; align-content: start; }
+.llm { display: flex; align-items: center; gap: 9px; padding: 6px 8px; border-radius: 8px; border: 1px solid var(--hair); background: rgba(var(--c-fill), .015); min-width: 0; transition: border-color .15s; }
+.llm:hover { border-color: var(--hair-2); }
+.llm .ico { width: 24px; height: 24px; border-radius: 6px; display: grid; place-items: center; flex-shrink: 0; background: rgba(var(--c-fill), .04); color: var(--muted); font-family: var(--mono); font-size: 9.5px; font-weight: 600; }
+.llm b { display: block; font-size: 13px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.llm small { font-family: var(--sans); font-size: 11.5px; text-transform: capitalize; }
+.s-active { color: var(--green); } .s-connected { color: var(--cyan); } .s-limited { color: var(--amber); }
+.s-offline { color: var(--red); } .s-no { color: var(--dim); }
+.llmfoot { text-align: center; margin-top: 6px; }
+.link { background: none; border: 0; color: var(--muted); font-size: 13px; padding: 2px 4px; }
+.link:hover { color: var(--cyan); }
+
+/* ---------- pages ---------- */
+.page { flex: 1; }
+.page .body { flex: 1; min-height: 0; overflow-y: auto; }
+#chat { display: flex; flex-direction: column; gap: 10px; padding: 4px 6px 4px 0; max-width: 900px; margin: 0 auto; }
+.msg { max-width: 78%; padding: 10px 14px; border-radius: 12px; line-height: 1.55; font-size: 15.5px; word-wrap: break-word; animation: rise .25s ease; }
+.msg .who { font-family: var(--sans); font-size: 11px; font-weight: 700; letter-spacing: .1em; color: var(--dim); margin-bottom: 4px; }
+.msg.jarvis { align-self: flex-start; background: var(--surface-2); border: 1px solid var(--hair); }
+.msg.jarvis .who { color: var(--cyan); }
+.msg.user { align-self: flex-end; background: rgba(var(--c-accent), .08); border: 1px solid rgba(var(--c-accent), .18); }
+.msg.notify { align-self: center; border: 1px solid rgba(var(--c-amber), .4); color: var(--amber); background: rgba(var(--c-amber), .05); }
+.msg.error { align-self: center; border: 1px solid rgba(var(--c-red), .4); color: var(--err-ink); background: rgba(var(--c-red), .06); }
+.msg.notify .who, .msg.error .who { color: inherit; }
+.msg pre { background: var(--bg); border: 1px solid var(--hair); padding: 8px 10px; overflow-x: auto; font-size: 12.5px; text-align: left; border-radius: 8px; }
+.msg code { font-family: var(--mono); font-size: .88em; color: var(--code); }
+.msg a { color: var(--cyan); }
+.typing span { display: inline-block; width: 6px; height: 6px; margin-right: 4px; background: var(--muted); border-radius: 50%; animation: dot 1s infinite; }
+.typing span:nth-child(2) { animation-delay: .15s; } .typing span:nth-child(3) { animation-delay: .3s; }
+.composer { display: flex; gap: 8px; margin-top: 10px; max-width: 900px; width: 100%; margin-left: auto; margin-right: auto; }
+.composer input { flex: 1; min-width: 0; height: 42px; border-radius: 10px; border: 1px solid var(--hair-2); background: var(--bg); color: var(--text); padding: 0 14px; font-family: var(--sans); font-size: 14px; outline: none; }
+.composer input:focus { border-color: rgba(var(--c-accent), .5); }
+.btn { height: 38px; padding: 0 14px; border-radius: 10px; border: 1px solid var(--hair-2); background: var(--surface-2); color: var(--text); font-weight: 500; font-size: 13px; display: inline-flex; align-items: center; gap: 8px; transition: border-color .15s, color .15s; }
+.btn:hover { border-color: rgba(var(--c-accent), .45); color: var(--cyan); }
+.btn.on { color: var(--green); border-color: rgba(var(--c-green), .45); }
+.btn.danger { color: var(--red); border-color: rgba(var(--c-red), .35); }
+.list { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 8px; }
+.item { padding: 10px 12px; border-radius: 10px; border: 1px solid var(--hair); background: rgba(var(--c-fill), .015); display: flex; gap: 10px; align-items: flex-start; transition: border-color .15s; }
+.item:hover { border-color: var(--hair-2); }
+.item .ico { width: 28px; height: 28px; border-radius: 7px; display: grid; place-items: center; background: rgba(var(--c-fill), .04); color: var(--muted); flex-shrink: 0; font-family: var(--mono); font-size: 10px; }
+.item b { display: block; font-size: 14px; font-weight: 500; margin-bottom: 2px; }
+.item small { color: var(--muted); font-size: 12.5px; line-height: 1.45; display: block; }
+.item .x { margin-left: auto; background: none; border: 0; color: var(--dim); padding: 2px; }
+.item .x:hover { color: var(--red); }
+.settings { display: grid; gap: 8px; max-width: 760px; }
+.setrow { display: flex; align-items: center; gap: 12px; padding: 12px 14px; border-radius: 10px; border: 1px solid var(--hair); background: rgba(var(--c-fill), .015); flex-wrap: wrap; }
+.setrow .lbl { flex: 1; min-width: 200px; }
+.setrow .lbl b { display: block; font-size: 14.5px; font-weight: 500; } .setrow .lbl small { color: var(--muted); font-size: 13px; }
+select { height: 38px; min-width: 240px; border-radius: 10px; border: 1px solid var(--hair-2); background: var(--bg); color: var(--text); padding: 0 10px; font-family: var(--sans); font-size: 13.5px; }
+.setrow input.txt { height: 38px; width: 220px; border-radius: 10px; border: 1px solid var(--hair-2); background: var(--bg); color: var(--text); padding: 0 12px; font: 14px var(--sans); outline: none; }
+.setrow input.txt:focus { border-color: rgba(var(--c-accent), .5); }
+.setrow .err { color: var(--red); }
+h4.sec { font-family: var(--sans); font-size: 12px; letter-spacing: .14em; color: var(--dim); margin: 16px 0 8px; font-weight: 500; }
+
+/* ---------- profile ---------- */
+.operator { cursor: pointer; transition: border-color .15s; }
+.operator:hover, .operator:focus-visible { border-color: rgba(var(--c-accent), .45); outline: none; }
+.profile { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 12px; max-width: 1000px; }
+.pf { display: grid; gap: 5px; align-content: start; } .pf.wide { grid-column: 1 / -1; }
+.pf span { font-size: 12.5px; color: var(--muted); letter-spacing: .02em; }
+.pf input, .pf textarea { width: 100%; border-radius: 10px; border: 1px solid var(--hair-2); background: var(--bg); color: var(--text);
+  padding: 9px 12px; font: 14px/1.45 var(--sans); outline: none; resize: vertical; }
+.pf textarea { min-height: 64px; }
+.pf input:focus, .pf textarea:focus { border-color: rgba(var(--c-accent), .5); }
+.pfbar { display: flex; align-items: center; gap: 14px; margin-top: 16px; flex-wrap: wrap; max-width: 1000px; }
+.pfbar small { color: var(--muted); font-size: 12.5px; flex: 1; min-width: 240px; }
+
+/* ---------- alerts (warnings pop up here and beep) ---------- */
+#alerts { position: fixed; top: 70px; left: 50%; transform: translateX(-50%); z-index: 70; display: grid; gap: 8px; width: min(560px, calc(100vw - 32px)); pointer-events: none; }
+.alertx { pointer-events: auto; display: flex; gap: 12px; align-items: flex-start; padding: 12px 12px 12px 14px; border-radius: 12px;
+  background: var(--alert-red); border: 1px solid rgba(var(--c-red), .6); box-shadow: 0 12px 40px var(--shadow), 0 0 0 4px rgba(var(--c-red), .1);
+  animation: alertIn .25s ease-out, alertGlow 1s ease-in-out 3; }
+.alertx.WARN { background: var(--alert-amber); border-color: rgba(var(--c-amber), .6); box-shadow: 0 12px 40px var(--shadow), 0 0 0 4px rgba(var(--c-amber), .1); }
+.alertx .ico { color: var(--red); margin-top: 1px; } .alertx.WARN .ico { color: var(--amber); }
+.alertx .tx { min-width: 0; flex: 1; }
+.alertx b { display: block; font-size: 14.5px; font-weight: 600; }
+.alertx small { display: block; color: var(--muted); font-size: 12.5px; margin-top: 2px; line-height: 1.4; }
+.alertx .tm { font-family: var(--mono); font-size: 11px; color: var(--dim); }
+.alertx button { background: none; border: 0; color: var(--muted); cursor: pointer; padding: 2px; }
+.alertx button:hover { color: var(--text); }
+@keyframes alertIn { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: none; } }
+@keyframes alertGlow { 50% { box-shadow: 0 12px 40px var(--shadow), 0 0 0 7px rgba(var(--c-red), .22); } }
+
+/* ---------- footer ---------- */
+.foot { grid-area: foot; display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 12px; padding: 0 8px; border: 1px solid var(--hair); border-radius: var(--r); background: var(--surface); }
+.chips { display: flex; gap: 18px; min-width: 0; padding-left: 6px; }
+.chip { display: flex; align-items: center; gap: 9px; min-width: 0; }
+.chip svg.ic { color: var(--dim); }
+.chip small { display: block; font-family: var(--sans); font-size: 10.5px; font-weight: 500; letter-spacing: .08em; color: var(--muted); text-transform: uppercase; }
+.chip b { display: block; font-size: 13.5px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 170px; }
+.talkwrap { display: flex; align-items: center; gap: 12px; }
+.wv { display: flex; gap: 3px; align-items: center; height: 20px; color: var(--dim); opacity: .5; transition: opacity .3s, color .3s; }
+.wv i { width: 2px; height: 15%; border-radius: 2px; background: currentColor; }
+body.speaking .wv i, body[data-state="listening"] .wv i { animation: eq .7s ease-in-out infinite alternate; }
+body[data-state="listening"] .wv { color: var(--green); opacity: 1; } body.speaking .wv { color: var(--cyan); opacity: 1; }
+.wv i:nth-child(2n) { animation-delay: .15s; } .wv i:nth-child(3n) { animation-delay: .3s; } .wv i:nth-child(5n) { animation-delay: .45s; }
+.talk {
+  min-width: 230px; height: 42px; border-radius: 99px; border: 1px solid rgba(var(--c-accent), .45); color: var(--text); padding: 0 22px;
+  background: linear-gradient(180deg, rgba(var(--c-accent), .14), rgba(var(--c-accent), .05)); line-height: 1.15;
+  display: flex; align-items: center; justify-content: center; gap: 10px; transition: border-color .2s, background .2s, transform .1s;
+}
+.talk:hover { border-color: var(--cyan); background: linear-gradient(180deg, rgba(var(--c-accent), .22), rgba(var(--c-accent), .08)); }
+.talk:active { transform: scale(.98); }
+.talk b { font-size: 14.5px; font-weight: 600; letter-spacing: .02em; display: block; text-align: left; }
+.talk small { font-family: var(--sans); font-size: 11.5px; color: var(--muted); display: block; text-align: left; }
+body[data-state="listening"] .talk { border-color: var(--green); background: linear-gradient(180deg, rgba(var(--c-green), .18), rgba(var(--c-green), .05)); }
+.brief { justify-self: end; }
+
+/* ---------- confirm modal / offline banner ---------- */
+.modal { position: fixed; inset: 0; z-index: 60; display: none; place-items: center; background: rgba(0, 0, 0, .55); backdrop-filter: blur(4px); }
+.modal.open { display: grid; }
+.modal .card { width: min(620px, 92vw); border-color: rgba(var(--c-amber), .45); }
+.modal h3 { color: var(--amber); }
+/* approval box */
+.modal .card.approve { width: min(580px, 92vw); padding: 18px 20px 16px; gap: 12px; border-color: rgba(var(--c-amber), .5);
+  box-shadow: 0 24px 80px var(--shadow), 0 0 0 4px rgba(var(--c-amber), .08); animation: alertIn .2s ease-out; }
+.approve.risky { border-color: rgba(var(--c-red), .55); box-shadow: 0 24px 80px var(--shadow), 0 0 0 4px rgba(var(--c-red), .08); }
+.ahead { display: flex; align-items: center; gap: 12px; }
+.aico { width: 42px; height: 42px; border-radius: 12px; display: grid; place-items: center; flex-shrink: 0; background: rgba(var(--c-amber), .13); color: var(--amber); }
+.approve.risky .aico { background: rgba(var(--c-red), .13); color: var(--red); }
+.aico svg.ic { width: 22px; height: 22px; }
+.modal .ahead h3 { margin: 0; font-size: 15.5px; letter-spacing: .02em; text-transform: none; color: var(--text); display: block; }
+.ahead small { display: block; color: var(--muted); font-size: 12.5px; margin-top: 2px; }
+.aq { margin-left: auto; align-self: flex-start; font: 600 11px var(--mono); color: var(--dim); }
+#mSummary { margin: 0; font-size: 16px; line-height: 1.5; color: var(--text); font-weight: 500; }
+.modal pre[hidden] { display: none; }
+.avoice { display: flex; align-items: center; gap: 10px; font-size: 13px; line-height: 1.45; color: var(--muted); padding: 9px 11px; border-radius: 10px;
+  background: rgba(var(--c-fill), .03); border: 1px solid var(--hair); transition: border-color .2s, color .2s; }
+.avoice b { color: var(--text); font-weight: 600; }
+.avoice .vdot { width: 9px; height: 9px; border-radius: 50%; background: var(--dim); flex-shrink: 0; }
+.avoice.listening { color: var(--text); border-color: rgba(var(--c-green), .4); }
+.avoice.listening .vdot { background: var(--green); animation: vpulse 1.3s ease-out infinite; }
+@keyframes vpulse { 0% { box-shadow: 0 0 0 0 rgba(var(--c-green), .6); } 100% { box-shadow: 0 0 0 10px rgba(var(--c-green), 0); } }
+.abar { height: 3px; border-radius: 3px; background: rgba(var(--c-ink), .15); overflow: hidden; }
+.abar i { display: block; height: 100%; width: 100%; background: var(--amber); transition: width 1s linear; }
+.approve.risky .abar i { background: var(--red); }
+.modal .approve .btns { align-items: center; margin-top: 2px; }
+.approve .btns small { margin-right: auto; color: var(--dim); font-size: 12px; font-variant-numeric: tabular-nums; }
+.approve .btn { height: 40px; padding: 0 16px; }
+.btn kbd { font: 500 10.5px var(--mono); color: var(--dim); border: 1px solid var(--hair-2); border-radius: 4px; padding: 0 4px; }
+.modal pre { white-space: pre-wrap; word-break: break-word; background: var(--bg); padding: 12px; border: 1px solid var(--hair-2); border-radius: 8px; font-family: var(--mono); font-size: 12.5px; color: var(--warn-ink); max-height: 40vh; overflow: auto; margin: 0; }
+.modal .btns { display: flex; justify-content: flex-end; gap: 8px; margin-top: 12px; }
+.modal .allow { background: var(--amber); color: #1a1205; border-color: transparent; font-weight: 600; }
+.modal .allow:hover { color: #1a1205; border-color: transparent; filter: brightness(1.08); }
+.approve.risky .allow { background: var(--red); color: #fff; }
+.offline { position: fixed; top: 8px; left: 50%; transform: translateX(-50%); z-index: 70; display: none; border: 1px solid rgba(var(--c-red), .5); color: var(--red); background: var(--alert-red); padding: 5px 12px; border-radius: 8px; font-family: var(--mono); font-size: 10.5px; letter-spacing: .08em; }
+.offline.show { display: block; }
+
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-thumb { background: rgba(var(--c-ink), .15); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(var(--c-ink), .3); }
+
+.ur { font-family: var(--urdu); direction: rtl; text-align: right; line-height: 2.1; }
+.msg.ur { font-size: 16.5px; }
+.subs .j.ur { line-height: 2; font-size: 15px; }
+.iconbtn.lang { width: auto; padding: 0 11px; font-family: var(--sans); font-size: 12.5px; font-weight: 600; }
+.iconbtn.lang.ur-on { color: var(--green); border-color: rgba(var(--c-green), .45); font-family: var(--urdu); font-size: 13px; line-height: 1; }
+.tli.alarm .dot { border-color: var(--amber); }
+.tli.prayer .dot { border-color: var(--green); }
+.tli .rp { font-family: var(--sans); font-size: 10.5px; color: var(--dim); margin-left: 6px; }
+@keyframes rise { from { opacity: 0; transform: translateY(4px); } }
+@keyframes fade { from { opacity: 0; } }
+@keyframes dot { 0%,100% { opacity: .25; } 50% { opacity: 1; } }
+@keyframes eq { from { height: 15%; } to { height: 100%; } }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ---------- smaller screens ---------- */
+@media (max-height: 820px) and (min-width: 1101px) {
+  .card { padding: 10px 13px; }
+  .card h3 { margin-bottom: 8px; }
+  .ov { padding: 4px 2px; } .ov .ico { width: 24px; height: 24px; } .ov .ico svg.ic { width: 14px; height: 14px; }
+  .fi { padding: 5px 2px; } .fi .ico { width: 24px; height: 24px; }
+  .ag { padding: 5px 9px; } .ag .ico { width: 28px; height: 28px; }
+  .qbtn { padding: 4px 10px; } .quick { gap: 4px; }
+  .llm { padding: 4px 8px; } .llms { gap: 5px; } .llm .ico { width: 22px; height: 22px; }
+  .llmfoot { margin-top: 3px; }
+  .navi { padding: 7px 10px; }
+  .mic { width: 66px; height: 66px; }
+  .operator div { display: none; } .operator { padding: 0 4px; }
+}
+@media (max-width: 1360px) and (min-width: 1101px) {
+  .shell { grid-template-columns: 60px minmax(0, 1fr); }
+  .logo div, .navi span, .navi .badge, .voicecard h3, #wave, #vLabel, .focusbtn span, .mic small { display: none; }
+  .logo { justify-content: center; padding: 0; }
+  .navi { justify-content: center; padding: 10px 0; }
+  .voicecard { min-height: 0; justify-content: center; padding: 10px 0; }
+  .mic { width: 44px; height: 44px; } .mic svg.ic { width: 20px; height: 20px; }
+  .row1 { grid-template-columns: 220px minmax(0, 1fr) 280px; }
+}
+@media (max-width: 1100px) {
+  body { overflow: auto; }
+  .shell { height: auto; min-height: 100vh; grid-template-columns: 1fr; grid-template-rows: auto auto auto auto;
+    grid-template-areas: "side" "top" "main" "foot"; }
+  .side { display: grid; grid-template-columns: 1fr auto; }
+  nav { grid-column: 1 / -1; flex-direction: row; overflow-x: auto; }
+  .navi { width: auto; white-space: nowrap; }
+  .navi.active::before { display: none; }
+  .voicecard { display: none; }
+  .top { grid-template-columns: 1fr; justify-items: center; }
+  .sysstat, .toolbar { justify-self: center; }
+  .toolbar { flex-wrap: wrap; justify-content: center; }
+  .search { width: min(100%, 420px); }
+  .row, .row1, .row2, .row3 { grid-template-columns: 1fr; flex: none; }
+  .hero { min-height: 360px; }
+  .card { min-height: 180px; }
+  .view.active { height: auto; }
+  .foot { grid-template-columns: 1fr; justify-items: center; padding: 10px; }
+  .chips { flex-wrap: wrap; justify-content: center; }
+  .brief { justify-self: center; }
+  .agents { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .llms { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 560px) {
+  .operator, .wv { display: none; }
+  .talk { min-width: 0; width: 100%; }
+  .agents, .llms { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .gauges { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .msg { max-width: 92%; }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0s !important; animation-iteration-count: 1 !important; transition-duration: 0s !important; }
+}
+</style>
+</head>
+<body data-state="idle">
+<div class="offline" id="offline">CONNECTION LOST · RECONNECTING</div>
+<div class="shell">
+
+  <!-- ===== sidebar ===== -->
+  <aside class="side">
+    <div class="logo">
+      <svg class="mark" viewBox="0 0 40 40" aria-hidden="true">
+        <circle class="m1" cx="20" cy="20" r="17" fill="none" stroke-opacity=".5" stroke-width="1" stroke-dasharray="2 3"/>
+        <circle class="m2" cx="20" cy="20" r="11" fill="none" stroke-width="2" stroke-dasharray="12 5"/>
+        <circle class="m3" cx="20" cy="20" r="4"/>
+      </svg>
+      <div><b id="logoName">JARVIS</b><small>COMMAND CENTER</small></div>
+    </div>
+    <nav id="nav" aria-label="Sections">
+      <button class="navi active" data-view="dash"><i data-ic="grid"></i><span>Command Center</span></button>
+      <button class="navi" data-view="conv"><i data-ic="chat"></i><span>Conversations</span><em class="badge" id="bConv">0</em></button>
+      <button class="navi" data-view="memory"><i data-ic="db"></i><span>Memory</span><em class="badge" id="bMem">0</em></button>
+      <button class="navi" data-view="profile"><i data-ic="user"></i><span>Profile</span></button>
+      <button class="navi" data-view="tools"><i data-ic="wrench"></i><span>Tools &amp; Skills</span><em class="badge" id="bTools">0</em></button>
+      <button class="navi" data-view="models"><i data-ic="layers"></i><span>AI Models</span><em class="badge" id="bModels">0</em></button>
+      <button class="navi" data-view="settings"><i data-ic="gear"></i><span>Settings</span></button>
+    </nav>
+    <section class="card voicecard">
+      <h3>Voice status <span class="pill live" id="vPill">READY</span></h3>
+      <canvas id="wave" aria-hidden="true"></canvas>
+      <div id="vLabel">Tap to speak</div>
+      <button class="mic" id="mic" title="Talk to Jarvis (Ctrl+Space)" aria-label="Talk to Jarvis"><i data-ic="mic"></i><small>Tap to Speak</small></button>
+      <button class="btn danger unmute" id="unmuteBtn" hidden title="Windows has your microphone muted"><i data-ic="mic"></i>Mic is muted · Unmute</button>
+      <div style="height:22px"></div>
+    </section>
+    <button class="focusbtn" id="voiceBtn" title="Hands-free: Jarvis keeps listening"><i data-ic="zap"></i><span id="voiceBtnTxt">Hands-free mode</span></button>
+  </aside>
+
+  <!-- ===== top bar ===== -->
+  <header class="top">
+    <div class="sysstat" id="sysstat"><span>SYSTEM STATUS</span><span class="dot"></span><b id="sysStatus">OPTIMAL</b></div>
+    <div class="clockbox"><div id="date"></div><div id="clock">--:--:--</div></div>
+    <div class="toolbar">
+      <form class="search" id="form" autocomplete="off">
+        <i data-ic="search"></i>
+        <input id="input" placeholder="Ask Jarvis anything…  (Ctrl+K)" aria-label="Message Jarvis">
+        <button type="submit" aria-label="Send"><i data-ic="send"></i></button>
+      </form>
+      <button class="iconbtn lang" id="langBtn" title="Language: English / Urdu (click to switch)" aria-label="Switch language">EN</button>
+      <button class="iconbtn" id="speakBtn" title="Spoken replies on/off" aria-label="Spoken replies"><i data-ic="speaker"></i></button>
+      <button class="iconbtn" id="resetBtn" title="Start a new conversation" aria-label="New conversation"><i data-ic="refresh"></i></button>
+      <button class="iconbtn" id="themeBtn" title="Switch to the light theme" aria-label="Switch between light and dark theme"><i data-ic="sun"></i></button>
+      <button class="iconbtn" data-go="settings" title="Settings" aria-label="Settings"><i data-ic="gear"></i></button>
+      <div class="operator" id="operator" role="button" tabindex="0" title="Your profile"><div><b id="opName">__USER__</b><small>Profile</small></div><span class="avatar"><i data-ic="user"></i></span></div>
+    </div>
+  </header>
+
+  <!-- ===== main ===== -->
+  <main class="main">
+    <!-- Command Center -->
+    <section class="view dash active" data-view="dash">
+      <div class="row row1">
+        <section class="card">
+          <h3>Core status</h3>
+          <div class="ovlist">
+            <div class="ov"><span class="ico"><i data-ic="core"></i></span><div><b>AI Core</b><small id="ovCore">Active</small></div></div>
+            <div class="ov"><span class="ico"><i data-ic="db"></i></span><div><b>Memory</b><small class="info" id="ovMem">0 stored</small></div></div>
+            <div class="ov"><span class="ico"><i data-ic="mic"></i></span><div><b>Voice</b><small id="ovVoice">Online</small></div></div>
+            <div class="ov"><span class="ico"><i data-ic="wrench"></i></span><div><b>Tools</b><small class="vio" id="ovTools">— ready</small></div></div>
+            <div class="ov"><span class="ico"><i data-ic="layers"></i></span><div><b>LLMs</b><small class="warn" id="ovLlm">— connected</small></div></div>
+            <div class="ov"><span class="ico"><i data-ic="shield"></i></span><div><b>System</b><small id="ovSys">Optimal</small></div></div>
+          </div>
+        </section>
+
+        <section class="card hero">
+          <canvas id="globe" aria-hidden="true"></canvas>
+          <div id="stateLabel">Standing by</div>
+          <div id="modelTag">—</div>
+          <div class="heroText"><div class="t1" id="heroName">JARVIS</div><div class="t3">AI CORE · V3.0</div></div>
+          <div id="globeHint">drag to rotate · scroll to zoom · click to talk</div>
+          <div id="globeRead"></div>
+          <div class="subs" id="subs" title="Open the full conversation"></div>
+        </section>
+
+        <section class="card">
+          <h3>Activity <span class="pill live">LIVE</span></h3>
+          <div class="feed" id="feed"><div class="empty">Waiting for activity…</div></div>
+        </section>
+      </div>
+
+      <div class="row row2">
+        <section class="card">
+          <h3>Agents <button class="more" data-go="tools">View all ›</button></h3>
+          <div class="agents" id="agents"></div>
+        </section>
+        <section class="card">
+          <h3>Timeline <span class="more" style="cursor:default">Today</span></h3>
+          <div class="tl" id="timeline"></div>
+        </section>
+        <section class="card">
+          <h3>Shortcuts</h3>
+          <div class="quick">
+            <button class="qbtn" data-cmd="Give me my daily briefing."><i data-ic="briefcase"></i>Daily briefing</button>
+            <button class="qbtn" data-cmd="What are today's prayer times?"><i data-ic="moon"></i>Prayer times</button>
+            <button class="qbtn" data-cmd="Look at my screen and tell me what you see."><i data-ic="eye"></i>Scan my screen</button>
+            <button class="qbtn" id="qVoice"><i data-ic="mic"></i>Start voice chat</button>
+
+          </div>
+        </section>
+      </div>
+
+      <div class="row row3">
+        <section class="card">
+          <h3>System <span class="more" id="procs" style="cursor:default"></span></h3>
+          <div class="gauges" id="gauges"></div>
+        </section>
+        <section class="card">
+          <h3>Memory</h3>
+          <div class="memwrap">
+            <canvas id="constel" aria-hidden="true"></canvas>
+            <div class="memstats">
+              <div>Memories<b id="msMem">0</b></div>
+              <div>Session turns<b id="msTurns">0</b></div>
+              <div>Tool calls<b id="msTools">0</b></div>
+            </div>
+          </div>
+          <div class="llmfoot"><button class="link" data-go="memory">View memory ›</button></div>
+        </section>
+        <section class="card">
+          <h3>Models <span class="s-active" id="llmCount" style="letter-spacing:.06em"></span></h3>
+          <div class="llms" id="llms"></div>
+          <div class="llmfoot"><button class="link" data-go="models">Manage providers ›</button></div>
+        </section>
+      </div>
+    </section>
+
+    <!-- Conversations -->
+    <section class="view" data-view="conv">
+      <section class="card page">
+        <h3>Conversations <button class="more" id="resetBtn2">New conversation ↺</button></h3>
+        <div class="body" id="chatBody"><div id="chat" aria-live="polite"></div></div>
+        <form class="composer" id="form2" autocomplete="off">
+          <button type="button" class="btn" id="mic2" title="Speak"><i data-ic="mic"></i></button>
+          <input id="input2" placeholder="Type a message to Jarvis…" aria-label="Message Jarvis">
+          <button class="btn" type="submit"><i data-ic="send"></i>Send</button>
+        </form>
+      </section>
+    </section>
+
+    <!-- Memory -->
+    <section class="view" data-view="memory">
+      <section class="card page">
+        <h3>Memory <span class="more" style="cursor:default">Things Jarvis remembers about you</span></h3>
+        <div class="body">
+          <div class="list" id="memList"></div>
+          <h4 class="sec">NOTES</h4>
+          <div class="list" id="noteList"></div>
+        </div>
+      </section>
+    </section>
+
+    <!-- Profile -->
+    <section class="view" data-view="profile">
+      <section class="card page">
+        <h3>Profile <span class="more" style="cursor:default">Tell Jarvis about yourself once: it's used in every conversation</span></h3>
+        <div class="body">
+          <form id="profileForm" autocomplete="off">
+            <div class="profile" id="profileFields"></div>
+            <div class="pfbar"><button class="btn on" type="submit" id="pfSave"><i data-ic="db"></i>Save profile</button>
+              <small id="pfMsg">Saved on this PC (data/profile.json). It is sent to the AI with your messages, so leave out anything you'd rather keep private. Fill in only what you like.</small></div>
+          </form>
+        </div>
+      </section>
+    </section>
+
+    <!-- Tools -->
+    <section class="view" data-view="tools">
+      <section class="card page">
+        <h3>Tools &amp; Skills <span class="more" style="cursor:default">What Jarvis can do on your PC</span></h3>
+        <div class="body"><div class="list" id="toolList"></div></div>
+      </section>
+    </section>
+
+    <!-- Models -->
+    <section class="view" data-view="models">
+      <section class="card page">
+        <h3>AI Models <span class="more" style="cursor:default">Tried in order; the next one takes over if one fails</span></h3>
+        <div class="body"><div class="list" id="modelList"></div>
+          <h4 class="sec">HOW TO CHANGE</h4>
+          <div class="item"><span class="ico"><i data-ic="note"></i></span><div><b class="keepname">Edit the .env file in the Jarvis folder</b>
+            <small>JARVIS_PROVIDERS sets the order (claude, gemini, groq, openrouter, deepseek). Add GEMINI_API_KEY, GROQ_API_KEY, OPENROUTER_API_KEY or DEEPSEEK_API_KEY, then restart Jarvis.</small></div></div>
+        </div>
+      </section>
+    </section>
+
+    <!-- Settings -->
+    <section class="view" data-view="settings">
+      <section class="card page">
+        <h3>Settings</h3>
+        <div class="body"><div class="settings">
+          <div class="setrow"><div class="lbl"><b>Assistant's name</b><small id="agentMsg">What your assistant is called everywhere: replies, voice and this screen. You can also just say "your name is Maya now". Everything keeps working; pick a matching voice below.</small></div>
+            <input class="txt" id="agentName" maxlength="24" aria-label="Assistant's name" autocomplete="off" spellcheck="false"><button class="btn" id="agentSave">Rename</button></div>
+          <div class="setrow"><div class="lbl"><b>Theme</b><small>Dark, light, or follow Windows. Also the sun / moon button at the top, or say "light mode".</small></div>
+            <button class="btn" data-theme-btn="dark">Dark</button><button class="btn" data-theme-btn="light">Light</button><button class="btn" data-theme-btn="system">Match Windows</button></div>
+          <div class="setrow"><div class="lbl"><b>How you talk to Jarvis</b><small id="engineInfo">Live: a real-time conversation like a phone call (Gemini Live). You can interrupt at any time. Classic: you speak, then Jarvis answers in the Ryan voice.</small></div>
+            <button class="btn" id="engLive">Live</button><button class="btn" id="engClassic">Classic</button></div>
+          <div class="setrow"><div class="lbl"><b>Live voice</b><small>The voice Jarvis uses in Live conversations (takes effect on the next call).</small></div>
+            <select id="liveVoiceSel" aria-label="Live voice"></select></div>
+          <div class="setrow"><div class="lbl"><b>Live reply speed</b><small>How long you must be quiet before Jarvis answers. Fast answers soonest; choose Patient if you get cut off while you pause to think.</small></div>
+            <button class="btn" data-pause="fast">Fast</button><button class="btn" data-pause="normal">Normal</button><button class="btn" data-pause="patient">Patient</button></div>
+          <div class="setrow"><div class="lbl"><b>Jarvis's voice</b><small>Natural neural voices. Ryan (British) sounds most like the films.</small></div>
+            <select id="voiceSel" aria-label="Jarvis voice"></select><button class="btn" id="voiceTest"><i data-ic="play"></i>Test</button></div>
+          <div class="setrow"><div class="lbl"><b>Spoken replies</b><small>Jarvis reads every answer aloud.</small></div>
+            <button class="btn" id="speakBtn2">On</button></div>
+          <div class="setrow"><div class="lbl"><b>Hands-free mode</b><small>Jarvis keeps listening after each answer. Say "stop listening" to end it.</small></div>
+            <button class="btn" id="voiceBtn2">Off</button></div>
+          <div class="setrow"><div class="lbl"><b>Conversation mode</b><small>After answering something you said, Jarvis listens again for a follow-up, so you don't have to press the mic each time. Click the mic or press Esc to interrupt Jarvis.</small></div>
+            <button class="btn" id="followBtn">On</button></div>
+          <div class="setrow"><div class="lbl"><b>Loud alerts</b><small>Warnings, alarms, timers, low battery and errors pop up on screen and beep at full volume (Windows volume goes to 100% just for the beep, then back to yours).</small></div>
+            <button class="btn" id="loudBtn">On</button><button class="btn" id="alertTest"><i data-ic="bell"></i>Test</button></div>
+          <div class="setrow"><div class="lbl"><b>New conversation</b><small>Clears this chat. Long-term memories are kept.</small></div>
+            <button class="btn danger" id="resetBtn3"><i data-ic="refresh"></i>Reset</button></div>
+          <div class="setrow"><div class="lbl"><b>Language</b><small>Urdu mode: Jarvis listens for Urdu and replies in Urdu with a Pakistani Urdu voice (Asad). You can also say "Urdu mein baat karo".</small></div>
+            <button class="btn" id="langEn">English</button><button class="btn" id="langUr" style="font-family:var(--urdu)">اردو</button></div>
+          <div class="setrow"><div class="lbl"><b>Location</b><small id="locInfo">—</small></div></div>
+          <div class="setrow"><div class="lbl"><b>Microphone</b><small id="micInfo">Jarvis picks a microphone that actually hears you.</small></div>
+            <select id="micSel" aria-label="Microphone"></select>
+            <button class="btn" id="micBoost" title="Set the microphone's Windows input level to 100%">Boost level</button></div>
+          <div class="setrow"><div class="lbl"><b>Speech recognition</b><small id="sttInfo">—</small></div></div>
+          <div class="setrow"><div class="lbl"><b>Shortcuts</b><small>Ctrl+Space: talk (starts/ends a Live conversation) · Ctrl+K: type a command · Esc: stop Jarvis talking / deny an approval</small></div></div>
+        </div></div>
+      </section>
+    </section>
+  </main>
+
+  <!-- ===== footer ===== -->
+  <footer class="foot">
+    <div class="chips">
+      <div class="chip"><i data-ic="pin"></i><div><small>Location</small><b id="fLoc">—</b></div></div>
+      <div class="chip"><i data-ic="sun"></i><div><small>Weather</small><b id="fWx">—</b></div></div>
+      <div class="chip"><i data-ic="battery"></i><div><small>Power</small><b id="fPower">—</b></div></div>
+      <div class="chip"><i data-ic="wifi"></i><div><small>Network</small><b id="fNet">—</b></div></div>
+    </div>
+    <div class="talkwrap">
+      <div class="wv" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+      <button class="talk" id="talk" title="Talk to Jarvis (Ctrl+Space)"><i data-ic="mic"></i><span><b>Talk to Jarvis</b><small id="talkSub">Tap to speak</small></span></button>
+      <div class="wv" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+    </div>
+    <button class="btn brief" id="briefing"><i data-ic="briefcase"></i>Daily Briefing</button>
+  </footer>
+</div>
+
+<div class="modal" id="modal" role="dialog" aria-modal="true" aria-labelledby="mTitle" aria-describedby="mSummary">
+  <div class="card approve" id="approveCard">
+    <div class="ahead"><span class="aico"><i data-ic="shield"></i></span>
+      <div><h3 id="mTitle">Approval needed</h3><small id="mWho">Jarvis is asking for your permission</small></div>
+      <span class="aq" id="mQueue"></span></div>
+    <p id="mSummary"></p>
+    <pre id="mText" hidden></pre>
+    <div class="avoice" id="mVoice" aria-live="polite"><span class="vdot"></span><span id="mVoiceTxt"></span></div>
+    <div class="abar"><i id="mBar"></i></div>
+    <div class="btns"><small id="mLeft"></small>
+      <button class="btn" id="deny"><i data-ic="x"></i>Deny <kbd>Esc</kbd></button>
+      <button class="btn allow" id="allow"><i data-ic="check"></i>Allow</button></div>
+  </div>
+</div>
+
+<div id="alerts" aria-live="assertive"></div>
+
+<script>
+const TOKEN = "__TOKEN__";
+const USER = "__USER__";
+const AGENT = "__AGENT__", AGENT_UP = AGENT.toUpperCase();   // the assistant's name (Settings → Assistant's name)
+const $ = id => document.getElementById(id);
+
+// ---------- icons ----------
+const ICONS = {
+  grid: "M4 4h6v6H4zM14 4h6v6h-6zM4 14h6v6H4zM14 14h6v6h-6z",
+  chat: "M4 5h16v11H9l-5 4z",
+  db: "M12 3c4.4 0 8 1.3 8 3s-3.6 3-8 3-8-1.3-8-3 3.6-3 8-3zM4 6v6c0 1.7 3.6 3 8 3s8-1.3 8-3V6M4 12v6c0 1.7 3.6 3 8 3s8-1.3 8-3v-6",
+  wrench: "M14.7 6.3a4 4 0 0 0-5.4 5.4L3 18l3 3 6.3-6.3a4 4 0 0 0 5.4-5.4l-2.5 2.5-2.4-.6-.6-2.4z",
+  layers: "M12 3l9 5-9 5-9-5zM3 13l9 5 9-5",
+  gear: "M12 9a3 3 0 1 0 0 6 3 3 0 0 0 0-6zM12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9 7 7M17 17l2.1 2.1M4.9 19.1 7 17M17 7l2.1-2.1",
+  mic: "M12 3a3 3 0 0 0-3 3v6a3 3 0 0 0 6 0V6a3 3 0 0 0-3-3zM5 11a7 7 0 0 0 14 0M12 18v3",
+  search: "M11 4a7 7 0 1 0 0 14 7 7 0 0 0 0-14zM20 20l-4-4",
+  send: "M4 12l16-8-6 16-2-6z",
+  speaker: "M4 9h4l5-4v14l-5-4H4zM16 9a4 4 0 0 1 0 6M18.5 6.5a8 8 0 0 1 0 11",
+  mute: "M4 9h4l5-4v14l-5-4H4zM17 9l5 6M22 9l-5 6",
+  refresh: "M20 11a8 8 0 1 0-2.3 5.7M20 4v7h-7",
+  user: "M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM4 21a8 8 0 0 1 16 0",
+  core: "M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8zM12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M5 19l2-2M17 7l2-2",
+  shield: "M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z",
+  zap: "M13 2 4 14h7l-1 8 9-12h-7z",
+  pc: "M3 4h18v12H3zM8 20h8M12 16v4",
+  eye: "M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12zM12 9a3 3 0 1 0 0 6 3 3 0 0 0 0-6z",
+  globe: "M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zM3 12h18M12 3c2.5 2.7 2.5 15.3 0 18M12 3c-2.5 2.7-2.5 15.3 0 18",
+  tasks: "M10 6h10M10 12h10M10 18h10M4 6l1 1 2-2M4 12l1 1 2-2M4 18l1 1 2-2",
+  battery: "M3 8h15v8H3zM21 11v2M6 11h7",
+  wifi: "M2 9a15 15 0 0 1 20 0M5 12.5a10 10 0 0 1 14 0M8.5 16a5 5 0 0 1 7 0M12 19.5h.01",
+  play: "M7 4l13 8-13 8z",
+  clock: "M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zM12 7v5l3 2",
+  info: "M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zM12 11v6M12 7.5h.01",
+  warn: "M12 3l10 18H2zM12 10v5M12 18h.01",
+  bell: "M6 16v-5a6 6 0 0 1 12 0v5l2 2H4zM10 21h4",
+  check: "M4 12l5 5L20 6",
+  note: "M5 3h10l4 4v14H5zM14 3v5h5M8 13h8M8 17h6",
+  x: "M6 6l12 12M18 6 6 18",
+  check: "M5 12.5l4.5 4.5L19 7",
+  briefcase: "M3 8h18v12H3zM8 8V5h8v3M3 13h18",
+  swap: "M4 8h13l-3-3M20 16H7l3 3",
+  cpu: "M7 7h10v10H7zM10 3v4M14 3v4M10 17v4M14 17v4M3 10h4M3 14h4M17 10h4M17 14h4",
+  moon: "M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z",
+  pin: "M12 21s-7-6.2-7-12a7 7 0 0 1 14 0c0 5.8-7 12-7 12zM12 6.5a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5z",
+  sun: "M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8zM12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4",
+  play2: "M8 5v14l11-7z",
+};
+function icon(name) { return `<svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="${ICONS[name] || ICONS.info}"/></svg>`; }
+function paintIcons(root = document) { root.querySelectorAll("i[data-ic]").forEach(el => { el.outerHTML = icon(el.dataset.ic); }); }
+paintIcons();
+
+// ---------- state ----------
+let state = "idle", settings = { voice_mode: false, speak: true, language: "en" }, confirmQueue = [];
+// Live conversation (Gemini Live): Jarvis listens and talks at the same time; audio runs in Jarvis itself.
+const live = { available: false, engine: "live", active: false, phase: "", voices: {}, voice: "", eventAt: 0 };
+const useLive = () => live.available && live.engine === "live";
+let replaying = false, greeted = false, sttEngine = "whisper", msgCount = 0, lastStats = null;
+let myId = null, speakerId = null;               // only the "speaker" window talks and listens
+const isSpeaker = () => myId !== null && myId === speakerId;
+const chat = $("chat");
+function esc(s) { return String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c])); }
+function md(s) {
+  const blocks = [];
+  s = s.replace(/```[\w-]*\n?([\s\S]*?)```/g, (_, code) => { blocks.push(code); return `\u0000${blocks.length - 1}\u0000`; });
+  s = esc(s)
+    .replace(/`([^`]+)`/g, "<code>$1</code>")
+    .replace(/\*\*([^*]+)\*\*/g, "<b>$1</b>")
+    .replace(/\[([^\]]+)\]\((https?:\/\/[^)\s]+)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>')
+    .replace(/^#{1,6}\s*(.+)$/gm, "<b>$1</b>")
+    .replace(/\n/g, "<br>");
+  return s.replace(/\u0000(\d+)\u0000/g, (_, i) => `<pre><code>${esc(blocks[+i])}</code></pre>`);
+}
+async function post(path, body = {}) {
+  try {
+    return await fetch(path, { method: "POST", headers: { "Content-Type": "application/json", "X-Jarvis-Token": TOKEN }, body: JSON.stringify(body) });
+  } catch (e) { console.warn(e); }
+}
+function isUrdu(t) { return /[\u0600-\u06FF]/.test(t || ""); }
+function nowT() { return new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", hour12: false }); }
+
+// ---------- navigation ----------
+function go(view) {
+  document.querySelectorAll(".view").forEach(v => v.classList.toggle("active", v.dataset.view === view));
+  document.querySelectorAll(".navi").forEach(n => n.classList.toggle("active", n.dataset.view === view));
+  if (view === "conv") { scrollChat(); $("input2").focus(); }
+  if (view === "memory" || view === "tools") loadInfo();
+  if (view === "profile") loadProfile();
+  if (view === "models") renderModels();
+  if (view === "dash") requestAnimationFrame(() => { sizeCanvases(); drawConstel(); });
+}
+document.querySelectorAll(".navi").forEach(n => n.onclick = () => go(n.dataset.view));
+document.querySelectorAll("[data-go]").forEach(b => b.onclick = () => go(b.dataset.go));
+$("subs").onclick = () => go("conv");
+$("operator").onclick = () => go("profile");
+$("operator").onkeydown = e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); go("profile"); } };
+
+// ---------- conversation ----------
+function scrollChat() { const b = $("chatBody"); b.scrollTop = b.scrollHeight; }
+let lastUser = "", lastJarvis = "", lastJarvisLabel = AGENT_UP;
+function renderSubs() {
+  if (!lastUser && !lastJarvis) { $("subs").innerHTML = ""; return; }
+  const thinking = state === "thinking";
+  $("subs").innerHTML = (lastUser ? `<div class="u"><b>YOU</b>${esc(lastUser)}</div>` : "")
+    + `<div class="j${isUrdu(lastJarvis) ? " ur" : ""}"><b>${esc(lastJarvisLabel)}</b>${thinking && !lastJarvis ? '<span class="typing"><span></span><span></span><span></span></span>' : md(lastJarvis)}</div>`;
+  $("subs").scrollTop = $("subs").scrollHeight;
+}
+function addMsg(kind, text, label) {
+  removeTyping();
+  const el = document.createElement("div");
+  el.className = `msg ${kind}${isUrdu(text) ? " ur" : ""}`;
+  el.innerHTML = `<div class="who" dir="ltr" style="text-align:left">${esc(label)}</div>${kind === "user" ? esc(text) : md(text)}`;
+  chat.appendChild(el);
+  if (kind === "user" || state === "thinking") showTyping();
+  if (kind === "user") { lastUser = text; lastJarvis = ""; lastJarvisLabel = AGENT_UP; }
+  if (kind === "jarvis") { lastJarvis = text; lastJarvisLabel = label; }
+  if (kind === "user" || kind === "jarvis") { msgCount++; $("bConv").textContent = msgCount; }
+  renderSubs(); scrollChat();
+}
+function showTyping() {
+  removeTyping();
+  const el = document.createElement("div");
+  el.className = "msg jarvis typing"; el.id = "typing";
+  el.innerHTML = "<span></span><span></span><span></span>";
+  chat.appendChild(el); scrollChat();
+}
+function removeTyping() { const t = $("typing"); if (t) t.remove(); }
+
+// ---------- live intelligence feed ----------
+const FRIENDLY = {
+  get_datetime: ["Checked the time", "clock"], system_status: ["Ran a system diagnostic", "cpu"],
+  open_website: ["Opened a website", "globe"], search_web_in_browser: ["Opened a web search", "search"],
+  open_application: ["Launched an app", "pc"], open_path: ["Opened a file or folder", "note"],
+  find_files: ["Searched your files", "search"], read_text_file: ["Read a file", "note"],
+  save_note: ["Saved a note", "note"], list_notes: ["Checked your notes", "note"],
+  remember_fact: ["Saved to memory", "db"], recall_memories: ["Recalled memories", "db"], forget_memory: ["Removed a memory", "db"],
+  set_timer: ["Set a timer", "clock"], list_timers: ["Checked timers", "clock"], cancel_timer: ["Cancelled a timer", "clock"],
+  media_control: ["Media control", "speaker"], clipboard: ["Used the clipboard", "note"],
+  look_at_screen: ["Scanned your screen", "eye"], run_powershell: ["Ran a PowerShell command", "cpu"],
+  lock_computer: ["Locked the computer", "shield"], web_search: ["Searched the web", "globe"], fetch_webpage: ["Read a web page", "globe"],
+  daily_briefing: ["Prepared your daily briefing", "briefcase"], get_weather: ["Checked the weather", "sun"],
+  play_youtube: ["Playing on YouTube", "play2"], prayer_times: ["Checked prayer times", "moon"], prayer_reminders: ["Updated prayer reminders", "moon"],
+  set_alarm: ["Set an alarm", "bell"], list_alarms: ["Checked alarms", "bell"], delete_alarm: ["Deleted an alarm", "bell"],
+  set_language: ["Changed language", "globe"], set_location: ["Saved your location", "pin"],
+  close_app: ["Closed an app", "x"], power_action: ["Power control", "zap"], set_brightness: ["Changed brightness", "sun"],
+  wireless: ["Wi-Fi / Bluetooth", "wifi"], take_screenshot: ["Saved a screenshot", "eye"],
+  find_old_files: ["Scanned for old files", "search"], clean_folder: ["Cleaned up a folder", "note"],
+  renamed: ["Renamed the assistant", "user"], set_assistant_name: ["Renamed the assistant", "user"],
+  set_theme: ["Changed the theme", "sun"], profile: ["Profile saved", "user"],
+};
+// Warnings and alerts also pop up on screen and beep loudly (quiet: feed only)
+const alertSeen = {};
+function raiseAlert(title, sub, tag, kind) {
+  if (Date.now() - (alertSeen[title] || 0) < 60000) return;          // same warning: once a minute
+  alertSeen[title] = Date.now();
+  const box = $("alerts"), el = document.createElement("div");
+  el.className = `alertx ${tag}`; el.setAttribute("role", "alert");
+  el.innerHTML = `<span class="ico">${icon(kind === "alarm" ? "bell" : "warn")}</span><div class="tx"><b>${esc(title)}</b>${sub ? `<small>${esc(sub)}</small>` : ""}<span class="tm">${nowT()}</span></div><button aria-label="Dismiss" title="Dismiss (Esc)">${icon("x")}</button>`;
+  el.querySelector("button").onclick = () => el.remove();
+  box.prepend(el);
+  while (box.children.length > 3) box.lastChild.remove();
+  setTimeout(() => el.remove(), 90000);
+  if (isSpeaker()) post("/api/alert", { kind: kind || "warn", text: title });
+}
+function addFeed({ title, sub = "", tag = "INFO", ic = "info", time = nowT(), id = null, quiet = false, kind = "warn" }) {
+  if ((tag === "ALERT" || tag === "WARN") && !quiet && !replaying) raiseAlert(title, sub, tag, kind);
+  const feed = $("feed");
+  const empty = feed.querySelector(".empty"); if (empty) empty.remove();
+  let el = id ? feed.querySelector(`[data-id="${id}"]`) : null;
+  const html = `<span class="ico">${icon(ic)}</span><div class="tx"><b>${esc(title)}</b><small>${esc(sub)}</small></div><span class="tag ${tag}">${tag}</span>`;
+  if (el) { el.innerHTML = html; el.className = `fi ${tag}`; return; }
+  el = document.createElement("div");
+  el.className = `fi ${tag}`; if (id) el.dataset.id = id;
+  el.title = `${time}  ${title}${sub ? " — " + sub : ""}`;
+  el.innerHTML = html;
+  const pinned = feed.querySelector('[data-id="load"]');
+  if (pinned && id !== "load") pinned.after(el); else feed.prepend(el);
+  while (feed.children.length > 60) feed.lastChild.remove();
+}
+
+// ---------- agents (Jarvis's skills, lit up while they work) ----------
+const AGENTS = [
+  { id: "research", name: "Research Agent", ic: "search", color: "var(--cyan)", tools: ["web_search", "fetch_webpage", "search_web_in_browser", "daily_briefing", "get_weather"] },
+  { id: "browser", name: "Browser Agent", ic: "globe", color: "var(--amber)", tools: ["open_website", "open_application", "open_path", "play_youtube"] },
+  { id: "memory", name: "Memory Agent", ic: "db", color: "var(--violet)", tools: ["remember_fact", "recall_memories", "forget_memory", "save_note", "list_notes", "read_text_file", "find_files"] },
+  { id: "task", name: "Task Agent", ic: "tasks", color: "var(--blue)", tools: ["set_timer", "list_timers", "cancel_timer", "get_datetime", "set_alarm", "list_alarms", "delete_alarm", "prayer_times", "prayer_reminders"] },
+  { id: "vision", name: "Vision Agent", ic: "eye", color: "var(--green)", tools: ["look_at_screen", "take_screenshot"] },
+  { id: "system", name: "System Agent", ic: "cpu", color: "var(--muted)", tools: ["system_status", "run_powershell", "lock_computer", "media_control", "clipboard", "set_language", "set_location",
+    "close_app", "power_action", "set_brightness", "wireless", "find_old_files", "clean_folder"] },
+];
+const agentState = Object.fromEntries(AGENTS.map(a => [a.id, { until: 0, runs: 0 }]));
+$("agents").innerHTML = AGENTS.map(a => `
+  <div class="ag" id="ag-${a.id}" title="Uses: ${a.tools.map(t => t.replace(/_/g, " ")).join(", ")}">
+    <span class="ico" style="color:${a.color}">${icon(a.ic)}</span>
+    <div style="min-width:0"><b>${a.name}</b><small id="ags-${a.id}">Standby</small></div>
+    <span class="bars"><i></i><i></i><i></i><i></i><i></i><i></i></span>
+  </div>`).join("");
+function agentFor(tool) { return AGENTS.find(a => a.tools.includes(tool)); }
+function renderAgents() {
+  const now = Date.now();
+  for (const a of AGENTS) {
+    const s = agentState[a.id], on = now < s.until;
+    $(`ag-${a.id}`).classList.toggle("on", on);
+    $(`ags-${a.id}`).textContent = on ? "Active" : (s.runs ? `Standby · ${s.runs} run${s.runs > 1 ? "s" : ""}` : "Standby");
+  }
+}
+setInterval(renderAgents, 1000); renderAgents();
+
+// ---------- timeline (real timers & reminders) ----------
+const doneReminders = [];
+function fmtLeft(s) { return s >= 3600 ? `In ${Math.floor(s / 3600)}h ${Math.floor(s % 3600 / 60)}m` : s >= 60 ? `In ${Math.floor(s / 60)}m ${s % 60}s` : `In ${s}s`; }
+function renderTimeline(timers = []) {
+  const items = [
+    ...doneReminders.slice(-3).map(d => ({ tm: d.time, nm: d.text, st: "Done", cls: "done" })),
+    ...timers.slice().sort((a, b) => a.left - b.left).map(t => ({ tm: t.due.slice(0, 5), nm: t.message, rp: t.repeat || "",
+      st: fmtLeft(t.left), cls: `${t.kind || "timer"} ${t.left < 300 ? "soon" : ""}` })),
+  ];
+  $("timeline").innerHTML = items.length
+    ? items.map(i => `<div class="tli ${i.cls}"><span class="tm">${esc(i.tm)}</span><span class="dot"></span><span class="nm">${esc(i.nm)}${i.rp ? `<span class="rp">${esc(i.rp)}</span>` : ""}</span><span class="st">${esc(i.st)}</span></div>`).join("")
+    : `<div class="empty">Nothing scheduled. Try: "set an alarm for 7 am every day".</div>`;
+}
+renderTimeline();
+
+// ---------- event handling ----------
+function handle(ev) {
+  switch (ev.type) {
+    case "user":
+      addMsg("user", ev.text, ev.source === "live" ? "YOU · LIVE" : ev.source === "voice" ? "YOU · VOICE" : "YOU");
+      if (!replaying) convo.lastWasVoice = ev.source === "voice";
+      break;
+    case "jarvis": {
+      const label = ev.provider ? `${AGENT_UP} · ${ev.provider.toUpperCase()}` : AGENT_UP;
+      addMsg("jarvis", ev.text, label);
+      if (!replaying && !ev.live) speak(ev.text);       // Live answers are already spoken by Jarvis himself
+      break;
+    }
+    case "tool": {
+      if (ev.name === "ignored_echo") {
+        addFeed({ title: "Ignored my own voice", sub: ev.args, tag: "TIP", ic: "speaker", time: ev.time });
+        break;
+      }
+      if (ev.name === "switching_model") {
+        const to = (ev.args.match(/to=([^,]+)/) || [])[1] || "next model";
+        addFeed({ title: `Switched AI to ${to}`, sub: (ev.args.match(/reason=(.*)$/) || [])[1] || "", tag: "WARN", ic: "swap", time: ev.time, quiet: true });
+        break;
+      }
+      const [title, ic] = FRIENDLY[ev.name] || [ev.name.replace(/_/g, " "), "zap"];
+      addFeed({ title, sub: ev.args, tag: "INFO", ic, time: ev.time });
+      const a = agentFor(ev.name);
+      if (a && !replaying) { agentState[a.id].until = Date.now() + 9000; agentState[a.id].runs++; renderAgents(); }
+      else if (a) agentState[a.id].runs++;
+      break;
+    }
+    case "notify": {
+      const kind = ev.kind || "reminder";
+      const LBL = { prayer: "NAMAZ", alarm: "ALARM", battery: "BATTERY" }, SUB = { prayer: "Prayer reminder", alarm: "Alarm", battery: "Battery" };
+      addMsg("notify", ev.text, LBL[kind] || "REMINDER");
+      const good = kind === "info" || /fully charged/i.test(ev.text);       // not a warning: no alert
+      const loudOn = !lastStats || lastStats.loud_alerts !== false;
+      addFeed({ title: ev.text.replace(/^(Reminder|Alarm):\s*/, ""), sub: SUB[kind] || "Reminder",
+                tag: kind === "prayer" || good ? "LIVE" : kind === "battery" ? "WARN" : "ALERT", kind: kind === "battery" ? "warn" : "alarm",
+                ic: kind === "prayer" ? "moon" : kind === "battery" ? "battery" : "bell", time: ev.time });
+      if (!replaying && isSpeaker() && (kind === "prayer" || good || !loudOn)) chime(kind);   // alerts beep loudly instead
+      doneReminders.push({ time: (ev.time || nowT()).slice(0, 5), text: ev.text.replace(/^Reminder:\s*/, "") });
+      if (!replaying) setTimeout(() => speak(ev.text, true), kind === "prayer" || good ? 900 : kind === "battery" ? 1400 : 2300);
+      break;
+    }
+    case "error":
+      addMsg("error", ev.text, "SYSTEM FAULT");
+      addFeed({ title: "Something went wrong", sub: ev.text, tag: "ALERT", ic: "warn", time: ev.time });
+      break;
+    case "state": setState(ev.state); break;
+    case "settings": applySettings(ev); break;
+    case "confirm":
+      confirmQueue.push({ ...ev, until: Date.now() + (ev.timeout || 180) * 1000 }); showConfirm();
+      if (!replaying && isSpeaker()) {
+        chime("reminder");
+        // no "yes"/"no" words in the question itself, so it can't answer itself through the mic
+        setTimeout(() => speak(settings.language === "ur" ? "کیا میں آگے بڑھوں؟" : `Do I have your permission, ${USER}?`, true), 400);
+      }
+      break;
+    case "confirm_listen": {
+      const c = confirmQueue.find(x => x.id === ev.id);
+      if (c) { c.listening = ev.state === "listening"; if (ev.state === "heard") c.heard = ev.text; if (c === confirmQueue[0]) paintConfirmVoice(c); }
+      break;
+    }
+    case "confirm_done": confirmQueue = confirmQueue.filter(c => c.id !== ev.id); showConfirm(); break;
+    case "reset":
+      chat.innerHTML = ""; msgCount = 0; $("bConv").textContent = 0; lastUser = lastJarvis = ""; renderSubs();
+      addMsg("jarvis", "Conversation cleared. Fresh start, " + USER + ".", AGENT_UP);
+      break;
+    case "level": rec.level = ev.v; break;
+    case "live":
+      if (!replaying) {
+        live.active = !!ev.active; live.phase = ev.active ? (ev.phase || "listening") : ""; live.eventAt = Date.now();
+        if (ev.active && ev.phase === "connecting") {
+          stopSpeaking(); convo.armed = false;
+          addFeed({ title: "Live conversation started", sub: 'Just talk. Interrupt any time. Say "bye" or tap the mic to end', tag: "LIVE", ic: "mic", time: ev.time });
+        }
+        if (!ev.active) {
+          rec.level = 0;
+          const why = { idle: "Ended after 3 quiet minutes", goodbye: "You said goodbye", error: "Stopped because of a problem (see above)" }[ev.reason] || "Ended";
+          addFeed({ title: "Live conversation ended", sub: why, tag: "INFO", ic: "mic", time: ev.time });
+        }
+      }
+      micUi(); paintLive();
+      break;
+    case "live_partial":
+      if (ev.who === "user") { lastUser = ev.text; lastJarvis = ""; lastJarvisLabel = AGENT_UP + " · LIVE"; }
+      else { lastJarvis = ev.text; lastJarvisLabel = AGENT_UP + " · LIVE"; }
+      renderSubs();
+      break;
+    case "listen_stage":
+      if (ev.stage === "listening") { rec.active = true; rec.busy = false; }
+      else if (ev.stage === "transcribing") { rec.active = false; rec.busy = true; }
+      else if (ev.stage === "done") {
+        rec.active = false; rec.busy = false; rec.level = 0;
+        if (ev.muted && !replaying) {
+          $("unmuteBtn").hidden = false;
+          addFeed({ title: "Your microphone is muted", sub: `Windows has "${ev.mic}" muted (often the mic key on the keyboard). Click "Unmute" on the left.`, tag: "ALERT", ic: "mic" });
+          $("vLabel").textContent = "Mic is muted";
+          if (!ev.hands_free) speak(settings.language === "ur" ? "آپ کا مائیک میوٹ ہے۔" : "Your microphone is muted, Sir.", true);
+        }
+        if (ev.result === "unclear" && !replaying) {
+          addFeed({ title: "Couldn't make that out", sub: (lastStats && lastStats.mic_level < 80) ? `Your mic level is only ${lastStats.mic_level}%: Settings → Microphone → Boost level` : "Please say it again, a little closer to the mic", tag: "TIP", ic: "mic" });
+          $("vLabel").textContent = "Say that again?";
+          if (!ev.hands_free) speak(settings.language === "ur" ? "معاف کیجیے، دوبارہ کہیے؟" : "Sorry, I didn't catch that.", true);
+        }
+        if ((ev.switched || []).length && !replaying)
+          addFeed({ title: ev.all_dead ? "No working microphone" : `Switched mic to ${ev.mic}`,
+                    sub: ev.all_dead ? "Every mic gives total silence: switch on the headset mic or check Windows Settings → Sound → Input"
+                                     : `${ev.switched.join(", ")} was completely silent`, tag: ev.all_dead ? "ALERT" : "TIP", ic: "mic" });
+        if (ev.result === "nothing" && !ev.hands_free && !replaying && !(ev.switched || []).length) {
+          const dead = ev.peak < 0.002;
+          addFeed({ title: dead ? `Microphone is silent: ${ev.mic}` : "I didn't hear anything",
+                    sub: dead ? "It may be muted. Pick another mic in Settings → Microphone" : "Speak a little louder or closer to the mic",
+                    tag: "TIP", ic: "mic" });
+          $("vLabel").textContent = dead ? "Mic is silent" : "Didn't hear anything";
+        }
+      }
+      micUi();
+      break;
+    case "speaker":
+      speakerId = ev.id;
+      if (!isSpeaker()) { stopSpeaking(); if (rec.active) rec.stopNow = true; }
+      break;
+    case "replay":
+      myId = ev.client; speakerId = ev.speaker;
+      chat.innerHTML = ""; msgCount = 0;
+      replaying = true; ev.events.forEach(handle); replaying = false;
+      if (!greeted && ev.events.length === 1 && ev.events[0].type === "jarvis") speak(ev.events[0].text);
+      greeted = true;
+      setState(ev.state); applySettings(ev);
+      confirmQueue = ev.pending || []; showConfirm();
+      break;
+  }
+}
+
+const LABELS = { idle: "Standing by", listening: "Listening", thinking: "Processing", speaking: "Speaking", transcribing: "Transcribing", connecting: "Connecting" };
+function liveKey() { return live.phase === "connecting" ? "connecting" : live.phase || "listening"; }
+function setState(s) {
+  state = s;
+  if (!rec.active && !rec.busy && !live.active) document.body.dataset.state = s;
+  if (s !== "thinking") removeTyping(); else if (!$("typing")) showTyping();
+  renderSubs(); renderLabel();
+}
+function currentLabel() {
+  if (live.active) return liveKey();
+  if (rec.active) return "listening";
+  if (rec.busy) return "transcribing";
+  if (state === "idle" && document.body.classList.contains("speaking")) return "speaking";
+  return state;
+}
+function renderLabel() {
+  const key = currentLabel();
+  const hf = settings.voice_mode && key === "idle" ? " · hands-free" : "";
+  const tap = useLive() ? "Tap to talk live" : "Tap to speak";
+  if (live.active) {
+    $("stateLabel").textContent = "Live · " + LABELS[key];
+    $("vLabel").textContent = key === "listening" ? "Live: just talk" : key === "speaking" ? "Speaking · tap or talk to interrupt" : LABELS[key] + "…";
+    $("talkSub").textContent = key === "speaking" ? "Live · tap to interrupt" : "Live · tap to end";
+    $("vPill").textContent = "LIVE · " + LABELS[key].toUpperCase();
+  } else {
+    $("stateLabel").textContent = LABELS[key] + hf;
+    $("vLabel").textContent = key === "idle" ? (settings.voice_mode ? "Hands-free: just speak" : tap) : LABELS[key] + "…";
+    $("talkSub").textContent = key === "listening" ? "I am listening…" : key === "idle" ? (settings.voice_mode ? "Hands-free is on" : tap) : LABELS[key] + "…";
+    $("vPill").textContent = key === "idle" ? "READY" : LABELS[key].toUpperCase();
+  }
+  $("ovCore").textContent = key === "idle" ? "Active · standing by" : LABELS[key];
+  $("ovVoice").textContent = (live.active ? "Live · " + LABELS[key] : key === "listening" ? "Listening" : key === "speaking" ? "Speaking" : settings.voice_mode ? "Hands-free on" : "Online")
+    + (settings.language === "ur" ? " · Urdu" : "");
+}
+function applySettings(s) {
+  if (s.assistant_name && s.assistant_name !== AGENT) { location.reload(); return; }   // renamed: every label changes
+  if (s.theme) applyTheme(s.theme);
+  if ("voice_mode" in s) settings.voice_mode = s.voice_mode;
+  if ("language" in s && s.language) {
+    settings.language = s.language;
+    const ur = s.language === "ur";
+    $("langBtn").textContent = ur ? "اردو" : "EN"; $("langBtn").classList.toggle("ur-on", ur);
+    $("langEn").classList.toggle("on", !ur); $("langUr").classList.toggle("on", ur);
+    $("input").placeholder = ur ? (AGENT === "Jarvis" ? "جارویس" : AGENT) + " سے کچھ پوچھیں…  (Ctrl+K)" : `Ask ${AGENT} anything…  (Ctrl+K)`;
+  }
+  if ("speak" in s) { settings.speak = s.speak; if (!s.speak) stopSpeaking(); }
+  if (!useLive()) $("voiceBtn").classList.toggle("on", settings.voice_mode);
+  $("voiceBtn2").classList.toggle("on", settings.voice_mode); $("voiceBtn2").textContent = settings.voice_mode ? "On" : "Off";
+  $("speakBtn").classList.toggle("on", settings.speak);
+  $("speakBtn").innerHTML = icon(settings.speak ? "speaker" : "mute");
+  $("speakBtn2").classList.toggle("on", settings.speak); $("speakBtn2").textContent = settings.speak ? "On" : "Off";
+  renderLabel();
+}
+
+// ---------- confirm ----------
+let confirmTick = null;
+function showConfirm() {
+  const c = confirmQueue[0];
+  $("modal").classList.toggle("open", !!c);
+  clearInterval(confirmTick);
+  if (!c) return;
+  // "Maya wants to run this PowerShell command:\n    Get-Date" -> who / what / details
+  const q = String(c.question || ""), nl = q.indexOf("\n");
+  const head = (nl > 0 ? q.slice(0, nl) : q).trim(), detail = nl > 0 ? q.slice(nl + 1).replace(/^[ \t]+/gm, "").trim() : "";
+  const m = head.match(/^(.+?) wants to (.+)$/);
+  $("mWho").textContent = `${m ? m[1] : AGENT} is asking for your permission`;
+  $("mSummary").textContent = m ? m[2].replace(/:\s*$/, "").replace(/^./, ch => ch.toUpperCase()) : head;
+  $("mText").textContent = detail; $("mText").hidden = !detail;
+  $("approveCard").classList.toggle("risky", /delete|recycle|shut ?down|restart|format|remove|uninstall|clean|close|power|wi-?fi|powershell/i.test(q));
+  $("mQueue").textContent = confirmQueue.length > 1 ? `1 of ${confirmQueue.length}` : "";
+  paintConfirmVoice(c);
+  const total = c.timeout || 180, until = c.until || Date.now() + total * 1000;
+  const tick = () => {
+    const left = Math.max(0, Math.round((until - Date.now()) / 1000));
+    $("mBar").style.width = `${left / total * 100}%`;
+    $("mLeft").textContent = `Denied automatically in ${Math.floor(left / 60)}:${String(left % 60).padStart(2, "0")}`;
+  };
+  tick(); confirmTick = setInterval(tick, 1000);
+  $("deny").focus();
+}
+function paintConfirmVoice(c) {
+  const on = live.active || c.listening;
+  $("mVoice").classList.toggle("listening", !!on);
+  const say = 'say <b>"yes"</b> / <b>"haan"</b> to allow, or <b>"no"</b> / <b>"nahi"</b> to deny';
+  $("mVoiceTxt").innerHTML = c.heard && !on ? `Heard “${esc(c.heard)}”. Didn't sound like a yes or no: use the buttons, or press the mic and answer again`
+    : on ? `Listening… ${say}${c.heard ? ` <span style="color:var(--dim)">(heard “${esc(c.heard)}”)</span>` : ""}`
+    : c.voice ? `Getting ready to listen… then ${say}`
+    : `Use the buttons, or press the mic and ${say}`;
+}
+function answer(allow) {
+  const c = confirmQueue.shift(); if (!c) return;
+  post("/api/confirm", { id: c.id, allow }); showConfirm();
+}
+$("allow").onclick = () => answer(true);
+$("deny").onclick = () => answer(false);
+
+// ---------- input ----------
+function send(text) { text = text.trim(); if (text) post("/api/send", { text }); }
+$("form").onsubmit = e => { e.preventDefault(); send($("input").value); $("input").value = ""; };
+$("form2").onsubmit = e => { e.preventDefault(); send($("input2").value); $("input2").value = ""; };
+$("mic").onclick = $("talk").onclick = $("mic2").onclick = () => listen();
+$("qVoice").onclick = () => post("/api/settings", { voice_mode: true });
+$("langBtn").onclick = () => post("/api/settings", { language: settings.language === "ur" ? "en" : "ur" });
+$("langEn").onclick = () => post("/api/settings", { language: "en" });
+$("langUr").onclick = () => post("/api/settings", { language: "ur" });
+const toggleHF = () => post("/api/settings", { voice_mode: !settings.voice_mode });
+$("voiceBtn2").onclick = toggleHF;
+$("voiceBtn").onclick = () => live.active ? post("/api/live", { on: false }) : useLive() ? listen() : toggleHF();   // top button: start / end a Live call
+function paintLive() {
+  const on = useLive();
+  $("voiceBtnTxt").textContent = live.active ? "End live conversation" : on ? "Start live conversation" : "Hands-free mode";
+  $("voiceBtn").title = on ? `Talk with ${AGENT} in real time, like a phone call` : `Hands-free: ${AGENT} keeps listening`;
+  $("voiceBtn").classList.toggle("on", live.active || (!on && settings.voice_mode));
+  $("engLive").classList.toggle("on", live.engine === "live"); $("engClassic").classList.toggle("on", live.engine !== "live");
+  $("engLive").disabled = !live.available;
+  if (!live.available) $("engineInfo").textContent = `Live conversation needs a GEMINI_API_KEY in .env. Classic: you speak, then ${AGENT} answers in the Ryan voice.`;
+}
+$("engLive").onclick = async () => { live.engine = "live"; paintLive(); renderLabel(); await post("/api/live", { engine: "live" }); };
+$("engClassic").onclick = async () => { live.engine = "classic"; if (live.active) await post("/api/live", { on: false }); paintLive(); renderLabel(); await post("/api/live", { engine: "classic" }); };
+$("liveVoiceSel").onchange = () => post("/api/live", { voice: $("liveVoiceSel").value });
+$("speakBtn").onclick = $("speakBtn2").onclick = () => post("/api/settings", { speak: !settings.speak });
+$("resetBtn").onclick = $("resetBtn2").onclick = $("resetBtn3").onclick = () => post("/api/reset");
+$("briefing").onclick = () => send("Give me my daily briefing.");
+document.querySelectorAll("[data-cmd]").forEach(b => b.onclick = () => send(b.dataset.cmd));
+document.addEventListener("keydown", e => {
+  if (e.key === "Escape" && confirmQueue.length) { answer(false); return; }
+  if (e.key === "Escape" && $("alerts").firstChild) $("alerts").firstChild.remove();
+  if (e.ctrlKey && e.code === "Space") { e.preventDefault(); listen(); }
+  if (e.ctrlKey && e.key.toLowerCase() === "k") { e.preventDefault(); $("input").focus(); }
+});
+
+// ---------- chimes (alarm = three bright beeps, prayer = soft two-note bell) ----------
+let chimeCtx = null;
+function chime(kind) {
+  try {
+    chimeCtx = chimeCtx || new (window.AudioContext || window.webkitAudioContext)();
+    const notes = kind === "alarm" ? [[880, 0], [880, .28], [1175, .56], [880, .9], [880, 1.18], [1175, 1.46]]
+                : kind === "prayer" ? [[659, 0], [880, .45]] : [[784, 0], [988, .2]];
+    for (const [f, t0] of notes) {
+      const o = chimeCtx.createOscillator(), g = chimeCtx.createGain(), at = chimeCtx.currentTime + t0;
+      o.type = kind === "alarm" ? "square" : "sine"; o.frequency.value = f;
+      g.gain.setValueAtTime(0.0001, at); g.gain.exponentialRampToValueAtTime(kind === "alarm" ? 0.12 : 0.2, at + 0.02);
+      g.gain.exponentialRampToValueAtTime(0.0001, at + (kind === "prayer" ? 1.2 : 0.22));
+      o.connect(g).connect(chimeCtx.destination); o.start(at); o.stop(at + 1.3);
+    }
+  } catch (e) { /* audio blocked */ }
+}
+
+// ---------- voice output: Microsoft neural voices (Ryan by default), browser voice as backup ----------
+let defaultVoice = "en-GB-RyanNeural", neuralVoices = [], neuralOk = false, voiceId = storeGet("jarvis.voice3") || "";   // empty = default (Ryan)
+let sysVoices = [];
+function storeGet(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
+function storeSet(k, v) { try { localStorage.setItem(k, v); } catch (e) {} }
+function loadSysVoices() { if ("speechSynthesis" in window) sysVoices = speechSynthesis.getVoices().filter(v => /^en/i.test(v.lang)); }
+if ("speechSynthesis" in window) { speechSynthesis.onvoiceschanged = loadSysVoices; loadSysVoices(); }
+function sysVoice() {
+  return sysVoices.find(v => /Ryan|Thomas/i.test(v.name) && /Natural/i.test(v.name))
+      || sysVoices.find(v => /en-GB/i.test(v.lang)) || sysVoices.find(v => /David|Mark/i.test(v.name)) || sysVoices[0] || null;
+}
+async function loadVoices() {
+  try {
+    const r = await fetch(`/api/voices?token=${TOKEN}`); const j = await r.json();
+    neuralOk = j.neural; neuralVoices = j.voices || [];
+    defaultVoice = j.default; if (!voiceId) voiceId = j.default;
+  } catch (e) { neuralOk = false; }
+  const opts = neuralOk ? neuralVoices.filter(v => !v.id.startsWith("ur-"))
+    .map(v => `<option value="${esc(v.id)}">${esc(v.name)}${v.id === defaultVoice ? " (default)" : ""}</option>`) : [];
+  opts.push(`<option value="system">Windows voice (offline)</option>`);
+  $("voiceSel").innerHTML = opts.join("");
+  $("voiceSel").value = [...$("voiceSel").options].some(o => o.value === voiceId) ? voiceId : (neuralOk ? neuralVoices[0].id : "system");
+  voiceId = $("voiceSel").value;
+}
+loadVoices();
+$("voiceSel").onchange = () => { voiceId = $("voiceSel").value; storeSet("jarvis.voice3", voiceId); };
+$("voiceTest").onclick = () => { stopSpeaking(); speak(`Good day, ${USER}. All systems are online and running smoothly.`, true, true); };
+
+function cleanForSpeech(t) {
+  return t.replace(/```[\s\S]*?```/g, " (code shown on screen) ")
+    .replace(/\[([^\]]+)\]\((https?:[^)]+)\)/g, "$1").replace(/https?:\/\/\S+/g, "a link")
+    .replace(/[*_#`>|~]/g, "").replace(/\s+/g, " ").trim();
+}
+function chunksOf(text) {
+  const parts = text.match(/[^.!?;۔؟]+[.!?;۔؟]*\s*/g) || [text];
+  const out = []; let chunk = "";
+  for (const p of parts) { if ((chunk + p).length > 260 && chunk) { out.push(chunk.trim()); chunk = ""; } chunk += p; }
+  if (chunk.trim()) out.push(chunk.trim());
+  return out;
+}
+const player = new Audio();
+const speech = { queue: [], playing: false, gen: 0 };
+function systemSay(text) {
+  if (!("speechSynthesis" in window)) return Promise.resolve();
+  return new Promise(res => {
+    const u = new SpeechSynthesisUtterance(text);
+    const v = sysVoice(); if (v) u.voice = v;
+    u.rate = 1.0; u.pitch = 0.9; u.onend = u.onerror = () => res();
+    speechSynthesis.speak(u);
+  });
+}
+function fetchAudio(text) {  // synthesize ahead so the next sentence is ready in time
+  return fetch("/api/tts", { method: "POST", headers: { "Content-Type": "application/json", "X-Jarvis-Token": TOKEN },
+    body: JSON.stringify({ text, voice: voiceId }) }).then(r => r.ok ? r.blob() : null).catch(() => null);
+}
+let lastSpoken = { text: "", at: 0 };
+// force: speak even when spoken replies are muted (alarms, warnings).  local: this window only (Test button).
+function speak(text, force = false, local = false) {
+  if (!local && !isSpeaker()) return;          // another Jarvis window is the voice: never talk twice
+  if (!force && !settings.speak) return;
+  if (!force && live.active) return;              // in a Live call Jarvis talks through Gemini, not this page
+  const clean = cleanForSpeech(text);
+  if (!clean) return;
+  if (clean === lastSpoken.text && Date.now() - lastSpoken.at < 4000) return;  // never say the same thing twice
+  lastSpoken = { text: clean, at: Date.now() };
+  const neural = neuralOk && voiceId !== "system";
+  chunksOf(clean).forEach((c, i) => {
+    const streamIt = neural && i === 0 && !speech.playing && !speech.queue.length;
+    speech.queue.push({ text: c, stream: streamIt, audio: neural && !streamIt ? fetchAudio(c) : null });
+  });
+  if (!speech.playing) playNext(speech.gen);
+}
+async function playNext(gen) {
+  if (gen !== speech.gen) return;
+  const item = speech.queue.shift();
+  if (!item) { speech.playing = false; return; }
+  speech.playing = true;
+  if (item.stream) {                       // play while it downloads
+    const ok = await new Promise(res => {
+      player.src = `/api/tts_stream?token=${TOKEN}&voice=${encodeURIComponent(voiceId || defaultVoice)}&text=${encodeURIComponent(item.text)}`;
+      player.onended = () => res(true); player.onerror = () => res(false);
+      player.play().catch(() => res(false));
+    });
+    if (gen !== speech.gen) return;
+    if (!ok) {                               // streaming refused: still use Ryan, via the whole-sentence route
+      const blob = await fetchAudio(item.text);
+      if (gen !== speech.gen) return;
+      if (blob && blob.size > 0) {
+        const url = URL.createObjectURL(blob); player.src = url;
+        await new Promise(res => { player.onended = player.onerror = res; player.play().catch(res); });
+        URL.revokeObjectURL(url);
+      } else await systemSay(item.text);
+    }
+    return playNext(gen);
+  }
+  const blob = item.audio ? await item.audio : null;
+  if (gen !== speech.gen) return;
+  if (blob && blob.size > 0) {
+    const url = URL.createObjectURL(blob);
+    player.src = url;
+    await new Promise(res => { player.onended = player.onerror = res; player.play().catch(res); });
+    URL.revokeObjectURL(url);
+  } else {
+    await systemSay(item.text);
+  }
+  playNext(gen);
+}
+function stopSpeaking() {
+  speech.gen++; speech.queue = []; speech.playing = false;
+  player.pause(); player.removeAttribute("src");
+  if ("speechSynthesis" in window) speechSynthesis.cancel();
+}
+function isSpeaking() { return speech.playing || ("speechSynthesis" in window && speechSynthesis.speaking) || (live.active && live.phase === "speaking"); }
+let quietUntil = 0;
+setInterval(() => {
+  const talking = isSpeaking();
+  if (talking) { quietUntil = Date.now() + 500; convo.spokeAt = Date.now(); }  // brief gap so the mic doesn't hear Jarvis
+  if (document.body.classList.contains("speaking") !== talking) { document.body.classList.toggle("speaking", talking); renderLabel(); }
+}, 150);
+
+// ---------- voice input: record in the page, Whisper turns it into text ----------
+const rec = { stream: null, ctx: null, source: null, active: false, stopNow: false, busy: false, level: 0 };
+async function ensureMic() {
+  if (rec.stream && rec.stream.active) return;
+  rec.stream = await navigator.mediaDevices.getUserMedia({
+    audio: { channelCount: 1, echoCancellation: true, noiseSuppression: true, autoGainControl: true } });
+  rec.ctx = rec.ctx || new (window.AudioContext || window.webkitAudioContext)();
+  rec.source = rec.ctx.createMediaStreamSource(rec.stream);
+}
+function encodeWav(chunks, inRate, outRate = 16000) {
+  const total = chunks.reduce((n, c) => n + c.length, 0);
+  const all = new Float32Array(total); let off = 0;
+  for (const c of chunks) { all.set(c, off); off += c.length; }
+  const ratio = inRate / outRate, n = Math.floor(total / ratio);
+  const buf = new ArrayBuffer(44 + n * 2), dv = new DataView(buf);
+  const w = (o, s) => [...s].forEach((ch, i) => dv.setUint8(o + i, ch.charCodeAt(0)));
+  w(0, "RIFF"); dv.setUint32(4, 36 + n * 2, true); w(8, "WAVE"); w(12, "fmt ");
+  dv.setUint32(16, 16, true); dv.setUint16(20, 1, true); dv.setUint16(22, 1, true);
+  dv.setUint32(24, outRate, true); dv.setUint32(28, outRate * 2, true); dv.setUint16(32, 2, true); dv.setUint16(34, 16, true);
+  w(36, "data"); dv.setUint32(40, n * 2, true);
+  for (let i = 0; i < n; i++) {
+    const a = Math.floor(i * ratio), b = Math.min(total, Math.floor((i + 1) * ratio));
+    let sum = 0; for (let j = a; j < b; j++) sum += all[j];
+    const v = Math.max(-1, Math.min(1, sum / Math.max(1, b - a)));
+    dv.setInt16(44 + i * 2, v < 0 ? v * 0x8000 : v * 0x7fff, true);
+  }
+  return new Blob([buf], { type: "audio/wav" });
+}
+function micUi() {
+  document.body.dataset.state = live.active ? ({ thinking: "thinking", connecting: "thinking", speaking: "idle" }[live.phase] || "listening")
+    : rec.active ? "listening" : rec.busy ? "thinking" : state;
+  renderLabel();
+}
+let nativeMic = false;
+async function listen({ handsFree = false } = {}) {
+  if (useLive() || live.active) {                  // Live: the mic button starts / ends the call
+    if (handsFree) return;
+    if (myId && !isSpeaker()) post("/api/claim", { client: myId });
+    stopSpeaking();
+    if (live.active && live.phase === "speaking") { post("/api/live", { interrupt: true }); return; }  // tap = "stop, listen to me"
+    const r = await post("/api/live", { on: !live.active });
+    if (r && !r.ok) { const j = await r.json().catch(() => ({})); addMsg("error", j.error || "Live conversation isn't available.", "LIVE"); }
+    return;
+  }
+  if (nativeMic) {
+    if (!handsFree && myId && !isSpeaker()) post("/api/claim", { client: myId });
+    if (rec.active) { post("/api/listen_native", { stop: true }); return; }   // second click = done talking
+    if (rec.busy) return;
+    stopSpeaking();
+    rec.active = true; rec.handsFree = handsFree; micUi();
+    post("/api/listen_native", { hands_free: handsFree });
+    return;
+  }
+  if (!handsFree && myId && !isSpeaker()) post("/api/claim", { client: myId });  // using this window: make it the voice
+  if (rec.active) { rec.stopNow = true; return; }       // second click = "I'm done talking"
+  if (sttEngine === "windows") { post("/api/listen"); return; }
+  stopSpeaking();
+  try { await ensureMic(); }
+  catch (e) {
+    addMsg("error", "I can't use the microphone. Allow microphone access for this window (the microphone icon in the address bar) and try again.", "MICROPHONE");
+    if (settings.voice_mode) post("/api/settings", { voice_mode: false });
+    return;
+  }
+  if (rec.ctx.state === "suspended") await rec.ctx.resume();
+  rec.active = true; rec.stopNow = false; micUi();
+  const proc = rec.ctx.createScriptProcessor(4096, 1, 1);
+  const chunks = [], t0 = performance.now();
+  // Voice detection that works even if you start talking the instant you click:
+  // the background level is the quietest moment heard so far (rising only slowly),
+  // so pauses between words teach it what "quiet" sounds like.
+  let started = false, lastVoice = t0, floor = Infinity, peak = 0;
+  await new Promise(resolve => {
+    proc.onaudioprocess = e => {
+      const d = e.inputBuffer.getChannelData(0);
+      chunks.push(new Float32Array(d));
+      let s = 0; for (let i = 0; i < d.length; i += 4) s += d[i] * d[i];
+      const rms = Math.sqrt(s / (d.length / 4)), now = performance.now();
+      rec.level = Math.min(1, rms * 9);
+      floor = rms < floor ? rms : floor * 0.997 + rms * 0.003;
+      peak = Math.max(peak, rms);
+      const threshold = Math.max(0.008, floor * 2.4);
+      if (rms > threshold && rms > 0.006) { started = true; lastVoice = now; }
+      const silentFor = now - lastVoice, elapsed = now - t0;
+      if (rec.stopNow || (started && elapsed > 900 && silentFor > 1300)
+          || (!started && elapsed > (handsFree ? 8000 : 7000)) || elapsed > 25000) resolve();
+    };
+    rec.source.connect(proc); proc.connect(rec.ctx.destination);
+  });
+  rec.source.disconnect(proc); proc.disconnect(); proc.onaudioprocess = null;
+  rec.level = 0; rec.active = false;
+  rec.lastPeak = peak;
+  if (!started && !rec.stopNow && peak < 0.015) {   // nothing but silence
+    micUi();
+    if (!handsFree) {
+      addFeed({ title: "I didn't hear anything", sub: peak < 0.002 ? "Your microphone seems silent: check it isn't muted, or pick the right mic in Windows sound settings"
+                                                                 : "Speak a little louder or closer to the mic", tag: "TIP", ic: "mic" });
+      $("vLabel").textContent = "Didn't hear anything";
+    }
+    return;
+  }
+  rec.busy = true; micUi();
+  try {
+    const r = await fetch("/api/transcribe", { method: "POST", body: encodeWav(chunks, rec.ctx.sampleRate),
+      headers: { "Content-Type": "audio/wav", "X-Jarvis-Token": TOKEN } });
+    const j = await r.json();
+    if (!j.text && !j.error) addFeed({ title: "Didn't catch that", sub: "Try again, a little closer to the mic", tag: "TIP", ic: "mic" });
+    if (j.error) addFeed({ title: "Speech recognition failed", sub: j.error, tag: "ALERT", ic: "warn" });
+  } catch (e) { console.warn(e); }
+  rec.busy = false; micUi();
+}
+// Conversation mode: after Jarvis answers something you SAID, it listens once more for a follow-up,
+// so you can keep talking without pressing the mic. Click the mic or press Esc to cut Jarvis off.
+const convo = { lastWasVoice: false, spokeAt: 0, armed: false, on: storeGet("jarvis.followup") !== "off" };
+setInterval(() => {
+  if (!convo.on || settings.voice_mode || !isSpeaker() || live.active) return;
+  const speaking = isSpeaking();
+  if (speaking && convo.lastWasVoice) convo.armed = true;
+  if (convo.armed && !speaking && state === "idle" && !rec.active && !rec.busy && !confirmQueue.length
+      && Date.now() > quietUntil) {
+    convo.armed = false; convo.lastWasVoice = false;
+    listen({ handsFree: true });          // waits ~8 s for you to start; silently stops if you don't
+  }
+}, 200);
+document.addEventListener("keydown", e => {
+  if (e.key === "Escape" && !confirmQueue.length && live.active && live.phase === "speaking") { post("/api/live", { interrupt: true }); return; }
+  if (e.key === "Escape" && !confirmQueue.length && isSpeaking()) { stopSpeaking(); convo.armed = false; }
+});
+
+setInterval(() => {  // hands-free: keep listening whenever Jarvis is idle and quiet
+  if (settings.voice_mode && !live.active && isSpeaker() && !rec.active && !rec.busy && state === "idle" && !confirmQueue.length
+      && Date.now() > quietUntil && !isSpeaking()) listen({ handsFree: true });
+}, 400);
+
+// ---------- events stream ----------
+function connect() {
+  const es = new EventSource(`/events?token=${TOKEN}`);
+  es.onopen = () => $("offline").classList.remove("show");
+  es.onmessage = m => handle(JSON.parse(m.data));
+  es.onerror = () => $("offline").classList.add("show");
+}
+
+// ---------- gauges ----------
+const GAUGES = [["cpu", "CPU"], ["gpu", "GPU"], ["ram", "RAM"], ["disk", "Disk"], ["battery", "Power"]];
+const C = 2 * Math.PI * 38;
+$("gauges").innerHTML = GAUGES.map(([k, l]) => `
+  <div class="gauge" id="gw-${k}"><svg viewBox="0 0 100 100">
+    <circle class="ticks" cx="50" cy="50" r="46" fill="none" stroke-width="3" stroke-dasharray="0.8 4" transform="rotate(-90 50 50)"/>
+    <circle class="track" cx="50" cy="50" r="38" fill="none" stroke-width="5"/>
+    <circle class="bar" id="g-${k}" cx="50" cy="50" r="38" fill="none" stroke-width="5" stroke-linecap="round"
+      stroke-dasharray="${C}" stroke-dashoffset="${C}" transform="rotate(-90 50 50)"/>
+    <text class="l" x="50" y="41" text-anchor="middle" font-size="10.5">${l.toUpperCase()}</text>
+    <text id="t-${k}" x="50" y="62" text-anchor="middle" font-size="19">--</text>
+    <text class="sub" id="s-${k}" x="50" y="76" text-anchor="middle" font-size="8.5"></text>
+  </svg></div>`).join("");
+function setGauge(k, v, invert = false) {
+  const bar = $(`g-${k}`), t = $(`t-${k}`);
+  if (v == null) { t.textContent = "N/A"; return; }
+  bar.style.strokeDashoffset = C * (1 - Math.min(v, 100) / 100);
+  const level = invert ? (v < 15 ? "crit" : v < 30 ? "warn" : "") : (v > 90 ? "crit" : v > 80 ? "warn" : "");
+  bar.setAttribute("class", `bar ${level}`);
+  t.textContent = Math.round(v) + "%";
+}
+
+// ---------- stats polling ----------
+function fmtRate(b) { return b > 1048576 ? (b / 1048576).toFixed(1) + " MB/s" : Math.max(0, b / 1024).toFixed(0) + " KB/s"; }
+let lastNet = null, lastNetT = 0, alertAt = {};
+const hotFor = { cpu: 0, ram: 0 };
+function alertOnce(key, item) { if (Date.now() - (alertAt[key] || 0) > 5 * 60000) { alertAt[key] = Date.now(); addFeed(item); } }
+async function poll() {
+  try {
+    const asked = Date.now();
+    const r = await fetch(`/api/stats?token=${TOKEN}`, { cache: "no-store" });
+    if (r.status === 403) { location.reload(); return; }   // Jarvis restarted: pick up the new session
+    const s = await r.json(); lastStats = s;
+    if (s.assistant_name && s.assistant_name !== AGENT) { location.reload(); return; }
+    if (s.theme && s.theme !== themeMode && document.activeElement && !document.activeElement.dataset.themeBtn) applyTheme(s.theme);
+    setGauge("gpu", s.gpu);
+    $("s-gpu").textContent = s.gpu == null ? "" : s.gpu_mem_mb ? `${(s.gpu_mem_mb / 1024).toFixed(1)} GB` : "";
+    $("gw-gpu").title = s.gpu == null ? "GPU usage isn't available on this PC"
+      : `${s.gpu_name || "GPU"}: ${Math.round(s.gpu)}% busy${s.gpu_engine ? ` (mostly ${s.gpu_engine})` : ""}${s.gpu_mem_mb ? ` · ${(s.gpu_mem_mb / 1024).toFixed(1)} GB GPU memory in use` : ""}`;
+    setGauge("cpu", s.cpu); setGauge("ram", s.ram); setGauge("disk", s.disk); setGauge("battery", s.battery, true);
+    if (s.stt) sttEngine = s.stt;
+    nativeMic = !!s.native_mic;
+    if (s.live) {
+      const wasActive = live.active;
+      Object.assign(live, { available: s.live.available, engine: s.live.engine, voice: s.live.voice, voices: s.live.voices || {} });
+      // only if no newer live event arrived while this (possibly slow) request was out
+      if (!s.live.active && wasActive && live.eventAt < asked) { live.active = false; live.phase = ""; micUi(); }
+      const sel = $("liveVoiceSel");
+      if (!sel.options.length && Object.keys(live.voices).length) {
+        sel.innerHTML = Object.entries(live.voices).map(([n, d]) => `<option value="${esc(n)}">${esc(n)} · ${esc(d)}</option>`).join("");
+      }
+      if (document.activeElement !== sel) sel.value = live.voice;
+      paintLive(); renderLabel();
+    }
+    $("unmuteBtn").hidden = !s.mic_muted;
+    if (s.mic_muted) $("ovVoice").textContent = "Mic muted";
+    if (s.mic) $("micInfo").textContent = `Using: ${s.mic}` + (s.mic_level != null ? ` · input level ${s.mic_level}%` : "")
+      + (s.mic_level != null && s.mic_level < 80 ? " (low: press Boost)" : "");
+    $("procs").textContent = s.procs ? `${s.procs} processes · up ${s.uptime}` : "";
+    // overview
+    $("ovMem").textContent = `${s.memories} stored`; $("bMem").textContent = s.memories;
+    $("msMem").textContent = s.memories; $("msTurns").textContent = s.turns || 0; $("msTools").textContent = s.tool_calls || 0;
+    const llms = (s.llms || []).filter(l => !["Whisper", "Neural voice"].includes(l.label));
+    const up = llms.filter(l => ["active", "connected", "limited"].includes(l.status)).length;
+    $("ovLlm").textContent = `${up} connected`; $("ovLlm").className = up ? "warn" : "bad";
+    $("bModels").textContent = up;
+    $("llmCount").textContent = `${(s.llms || []).filter(l => ["active", "connected", "limited"].includes(l.status)).length} Connected`;
+    $("modelTag").textContent = s.provider ? `Brain: ${s.provider}` : "—";
+    const hot = (s.cpu > 90) || (s.ram > 92), lowBat = s.battery != null && s.battery < 20 && !s.plugged;
+    $("ovSys").textContent = hot ? "High load" : lowBat ? "Low battery" : "Optimal";
+    $("ovSys").className = hot || lowBat ? "warn" : "";
+    $("sysStatus").textContent = hot ? "HIGH LOAD" : lowBat ? "LOW BATTERY" : "OPTIMAL";
+    $("sysstat").classList.toggle("warn", hot || lowBat);
+    // footer
+    $("fLoc").textContent = s.location || "—";
+    $("fWx").textContent = s.weather ? `${s.weather.temp_c}°C ${s.weather.condition}` : "—";
+    $("fWx").title = s.weather ? `Feels ${s.weather.feels_c}°C · ${s.weather.min_c}–${s.weather.max_c}°C · rain ${s.weather.rain_chance}%` : "";
+    $("locInfo").textContent = `${s.location || "Unknown"}: used for weather and prayer times. To change it, tell ${AGENT} "my city is …".`;
+    if (s.language && s.language !== settings.language) applySettings({ language: s.language });
+    $("fPower").textContent = s.battery == null ? "Mains power" : `${s.battery}%${s.plugged ? " · charging" : ""}`;
+    let netTxt = navigator.onLine ? "Online" : "Offline";
+    if (s.net) {
+      const now = performance.now();
+      if (lastNet) netTxt = `${navigator.onLine ? "Online" : "Offline"} · ↓ ${fmtRate((s.net.recv - lastNet.recv) / ((now - lastNetT) / 1000))}`;
+      lastNet = s.net; lastNetT = now;
+    }
+    $("fNet").textContent = netTxt;
+    // feed: pinned live load + alerts
+    addFeed({ id: "load", title: `CPU ${Math.round(s.cpu || 0)}% · RAM ${Math.round(s.ram || 0)}%${s.gpu != null ? ` · GPU ${Math.round(s.gpu)}%` : ""}`, sub: hot ? "System under heavy load" : "System load nominal", tag: "LIVE", ic: "cpu" });
+    hotFor.ram = s.ram > 92 ? hotFor.ram + 1 : 0; hotFor.cpu = s.cpu > 90 ? hotFor.cpu + 1 : 0;
+    if (hotFor.ram >= 10) alertOnce("ram", { title: `Memory almost full (${Math.round(s.ram)}%)`, sub: "Close a few apps or browser tabs", tag: "WARN", ic: "warn" });
+    if (hotFor.cpu >= 20) alertOnce("cpu", { title: `CPU running hot (${Math.round(s.cpu)}%) for 30 seconds`, sub: "Something is working hard. Ask me \"how's my PC doing?\" to see what", tag: "WARN", ic: "warn" });
+    paintAlertSettings(s);
+    renderTimeline(s.timers || []);
+    renderLlms(s.llms || []);
+    $("sttInfo").textContent = s.stt === "whisper" ? "Whisper (Groq), very accurate. Gemini is the backup." :
+      s.stt === "gemini" ? "Gemini listens to your voice." : "Windows built-in recognizer (add a Groq key for Whisper).";
+    if (constelN !== Math.min(s.memories, 24)) { constelN = Math.min(s.memories, 24); drawConstel(); }
+    renderLabel();
+  } catch (e) { /* server restarting */ }
+}
+const LLM_ABBR = { Claude: "C", Gemini: "G", Groq: "Gq", OpenRouter: "OR", DeepSeek: "DS", Whisper: "W", "Neural voice": "V" };
+function stClass(st) { return st === "no key" ? "s-no" : `s-${st}`; }
+function renderLlms(llms) {
+  $("llms").innerHTML = llms.map(l => `
+    <div class="llm" title="${esc(l.detail || "")}"><span class="ico">${LLM_ABBR[l.label] || l.label[0]}</span>
+      <div style="min-width:0"><b>${esc(l.label)}</b><small class="${stClass(l.status)}">${esc(l.status)}</small></div></div>`).join("");
+}
+function renderModels() {
+  const llms = (lastStats && lastStats.llms) || [];
+  $("modelList").innerHTML = llms.map((l, i) => `
+    <div class="item"><span class="ico">${LLM_ABBR[l.label] || l.label[0]}</span><div style="min-width:0">
+      <b>${esc(l.label)} <small class="${stClass(l.status)}" style="display:inline">· ${esc(l.status)}</small></b>
+      <small>${esc(l.detail || "")}</small></div></div>`).join("") || '<div class="empty">Loading…</div>';
+}
+
+// ---------- memory / tools pages ----------
+async function loadInfo() {
+  try {
+    const j = await (await fetch(`/api/info?token=${TOKEN}`)).json();
+    $("bTools").textContent = j.tools.length; $("ovTools").textContent = `${j.tools.length} ready`;
+    $("toolList").innerHTML = j.tools.map(t => {
+      const a = agentFor(t.name);
+      return `<div class="item"><span class="ico" style="color:${a ? a.color : "var(--cyan)"}">${icon((FRIENDLY[t.name] || [0, "zap"])[1])}</span>
+        <div><b>${esc(t.name.replace(/_/g, " "))}</b><small>${esc(t.description)}</small></div></div>`;
+    }).join("");
+    $("memList").innerHTML = j.memories.length ? j.memories.map(m => `
+      <div class="item"><span class="ico">${icon("db")}</span><div style="min-width:0"><b>${esc(m.fact)}</b><small>Saved ${esc(m.saved || "")}</small></div>
+        <button class="x" data-forget="${m.id}" title="Forget this" aria-label="Forget this memory">${icon("x")}</button></div>`).join("")
+      : '<div class="empty">Nothing yet. Tell ' + esc(AGENT) + ' something about yourself, e.g. "remember that my favourite colour is blue".</div>';
+    $("noteList").innerHTML = j.notes.length ? j.notes.map(n => `<div class="item"><span class="ico">${icon("note")}</span><div><b>${esc(n.replace(/\.md$/, ""))}</b><small>data/notes</small></div></div>`).join("")
+      : '<div class="empty">No notes yet. Say "take a note: …".</div>';
+    document.querySelectorAll("[data-forget]").forEach(b => b.onclick = async () => { await post("/api/memory/forget", { id: +b.dataset.forget }); loadInfo(); poll(); });
+  } catch (e) { console.warn(e); }
+}
+
+// ---------- AI core globe (drag to rotate, scroll to zoom, hover to probe, click to talk) ----------
+const globe = { cv: $("globe"), pts: [], links: [], w: 0, h: 0,
+  yaw: 0, pitch: 0.35, vYaw: 0, vPitch: 0, zoom: 1, zoomT: 1, drag: null, hover: null, readAt: 0 };
+const STATE_RGB = { idle: [92, 207, 255], listening: [74, 222, 128], thinking: [251, 191, 36] };
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+(function buildSphere() {
+  const N = 420, g = Math.PI * (3 - Math.sqrt(5));
+  for (let i = 0; i < N; i++) {
+    const y = 1 - (i / (N - 1)) * 2, r = Math.sqrt(1 - y * y), t = g * i;
+    globe.pts.push([Math.cos(t) * r, y, Math.sin(t) * r]);
+  }
+  for (let i = 0; i < N; i++) {  // link each point to its two nearest neighbours
+    const d = globe.pts.map((p, j) => [j, (p[0] - globe.pts[i][0]) ** 2 + (p[1] - globe.pts[i][1]) ** 2 + (p[2] - globe.pts[i][2]) ** 2])
+      .filter(([j]) => j > i).sort((a, b) => a[1] - b[1]).slice(0, 2);
+    d.forEach(([j]) => globe.links.push([i, j]));
+  }
+})();
+
+(function wireGlobe() {
+  const cv = globe.cv;
+  cv.addEventListener("pointerdown", e => {
+    globe.drag = { x: e.clientX, y: e.clientY, moved: 0 };
+    cv.setPointerCapture(e.pointerId); cv.classList.add("dragging");
+  });
+  cv.addEventListener("pointermove", e => {
+    const r = cv.getBoundingClientRect();
+    globe.hover = { x: e.clientX - r.left, y: e.clientY - r.top };
+    if (!globe.drag) return;
+    const dx = e.clientX - globe.drag.x, dy = e.clientY - globe.drag.y;
+    globe.drag.moved += Math.abs(dx) + Math.abs(dy);
+    globe.drag.x = e.clientX; globe.drag.y = e.clientY;
+    globe.vYaw = dx * 0.0065; globe.vPitch = dy * 0.0065;
+    globe.yaw += globe.vYaw; globe.pitch = clamp(globe.pitch + globe.vPitch, -1.25, 1.25);
+  });
+  const end = () => {
+    if (!globe.drag) return;
+    const click = globe.drag.moved < 6;
+    globe.drag = null; cv.classList.remove("dragging");
+    if (click) listen();                       // a plain click on the core = talk to Jarvis
+  };
+  cv.addEventListener("pointerup", end);
+  cv.addEventListener("pointercancel", () => { globe.drag = null; cv.classList.remove("dragging"); });
+  cv.addEventListener("pointerleave", () => { if (!globe.drag) { globe.hover = null; $("globeRead").textContent = ""; } });
+  cv.addEventListener("wheel", e => { e.preventDefault(); globe.zoomT = clamp(globe.zoomT * (e.deltaY > 0 ? 0.93 : 1.07), 0.72, 1.4); }, { passive: false });
+  cv.addEventListener("dblclick", () => { globe.zoomT = 1; globe.vPitch = 0; globe.pitch = 0.35; });
+})();
+
+let constelN = 0;
+function sizeCanvases() {
+  const dpr = Math.min(2, window.devicePixelRatio || 1);
+  for (const cv of [globe.cv, $("constel"), $("wave")]) {
+    const w = cv.clientWidth, h = cv.clientHeight;
+    if (!w || !h) continue;
+    cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr);
+    cv.getContext("2d").setTransform(dpr, 0, 0, dpr, 0, 0);
+  }
+  globe.w = globe.cv.clientWidth; globe.h = globe.cv.clientHeight;
+}
+let colNow = [92, 207, 255];
+function drawGlobe(t) {
+  const g = globe.cv.getContext("2d"), w = globe.w, h = globe.h;
+  if (!w) return;
+  // dt: frames of 60 fps since the last draw, so motion keeps the same speed at a lower frame rate
+  const dt = clamp((t - (globe.lastT || t - 16.7)) / 16.7, 0.5, 4); globe.lastT = t;
+  const key = currentLabel(), target = STATE_RGB[key === "transcribing" ? "thinking" : key] || STATE_RGB.idle;
+  colNow = colNow.map((c, i) => c + (target[i] - c) * (1 - 0.92 ** dt));
+  const [r, gg, b] = colNow.map(Math.round), col = a => `rgba(${r},${gg},${b},${a})`;
+  const speaking = document.body.classList.contains("speaking");
+  const busy = key === "thinking" || key === "transcribing";
+
+  // motion: inertia after a drag, gentle auto-spin, and the core leans toward the cursor
+  if (!globe.drag) {
+    globe.yaw += (globe.vYaw + (busy ? 0.011 : 0.0028)) * dt;
+    globe.vYaw *= 0.94 ** dt; globe.vPitch *= 0.85 ** dt;
+    const lean = globe.hover ? clamp((globe.hover.y - (h - 46) * 0.53) / h, -0.5, 0.5) * 0.5 : 0;
+    globe.pitch += (0.35 + lean - globe.pitch) * (1 - 0.97 ** dt);
+  }
+  globe.zoom += (globe.zoomT - globe.zoom) * (1 - 0.88 ** dt);
+  const pulse = speaking ? 1 + Math.sin(t / 95) * 0.022 : (rec.active || live.active) ? 1 + rec.level * 0.07 : 1 + Math.sin(t / 1100) * 0.008;
+  const shiftX = globe.hover && !globe.drag ? (globe.hover.x - w / 2) * 0.025 : 0;
+  const shiftY = globe.hover && !globe.drag ? (globe.hover.y - h / 2) * 0.025 : 0;
+  const area = h - 46;   // keep clear of the subtitle strip at the bottom
+  const R = Math.min(w * 0.34, area * 0.36) * pulse * globe.zoom, cx = w / 2 + shiftX, cy = area * 0.53 + shiftY;
+  g.clearRect(0, 0, w, h);
+
+  // halo + floor rings
+  const halo = g.createRadialGradient(cx, cy, R * 0.2, cx, cy, R * 1.45);
+  halo.addColorStop(0, col(0.24)); halo.addColorStop(0.55, col(0.07)); halo.addColorStop(1, col(0));
+  g.fillStyle = halo; g.beginPath(); g.arc(cx, cy, R * 1.45, 0, Math.PI * 2); g.fill();
+  for (let i = 0; i < 3; i++) {
+    g.strokeStyle = col(0.16 - i * 0.04); g.lineWidth = 1;
+    g.beginPath(); g.ellipse(cx, cy + R * 1.04 + i * 4, R * (0.7 + i * 0.22), R * (0.1 + i * 0.03), 0, 0, Math.PI * 2); g.stroke();
+  }
+
+  // outer HUD ring: tick marks + arc segments, turning the other way
+  const ringR = R * 1.13, spin = -t / 9000 - globe.yaw * 0.15;
+  g.lineWidth = 1;
+  const tickLong = new Path2D(), tickShort = new Path2D();     // two strokes instead of 120
+  for (let i = 0; i < 120; i++) {
+    const a = spin + i * Math.PI / 60, long = i % 10 === 0;
+    const r1 = ringR + (long ? -5 : -2), r2 = ringR + (long ? 5 : 2), path = long ? tickLong : tickShort;
+    path.moveTo(cx + Math.cos(a) * r1, cy + Math.sin(a) * r1); path.lineTo(cx + Math.cos(a) * r2, cy + Math.sin(a) * r2);
+  }
+  g.strokeStyle = col(0.22); g.stroke(tickShort);
+  g.strokeStyle = col(0.55); g.stroke(tickLong);
+  g.lineWidth = 2.5; g.strokeStyle = col(0.6);
+  for (const [a0, len] of [[0.2, 0.9], [2.3, 0.5], [3.6, 1.3], [5.4, 0.4]]) {
+    g.beginPath(); g.arc(cx, cy, ringR + 8, -spin * 0.6 + a0, -spin * 0.6 + a0 + len); g.stroke();
+  }
+  g.lineWidth = 1; g.strokeStyle = col(0.12);
+  g.beginPath(); g.arc(cx, cy, ringR + 8, 0, Math.PI * 2); g.stroke();
+  // inner core glow
+  const core = g.createRadialGradient(cx, cy, 0, cx, cy, R * 0.55);
+  core.addColorStop(0, col(0.28)); core.addColorStop(1, col(0));
+  g.fillStyle = core; g.beginPath(); g.arc(cx, cy, R * 0.55, 0, Math.PI * 2); g.fill();
+
+  // project
+  const cosY = Math.cos(globe.yaw), sinY = Math.sin(globe.yaw), cosX = Math.cos(globe.pitch), sinX = Math.sin(globe.pitch);
+  const hv = globe.hover && !globe.drag ? globe.hover : null, HR = 78;
+  const proj = globe.pts.map(([x, y, z]) => {
+    const x1 = x * cosY - z * sinY, z1 = x * sinY + z * cosY;
+    const y2 = y * cosX - z1 * sinX, z2 = y * sinX + z1 * cosX;
+    let px = cx + x1 * R, py = cy + y2 * R, near = 0;
+    if (hv && z2 > -0.1) {                       // points near the cursor swell and part slightly
+      const dx = px - hv.x, dy = py - hv.y, d = Math.hypot(dx, dy);
+      if (d < HR) { near = 1 - d / HR; const push = near * 9 / Math.max(d, 1); px += dx * push; py += dy * push; }
+    }
+    return [px, py, z2, near];
+  });
+
+  // Drawn in depth bands (one stroke/fill per band) rather than one call per line and dot:
+  // the same look for a fraction of the GPU work.
+  const BANDS = 10, band = depth => Math.min(BANDS - 1, Math.max(0, Math.floor(depth * BANDS)));
+  // mesh
+  g.lineWidth = 0.6;
+  const linkBands = Array.from({ length: BANDS }, () => new Path2D());
+  for (const [i, j] of globe.links) {
+    const a = proj[i], c = proj[j], depth = (a[2] + c[2]) / 2, n = Math.max(a[3], c[3]);
+    if (n > 0) {                                  // near the cursor: drawn on its own, brighter
+      g.strokeStyle = col(0.07 + (depth + 1) * 0.14 + n * 0.45);
+      g.beginPath(); g.moveTo(a[0], a[1]); g.lineTo(c[0], c[1]); g.stroke();
+      continue;
+    }
+    const path = linkBands[band((depth + 1) / 2)];
+    path.moveTo(a[0], a[1]); path.lineTo(c[0], c[1]);
+  }
+  linkBands.forEach((path, k) => { g.strokeStyle = col(0.07 + ((k + 0.5) / BANDS) * 0.28); g.stroke(path); });
+  // nodes: back ones dim, front ones crisp and almost white
+  let nearest = null;
+  const dotBands = Array.from({ length: BANDS }, () => new Path2D());
+  for (let k = 0; k < proj.length; k++) {
+    const p = proj[k], depth = (p[2] + 1) / 2;
+    if (p[3] > 0) {
+      g.fillStyle = `rgba(${THEME.node.join(",")},${0.7 + p[3] * 0.3})`;
+      g.beginPath(); g.arc(p[0], p[1], 0.6 + depth * 1.5 + p[3] * 1.8, 0, Math.PI * 2); g.fill();
+    } else {
+      const rad = 0.6 + depth * 1.5, path = dotBands[band(depth)];
+      path.moveTo(p[0] + rad, p[1]); path.arc(p[0], p[1], rad, 0, Math.PI * 2);
+    }
+    if (hv && p[2] > 0) {
+      const d = Math.hypot(p[0] - hv.x, p[1] - hv.y);
+      if (!nearest || d < nearest.d) nearest = { k, d, p };
+    }
+  }
+  dotBands.forEach((path, k) => {
+    const depth = (k + 0.5) / BANDS, white = 0.35 + depth * 0.65;
+    g.fillStyle = `rgba(${Math.round(r + (THEME.node[0] - r) * white * 0.6)},${Math.round(gg + (THEME.node[1] - gg) * white * 0.6)},${Math.round(b + (THEME.node[2] - b) * white * 0.4)},${0.18 + depth * 0.75})`;
+    g.fill(path);
+  });
+
+  // orbits
+  const orbits = [[1.28, 0.26, -0.32, 0.9], [1.42, 0.34, 0.22, -0.6]];
+  orbits.forEach(([rx, ry, rotA, sp], k) => {
+    g.strokeStyle = col(0.22); g.lineWidth = 1;
+    g.beginPath(); g.ellipse(cx, cy, R * rx, R * ry, rotA, 0, Math.PI * 2); g.stroke();
+    const a = t / 1000 * sp + k * 2.4;
+    const ex = Math.cos(a) * R * rx, ey = Math.sin(a) * R * ry;
+    const px = cx + ex * Math.cos(rotA) - ey * Math.sin(rotA), py = cy + ex * Math.sin(rotA) + ey * Math.cos(rotA);
+    g.fillStyle = `rgb(${THEME.node.join(",")})`; g.beginPath(); g.arc(px, py, 2.2, 0, Math.PI * 2); g.fill();
+    g.strokeStyle = col(0.5); g.beginPath(); g.arc(px, py, 5, 0, Math.PI * 2); g.stroke();
+  });
+
+  // probe: reticle on the nearest node + live coordinates
+  if (hv && nearest && nearest.d < 60) {
+    const [px, py] = nearest.p;
+    g.strokeStyle = col(0.9); g.lineWidth = 1;
+    g.beginPath(); g.arc(px, py, 8, 0, Math.PI * 2); g.stroke();
+    for (const [ax, ay] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
+      g.beginPath(); g.moveTo(px + ax * 11, py + ay * 11); g.lineTo(px + ax * 16, py + ay * 16); g.stroke();
+    }
+    g.strokeStyle = col(0.25); g.setLineDash([2, 3]);
+    g.beginPath(); g.moveTo(hv.x, hv.y); g.lineTo(px, py); g.stroke(); g.setLineDash([]);
+    if (t - globe.readAt > 90) {
+      globe.readAt = t;
+      const [x, y, z] = globe.pts[nearest.k];
+      const lat = (Math.asin(y) * 180 / Math.PI).toFixed(1), lon = (Math.atan2(z, x) * 180 / Math.PI).toFixed(1);
+      $("globeRead").innerHTML = `NODE ${String(nearest.k).padStart(3, "0")}<br>LAT ${lat}° · LON ${lon}°`;
+    }
+  } else if (globe.readAt && t - globe.readAt > 600) {
+    $("globeRead").textContent = `ZOOM ${globe.zoom.toFixed(2)}×`;
+    globe.readAt = 0;
+  }
+}
+
+function drawWave(t) {
+  const cv = $("wave"), g = cv.getContext("2d"), w = cv.clientWidth, h = cv.clientHeight;
+  if (!w) return;
+  g.clearRect(0, 0, w, h);
+  const key = currentLabel(), n = 34, bw = w / n;
+  const amp = key === "listening" ? 0.15 + rec.level * 0.85 : key === "speaking" ? 0.55 : key === "thinking" || key === "transcribing" ? 0.3 : 0.1;
+  const c = key === "listening" ? THEME.wave.listening : key === "thinking" || key === "transcribing" ? THEME.wave.thinking : THEME.wave.idle;
+  for (let i = 0; i < n; i++) {
+    const v = (Math.sin(t / 160 + i * 0.7) * 0.5 + 0.5) * (Math.sin(t / 430 + i * 0.31) * 0.5 + 0.5);
+    const bh = Math.max(2, h * amp * (0.25 + v * 0.75) * (1 - Math.abs(i - n / 2) / (n * 0.62)));
+    g.fillStyle = `rgba(${c},${0.45 + v * 0.5})`;
+    g.fillRect(i * bw + bw * 0.25, (h - bh) / 2, bw * 0.5, bh);
+  }
+}
+function drawConstel() {
+  const cv = $("constel"), g = cv.getContext("2d"), w = cv.clientWidth, h = cv.clientHeight;
+  if (!w || !h) return;
+  g.clearRect(0, 0, w, h);
+  const n = Math.max(5, constelN + 4);
+  let seed = 7; const rnd = () => (seed = (seed * 9301 + 49297) % 233280) / 233280;
+  const pts = Array.from({ length: n }, (_, i) => [w * (0.06 + 0.88 * (i / (n - 1))), h * (0.2 + rnd() * 0.6)]);
+  g.strokeStyle = `rgba(${THEME.wave.idle},.3)`; g.lineWidth = 1;
+  g.beginPath(); pts.forEach(([x, y], i) => i ? g.lineTo(x, y) : g.moveTo(x, y)); g.stroke();
+  for (let i = 0; i + 3 < n; i += 3) { g.beginPath(); g.moveTo(...pts[i]); g.lineTo(...pts[i + 3]); g.strokeStyle = `rgba(${THEME.wave.idle},.12)`; g.stroke(); }
+  pts.forEach(([x, y], i) => {
+    const real = i < constelN;
+    g.fillStyle = real ? THEME.text : `rgba(${THEME.wave.idle},.4)`;
+    g.shadowColor = `rgb(${THEME.wave.idle})`; g.shadowBlur = real ? 6 : 0;
+    g.beginPath(); g.arc(x, y, real ? 2.6 : 1.6, 0, Math.PI * 2); g.fill();
+  });
+  g.shadowBlur = 0;
+}
+// Full 60 fps only while something is happening; a calm 30 fps when standing by, 15 when Jarvis
+// is in the background. Keeps the GPU (and battery) free for you.
+let lastDraw = 0;
+function frame(t) {
+  const busy = globe.drag || globe.hover || live.active || rec.active || currentLabel() !== "idle"
+    || document.body.classList.contains("speaking");
+  const fps = busy ? 60 : document.hasFocus() ? 30 : 15;
+  if (!document.hidden && t - lastDraw >= 1000 / fps - 4) { lastDraw = t; drawGlobe(t); drawWave(t); }
+  requestAnimationFrame(frame);
+}
+window.addEventListener("resize", () => { sizeCanvases(); drawConstel(); });
+
+// ---------- cursor spotlight on cards + background parallax ----------
+let spotRaf = 0, lastPtr = null;
+function applySpot() {
+  spotRaf = 0;
+  const e = lastPtr; if (!e) return;
+  for (const c of document.querySelectorAll(".view.active .card, .side .card, .modal.open .card")) {
+    const r = c.getBoundingClientRect();
+    c.style.setProperty("--x", `${e.clientX - r.left}px`); c.style.setProperty("--y", `${e.clientY - r.top}px`);
+  }
+  document.body.style.setProperty("--px", `${((e.clientX / innerWidth) - .5) * -16}px`);
+  document.body.style.setProperty("--py", `${((e.clientY / innerHeight) - .5) * -12}px`);
+}
+document.addEventListener("pointermove", e => { lastPtr = e; if (!spotRaf) spotRaf = requestAnimationFrame(applySpot); }, { passive: true });
+
+// ---------- clock ----------
+function tick() {
+  const d = new Date();
+  $("clock").textContent = d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: true }).toLowerCase();
+  $("date").textContent = d.toLocaleDateString([], { weekday: "long", day: "numeric", month: "long", year: "numeric" });
+}
+
+window.addEventListener("focus", () => { if (myId && !isSpeaker()) post("/api/claim", { client: myId }); });
+
+(async () => {
+  try {
+    const st = await navigator.permissions.query({ name: "microphone" });
+    // Only matters when the page records (no native mic); the desktop app records in Python, so no alarm beep for this.
+    const warn = () => { if (st.state === "denied" && !nativeMic) addFeed({ title: `Microphone is blocked for ${AGENT}`,
+      sub: "Click the lock/mic icon next to the address, allow the microphone, then reload", tag: "TIP", ic: "mic" }); };
+    warn(); st.onchange = warn;
+  } catch (e) { /* permissions API not available */ }
+})();
+
+async function loadMics() {
+  try {
+    const j = await (await fetch(`/api/mics?token=${TOKEN}`)).json();
+    $("micSel").innerHTML = `<option value="">Automatic (${esc(j.chosen || "none")})</option>`
+      + j.mics.map(m => `<option value="${esc(m.name)}">${esc(m.name)}</option>`).join("");
+    $("micSel").value = j.saved || "";
+  } catch (e) { /* older server */ }
+}
+$("unmuteBtn").onclick = async () => {
+  const r = await post("/api/mic_unmute");
+  const j = r ? await r.json() : {};
+  $("unmuteBtn").hidden = !!j.ok;
+  addFeed(j.ok ? { title: "Microphone unmuted", sub: "Go ahead and talk", tag: "LIVE", ic: "mic" }
+               : { title: "Couldn't unmute the mic", sub: "Use the mic key on the keyboard or Windows sound settings", tag: "ALERT", ic: "mic" });
+};
+$("micBoost").onclick = async () => {
+  const r = await post("/api/mic_boost"); const j = r ? await r.json() : {};
+  addFeed(j.ok ? { title: `Mic level set to ${j.level}%`, sub: j.mic, tag: "LIVE", ic: "mic" }
+               : { title: "Couldn't change the mic level", sub: "Windows Settings → Sound → Input → Volume", tag: "ALERT", ic: "mic" });
+};
+function paintFollow() { $("followBtn").textContent = convo.on ? "On" : "Off"; $("followBtn").classList.toggle("on", convo.on); }
+$("followBtn").onclick = () => { convo.on = !convo.on; storeSet("jarvis.followup", convo.on ? "on" : "off"); paintFollow(); };
+paintFollow();
+$("micSel").onchange = async () => { await post("/api/mic", { name: $("micSel").value || null }); loadMics(); };
+loadMics();
+
+// ---------- loud alerts + live reply speed ----------
+function paintAlertSettings(s) {
+  const on = s.loud_alerts !== false;
+  $("loudBtn").textContent = on ? "On" : "Off"; $("loudBtn").classList.toggle("on", on);
+  const pause = (s.live && s.live.pause) || "fast";
+  document.querySelectorAll("[data-pause]").forEach(b => b.classList.toggle("on", b.dataset.pause === pause));
+}
+$("loudBtn").onclick = async () => {
+  const on = !(lastStats && lastStats.loud_alerts !== false);
+  if (lastStats) lastStats.loud_alerts = on;
+  paintAlertSettings(lastStats || { loud_alerts: on });
+  await post("/api/settings", { loud_alerts: on });
+};
+$("alertTest").onclick = () => { delete alertSeen["Test alert"]; raiseAlert("Test alert", "This is how warnings look and sound.", "WARN", "warn"); };
+document.querySelectorAll("[data-pause]").forEach(b => b.onclick = async () => {
+  if (lastStats && lastStats.live) lastStats.live.pause = b.dataset.pause;
+  paintAlertSettings(lastStats || { live: { pause: b.dataset.pause } });
+  await post("/api/live", { pause: b.dataset.pause });
+});
+
+// ---------- profile ----------
+const PROFILE_UI = {   // placeholder, and whether it gets a big box
+  name: ["e.g. Ali Khan"], call: [`What ${AGENT} calls you, e.g. Sir, Ali, Boss`], birthday: ["e.g. 14 August 2003"],
+  city: ["e.g. Karachi"], work: ["e.g. BS Computer Science, 5th semester"], languages: ["e.g. Urdu, English, Sindhi"],
+  family: ["e.g. Mother Fatima, brother Ahmed (12), best friend Hamza", true], interests: ["e.g. cricket, coding, Coke Studio, gaming", true],
+  favourites: ["e.g. biryani, Atif Aslam, Pakistan cricket team", true], routine: ["e.g. university 8am to 2pm, gym at 6pm, sleep around midnight", true],
+  goals: ["e.g. final year project in AI, learning React", true], health: ["e.g. allergic to peanuts, wears glasses", true],
+  style: ["e.g. short answers, Roman Urdu, a little humour", true], about: [`Anything else ${AGENT} should always know`, true],
+};
+async function loadProfile() {
+  try {
+    const j = await (await fetch(`/api/profile?token=${TOKEN}`, { cache: "no-store" })).json();
+    $("profileFields").innerHTML = j.fields.map(([k, label]) => {
+      const [ph, big] = PROFILE_UI[k] || ["", false], v = esc(j.profile[k] || "");
+      return `<label class="pf${big ? " wide" : ""}"><span>${esc(label.replace(/\bJarvis\b/g, AGENT))}</span>${big
+        ? `<textarea name="${k}" rows="2" maxlength="1500" placeholder="${esc(ph)}">${v}</textarea>`
+        : `<input name="${k}" maxlength="200" placeholder="${esc(ph)}" value="${v}">`}</label>`;
+    }).join("");
+  } catch (e) { $("profileFields").innerHTML = '<div class="empty">Couldn\'t load the profile.</div>'; }
+}
+$("profileForm").onsubmit = async e => {
+  e.preventDefault();
+  const data = Object.fromEntries(new FormData($("profileForm")).entries());
+  const r = await post("/api/profile", { profile: data });
+  const j = r && r.ok ? await r.json() : null;
+  if (j && j.ok) {
+    $("opName").textContent = j.user;
+    $("pfMsg").textContent = `Saved. ${AGENT} knows this now` + (live.active ? " (the Live call picks it up next time you start one)." : ".");
+    addFeed({ title: "Profile saved", sub: `${Object.values(j.profile).filter(Boolean).length} details`, tag: "LIVE", ic: "user" });
+  } else $("pfMsg").textContent = `Couldn't save the profile. Is ${AGENT} still running?`;
+};
+
+// ---------- theme: dark / light / match Windows ----------
+let themeMode = "__THEME__";
+const THEME = { node: [235, 245, 255], wave: { idle: "92,207,255", listening: "74,222,128", thinking: "251,191,36" }, text: "#e6edf4" };
+const lightMQ = window.matchMedia ? matchMedia("(prefers-color-scheme: light)") : null;
+function resolvedTheme() { return themeMode === "system" ? (lightMQ && lightMQ.matches ? "light" : "dark") : themeMode === "light" ? "light" : "dark"; }
+function readTheme() {   // canvas colours come from the same CSS tokens as the rest of the page
+  const cs = getComputedStyle(document.documentElement), rgb = v => cs.getPropertyValue(v).split(",").map(x => +x.trim());
+  STATE_RGB.idle = rgb("--c-accent"); STATE_RGB.listening = rgb("--c-green"); STATE_RGB.thinking = rgb("--c-amber");
+  THEME.node = resolvedTheme() === "light" ? [6, 32, 58] : [235, 245, 255];
+  THEME.wave = { idle: STATE_RGB.idle.join(","), listening: STATE_RGB.listening.join(","), thinking: STATE_RGB.thinking.join(",") };
+  THEME.text = cs.getPropertyValue("--text").trim();
+}
+function applyTheme(mode) {
+  if (mode) themeMode = mode;
+  const light = resolvedTheme() === "light";
+  document.documentElement.dataset.theme = light ? "light" : "dark";
+  readTheme();
+  $("themeBtn").innerHTML = icon(light ? "moon" : "sun");
+  $("themeBtn").title = light ? "Switch to the dark theme" : "Switch to the light theme";
+  document.querySelectorAll("[data-theme-btn]").forEach(b => b.classList.toggle("on", b.dataset.themeBtn === themeMode));
+  drawConstel();
+}
+function setTheme(mode) { applyTheme(mode); post("/api/settings", { theme: mode }); }
+if (lightMQ && lightMQ.addEventListener) lightMQ.addEventListener("change", () => { if (themeMode === "system") applyTheme(); });
+$("themeBtn").onclick = () => setTheme(resolvedTheme() === "light" ? "dark" : "light");
+document.querySelectorAll("[data-theme-btn]").forEach(b => b.onclick = () => setTheme(b.dataset.themeBtn));
+
+// ---------- the assistant's name ----------
+function brand() {   // swap "Jarvis" for the chosen name in the page's own text (never in chat or activity)
+  if (AGENT === "Jarvis") return;
+  const swap = t => t.replace(/\bJARVIS\b/g, AGENT_UP).replace(/\bJarvis\b/g, AGENT);
+  const walk = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, { acceptNode: n =>
+    n.parentElement && n.parentElement.closest("script, style, .keepname, #chat, #feed, #subs, #alerts") ? NodeFilter.FILTER_REJECT : NodeFilter.FILTER_ACCEPT });
+  for (let n; (n = walk.nextNode());) if (/jarvis/i.test(n.nodeValue)) n.nodeValue = swap(n.nodeValue);
+  document.querySelectorAll("[title], [placeholder], [aria-label]").forEach(el => {
+    for (const a of ["title", "placeholder", "aria-label"]) { const v = el.getAttribute(a); if (v && /jarvis/i.test(v)) el.setAttribute(a, swap(v)); }
+  });
+  document.title = swap(document.title);
+  const long = AGENT.length;     // long names: tighter letter spacing so they still fit
+  if (long > 7) { $("heroName").style.letterSpacing = $("heroName").style.paddingLeft = long > 12 ? ".12em" : ".26em"; $("logoName").style.letterSpacing = long > 12 ? ".08em" : ".18em"; }
+  if (long > 14) $("heroName").style.fontSize = "clamp(22px, 2.2vw, 34px)";
+}
+$("agentName").value = AGENT;
+$("agentSave").onclick = async () => {
+  const name = $("agentName").value.trim();
+  if (!name || name === AGENT) return;
+  const r = await post("/api/settings", { assistant_name: name });
+  const j = r ? await r.json() : { error: "Couldn't reach the assistant." };
+  if (r && r.ok) { location.reload(); return; }          // every label, the window title and the voice prompts change
+  $("agentMsg").textContent = j.error || "Couldn't rename."; $("agentMsg").classList.add("err");
+};
+$("agentName").onkeydown = e => { if (e.key === "Enter") { e.preventDefault(); $("agentSave").click(); } };
+
+// ---------- start ----------
+brand();
+applyTheme();
+sizeCanvases(); drawConstel();
+requestAnimationFrame(frame);
+setInterval(tick, 1000); tick();
+connect();
+setInterval(poll, 1500); poll();
+loadInfo();
+</script>
+</body>
+</html>

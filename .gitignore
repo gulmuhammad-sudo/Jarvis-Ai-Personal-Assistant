@@ -1,0 +1,17 @@
+# secrets and personal data: never commit
+.env
+.env.*
+!.env.example
+data/
+
+# local tools and caches
+.venv/
+__pycache__/
+*.pyc
+*.log
+.claude/
+webview/
+
+# OS
+Thumbs.db
+desktop.ini

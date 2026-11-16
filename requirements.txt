@@ -1,0 +1,12 @@
+anthropic>=2.8.0
+psutil>=7.0
+openai>=2.0
+edge-tts>=7.0
+sounddevice>=0.5
+numpy>=2.0
+pywebview>=5.0
+pillow>=10.0
+pycaw>=20240210
+google-genai>=1.0
+scipy>=1.11
+pywin32>=306; sys_platform == "win32"
