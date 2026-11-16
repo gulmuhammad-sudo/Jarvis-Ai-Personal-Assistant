@@ -243,7 +243,8 @@ class Hub:
             wav = recorder._to_wav(audio, rate)
             r = stt._whisper_once(wav, None if self.language in ("en", "ur") else languages.stt_code(self.language))
             text = urdu.from_devanagari(r.get("text", ""))
-            if not text or r.get("no_speech", 0) > 0.6:
+            if not stt._clean(text) or r.get("no_speech", 0) > 0.6:
+                print(f"[wake] just noise ({text[:30]!r})")   # Whisper's "Thank you." on noise
                 return
             hit, rest = wake.match(text, schedule.agent_name())
             print(f"[wake] heard {text[:60]!r} -> {'called me' if hit else 'not for me'}")
@@ -320,14 +321,16 @@ class Hub:
                     if segment is None:
                         run = run + 1 if loud else 0
                         if run >= 3:
-                            segment, silent_blocks = list(ring[-12:]), 0
+                            segment, silent_blocks, voiced = list(ring[-12:]), 0, run
                     else:
                         segment.append(x)
+                        voiced += 1 if loud else 0
                         silent_blocks = silent_blocks + 1 if rms < max(0.004, floor * 2.5) else 0
                         if silent_blocks >= 12 or len(segment) >= 80:   # 0.6 s pause, or 4 s at most
                             now = time.time()
                             self._wake_checks = [t for t in self._wake_checks if now - t < 60]
-                            if len(segment) >= 14 and len(self._wake_checks) < 12:
+                            # at least 0.3 s of real voice: a click, cough or door bang isn't worth asking about
+                            if voiced >= 6 and len(self._wake_checks) < 12:
                                 self._wake_checks.append(now)
                                 threading.Thread(target=self._check_wake, args=(np.concatenate(segment), rate),
                                                  daemon=True).start()

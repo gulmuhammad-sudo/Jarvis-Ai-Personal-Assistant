@@ -2,6 +2,13 @@
 
 All notable changes to this assistant. Versions follow [semantic versioning](https://semver.org): MAJOR.MINOR.PATCH.
 
+## 1.3.1 (2026-11-16)
+
+### Fixed
+- Wake word: short sounds (clicks, coughs, a door) are no longer sent for a name check; only bits with at least
+  0.3 s of real voice are. Saves free quota in noisy rooms.
+- Whisper's made-up "Thank you." / "Bye." on noise are recognised as noise in name checks.
+
 ## 1.3.0 (2026-11-16)
 
 ### Added
