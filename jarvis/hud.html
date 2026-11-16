@@ -6,7 +6,7 @@
 <script>/* pick the theme before anything is drawn, so there is no dark/light flash */
 (function () { var t = "__THEME__"; try { if (t === "system") t = matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark"; } catch (e) {}
   document.documentElement.dataset.theme = t === "light" ? "light" : "dark"; })();</script>
-<title>Jarvis Command Center</title>
+<title>Personal Assistant</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Noto+Nastaliq+Urdu:wght@400;600&display=swap" rel="stylesheet">
 <style>
@@ -168,6 +168,9 @@ body[data-state="listening"] .mic::before { border-color: rgba(var(--c-green), .
 .sysstat .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--green); box-shadow: 0 0 0 3px rgba(var(--c-green), .15); }
 .sysstat.warn b { color: var(--amber); } .sysstat.warn .dot { background: var(--amber); box-shadow: 0 0 0 3px rgba(var(--c-amber), .15); }
 .clockbox { text-align: center; line-height: 1.15; }
+@media (min-width: 1101px) {
+  .clockbox { position: absolute; left: 50%; top: 10px; height: 48px; transform: translateX(-50%); display: flex; flex-direction: column; justify-content: center; pointer-events: none; }
+}
 #date { color: var(--muted); font-size: 12.5px; letter-spacing: .02em; }
 #clock { font-family: var(--mono); font-size: 23px; font-weight: 500; color: var(--text); letter-spacing: .02em; }
 .toolbar { justify-self: end; display: flex; align-items: center; gap: 6px; min-width: 0; }
@@ -656,7 +659,7 @@ body[data-state="listening"] .talk { border-color: var(--green); background: lin
         <circle class="m2" cx="20" cy="20" r="11" fill="none" stroke-width="2" stroke-dasharray="12 5"/>
         <circle class="m3" cx="20" cy="20" r="4"/>
       </svg>
-      <div><b id="logoName">JARVIS</b><small>COMMAND CENTER</small></div>
+      <div><b id="logoName" class="keepname">ASSISTANT</b><small>PERSONAL AI</small></div>
     </div>
     <nav id="nav" aria-label="Sections">
       <button class="navi active" data-view="dash"><i data-ic="grid"></i><span>Command Center</span></button>
@@ -672,7 +675,7 @@ body[data-state="listening"] .talk { border-color: var(--green); background: lin
       <canvas id="wave" aria-hidden="true"></canvas>
       <div id="vLabel">Tap to speak</div>
       <button class="mic" id="mic" title="Talk to Jarvis (Ctrl+Space)" aria-label="Talk to Jarvis"><i data-ic="mic"></i><small>Tap to Speak</small></button>
-      <button class="btn danger unmute" id="unmuteBtn" hidden title="Windows has your microphone muted"><i data-ic="mic"></i>Mic is muted · Unmute</button>
+      <button class="btn danger unmute" id="unmuteBtn" hidden title="Windows has your microphone muted"><i data-ic="mic"></i>Unmute mic</button>
       <div style="height:22px"></div>
     </section>
     <button class="focusbtn" id="voiceBtn" title="Hands-free: Jarvis keeps listening"><i data-ic="zap"></i><span id="voiceBtnTxt">Hands-free mode</span></button>
@@ -855,11 +858,11 @@ body[data-state="listening"] .talk { border-color: var(--green); background: lin
             <button class="btn" id="setupAgain"><i data-ic="refresh"></i>Run setup</button></div>
 
           <h4 class="sec">TALKING</h4>
-          <div class="setrow"><div class="lbl"><b>Conversation style</b><small id="engineInfo"><b>Live:</b> talk naturally, like a phone call. Jarvis answers instantly and you can interrupt (Gemini Live). <b>Classic:</b> you speak, then Jarvis replies, using whichever AI model you pick below.</small></div>
+          <div class="setrow"><div class="lbl"><b>Conversation style</b><small id="engineInfo"><b>Live:</b> talk naturally, like a phone call. <b>Classic:</b> you speak, then Jarvis replies (works with every AI model).</small></div>
             <button class="btn" id="engLive">Live</button><button class="btn" id="engClassic">Classic</button></div>
-          <div class="setrow"><div class="lbl"><b>Hands-free</b><small>On: Jarvis is listening as soon as the app opens, so just start talking (no button). Off: press the mic or Ctrl+Space to talk.</small></div>
+          <div class="setrow"><div class="lbl"><b>Hands-free</b><small>Jarvis listens from the moment the app opens. No button needed.</small></div>
             <button class="btn" id="voiceBtn2">On</button></div>
-          <div class="setrow"><div class="lbl"><b>Wake word</b><small id="wakeInfo">On: Jarvis only responds after you call its name (say "Jarvis", or "Jarvis, what's the time?"), then listens for a follow-up for a few seconds. Best in a busy room or co-working space. Works together with Hands-free (turn that on too).</small></div>
+          <div class="setrow"><div class="lbl"><b>Wake word</b><small id="wakeInfo">Jarvis only answers after you say its name, e.g. "Jarvis" or "Jarvis, what's the time?". Best in busy places. Needs Hands-free on.</small></div>
             <button class="btn" id="wakeBtn">On</button></div>
           <div class="setrow"><div class="lbl"><b>Read answers aloud</b><small>Also speak the answers to things you type. (Live calls always talk.)</small></div>
             <button class="btn" id="speakBtn2">On</button></div>
@@ -1377,6 +1380,10 @@ function handle(ev) {
       if (d) { d.result = ev.result; d.error = ev.error; d.awaiting = false; if (detailId === ev.id) openDetail(ev.id); }
       break;
     }
+    case "mic_muted":
+      $("unmuteBtn").hidden = false; $("vLabel").textContent = "Mic is muted";
+      if (!replaying) addFeed({ title: "Your mic is muted", sub: "Press Unmute mic (on the left) so I can hear you", tag: "ALERT", ic: "mic", time: ev.time });
+      break;
     case "standby": live.standby = !!ev.on; if ("wake" in ev) live.wake = !!ev.wake; paintLive(); renderLabel(); break;
     case "wake":
       if (!replaying && isSpeaker()) {
@@ -1469,7 +1476,7 @@ function renderLabel() {
     $("vPill").textContent = "LIVE · " + LABELS[key].toUpperCase();
   } else {
     $("stateLabel").textContent = LABELS[key] + hf;
-    $("vLabel").textContent = key === "idle" ? (settings.voice_mode ? (lastStats && lastStats.wake_word !== false ? `Say "${AGENT}" to talk` : "Hands-free: just speak") : tap) : LABELS[key] + "…";
+    $("vLabel").textContent = key === "idle" ? (settings.voice_mode ? (lastStats && lastStats.wake_word !== false ? `Say "${AGENT}"` : "Just start talking") : tap) : LABELS[key] + "…";
     $("talkSub").textContent = key === "listening" ? "I am listening…" : key === "idle" ? (settings.voice_mode ? "Hands-free is on" : tap) : LABELS[key] + "…";
     $("vPill").textContent = key === "idle" ? "READY" : LABELS[key].toUpperCase();
   }
@@ -1581,7 +1588,7 @@ function paintLive() {
   const on = useLive();
   const wakeOn = !lastStats || lastStats.wake_word !== false;
   $("voiceBtnTxt").textContent = live.active ? "End live conversation" : settings.voice_mode
-    ? (wakeOn ? `Hands-free: say "${AGENT}"` : on && live.standby ? "Hands-free: listening…" : "Hands-free is on") : "Hands-free is off";
+    ? "Hands-free: on" : "Hands-free: off";
   $("voiceBtn").title = live.active ? "End the call" : settings.voice_mode ? `${AGENT} listens without a button press. Click to turn it off` : "Click to turn hands-free on";
   $("voiceBtn").classList.toggle("on", live.active || settings.voice_mode);
   $("engLive").classList.toggle("on", live.engine === "live"); $("engClassic").classList.toggle("on", live.engine !== "live");
@@ -1954,6 +1961,7 @@ async function poll() {
     $("ovLlm").textContent = live.active ? "Gemini Live (call)" : s.provider ? `${s.provider}${s.brain && s.brain.preferred === "auto" ? " · auto" : ""}` : "none";
     $("ovLlm").className = up ? "info" : "bad"; $("ovLlm").title = `${up} AI providers connected`;
     paintBrain(s); paintTone(s); askMic(s.mic_prompt); paintWake(s);
+    $("setupAgain").closest(".setrow").hidden = !!s.setup_done;
     if (s.languages && !$("langSel").options.length) paintLangSel();
     if (s.reading_voice && s.reading_voice !== voiceId && document.activeElement !== $("voiceSel") && [...$("voiceSel").options].some(o => o.value === s.reading_voice)) {
       voiceId = s.reading_voice; $("voiceSel").value = voiceId; storeSet("jarvis.voice3", voiceId);
@@ -2506,9 +2514,8 @@ function brand() {   // swap "Jarvis" for the chosen name in the page's own text
   document.querySelectorAll("[title], [placeholder], [aria-label]").forEach(el => {
     for (const a of ["title", "placeholder", "aria-label"]) { const v = el.getAttribute(a); if (v && /jarvis/i.test(v)) el.setAttribute(a, swap(v)); }
   });
-  document.title = swap(document.title);
   const long = AGENT.length;     // long names: tighter letter spacing so they still fit
-  if (long > 7) { $("heroName").style.letterSpacing = $("heroName").style.paddingLeft = long > 12 ? ".12em" : ".26em"; $("logoName").style.letterSpacing = long > 12 ? ".08em" : ".18em"; }
+  if (long > 7) $("heroName").style.letterSpacing = $("heroName").style.paddingLeft = long > 12 ? ".12em" : ".26em";
   if (long > 14) $("heroName").style.fontSize = "clamp(22px, 2.2vw, 34px)";
 }
 $("agentName").value = AGENT;

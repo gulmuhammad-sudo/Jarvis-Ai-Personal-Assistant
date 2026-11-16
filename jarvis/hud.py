@@ -184,21 +184,8 @@ class Hub:
         """Rename the assistant. Every open window reloads with the new name; nothing else changes."""
         old = schedule.agent_name()
         name = schedule.set_agent_name(name)          # ValueError for an unusable name
-        if old != name:                               # the Desktop / Start Menu shortcut is renamed too
-            def shortcuts() -> None:
-                try:
-                    from . import install
-                    install.rename_shortcuts(old, name)
-                except Exception as e:
-                    print(f"[rename] couldn't rename the shortcut: {e}")
-            threading.Thread(target=shortcuts, daemon=True).start()
         if hasattr(self.brain, "refresh_system"):
             self.brain.refresh_system()
-        if TITLE_HOOK:
-            try:
-                TITLE_HOOK(name)
-            except Exception:
-                pass
         self.emit("settings", assistant_name=name)
         return name
 
@@ -241,7 +228,8 @@ class Hub:
         """Was the name in this bit of speech? (Whisper on ~1-4 s of audio, on a worker thread.)"""
         try:
             wav = recorder._to_wav(audio, rate)
-            r = stt._whisper_once(wav, None if self.language in ("en", "ur") else languages.stt_code(self.language))
+            # tell Whisper your language: on a 1-second clip its own guess is often wrong (Icelandic, ...)
+            r = stt._whisper_once(wav, languages.stt_code(self.language))
             text = urdu.from_devanagari(r.get("text", ""))
             if not stt._clean(text) or r.get("no_speech", 0) > 0.6:
                 print(f"[wake] just noise ({text[:30]!r})")   # Whisper's "Thank you." on noise
@@ -295,9 +283,19 @@ class Hub:
         self.emit("standby", on=True, mic=dev["name"], wake=use_wake)
         print(f"[hands-free] waiting for {'its name' if use_wake else 'your voice'} on {dev['name']}")
         trigger = False
+        done = threading.Event()                 # this wait is over (stops the mute watcher)
         recorder._recording.set()
         try:
             with sd.InputStream(device=dev["index"], channels=1, samplerate=rate, dtype="float32", blocksize=block) as st:
+                def watch_mute() -> None:                # Teams or the mic key can mute it while we wait.
+                    was_muted = False                    # (own thread: the check takes ~1.7 s and the mic
+                    while not done.wait(3):              #  must never stop being read meanwhile)
+                        muted = bool(recorder.is_muted(dev["name"]))
+                        if muted and not was_muted:
+                            self._mic_cache = (0.0, {})
+                            self.emit("mic_muted", mic=dev["name"])
+                        was_muted = muted
+                threading.Thread(target=watch_mute, name="jarvis-mute-watch", daemon=True).start()
                 while not self._standby_stop.is_set():
                     if not self.standby_wanted():
                         break
@@ -338,6 +336,7 @@ class Hub:
         except Exception as e:
             print(f"[hands-free] {type(e).__name__}: {e}")
         finally:
+            done.set()
             recorder._recording.clear()
             self.standby_on = False
             self.emit("standby", on=False)
@@ -688,7 +687,7 @@ class Hub:
                 on_phase=phase, on_level=lambda v: self.emit("level", v=v),
                 on_partial=self._live_partial,
                 on_user=self._live_heard, on_reply=self._live_reply, on_tool=self.on_tool,
-                on_error=lambda text: self.emit("error", keep=True, text=text), on_end=ended)
+                on_error=self._live_error, on_end=ended)
             self.live = session
             self.emit("live", keep=True, active=True, phase="connecting", voice=session.voice)
             session.start()
@@ -700,6 +699,13 @@ class Hub:
     def _script(self, text: str) -> str:
         """Live calls write Urdu in Hindi letters: show it in Urdu script (unless you chose Hindi)."""
         return text if self.language == "hi" else urdu.from_devanagari(text)
+
+    def _live_error(self, text: str) -> None:
+        if "just got muted" in text:                 # not a fault: Windows (Teams, the mic key) muted the mic
+            self._mic_cache = (0.0, {})
+            self.emit("mic_muted", mic=self.live.mic if self.live else "")
+        else:
+            self.emit("error", keep=True, text=text)
 
     def _live_partial(self, who: str, text: str) -> None:
         text = self._script(text)
@@ -1215,6 +1221,16 @@ def main(open_window: bool = True, watchdog: bool = True, ready: threading.Event
     gpu.monitor()                                   # GPU usage, sampled every 2 s
     threading.Thread(target=HUB.weather_loop, daemon=True).start()
     threading.Thread(target=HUB.mic_watch, daemon=True).start()
+
+    def shortcut_names() -> None:
+        try:
+            from . import install
+            fixed = install.fix_shortcut_names()
+            if fixed:
+                print(f"[install] shortcuts renamed to '{install.APP_NAME}': {', '.join(fixed)}")
+        except Exception as e:
+            print(f"[install] {e}")
+    threading.Thread(target=shortcut_names, daemon=True).start()
     if HUB.standby_wanted():
         HUB.standby_start(6)                        # hands-free from the start (after the window has opened)
     server.daemon_threads = True

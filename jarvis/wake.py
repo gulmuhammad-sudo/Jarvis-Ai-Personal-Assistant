@@ -28,7 +28,7 @@ def _latin(word: str) -> str:
     if any("؀" <= c <= "ۿ" for c in w):
         w = "".join(_U2L.get(c, "") for c in w)
     w = re.sub(r"[^a-z]", "", w)
-    w = w.replace("ph", "f").replace("w", "v").replace("i", "y").replace("ee", "y").replace("oo", "u")
+    w = w.replace("ph", "f").replace("x", "ks").replace("w", "v").replace("i", "y").replace("ee", "y").replace("oo", "u")
     w = re.sub(r"(.)\1+", r"\1", w)                     # aa -> a, yy -> y
     if len(w) > 3 and w.endswith("h"):
         w = w[:-1]
@@ -44,8 +44,9 @@ def _same(word: str, name: str, urdu_script: bool = False) -> bool:
         return False
     if word == name:
         return True
-    if len(name) <= 4:                                  # short names: exact only
-        return False
+    if len(name) <= 4:                                  # short names: exact only...
+        # ...except in Urdu script, where "Max" comes back as میکس / ماکس: the same 3+ consonants are enough
+        return urdu_script and len(_skeleton(name)) >= 3 and _skeleton(word) == _skeleton(name)
     close = SequenceMatcher(None, word, name).ratio() >= 0.8 and abs(len(word) - len(name)) <= 1 and word[0] == name[0]
     # Urdu script often leaves vowels out or spells them differently: matching consonants are enough there
     skel = urdu_script and _skeleton(word) == _skeleton(name) and len(_skeleton(name)) >= 3

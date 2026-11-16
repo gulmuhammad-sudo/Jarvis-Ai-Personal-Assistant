@@ -29,7 +29,7 @@ def _log_to_file() -> None:
     sys.stdout = sys.stderr = f
 
 
-def _message_box(text: str, title: str = "Jarvis") -> None:
+def _message_box(text: str, title: str = "Personal Assistant") -> None:
     try:
         import ctypes
         ctypes.windll.user32.MessageBoxW(0, text, title, 0x40)
@@ -103,9 +103,8 @@ def main() -> None:
     from . import schedule
     url = f"http://127.0.0.1:{hud.PORT}/"
     light = schedule.theme() == "light"
-    window = webview.create_window(schedule.agent_name(), url, width=1400, height=860, min_size=(1000, 640),
+    window = webview.create_window("Personal Assistant", url, width=1400, height=860, min_size=(1000, 640),
                                    background_color="#EEF2F6" if light else "#05080C", maximized=True, text_select=True)
-    hud.TITLE_HOOK = window.set_title
     window.events.shown += lambda: _set_window_icon(window)
     webview.start(gui="edgechromium", private_mode=False, storage_path=str(DATA_DIR / "webview"))
     os._exit(0)   # window closed: stop the server, scheduler and everything else

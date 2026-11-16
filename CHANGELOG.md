@@ -2,6 +2,22 @@
 
 All notable changes to this assistant. Versions follow [semantic versioning](https://semver.org): MAJOR.MINOR.PATCH.
 
+## 1.3.2 (2026-11-16)
+
+### Fixed
+- **Wake word didn't react to "Max":** the mute check paused the microphone for ~1.7 s every 3 s (so words were
+  lost); it now runs on its own thread. Name checks now tell Whisper your language (its own guess on a 1-second
+  clip was often wrong), and short names written in Urdu script ("میکس" for Max) are recognised.
+- A muted microphone now shows a simple "Your mic is muted · Unmute mic" instead of "Something went wrong",
+  also while waiting for the name.
+
+### Changed
+- The app keeps one fixed name, **Personal Assistant** (window title, Desktop / Start Menu shortcut, sidebar);
+  renaming the assistant only changes the assistant. Older shortcuts named after the assistant are renamed.
+- The clock sits in the middle of the window.
+- The "First-time setup" row is hidden once setup is done.
+- Shorter, simpler wording in the voice panel and Talking settings.
+
 ## 1.3.1 (2026-11-16)
 
 ### Fixed

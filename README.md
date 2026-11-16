@@ -6,7 +6,7 @@ A Jarvis-style desktop assistant for Windows. It **talks, listens and acts on yo
 
 ## Start it
 
-1. Double-click **`Jarvis.bat`**. The first run installs everything and adds a **Jarvis** shortcut (arc-reactor icon) to your Desktop and Start Menu.
+1. Double-click **`Jarvis.bat`**. The first run installs everything and adds a **Personal Assistant** shortcut (arc-reactor icon) to your Desktop and Start Menu.
 2. After that, open Jarvis from the shortcut. It opens as its own app window; closing the window stops Jarvis.
 3. Click the mic (or press **Ctrl+Space**) and talk, or type in the box at the top (**Ctrl+K**).
 

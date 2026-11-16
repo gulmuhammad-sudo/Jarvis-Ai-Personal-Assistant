@@ -56,10 +56,29 @@ def create_shortcuts() -> list[Path]:
     shell = [line.strip() for line in shell if line.strip()]
     targets = []
     for folder in shell[:2]:
-        lnk = Path(folder) / "Jarvis.lnk"
-        _shortcut(lnk, pythonw, "run.py --app", ROOT, icon, "Jarvis - your personal AI assistant")
+        lnk = Path(folder) / f"{APP_NAME}.lnk"
+        _shortcut(lnk, pythonw, "run.py --app", ROOT, icon, "Your personal AI assistant")
         targets.append(lnk)
     return targets
+
+
+APP_NAME = "Personal Assistant"     # the app's name never changes (the assistant inside can be called anything)
+
+
+def fix_shortcut_names() -> list[str]:
+    """Shortcuts to this app get the fixed app name (older versions named them after the assistant)."""
+    ps = (
+        "$sh = New-Object -ComObject WScript.Shell; "
+        "foreach ($f in @([Environment]::GetFolderPath('Desktop'), [Environment]::GetFolderPath('Programs'))) { "
+        "Get-ChildItem -Path $f -Filter *.lnk -ErrorAction SilentlyContinue | ForEach-Object { "
+        "$l = $sh.CreateShortcut($_.FullName); "
+        "if ($l.Arguments -like '*run.py --app*' -and $l.WorkingDirectory -eq '{root}' -and $_.BaseName -ne '{app}') { "
+        "$new = Join-Path $_.DirectoryName '{app}.lnk'; "
+        "if (Test-Path $new) {{ Remove-Item $_.FullName }} else {{ Rename-Item $_.FullName '{app}.lnk' }}; $_.Name } } }"
+    ).replace("{root}", str(ROOT).replace("'", "''")).replace("{app}", APP_NAME).replace("{{", "{").replace("}}", "}")
+    out = subprocess.run(["powershell", "-NoProfile", "-Command", ps], capture_output=True, text=True, timeout=30,
+                         creationflags=0x08000000)
+    return [line.strip() for line in out.stdout.splitlines() if line.strip()]
 
 
 def rename_shortcuts(old: str, new: str) -> list[Path]:
