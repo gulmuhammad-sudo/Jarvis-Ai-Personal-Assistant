@@ -223,6 +223,10 @@ def _clean_audio(samples: np.ndarray, rate: int, out_rate: int = 16000) -> np.nd
     # soft band-pass: fades in from 90 to 150 Hz, out from 4.0 to 4.6 kHz (also the anti-alias filter)
     spec *= np.clip((f - 90) / 60, 0, 1) * np.clip((4600 - f) / 600, 0, 1)
     x = np.fft.irfft(spec[: n_out // 2 + 1], n=n_out) * (n_out / x.size)   # resample in the same step
+    from . import denoise
+    lvl = denoise.level()
+    if lvl != "off":                                # background noise (fans, a busy room) turned down
+        x = denoise.denoise(x.astype(np.float32), out_rate, lvl).astype(np.float64)
     peak = float(np.percentile(np.abs(x), 99.9))   # ignore single clicks when judging loudness
     if peak > 0:
         x *= min(0.7 / peak, 20.0)     # quiet speech gets louder (max 20x so noise isn't blown up)

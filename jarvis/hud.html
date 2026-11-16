@@ -859,6 +859,8 @@ body[data-state="listening"] .talk { border-color: var(--green); background: lin
             <button class="btn" id="engLive">Live</button><button class="btn" id="engClassic">Classic</button></div>
           <div class="setrow"><div class="lbl"><b>Hands-free</b><small>On: Jarvis is listening as soon as the app opens, so just start talking (no button). Off: press the mic or Ctrl+Space to talk.</small></div>
             <button class="btn" id="voiceBtn2">On</button></div>
+          <div class="setrow"><div class="lbl"><b>Wake word</b><small id="wakeInfo">On: Jarvis only responds after you call its name (say "Jarvis", or "Jarvis, what's the time?"), then listens for a follow-up for a few seconds. Best in a busy room or co-working space. Works together with Hands-free (turn that on too).</small></div>
+            <button class="btn" id="wakeBtn">On</button></div>
           <div class="setrow"><div class="lbl"><b>Read answers aloud</b><small>Also speak the answers to things you type. (Live calls always talk.)</small></div>
             <button class="btn" id="speakBtn2">On</button></div>
           <div class="setrow"><div class="lbl"><b>Listen again after answering <span class="tagx">CLASSIC</span></b><small>After replying to something you said, Jarvis waits for your follow-up without a button press.</small></div>
@@ -878,6 +880,8 @@ body[data-state="listening"] .talk { border-color: var(--green); background: lin
           <div class="setrow"><div class="lbl"><b>Microphone</b><small id="micInfo">Jarvis picks a microphone that actually hears you, and asks you when you plug in a new one (earbuds, headset).</small></div>
             <select id="micSel" aria-label="Microphone"></select>
             <button class="btn" id="micBoost" title="Set the microphone's Windows input level to 100%">Boost level</button></div>
+          <div class="setrow"><div class="lbl"><b>Noise reduction</b><small>Turns background noise down (fans, AC, a busy room) before Jarvis listens. Strong removes more but can make quiet voices thinner. A headset helps most.</small></div>
+            <select id="noiseSel" aria-label="Noise reduction"><option value="off">Off</option><option value="normal">Normal</option><option value="strong">Strong</option></select></div>
 
           <h4 class="sec">LANGUAGE</h4>
           <div class="setrow"><div class="lbl"><b>Language</b><small id="langInfo">Jarvis listens and replies in this language, with a matching voice. Pick one or type any other. You can also say "Urdu mein baat karo".</small></div>
@@ -985,6 +989,9 @@ body[data-state="listening"] .talk { border-color: var(--green); background: lin
         <h2>How do you want to talk?</h2><p class="lead">Hands-free means you never need to press a button.</p>
         <div class="choice"><button class="opt2" data-hf="1"><b>Hands-free: on</b><small>Listening from the moment the app opens. Just start talking.</small></button>
           <button class="opt2" data-hf="0"><b>Hands-free: off</b><small>Press the mic button (or Ctrl+Space) when you want to talk.</small></button></div>
+        <h3 class="ssub">WAKE WORD</h3>
+        <div class="choice"><button class="opt2" data-wake="1"><b>Only when I call its name</b><small>Say its name first ("Maya…"). Others talking nearby are ignored. Best for busy places.</small></button>
+          <button class="opt2" data-wake="0"><b>Listen to everything</b><small>Anything you say is for the assistant. Best when you're alone.</small></button></div>
         <h3 class="ssub">CONVERSATION STYLE</h3>
         <div class="choice"><button class="opt2" data-eng="live"><b>Live</b><small>Natural back-and-forth, like a phone call. You can interrupt any time.</small></button>
           <button class="opt2" data-eng="classic"><b>Classic</b><small>You speak, then it replies. Works with every AI model.</small></button></div>
@@ -1370,7 +1377,15 @@ function handle(ev) {
       if (d) { d.result = ev.result; d.error = ev.error; d.awaiting = false; if (detailId === ev.id) openDetail(ev.id); }
       break;
     }
-    case "standby": live.standby = !!ev.on; paintLive(); renderLabel(); break;
+    case "standby": live.standby = !!ev.on; if ("wake" in ev) live.wake = !!ev.wake; paintLive(); renderLabel(); break;
+    case "wake":
+      if (!replaying && isSpeaker()) {
+        chime("reminder");                                     // "I heard my name"
+        if (ev.ack) { speak(ev.ack, true); convo.armed = true; convo.lastWasVoice = true; }   // Classic: say yes, then listen
+      }
+      addFeed({ title: `You called ${AGENT}`, sub: ev.command ? `“${ev.command}”` : "Listening for what you need", tag: "LIVE", ic: "mic",
+                time: ev.time, info: { detail: JSON.stringify({ heard: ev.text }) } });
+      break;
     case "mic_new": if (!replaying) askMic(ev, true); break;
     case "mic_gone":
       if (!replaying) addFeed({ title: `Microphone unplugged: ${ev.name}`, sub: ev.was_current ? "Switched to another mic automatically" : "", tag: "TIP", ic: "mic", time: ev.time });
@@ -1454,7 +1469,7 @@ function renderLabel() {
     $("vPill").textContent = "LIVE · " + LABELS[key].toUpperCase();
   } else {
     $("stateLabel").textContent = LABELS[key] + hf;
-    $("vLabel").textContent = key === "idle" ? (settings.voice_mode ? "Hands-free: just speak" : tap) : LABELS[key] + "…";
+    $("vLabel").textContent = key === "idle" ? (settings.voice_mode ? (lastStats && lastStats.wake_word !== false ? `Say "${AGENT}" to talk` : "Hands-free: just speak") : tap) : LABELS[key] + "…";
     $("talkSub").textContent = key === "listening" ? "I am listening…" : key === "idle" ? (settings.voice_mode ? "Hands-free is on" : tap) : LABELS[key] + "…";
     $("vPill").textContent = key === "idle" ? "READY" : LABELS[key].toUpperCase();
   }
@@ -1564,7 +1579,9 @@ $("voiceBtn2").onclick = toggleHF;
 $("voiceBtn").onclick = () => live.active ? post("/api/live", { on: false }) : toggleHF();   // ends a call, otherwise hands-free on/off
 function paintLive() {
   const on = useLive();
-  $("voiceBtnTxt").textContent = live.active ? "End live conversation" : settings.voice_mode ? (on && live.standby ? "Hands-free: listening…" : "Hands-free is on") : "Hands-free is off";
+  const wakeOn = !lastStats || lastStats.wake_word !== false;
+  $("voiceBtnTxt").textContent = live.active ? "End live conversation" : settings.voice_mode
+    ? (wakeOn ? `Hands-free: say "${AGENT}"` : on && live.standby ? "Hands-free: listening…" : "Hands-free is on") : "Hands-free is off";
   $("voiceBtn").title = live.active ? "End the call" : settings.voice_mode ? `${AGENT} listens without a button press. Click to turn it off` : "Click to turn hands-free on";
   $("voiceBtn").classList.toggle("on", live.active || settings.voice_mode);
   $("engLive").classList.toggle("on", live.engine === "live"); $("engClassic").classList.toggle("on", live.engine !== "live");
@@ -1936,7 +1953,7 @@ async function poll() {
     const up = llms.filter(l => ["active", "connected", "limited"].includes(l.status)).length;
     $("ovLlm").textContent = live.active ? "Gemini Live (call)" : s.provider ? `${s.provider}${s.brain && s.brain.preferred === "auto" ? " · auto" : ""}` : "none";
     $("ovLlm").className = up ? "info" : "bad"; $("ovLlm").title = `${up} AI providers connected`;
-    paintBrain(s); paintTone(s); askMic(s.mic_prompt);
+    paintBrain(s); paintTone(s); askMic(s.mic_prompt); paintWake(s);
     if (s.languages && !$("langSel").options.length) paintLangSel();
     if (s.reading_voice && s.reading_voice !== voiceId && document.activeElement !== $("voiceSel") && [...$("voiceSel").options].some(o => o.value === s.reading_voice)) {
       voiceId = s.reading_voice; $("voiceSel").value = voiceId; storeSet("jarvis.voice3", voiceId);
@@ -2506,6 +2523,18 @@ $("agentSave").onclick = async () => {
 $("agentName").onkeydown = e => { if (e.key === "Enter") { e.preventDefault(); $("agentSave").click(); } };
 
 $("trustReset").onclick = async () => { await post("/api/approvals/reset"); poll(); };
+$("wakeBtn").onclick = async () => {
+  const on = !(lastStats && lastStats.wake_word !== false);
+  if (lastStats) lastStats.wake_word = on;
+  paintWake(lastStats || { wake_word: on }); paintLive(); renderLabel();
+  await post("/api/settings", { wake_word: on });
+};
+$("noiseSel").onchange = () => post("/api/settings", { noise_reduction: $("noiseSel").value });
+function paintWake(s) {
+  const on = s.wake_word !== false;
+  $("wakeBtn").textContent = on ? "On" : "Off"; $("wakeBtn").classList.toggle("on", on);
+  if (s.noise_reduction && document.activeElement !== $("noiseSel")) $("noiseSel").value = s.noise_reduction;
+}
 
 // ---------- first-run setup ----------
 const STEPS = ["welcome", "name", "language", "voice", "look", "talk", "keys", "done"];
@@ -2533,7 +2562,7 @@ async function openSetup(force = false) {
   $("sReadVoice").innerHTML = S.reading_voices.map(v => `<option value="${esc(v.id)}">${esc(v.name)}</option>`).join("");
   $("sReadVoice").value = S.reading_voice;
   S.theme = themeMode; pickOpt("data-setup-theme", S.theme);
-  pickOpt("data-hf", S.hands_free ? 1 : 0); pickOpt("data-eng", S.engine);
+  pickOpt("data-hf", S.hands_free ? 1 : 0); pickOpt("data-eng", S.engine); pickOpt("data-wake", S.wake_word ? 1 : 0);
   $("sKeys").innerHTML = Object.entries(KEY_INFO).map(([k, [label, url, why]]) => `<div class="keyrow"><b>${label}</b>${S.keys[k]
       ? `<span class="ok">✓ Connected</span>`
       : `<input type="password" data-key="${k}" placeholder="Paste your free ${label} key" autocomplete="off" spellcheck="false">`}<small>${why} · get one free at ${url}</small></div>`).join("");
@@ -2553,7 +2582,7 @@ function showStep() {
     const keys = Object.entries(KEY_INFO).filter(([k]) => S.keys[k] || S.newKeys[k]).map(([, v]) => v[0]);
     const rows = [["Assistant", name], ["Calls you", $("sCall").value.trim() || "Sir"], ["Language", langName(S.language)],
       ["Call voice", S.live_voice], ["Reading voice", ($("sReadVoice").selectedOptions[0] || {}).text || ""], ["Look", { dark: "Dark", light: "Light", system: "Auto (Windows)" }[S.theme]],
-      ["Hands-free", S.hands_free ? "On" : "Off"], ["Style", S.engine === "live" ? "Live" : "Classic"], ["AI connected", keys.join(", ") || "none yet"]];
+      ["Hands-free", S.hands_free ? "On" : "Off"], ["Wake word", S.wake_word ? `On (say "${name}")` : "Off"], ["Style", S.engine === "live" ? "Live" : "Classic"], ["AI connected", keys.join(", ") || "none yet"]];
     $("sSum").innerHTML = rows.map(([k, v]) => `<span>${esc(k)}</span><b>${esc(v)}</b>`).join("");
     $("sDoneTitle").textContent = `All set! Meet ${name}.`;
   }
@@ -2569,7 +2598,7 @@ $("sNext").onclick = async () => {
   if (step !== "done") { sIdx++; showStep(); return; }
   $("sNext").disabled = true;
   const r = await post("/api/setup", { name: $("sName").value.trim(), call: $("sCall").value.trim(), language: S.language, live_voice: S.live_voice,
-    reading_voice: $("sReadVoice").value, theme: S.theme, hands_free: S.hands_free, engine: S.engine, keys: S.newKeys });
+    reading_voice: $("sReadVoice").value, theme: S.theme, hands_free: S.hands_free, engine: S.engine, keys: S.newKeys, wake_word: S.wake_word });
   const j = r ? await r.json() : { ok: false, problems: ["Couldn't reach the assistant."] };
   $("sNext").disabled = false;
   if (!j.ok) { $("sErr").textContent = (j.problems || []).join(" "); sIdx = 1; showStep(); return; }
@@ -2586,6 +2615,7 @@ $("sSkip").onclick = async () => {
 document.querySelectorAll("[data-setup-theme]").forEach(b => b.onclick = () => { S.theme = b.dataset.setupTheme; pickOpt("data-setup-theme", S.theme); applyTheme(S.theme); });
 document.querySelectorAll("#setup [data-hf]").forEach(b => b.onclick = () => { S.hands_free = b.dataset.hf === "1"; pickOpt("data-hf", b.dataset.hf); });
 document.querySelectorAll("#setup [data-eng]").forEach(b => b.onclick = () => { S.engine = b.dataset.eng; pickOpt("data-eng", S.engine); });
+document.querySelectorAll("#setup [data-wake]").forEach(b => b.onclick = () => { S.wake_word = b.dataset.wake === "1"; pickOpt("data-wake", b.dataset.wake); });
 $("sReadTest").onclick = () => { voiceId = $("sReadVoice").value; stopSpeaking(); speak(`Hello! I'm ${$("sName").value.trim() || AGENT}. Nice to meet you.`, true, true); };
 $("sName").onkeydown = $("sCall").onkeydown = $("sLangOther").onkeydown = e => { if (e.key === "Enter") $("sNext").click(); };
 $("setupAgain").onclick = () => openSetup(true);

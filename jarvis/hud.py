@@ -26,7 +26,7 @@ from urllib.parse import parse_qs
 
 from . import __version__
 from . import live as live_mod
-from . import alerts, approvals, gpu, languages, memory, schedule, stt, tools, tts, urdu
+from . import alerts, approvals, denoise, gpu, languages, memory, schedule, stt, tools, tts, urdu, wake
 from .brain import make_brain
 from .config import NOTES_DIR
 from .providers import provider_status
@@ -96,6 +96,9 @@ class Hub:
         self._quiet_until = 0.0             # the page is speaking / a beep is playing: don't wake up
         self._live_errors: list[float] = []
         self.mic_prompt: dict | None = None # a newly plugged-in microphone waiting for your choice
+        self._wake_hit: tuple | None = None # (text, what came after the name, audio) when you called it
+        self._wake_checks: list[float] = [] # when we asked Whisper "was the name said?" (free-quota guard)
+        self._awake_until = 0.0             # Classic + wake word: follow-up window after you called it
         pref = schedule.get_setting("brain") or {}
         if pref.get("provider") and hasattr(self.brain, "use"):
             try:
@@ -210,6 +213,45 @@ class Hub:
         self.emit("settings", brain=opts)
         return msg
 
+    # ---------- wake word: only respond after you call its name ----------
+    WAKE_FOLLOW_UP = 15                     # seconds it keeps listening for a follow-up before waiting for the name again
+
+    def wake_on(self) -> bool:
+        return schedule.get_setting("wake_word", True) is not False
+
+    def _female(self) -> bool:
+        return live_mod.voice() in ("Kore", "Aoede") if self.voice_engine == "live" else \
+            any(f in (schedule.get_setting("reading_voice") or "") for f in tts._FEMALE)
+
+    def ack_phrase(self) -> str:
+        call = memory.call_name()
+        if self.language == "ur":
+            return f"جی {call}، میں سن {'رہی' if self._female() else 'رہا'} ہوں۔"
+        if self.language == "en":
+            return f"Yes {call}, I'm listening."
+        return ""
+
+    def _ack_prompt(self) -> str:
+        ex = self.ack_phrase()
+        how = f'like "{ex}"' if ex else f"in {languages.name(self.language)}"
+        return (f"[The user just called your name to get your attention. Reply ONLY with a very short, warm "
+                f"acknowledgement {how}, then wait for them to speak. Do not say anything else.]")
+
+    def _check_wake(self, audio, rate: int) -> None:
+        """Was the name in this bit of speech? (Whisper on ~1-4 s of audio, on a worker thread.)"""
+        try:
+            wav = recorder._to_wav(audio, rate)
+            r = stt._whisper_once(wav, None if self.language in ("en", "ur") else languages.stt_code(self.language))
+            text = urdu.from_devanagari(r.get("text", ""))
+            if not text or r.get("no_speech", 0) > 0.6:
+                return
+            hit, rest = wake.match(text, schedule.agent_name())
+            print(f"[wake] heard {text[:60]!r} -> {'called me' if hit else 'not for me'}")
+            if hit:
+                self._wake_hit = (text, rest, audio)
+        except Exception as e:
+            print(f"[wake] check failed: {type(e).__name__}: {str(e)[:100]}")
+
     # ---------- hands-free in Live mode: wait for your voice locally, then start the call ----------
     def standby_wanted(self) -> bool:
         return bool(self.voice_mode and self.voice_engine == "live" and recorder and live_mod.available()
@@ -244,9 +286,13 @@ class Hub:
         rate, block = dev["rate"], int(dev["rate"] * 0.05)
         ring: list = []
         floor, run, started = float("inf"), 0, time.time()
+        use_wake = self.wake_on()
+        segment: list | None = None
+        silent_blocks = 0
+        self._wake_hit = None
         self.standby_on = True
-        self.emit("standby", on=True, mic=dev["name"])
-        print(f"[hands-free] waiting for your voice on {dev['name']}")
+        self.emit("standby", on=True, mic=dev["name"], wake=use_wake)
+        print(f"[hands-free] waiting for {'its name' if use_wake else 'your voice'} on {dev['name']}")
         trigger = False
         recorder._recording.set()
         try:
@@ -260,10 +306,32 @@ class Hub:
                     rms = recorder._voice_rms(x, rate)
                     floor = rms if rms < floor else floor * 0.995 + rms * 0.005
                     quiet = time.time() < self._quiet_until or time.time() - started < 1.0
-                    run = run + 1 if (not quiet and rms > max(0.004, floor * 3.0)) else 0
-                    if run >= 6:                                        # 0.3 s of real voice
+                    if self._wake_hit:                                  # Whisper heard the name
                         trigger = True
                         break
+                    if not use_wake:
+                        run = run + 1 if (not quiet and rms > max(0.004, floor * 3.0)) else 0
+                        if run >= 6:                                    # 0.3 s of real voice
+                            trigger = True
+                            break
+                        continue
+                    # wake word: cut out each bit of close, clear speech and ask Whisper if it's the name
+                    loud = not quiet and rms > max(0.006, floor * 4.0)  # near the mic, louder than the room
+                    if segment is None:
+                        run = run + 1 if loud else 0
+                        if run >= 3:
+                            segment, silent_blocks = list(ring[-12:]), 0
+                    else:
+                        segment.append(x)
+                        silent_blocks = silent_blocks + 1 if rms < max(0.004, floor * 2.5) else 0
+                        if silent_blocks >= 12 or len(segment) >= 80:   # 0.6 s pause, or 4 s at most
+                            now = time.time()
+                            self._wake_checks = [t for t in self._wake_checks if now - t < 60]
+                            if len(segment) >= 14 and len(self._wake_checks) < 12:
+                                self._wake_checks.append(now)
+                                threading.Thread(target=self._check_wake, args=(np.concatenate(segment), rate),
+                                                 daemon=True).start()
+                            segment, run = None, 0
         except Exception as e:
             print(f"[hands-free] {type(e).__name__}: {e}")
         finally:
@@ -271,11 +339,19 @@ class Hub:
             self.standby_on = False
             self.emit("standby", on=False)
         if trigger and not self._standby_stop.is_set():
-            audio = np.concatenate(ring)
-            g = np.gcd(rate, 16000)
-            pre = sg.resample_poly(audio, 16000 // g, rate // g).astype(np.float32) if rate != 16000 else audio
-            print("[hands-free] heard you: starting a live conversation")
-            self.live_start(preroll=pre)
+            to16 = lambda a: sg.resample_poly(a, 16000 // np.gcd(rate, 16000), rate // np.gcd(rate, 16000)).astype(np.float32) \
+                if rate != 16000 else a
+            if self._wake_hit:
+                text, rest, audio = self._wake_hit
+                self._wake_hit = None
+                self.emit("wake", keep=True, text=text, command=rest)
+                print(f"[wake] {schedule.agent_name()} was called: {'doing ' + repr(rest) if rest else 'saying yes'}")
+                # "Maya, mausam batao": the call hears the whole sentence. Just "Maya": a short "yes?" first
+                self.live_start(preroll=to16(audio) if rest else None, greet=None if rest else self._ack_prompt(),
+                                idle_stop=self.WAKE_FOLLOW_UP, quiet_room=True)
+            else:
+                print("[hands-free] heard you: starting a live conversation")
+                self.live_start(preroll=to16(np.concatenate(ring)))
 
     def quiet_for(self, seconds: float) -> None:
         self._quiet_until = max(self._quiet_until, time.time() + seconds)
@@ -341,6 +417,7 @@ class Hub:
                 "call": prof.get("call", ""), "user_name": prof.get("name", ""), "language": self.language,
                 "languages": languages.choices(), "theme": schedule.theme(), "hands_free": self.voice_mode,
                 "engine": self.voice_engine, "live_voice": live_mod.voice(), "live_voices": live_mod.VOICES,
+                "wake_word": self.wake_on(),
                 "reading_voice": schedule.get_setting("reading_voice") or tts.DEFAULT_VOICE,
                 "reading_voices": [{"id": v, "name": n} for v, n in tts.VOICES if not v.startswith("ur-")],
                 "keys": {k: bool(os.environ.get(env)) for k, env in self.KEYS.items()}}   # never the keys themselves
@@ -366,6 +443,8 @@ class Hub:
             schedule.set_setting("live_voice", d["live_voice"])
         if d.get("reading_voice"):
             schedule.set_setting("reading_voice", str(d["reading_voice"])[:60])
+        if "wake_word" in d:
+            schedule.set_setting("wake_word", bool(d["wake_word"]))
         if d.get("engine") in ("live", "classic"):
             self.voice_engine = d["engine"]
             schedule.set_setting("voice_engine", self.voice_engine)
@@ -545,9 +624,22 @@ class Hub:
         self.speaker = cid
         self.emit("speaker", id=cid)
 
-    def heard(self, text: str) -> None:
+    def heard(self, text: str, hands_free: bool = False) -> None:
         if self.pending and self.voice_answer(text):     # "yes" / "nahi" to the open approval
             return
+        if hands_free and self.wake_on() and time.time() > self._awake_until:
+            hit, rest = wake.match(text, schedule.agent_name())
+            if not hit:                                  # someone else talking: not for me
+                print(f"[wake] ignored (name not said): {text[:60]!r}")
+                return
+            if not rest:                                 # just the name: "yes, I'm listening"
+                self._awake_until = time.time() + self.WAKE_FOLLOW_UP
+                self.emit("wake", keep=True, text=text, command="", ack=self.ack_phrase() or "Yes?")
+                return
+            self.emit("wake", keep=True, text=text, command=rest)
+            text = rest
+        if hands_free and self.wake_on():
+            self._awake_until = time.time() + self.WAKE_FOLLOW_UP + 10    # keep listening for a follow-up
         if self.is_echo(text):
             self.emit("tool", keep=False, name="ignored_echo", args=text[:60])
             return
@@ -566,7 +658,8 @@ class Hub:
                 "model": s.model if s and s.active else live_mod.MODEL,
                 "pause": schedule.get_setting("live_pause") or "fast"}
 
-    def live_start(self, preroll=None) -> None:
+    def live_start(self, preroll=None, greet: str | None = None, idle_stop: float | None = None,
+                   quiet_room: bool = False) -> None:
         self.standby_halt()                    # the call needs the microphone
         with self._listen_lock:
             if self.live and self.live.active:
@@ -587,7 +680,8 @@ class Hub:
                     self.standby_start(2.5)     # hands-free: wait for your voice again
 
             session = live_mod.LiveSession(
-                self.ctx, history=getattr(self.brain, "turns", []), preroll=preroll,
+                self.ctx, history=getattr(self.brain, "turns", []), preroll=preroll, greet=greet,
+                idle_stop=idle_stop, quiet_room=quiet_room or (self.voice_mode and self.wake_on()),
                 on_phase=phase, on_level=lambda v: self.emit("level", v=v),
                 on_partial=self._live_partial,
                 on_user=self._live_heard, on_reply=self._live_reply, on_tool=self.on_tool,
@@ -653,7 +747,7 @@ class Hub:
                 info = dict(stt.LAST)
                 if text:
                     result, detail = "heard", text
-                    self.heard(text)
+                    self.heard(text, hands_free=hands_free)
                 elif info.get("rejected"):
                     result, detail = "unclear", f"unclear guess rejected: {info.get('text', '')!r}"
                 print(f"[voice] whisper lang={info.get('language')} logprob={info.get('logprob', 0):.2f} "
@@ -724,6 +818,7 @@ class Hub:
                "language_name": languages.name(self.language), "setup_done": bool(schedule.get_setting("setup_done")),
                "reading_voice": schedule.get_setting("reading_voice"),
                "hands_free": self.voice_mode, "standby": self.standby_on, "mic_prompt": self.mic_prompt,
+               "wake_word": self.wake_on(), "noise_reduction": denoise.level(),
                "alert_tone": alerts.tone(), "tones": alerts.TONES,
                "brain": self.brain.options() if hasattr(self.brain, "options") else None,
                "language": self.language,
@@ -892,6 +987,12 @@ class Handler(BaseHTTPRequestHandler):
                 HUB.toggle_voice_mode(bool(data["voice_mode"]))
             if data.get("reading_voice"):
                 schedule.set_setting("reading_voice", str(data["reading_voice"])[:60])
+            if "wake_word" in data:
+                schedule.set_setting("wake_word", bool(data["wake_word"]))
+                if HUB.standby_on:                     # restart the waiting with the new mode
+                    threading.Thread(target=lambda: (HUB.standby_halt(), HUB.standby_start(0.3)), daemon=True).start()
+            if data.get("noise_reduction") in denoise.LEVELS:
+                schedule.set_setting("noise_reduction", data["noise_reduction"])
             if data.get("alert_tone") in alerts.TONES:
                 schedule.set_setting("alert_tone", data["alert_tone"])
             if "brain" in data:

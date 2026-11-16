@@ -15,6 +15,9 @@ If something goes wrong, `data\jarvis.log` says what happened.
 
 ## Make it yours
 
+- **Wake word (busy rooms):** with hands-free on, say its name first ("Maya…" or "Maya, mausam batao"). It answers
+  "Haan ji, main sun rahi hoon", listens for ~15 s of follow-ups, then waits for its name again. Settings → Wake word.
+- **Noise reduction:** Settings → Microphone → Noise reduction turns fans, AC and room chatter down. A headset helps most.
 - **First start:** a short welcome setup asks for the assistant's name, what it calls you, your language (19 built
   in, or type any other), voices, look, hands-free and your free AI keys. Settings → Assistant → Run setup repeats it.
 - **Approvals:** say "haan" / "yes" once and that kind of action (e.g. PowerShell) isn't asked again until the app
@@ -139,5 +142,7 @@ Optional: `JARVIS_NAME` (starting name, default `Jarvis`) · `JARVIS_THEME` (`da
 | `jarvis/recorder.py`, `stt.py`, `tts.py` | Classic mode: microphone, speech-to-text (Whisper), voice (Ryan / Asad) |
 | `jarvis/memory.py`, `config.py` | Your profile, long-term memory, settings and safe saving of the `data/` files |
 | `jarvis/alerts.py` | The loud alert beep (raises the volume for the beep, then puts it back) |
+| `jarvis/wake.py`, `denoise.py` | Wake word (is the name in what was said?) and background-noise reduction |
+| `jarvis/languages.py`, `urdu.py` | Languages and voices; Urdu shown in Urdu script on Live calls |
 | `jarvis/gpu.py` | GPU usage and GPU memory for the System gauges (Windows performance counters) |
 | `jarvis/app.py`, `voice.py` | The console version and its Windows voice |

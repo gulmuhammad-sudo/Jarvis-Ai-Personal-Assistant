@@ -115,13 +115,20 @@ class LiveSession:
                  on_user: Callable[[str], None], on_reply: Callable[[str, bool], None],
                  on_tool: Callable[[str, dict], None], on_error: Callable[[str], None],
                  on_end: Callable[[str], None], history: list[tuple[str, str]] | None = None,
-                 preroll: np.ndarray | None = None):
+                 preroll: np.ndarray | None = None, idle_stop: float | None = None,
+                 greet: str | None = None, quiet_room: bool = False):
         self.ctx = ctx
         self.on_phase, self.on_level, self.on_partial = on_phase, on_level, on_partial
         self.on_user, self.on_reply, self.on_tool = on_user, on_reply, on_tool
         self.on_error, self.on_end = on_error, on_end
         self.history = list(history or [])[-8:]
         self.preroll = preroll                      # hands-free: what you said before the call connected (16 kHz)
+        self.idle_stop = idle_stop or IDLE_STOP     # wake-word mode: back to waiting for the name sooner
+        self.greet = greet                          # wake-word mode: "say a short 'yes, I'm listening'"
+        self.quiet_room = quiet_room                # less eager to treat background talk as speech
+        from . import denoise
+        lvl = denoise.level()
+        self._dn = denoise.Denoiser(IN_RATE, lvl) if lvl != "off" else None
         self.active = False
         self.phase = ""
         self.mic = ""
@@ -253,6 +260,10 @@ class LiveSession:
         if x.size == 0:
             return
         x, self._hp_zi = signal.sosfilt(self._hp, x, zi=self._hp_zi)      # drop fan/AC rumble
+        if self._dn is not None:
+            x = self._dn.process(x)                                        # turn background noise down
+            if x.size == 0:
+                return
         rms = float(np.sqrt(np.mean(x * x)))
         now = time.time()
         talking_back = self.playing()
@@ -331,6 +342,8 @@ class LiveSession:
             **extra,
             realtime_input_config=types.RealtimeInputConfig(
                 automatic_activity_detection=types.AutomaticActivityDetection(
+                    start_of_speech_sensitivity=(types.StartSensitivity.START_SENSITIVITY_LOW if getattr(self, "quiet_room", False)
+                                                 else types.StartSensitivity.START_SENSITIVITY_HIGH),
                     end_of_speech_sensitivity=types.EndSensitivity.END_SENSITIVITY_HIGH,
                     silence_duration_ms=pause_ms())),
             response_modalities=["AUDIO"],
@@ -381,6 +394,9 @@ class LiveSession:
                     self._set_phase("listening")
                     while self._pending_text:                 # typed while we were still connecting
                         await session.send_realtime_input(text=self._pending_text.pop(0))
+                    if self.greet:                            # you called its name: a short "yes?" first
+                        await session.send_realtime_input(text=self.greet)
+                        self.greet = None
                     handle = await self._run(session) or handle
             except Exception as e:
                 if not self.active:
@@ -441,7 +457,7 @@ class LiveSession:
                 self._set_phase("speaking" if playing else "listening")
             if self._end_after_speech and not playing:
                 self.stop("goodbye")
-            elif not playing and self.phase == "listening" and time.time() - self._last_activity > IDLE_STOP:
+            elif not playing and self.phase == "listening" and time.time() - self._last_activity > self.idle_stop:
                 self.stop("idle")
 
     async def _receive(self, session, state: dict) -> None:

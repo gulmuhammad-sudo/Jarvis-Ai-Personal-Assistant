@@ -2,6 +2,19 @@
 
 All notable changes to this assistant. Versions follow [semantic versioning](https://semver.org): MAJOR.MINOR.PATCH.
 
+## 1.3.0 (2026-11-16)
+
+### Added
+- **Wake word:** with hands-free on, the assistant only responds after you call its name ("Maya", "مایا").
+  Just the name gets a short "Haan ji, main sun rahi hoon" / "Yes, I'm listening", then it listens; "Maya, what's
+  the time?" is answered straight away. After answering it keeps listening ~15 s for a follow-up, then waits for
+  its name again, so people talking nearby are ignored. Works in Live and Classic style; Settings → Wake word.
+  Names are recognised in English letters, Urdu script and Hindi letters; short names must match exactly so
+  everyday words ("maa", "main") never wake it. At most 12 name checks a minute (free-quota guard).
+- **Noise reduction:** background noise (fans, AC, a busy room) is turned down before the assistant listens, on
+  live calls and in Classic mode. Settings → Microphone → Noise reduction (Off / Normal / Strong). Live calls
+  in wake-word mode are also less eager to treat background talk as speech.
+
 ## 1.2.0 (2026-11-16)
 
 ### Added
