@@ -46,15 +46,47 @@ def _tone(freq: float, dur: float, shape: str = "beep") -> np.ndarray:
     return (wave * env).astype(np.float32)
 
 
-def pattern(kind: str) -> np.ndarray:
+TONES = {"chime": "Chime (bright bells)", "beep": "Classic beeps", "siren": "Siren", "pulse": "Digital pulse"}
+
+
+def tone() -> str:
+    t = schedule.get_setting("alert_tone") or "chime"
+    return t if t in TONES else "chime"
+
+
+def _sweep(f0: float, f1: float, dur: float) -> np.ndarray:
+    t = np.arange(int(RATE * dur)) / RATE
+    f = f0 + (f1 - f0) * (0.5 - 0.5 * np.cos(np.pi * t / dur))       # smooth up-and-over
+    env = np.minimum(1, np.minimum(t, dur - t) / 0.01)
+    return (np.sin(2 * np.pi * np.cumsum(f) / RATE) * env).astype(np.float32)
+
+
+def _once(name: str) -> list:
     gap = lambda s: np.zeros(int(RATE * s), np.float32)
-    if kind == "alarm":          # alarms and timers: two triple-beeps
-        tri = [_tone(1000, .16), gap(.08), _tone(1000, .16), gap(.08), _tone(1320, .22)]
-        parts = tri + [gap(.35)] + tri
-    elif kind == "prayer":       # a calm two-note bell
+    if name == "beep":
+        return [_tone(1250, .14), gap(.09), _tone(1250, .14), gap(.09), _tone(1250, .2)]
+    if name == "siren":
+        return [_sweep(650, 1350, .45), _sweep(1350, 650, .45)]
+    if name == "pulse":
+        return sum(([_tone(1800, .06), gap(.06)] for _ in range(6)), [])
+    bell = lambda f, d: _tone(f, d, "bell")                             # chime: a rising C-E-G arpeggio
+    notes = [bell(1047, .5), bell(1319, .5), bell(1568, .8)]
+    out = np.zeros(int(RATE * 1.1), np.float32)
+    for i, n in enumerate(notes):
+        start = int(RATE * .15 * i)
+        out[start:start + n.size] += n[: out.size - start]
+    return [out]
+
+
+def pattern(kind: str, name: str | None = None) -> np.ndarray:
+    gap = lambda s: np.zeros(int(RATE * s), np.float32)
+    name = name or tone()
+    if kind == "prayer":         # a calm two-note bell
         parts = [_tone(660, 1.0, "bell"), _tone(880, 1.4, "bell")]
-    else:                        # warnings: three sharp beeps
-        parts = [_tone(1250, .14), gap(.09), _tone(1250, .14), gap(.09), _tone(1250, .2)]
+    elif kind == "alarm":        # alarms and timers: the tone twice
+        parts = _once(name) + [gap(.3)] + _once(name)
+    else:                        # warnings: once
+        parts = _once(name)
     x = np.concatenate(parts)
     return (x / np.abs(x).max() * 0.85).astype(np.float32)
 
@@ -63,12 +95,12 @@ def duration(kind: str) -> float:
     return pattern(kind).size / RATE
 
 
-def beep(kind: str = "warn", text: str = "", on_start=None) -> bool:
-    """Play the alert beep (blocking). Returns False if it was skipped as a repeat."""
+def beep(kind: str = "warn", text: str = "", on_start=None, force: bool = False, name: str | None = None) -> bool:
+    """Play the alert beep (blocking). Returns False if it was skipped as a repeat (force: the Test button)."""
     global _last_any
     now = time.time()
     key = (text or kind)[:120]
-    if now - _last.get(key, 0) < 60 or now - _last_any < 3:
+    if not force and (now - _last.get(key, 0) < 60 or now - _last_any < 3):
         return False
     _last[key] = _last_any = now
     with _lock:
@@ -86,7 +118,7 @@ def beep(kind: str = "warn", text: str = "", on_start=None) -> bool:
             if on_start:
                 on_start()
             import sounddevice as sd
-            sd.play(pattern(kind), RATE, blocking=True)
+            sd.play(pattern(kind, name), RATE, blocking=True)
         except Exception as e:
             print(f"[alert] beep failed: {e}")
         finally:

@@ -114,12 +114,14 @@ class LiveSession:
                  on_level: Callable[[float], None], on_partial: Callable[[str, str], None],
                  on_user: Callable[[str], None], on_reply: Callable[[str, bool], None],
                  on_tool: Callable[[str, dict], None], on_error: Callable[[str], None],
-                 on_end: Callable[[str], None], history: list[tuple[str, str]] | None = None):
+                 on_end: Callable[[str], None], history: list[tuple[str, str]] | None = None,
+                 preroll: np.ndarray | None = None):
         self.ctx = ctx
         self.on_phase, self.on_level, self.on_partial = on_phase, on_level, on_partial
         self.on_user, self.on_reply, self.on_tool = on_user, on_reply, on_tool
         self.on_error, self.on_end = on_error, on_end
         self.history = list(history or [])[-8:]
+        self.preroll = preroll                      # hands-free: what you said before the call connected (16 kHz)
         self.active = False
         self.phase = ""
         self.mic = ""
@@ -351,6 +353,11 @@ class LiveSession:
     async def _main(self) -> None:
         self._loop = asyncio.get_running_loop()
         self._mic_q = asyncio.Queue()
+        if self.preroll is not None and self.preroll.size:   # hands-free start: your first words go first
+            x, _ = signal.sosfilt(self._hp, self.preroll.astype(np.float32), zi=self._hp_zi)
+            loud = np.sort(np.abs(x))[-max(1, x.size // 3):]
+            gain = float(np.clip(0.1 / max(float(np.sqrt(np.mean(loud ** 2))), 1e-4), 1.0, 8.0))
+            self._mic_q.put_nowait((np.clip(x * gain, -1, 1) * 32767).astype("<i2").tobytes())
         client = genai.Client(api_key=os.environ["GEMINI_API_KEY"],
                               http_options=types.HttpOptions(api_version="v1beta"))
         try:

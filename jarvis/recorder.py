@@ -123,6 +123,28 @@ def _inputs() -> list[dict]:
     return uniq
 
 
+def active_mic_names() -> list[str] | None:
+    """Microphones Windows has active right now (cheap, ~40 ms; safe while a stream is open)."""
+    try:
+        import comtypes
+        try:
+            comtypes.CoInitialize()
+        except OSError:
+            pass
+        from pycaw.constants import DEVICE_STATE, EDataFlow
+        from pycaw.pycaw import AudioUtilities
+        return [d.FriendlyName for d in AudioUtilities.GetAllDevices(
+            data_flow=EDataFlow.eCapture.value, device_state=DEVICE_STATE.ACTIVE.value) if d.FriendlyName]
+    except Exception:
+        return None
+
+
+def refresh() -> None:
+    """Rescan devices now (only when no stream is open)."""
+    with _lock:
+        _refresh_devices()
+
+
 def list_mics() -> list[dict]:
     return [{"name": d["name"], "index": d["index"]} for d in _inputs()]
 

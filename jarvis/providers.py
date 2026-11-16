@@ -236,6 +236,8 @@ class MultiBrain:
                 continue
             self.backends.append((label, backend))
             self.seen[label] = 0
+        self.order = [label for label, _ in self.backends]      # the .env order ("Automatic")
+        self.preferred = ""                                     # "" = automatic
 
     @property
     def names(self) -> list[str]:
@@ -253,6 +255,34 @@ class MultiBrain:
         for label, b in self.backends:
             b.reset()
             self.seen[label] = 0
+
+    def use(self, label: str | None, model: str | None = None) -> str:
+        """Talk to this AI first (the others stay as backups). None / "auto" = the .env order."""
+        by_label = {l.lower(): (l, b) for l, b in self.backends}
+        if not label or label.lower() in ("auto", "automatic"):
+            self.backends.sort(key=lambda lb: self.order.index(lb[0]) if lb[0] in self.order else 99)
+            self.preferred = ""
+            self.current = self.backends[0][0] if self.backends else ""
+            self.on_provider(self.current)
+            return f"Automatic: {' → '.join(l for l, _ in self.backends)}."
+        hit = by_label.get(label.lower()) or next((v for k, v in by_label.items() if k.startswith(label.lower()[:4])), None)
+        if not hit:
+            raise ValueError(f"{label} isn't available. Connected: {', '.join(self.names) or 'none'}.")
+        lab, backend = hit
+        if model:
+            models = getattr(backend, "models", [])
+            if model not in models:
+                raise ValueError(f"{lab} has no model {model}. Choose from: {', '.join(models)}.")
+            backend.model = model
+        self.backends.sort(key=lambda lb: (lb[0] != lab, self.order.index(lb[0]) if lb[0] in self.order else 99))
+        self.preferred = self.current = lab
+        self.on_provider(lab)
+        return f"Now using {lab}" + (f" ({getattr(backend, 'model', '')})" if getattr(backend, "model", "") else "") + "."
+
+    def options(self) -> dict:
+        return {"preferred": self.preferred or "auto",
+                "providers": [{"label": l, "models": list(getattr(b, "models", [])), "model": getattr(b, "model", "")}
+                              for l, b in sorted(self.backends, key=lambda lb: self.order.index(lb[0]) if lb[0] in self.order else 99)]}
 
     def refresh_system(self) -> None:
         """The profile or memories changed: rebuild the instructions, keeping the conversation."""

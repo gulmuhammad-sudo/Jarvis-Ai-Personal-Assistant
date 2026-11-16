@@ -24,6 +24,7 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import parse_qs
 
+from . import __version__
 from . import live as live_mod
 from . import alerts, approvals, gpu, memory, schedule, stt, tools, tts
 from .brain import make_brain
@@ -70,6 +71,7 @@ class Hub:
         self.ctx.set_language = self.set_language
         self.ctx.set_name = self.set_name
         self.ctx.set_theme = self.set_theme
+        self.ctx.set_brain = self.set_brain
         self.brain = make_brain(self.ctx, on_text=self.on_text, on_tool=self.on_tool)
         self.language = schedule.get_setting("language", "en")
         if self.language == "ur":
@@ -83,6 +85,20 @@ class Hub:
         self._live_user = ""
         self.voice_engine = schedule.get_setting("voice_engine", "live")
         self.last_source = "typed"          # how the last request came in (voice requests get voice approvals)
+        self.voice_mode = schedule.get_setting("hands_free", True) is not False   # hands-free from the moment the app opens
+        self.brain.set_voice_mode(self.voice_mode)
+        self._standby: threading.Thread | None = None   # hands-free (Live): waits locally for your voice
+        self._standby_stop = threading.Event()
+        self.standby_on = False
+        self._quiet_until = 0.0             # the page is speaking / a beep is playing: don't wake up
+        self._live_errors: list[float] = []
+        self.mic_prompt: dict | None = None # a newly plugged-in microphone waiting for your choice
+        pref = schedule.get_setting("brain") or {}
+        if pref.get("provider") and hasattr(self.brain, "use"):
+            try:
+                self.brain.use(pref["provider"], pref.get("model"))
+            except ValueError:
+                pass
         self._confirm_rec = None            # the recording listening for a spoken yes/no
         tts.warm_up()                       # first reply shouldn't pay the voice service's start-up cost
         if recorder:
@@ -121,12 +137,14 @@ class Hub:
     def notify(self, msg: str, kind: str = "reminder") -> None:
         self.emit("notify", keep=True, text=msg, kind=kind)
 
-    def alert(self, kind: str = "warn", text: str = "") -> None:
+    def alert(self, kind: str = "warn", text: str = "", force: bool = False, tone: str | None = None) -> None:
         """Beep loudly for a warning/alarm (the page asks for this when it shows an alert)."""
         def hold_mic() -> None:          # a live call shouldn't send the beep to Gemini as if you spoke
+            self.quiet_for(alerts.duration(kind) + 0.8)
             if self.live:
                 self.live.hold_mic(alerts.duration(kind) + 0.3)
-        threading.Thread(target=alerts.beep, args=(kind, text, hold_mic), daemon=True).start()
+        threading.Thread(target=alerts.beep, args=(kind, text, hold_mic), kwargs={"force": force, "name": tone},
+                         daemon=True).start()
 
     def set_language(self, lang: str) -> None:
         self.language = "ur" if lang == "ur" else "en"
@@ -147,6 +165,138 @@ class Hub:
                 pass
         self.emit("settings", assistant_name=name)
         return name
+
+    def set_brain(self, provider: str | None, model: str | None = None) -> str:
+        """Choose the AI (Gemini / Groq / OpenRouter ...) for typed and Classic-voice messages."""
+        if not hasattr(self.brain, "use"):
+            raise ValueError("Switching isn't available with this setup.")
+        msg = self.brain.use(provider, model)            # ValueError if unknown
+        opts = self.brain.options()
+        schedule.set_setting("brain", {"provider": opts["preferred"], "model": model})
+        self.emit("tool", keep=True, name="switch_ai_model", args=msg)
+        self.emit("settings", brain=opts)
+        return msg
+
+    # ---------- hands-free in Live mode: wait for your voice locally, then start the call ----------
+    def standby_wanted(self) -> bool:
+        return bool(self.voice_mode and self.voice_engine == "live" and recorder and live_mod.available()
+                    and os.environ.get("JARVIS_HANDSFREE", "on") != "off"      # test copies don't grab the mic
+                    and not (self.live and self.live.active) and not self.recording
+                    and not (len(self._live_errors) >= 2 and time.time() - self._live_errors[-2] < 120))
+
+    def standby_start(self, delay: float = 0.0) -> None:
+        if self._standby and self._standby.is_alive():
+            return
+        self._standby_stop.clear()
+        self._standby = threading.Thread(target=self._standby_loop, args=(delay,), name="jarvis-standby", daemon=True)
+        self._standby.start()
+
+    def standby_halt(self) -> None:
+        """Release the microphone (someone else needs it)."""
+        self._standby_stop.set()
+        t = self._standby
+        if t and t.is_alive() and t is not threading.current_thread():
+            t.join(2)
+
+    def _standby_loop(self, delay: float) -> None:
+        import numpy as np
+        import sounddevice as sd
+        from scipy import signal as sg
+        if self._standby_stop.wait(delay) or not self.standby_wanted():
+            return
+        dev = recorder.choose_mic()
+        if not dev:
+            return
+        rate, block = dev["rate"], int(dev["rate"] * 0.05)
+        ring: list = []
+        floor, run, started = float("inf"), 0, time.time()
+        self.standby_on = True
+        self.emit("standby", on=True, mic=dev["name"])
+        print(f"[hands-free] waiting for your voice on {dev['name']}")
+        trigger = False
+        recorder._recording.set()
+        try:
+            with sd.InputStream(device=dev["index"], channels=1, samplerate=rate, dtype="float32", blocksize=block) as st:
+                while not self._standby_stop.is_set():
+                    if not self.standby_wanted():
+                        break
+                    x = st.read(block)[0][:, 0].copy()
+                    ring.append(x)
+                    ring = ring[-24:]                                   # the last 1.2 s
+                    rms = recorder._voice_rms(x, rate)
+                    floor = rms if rms < floor else floor * 0.995 + rms * 0.005
+                    quiet = time.time() < self._quiet_until or time.time() - started < 1.0
+                    run = run + 1 if (not quiet and rms > max(0.004, floor * 3.0)) else 0
+                    if run >= 6:                                        # 0.3 s of real voice
+                        trigger = True
+                        break
+        except Exception as e:
+            print(f"[hands-free] {type(e).__name__}: {e}")
+        finally:
+            recorder._recording.clear()
+            self.standby_on = False
+            self.emit("standby", on=False)
+        if trigger and not self._standby_stop.is_set():
+            audio = np.concatenate(ring)
+            g = np.gcd(rate, 16000)
+            pre = sg.resample_poly(audio, 16000 // g, rate // g).astype(np.float32) if rate != 16000 else audio
+            print("[hands-free] heard you: starting a live conversation")
+            self.live_start(preroll=pre)
+
+    def quiet_for(self, seconds: float) -> None:
+        self._quiet_until = max(self._quiet_until, time.time() + seconds)
+
+    # ---------- microphones plugged in / out ----------
+    def mic_watch(self) -> None:
+        known = None
+        while True:
+            names = recorder.active_mic_names() if recorder else None
+            if names is not None:
+                if known is not None:
+                    for n in names:
+                        if n not in known:
+                            current = (recorder._chosen or {}).get("name", "")
+                            if not current.startswith(n[:28]):
+                                self.mic_prompt = {"name": n, "current": current, "all": names, "at": time.time()}
+                                print(f"[voice] new microphone plugged in: {n}")
+                                self.emit("mic_new", **self.mic_prompt)
+                    for n in known:
+                        if n not in names:
+                            current = (recorder._chosen or {}).get("name", "")
+                            if current.startswith(n[:28]):
+                                recorder._chosen = None                 # it's gone: pick another next time
+                            if self.mic_prompt and self.mic_prompt["name"] == n:
+                                self.mic_prompt = None
+                            self.emit("mic_gone", name=n, was_current=current.startswith(n[:28]))
+                known = names
+            time.sleep(3)
+
+    def use_mic(self, name: str | None) -> str | None:
+        """Switch microphone, even in the middle of a call (the call restarts on the new mic)."""
+        self.mic_prompt = None
+        in_call = bool(self.live and self.live.active)
+        self.standby_halt()
+        if in_call:
+            self.live_stop("switching microphone")
+            for _ in range(40):
+                if not (self.live and self.live.active) and not recorder._recording.is_set():
+                    break
+                time.sleep(0.1)
+        recorder.refresh()
+        if name:                                                        # Windows name -> PortAudio name
+            match = next((d["name"] for d in recorder.list_mics()
+                          if d["name"].startswith(name[:28]) or name.startswith(d["name"][:28])), name)
+        else:
+            match = None
+        chosen = recorder.set_mic(match)
+        self._mic_cache = (0.0, {})
+        got = chosen and chosen["name"]
+        self.emit("tool", keep=True, name="microphone", args=f"using {got}")
+        if in_call:
+            self.live_start()
+        elif self.standby_wanted():
+            self.standby_start(0.5)
+        return got
 
     def set_theme(self, mode: str) -> None:
         schedule.set_setting("theme", mode if mode in schedule.THEMES else "dark")
@@ -298,7 +448,8 @@ class Hub:
                 "model": s.model if s and s.active else live_mod.MODEL,
                 "pause": schedule.get_setting("live_pause") or "fast"}
 
-    def live_start(self) -> None:
+    def live_start(self, preroll=None) -> None:
+        self.standby_halt()                    # the call needs the microphone
         with self._listen_lock:
             if self.live and self.live.active:
                 return
@@ -312,9 +463,13 @@ class Hub:
             def ended(reason: str) -> None:
                 print(f"[live] ended: {reason}")
                 self.emit("live", keep=True, active=False, phase="", reason=reason)
+                if reason == "error":
+                    self._live_errors = (self._live_errors + [time.time()])[-3:]
+                if reason != "switching microphone" and self.standby_wanted():
+                    self.standby_start(2.5)     # hands-free: wait for your voice again
 
             session = live_mod.LiveSession(
-                self.ctx, history=getattr(self.brain, "turns", []),
+                self.ctx, history=getattr(self.brain, "turns", []), preroll=preroll,
                 on_phase=phase, on_level=lambda v: self.emit("level", v=v),
                 on_partial=self._live_partial,
                 on_user=self._live_heard, on_reply=self._live_reply, on_tool=self.on_tool,
@@ -349,6 +504,7 @@ class Hub:
         """Record from the microphone in Python, transcribe with Whisper, then hand the text to Jarvis."""
         if self.live and self.live.active:     # the live call already has the microphone
             return
+        self.standby_halt()
         with self._listen_lock:              # a double click must not start two recordings
             if self.recording:               # second click while recording = "I'm done talking"
                 self.recording.stop()
@@ -404,6 +560,11 @@ class Hub:
 
     def toggle_voice_mode(self, on: bool) -> None:
         self.voice_mode = on
+        schedule.set_setting("hands_free", bool(on))
+        if on and self.standby_wanted():
+            self.standby_start()
+        elif not on:
+            self.standby_halt()
         if on:
             self.speak = True
         self.brain.set_voice_mode(on)
@@ -434,6 +595,10 @@ class Hub:
                "turns": len(getattr(self.brain, "turns", [])), "tool_calls": self.tool_calls,
                "computer": platform.node(), "user": memory.call_name(), "loud_alerts": alerts.loud(),
                "assistant_name": schedule.agent_name(), "theme": schedule.theme(),
+               "version": __version__,
+               "hands_free": self.voice_mode, "standby": self.standby_on, "mic_prompt": self.mic_prompt,
+               "alert_tone": alerts.tone(), "tones": alerts.TONES,
+               "brain": self.brain.options() if hasattr(self.brain, "options") else None,
                "language": self.language,
                "native_mic": bool(recorder),
                "live": self.live_status(),
@@ -519,6 +684,8 @@ class Handler(BaseHTTPRequestHandler):
         if path == "/api/mics":
             if not recorder:
                 return self._json({"mics": [], "chosen": None})
+            if not recorder._recording.is_set():
+                recorder.refresh()                     # a headset plugged in since start shows up
             chosen = recorder.choose_mic()
             return self._json({"mics": recorder.list_mics(), "chosen": chosen and chosen["name"],
                                "saved": schedule.get_setting("mic")})
@@ -589,6 +756,15 @@ class Handler(BaseHTTPRequestHandler):
         elif self.path == "/api/settings":
             if "voice_mode" in data:
                 HUB.toggle_voice_mode(bool(data["voice_mode"]))
+            if data.get("alert_tone") in alerts.TONES:
+                schedule.set_setting("alert_tone", data["alert_tone"])
+            if "brain" in data:
+                b = data["brain"] or {}
+                try:
+                    msg = HUB.set_brain(b.get("provider") or "auto", b.get("model") or None)
+                except ValueError as e:
+                    return self._json({"error": str(e)}, 400)
+                return self._json({"ok": True, "message": msg, "brain": HUB.brain.options()})
             if "speak" in data:
                 HUB.speak = bool(data["speak"])
                 HUB.emit("settings", voice_mode=HUB.voice_mode, speak=HUB.speak, language=HUB.language)
@@ -607,7 +783,12 @@ class Handler(BaseHTTPRequestHandler):
                 return self._json({"ok": True, "assistant_name": name})
         elif self.path == "/api/alert":
             kind = data.get("kind") if data.get("kind") in ("warn", "alarm", "prayer") else "warn"
-            HUB.alert(kind, str(data.get("text", ""))[:200])
+            tone = data.get("tone") if data.get("tone") in alerts.TONES else None
+            HUB.alert(kind, str(data.get("text", ""))[:200], force=bool(data.get("test")), tone=tone)
+        elif self.path == "/api/speaking":           # the page is talking: hands-free shouldn't hear it as you
+            HUB.quiet_for(600 if data.get("on") else 0.9)
+            if not data.get("on"):
+                HUB._quiet_until = time.time() + 0.9
         elif self.path == "/api/profile":
             prof = memory.save_profile(data.get("profile") or {})
             if hasattr(HUB.brain, "refresh_system"):
@@ -632,12 +813,18 @@ class Handler(BaseHTTPRequestHandler):
             return self._json({"ok": ok, "mic": name})
         elif self.path == "/api/mic":
             if recorder:
-                chosen = recorder.set_mic(data.get("name") or None)
-                HUB.emit("tool", keep=True, name="microphone", args=f"using {chosen and chosen['name']}")
+                if data.get("keep"):                   # "keep my current mic" for a newly plugged-in one
+                    HUB.mic_prompt = None
+                else:
+                    threading.Thread(target=HUB.use_mic, args=(data.get("name") or None,), daemon=True).start()
         elif self.path == "/api/live":
             if "engine" in data and data["engine"] in ("live", "classic"):
                 HUB.voice_engine = data["engine"]
                 schedule.set_setting("voice_engine", HUB.voice_engine)
+                if HUB.standby_wanted():
+                    HUB.standby_start(0.5)
+                elif HUB.voice_engine != "live":
+                    HUB.standby_halt()
             if data.get("pause") in live_mod.PAUSES:
                 schedule.set_setting("live_pause", data["pause"])      # used from the next call
             if data.get("voice") in live_mod.VOICES:
@@ -657,6 +844,10 @@ class Handler(BaseHTTPRequestHandler):
                 HUB.set_speaker(str(data["client"]))
         elif self.path == "/api/memory/forget":
             memory.forget(int(data.get("id", -1)))
+        elif self.path == "/api/memory/edit":
+            return self._json({"message": memory.edit(int(data.get("id", -1)), str(data.get("fact", "")))})
+        elif self.path == "/api/memory/merge":
+            return self._json({"message": memory.merge([int(i) for i in data.get("ids") or []] or None)})
         elif self.path == "/api/reset":
             HUB.live_stop()
             HUB.brain.reset()
@@ -783,6 +974,9 @@ def main(open_window: bool = True, watchdog: bool = True, ready: threading.Event
     threading.Thread(target=HUB.cpu_sampler, daemon=True).start()
     gpu.monitor()                                   # GPU usage, sampled every 2 s
     threading.Thread(target=HUB.weather_loop, daemon=True).start()
+    threading.Thread(target=HUB.mic_watch, daemon=True).start()
+    if HUB.standby_wanted():
+        HUB.standby_start(6)                        # hands-free from the start (after the window has opened)
     server.daemon_threads = True
     url = f"http://127.0.0.1:{PORT}/"
     print(f"Jarvis HUD running at {url}  (close the HUD window or press Ctrl+C to stop)")

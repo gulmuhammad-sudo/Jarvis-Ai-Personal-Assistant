@@ -19,12 +19,22 @@ If something goes wrong, `data\jarvis.log` says what happened.
   The new name is used everywhere: how it introduces itself, Live calls, approvals, the window title and every
   label on screen. Nothing else changes; every skill keeps working. For a female voice pick Kore or Aoede in
   Settings → Live voice (and Sonia/Libby for Classic).
-- **Theme:** the sun / moon button at the top, Settings → **Theme** (Dark, Light, or Match Windows), or say "light mode".
+- **Appearance:** Settings → Assistant → **Appearance** (Dark, Light, or Auto to follow Windows), or say "light mode".
+
+- **Hands-free (on by default):** as soon as the app opens Jarvis is listening, so just start talking. In Live
+  style it waits on your PC (no internet, no quota) and starts the call the moment you speak, passing on your first
+  words. Turn it off with the button under the mic or Settings → Talking → Hands-free.
+- **Which AI answers:** Settings → AI model, the **Use** buttons on the AI Models page, or say "Groq pe chalo" /
+  "use OpenRouter" / "automatic". The one you pick answers first, the others stay as backup, and "Brain" in Core
+  status shows who is answering. Live calls always use Gemini Live (choose Classic style to talk to another AI by voice).
+- **New microphone:** plug in earbuds or a headset and Jarvis asks which mic to use (even mid-call).
+- **Memory:** edit any memory (✎), forget it (×), or "Combine all into one" (also by voice: "put all my memories into one").
+- **Alert sound:** Settings → Alerts → Alert sound (Chime, Classic beeps, Siren, Digital pulse) with a Play button.
 
 ## The Command Center
 
 - **Left menu:** Command Center, Conversations (full chat), Memory (what Jarvis remembers + your notes), Profile, Tools & Skills, AI Models, Settings.
-- **Profile** (left menu, or click your name at the top right): fill in your name, what Jarvis should call you, city, study/work, family, interests, routine, goals and reply style once. Jarvis uses it in every conversation, typed or Live. It is saved in `data/profile.json` and sent to the AI with your messages, so leave out anything private.
+- **Profile** (left menu, or click your name at the top right): your name, what Jarvis should call you, birthday, city, languages, one "About me" box (family, study/work, interests, routine, goals) and how you like replies. Jarvis uses it in every conversation, typed or Live. It is saved in `data/profile.json` and sent to the AI with your messages, so leave out anything private.
 - **Alerts:** warnings (alarms, timers, low battery, errors, mic muted, PC overloaded for 30 s) pop up at the top of the screen and **beep at full volume**: Windows volume goes to 100% just for the beep, then back to yours. Esc or × dismisses one. Turn it off in Settings → **Loud alerts** (then it beeps at your normal volume).
 - **Centre globe:** Jarvis's AI core. Drag to rotate, scroll to zoom, hover to probe, click to talk. Cyan = standing by, green = listening, amber = thinking, pulsing = speaking. The latest exchange shows under it.
 - **Activity:** everything Jarvis does, reminders, AI model switches and PC warnings.

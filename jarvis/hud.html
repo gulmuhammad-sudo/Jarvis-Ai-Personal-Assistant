@@ -385,6 +385,47 @@ h4.sec { font-family: var(--sans); font-size: 12px; letter-spacing: .14em; color
 @keyframes alertIn { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: none; } }
 @keyframes alertGlow { 50% { box-shadow: 0 12px 40px var(--shadow), 0 0 0 7px rgba(var(--c-red), .22); } }
 
+/* ---------- the globe stays clean: no labels on it ---------- */
+#stateLabel, #globeHint, #modelTag, #globeRead { display: none !important; }
+/* conversation captions float above the footer and fade away when nothing is happening */
+.subs { position: fixed; left: 50%; bottom: 80px; top: auto; transform: translate(-50%, 10px); width: min(720px, calc(100vw - 32px));
+  max-height: 30vh; z-index: 45; opacity: 0; pointer-events: none; transition: opacity .35s, transform .35s; box-shadow: 0 14px 44px var(--shadow); }
+.subs.show { opacity: 1; transform: translate(-50%, 0); pointer-events: auto; }
+
+/* ---------- settings ---------- */
+.settings h4.sec { margin: 18px 0 2px; color: var(--cyan); letter-spacing: .16em; font-weight: 600; }
+.settings h4.sec:first-child { margin-top: 0; }
+.setrow .lbl small b { display: inline; font-size: inherit; font-weight: 600; color: var(--text); }
+.tagx { font: 600 10px var(--sans); letter-spacing: .08em; color: var(--dim); border: 1px solid var(--hair-2); border-radius: 5px; padding: 1px 5px; margin-left: 6px; vertical-align: 2px; }
+.themecards { display: flex; gap: 10px; flex-wrap: wrap; }
+.tcard { width: 132px; padding: 8px; border-radius: 12px; border: 1.5px solid var(--hair-2); background: var(--surface-2); color: var(--text);
+  display: grid; gap: 7px; text-align: left; font-size: 13px; font-weight: 500; transition: border-color .15s, box-shadow .15s; }
+.tcard:hover { border-color: rgba(var(--c-accent), .5); }
+.tcard.on { border-color: var(--cyan); box-shadow: 0 0 0 3px rgba(var(--c-accent), .16); }
+.tprev { height: 58px; border-radius: 8px; border: 1px solid var(--hair-2); display: grid; grid-template-columns: 24px 1fr; grid-template-rows: 1fr 1fr; gap: 4px; padding: 5px; }
+.tprev i { border-radius: 4px; } .tprev .s { grid-row: span 2; }
+.tprev.dark { background: #05080c; } .tprev.dark i { background: #142130; } .tprev.dark .a { background: #5ccfff; }
+.tprev.light { background: #eef2f6; } .tprev.light i { background: #fff; box-shadow: inset 0 0 0 1px #d5dde6; } .tprev.light .a { background: #0369a1; }
+.tprev.auto { background: linear-gradient(135deg, #05080c 0 50%, #eef2f6 50% 100%); }
+.tprev.auto i { background: rgba(127, 140, 155, .35); } .tprev.auto .a { background: linear-gradient(135deg, #5ccfff 50%, #0369a1 50%); }
+/* a newly plugged-in microphone: which one? */
+.micask { position: fixed; top: 70px; left: 50%; transform: translateX(-50%); z-index: 66; width: min(520px, calc(100vw - 32px)); display: none;
+  padding: 16px 18px; gap: 12px; border-color: rgba(var(--c-accent), .55); box-shadow: 0 20px 60px var(--shadow); animation: alertIn .2s ease-out; }
+.micask.open { display: flex; }
+.micask .ahead h3 { color: var(--text); }
+.micask .aico { background: rgba(var(--c-accent), .13); color: var(--cyan); }
+.micask .opts { display: grid; gap: 6px; }
+.micask .opt { justify-content: flex-start; width: 100%; height: 42px; text-align: left; }
+.micask .opt em { margin-left: auto; font: 600 10.5px var(--sans); font-style: normal; letter-spacing: .06em; color: var(--cyan); }
+.micask .opt.new { border-color: rgba(var(--c-accent), .55); }
+/* memory: edit + combine */
+.memtools { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; flex-wrap: wrap; }
+.memtools small { color: var(--muted); font-size: 12.5px; }
+.item textarea.edit { width: 100%; min-height: 60px; border-radius: 8px; border: 1px solid rgba(var(--c-accent), .5); background: var(--bg); color: var(--text);
+  padding: 7px 9px; font: 14px/1.45 var(--sans); resize: vertical; outline: none; }
+.item .acts { display: flex; gap: 6px; margin-top: 6px; } .item .acts .btn { height: 30px; padding: 0 10px; font-size: 12.5px; }
+.item .x + .x { margin-left: 0; }
+
 /* ---------- footer ---------- */
 .foot { grid-area: foot; display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 12px; padding: 0 8px; border: 1px solid var(--hair); border-radius: var(--r); background: var(--surface); }
 .chips { display: flex; gap: 18px; min-width: 0; padding-left: 6px; }
@@ -573,7 +614,6 @@ body[data-state="listening"] .talk { border-color: var(--green); background: lin
       <button class="iconbtn lang" id="langBtn" title="Language: English / Urdu (click to switch)" aria-label="Switch language">EN</button>
       <button class="iconbtn" id="speakBtn" title="Spoken replies on/off" aria-label="Spoken replies"><i data-ic="speaker"></i></button>
       <button class="iconbtn" id="resetBtn" title="Start a new conversation" aria-label="New conversation"><i data-ic="refresh"></i></button>
-      <button class="iconbtn" id="themeBtn" title="Switch to the light theme" aria-label="Switch between light and dark theme"><i data-ic="sun"></i></button>
       <button class="iconbtn" data-go="settings" title="Settings" aria-label="Settings"><i data-ic="gear"></i></button>
       <div class="operator" id="operator" role="button" tabindex="0" title="Your profile"><div><b id="opName">__USER__</b><small>Profile</small></div><span class="avatar"><i data-ic="user"></i></span></div>
     </div>
@@ -591,7 +631,7 @@ body[data-state="listening"] .talk { border-color: var(--green); background: lin
             <div class="ov"><span class="ico"><i data-ic="db"></i></span><div><b>Memory</b><small class="info" id="ovMem">0 stored</small></div></div>
             <div class="ov"><span class="ico"><i data-ic="mic"></i></span><div><b>Voice</b><small id="ovVoice">Online</small></div></div>
             <div class="ov"><span class="ico"><i data-ic="wrench"></i></span><div><b>Tools</b><small class="vio" id="ovTools">— ready</small></div></div>
-            <div class="ov"><span class="ico"><i data-ic="layers"></i></span><div><b>LLMs</b><small class="warn" id="ovLlm">— connected</small></div></div>
+            <div class="ov"><span class="ico"><i data-ic="layers"></i></span><div><b>Brain</b><small class="info" id="ovLlm">—</small></div></div>
             <div class="ov"><span class="ico"><i data-ic="shield"></i></span><div><b>System</b><small id="ovSys">Optimal</small></div></div>
           </div>
         </section>
@@ -603,7 +643,6 @@ body[data-state="listening"] .talk { border-color: var(--green); background: lin
           <div class="heroText"><div class="t1" id="heroName">JARVIS</div><div class="t3">AI CORE · V3.0</div></div>
           <div id="globeHint">drag to rotate · scroll to zoom · click to talk</div>
           <div id="globeRead"></div>
-          <div class="subs" id="subs" title="Open the full conversation"></div>
         </section>
 
         <section class="card">
@@ -676,6 +715,8 @@ body[data-state="listening"] .talk { border-color: var(--green); background: lin
       <section class="card page">
         <h3>Memory <span class="more" style="cursor:default">Things Jarvis remembers about you</span></h3>
         <div class="body">
+          <div class="memtools"><button class="btn" id="memMerge"><i data-ic="db"></i>Combine all into one</button>
+            <small>Click ✎ to edit a memory, × to forget it. You can also say "put all my memories into one".</small></div>
           <div class="list" id="memList"></div>
           <h4 class="sec">NOTES</h4>
           <div class="list" id="noteList"></div>
@@ -710,9 +751,11 @@ body[data-state="listening"] .talk { border-color: var(--green); background: lin
       <section class="card page">
         <h3>AI Models <span class="more" style="cursor:default">Tried in order; the next one takes over if one fails</span></h3>
         <div class="body"><div class="list" id="modelList"></div>
-          <h4 class="sec">HOW TO CHANGE</h4>
-          <div class="item"><span class="ico"><i data-ic="note"></i></span><div><b class="keepname">Edit the .env file in the Jarvis folder</b>
-            <small>JARVIS_PROVIDERS sets the order (claude, gemini, groq, openrouter, deepseek). Add GEMINI_API_KEY, GROQ_API_KEY, OPENROUTER_API_KEY or DEEPSEEK_API_KEY, then restart Jarvis.</small></div></div>
+          <h4 class="sec">HOW TO SWITCH</h4>
+          <div class="item"><span class="ico"><i data-ic="swap"></i></span><div><b>Press Use on a provider above, or say "Groq pe chalo" / "use OpenRouter"</b>
+            <small>The one you pick answers first and the others stay as backup. "Automatic" goes back to the normal order. Live voice calls always use Gemini Live; switch to Classic style in Settings to talk to another AI by voice.</small></div></div>
+          <div class="item"><span class="ico"><i data-ic="note"></i></span><div><b class="keepname">Add a provider: edit the .env file in the Jarvis folder</b>
+            <small>Add GEMINI_API_KEY, GROQ_API_KEY, OPENROUTER_API_KEY or DEEPSEEK_API_KEY, then restart Jarvis.</small></div></div>
         </div>
       </section>
     </section>
@@ -720,38 +763,56 @@ body[data-state="listening"] .talk { border-color: var(--green); background: lin
     <!-- Settings -->
     <section class="view" data-view="settings">
       <section class="card page">
-        <h3>Settings</h3>
+        <h3>Settings <span class="more" id="appVer" style="cursor:default"></span></h3>
         <div class="body"><div class="settings">
-          <div class="setrow"><div class="lbl"><b>Assistant's name</b><small id="agentMsg">What your assistant is called everywhere: replies, voice and this screen. You can also just say "your name is Maya now". Everything keeps working; pick a matching voice below.</small></div>
+          <h4 class="sec">ASSISTANT</h4>
+          <div class="setrow"><div class="lbl"><b>Name</b><small id="agentMsg">What your assistant is called everywhere: in replies, on calls and on this screen. You can also just say "your name is Maya now".</small></div>
             <input class="txt" id="agentName" maxlength="24" aria-label="Assistant's name" autocomplete="off" spellcheck="false"><button class="btn" id="agentSave">Rename</button></div>
-          <div class="setrow"><div class="lbl"><b>Theme</b><small>Dark, light, or follow Windows. Also the sun / moon button at the top, or say "light mode".</small></div>
-            <button class="btn" data-theme-btn="dark">Dark</button><button class="btn" data-theme-btn="light">Light</button><button class="btn" data-theme-btn="system">Match Windows</button></div>
-          <div class="setrow"><div class="lbl"><b>How you talk to Jarvis</b><small id="engineInfo">Live: a real-time conversation like a phone call (Gemini Live). You can interrupt at any time. Classic: you speak, then Jarvis answers in the Ryan voice.</small></div>
+          <div class="setrow"><div class="lbl"><b>Appearance</b><small>How the Command Center looks. Auto follows your Windows light/dark setting.</small></div>
+            <div class="themecards">
+              <button class="tcard" data-theme-btn="dark"><span class="tprev dark"><i class="s"></i><i class="a"></i><i></i></span>Dark</button>
+              <button class="tcard" data-theme-btn="light"><span class="tprev light"><i class="s"></i><i class="a"></i><i></i></span>Light</button>
+              <button class="tcard" data-theme-btn="system"><span class="tprev auto"><i class="s"></i><i class="a"></i><i></i></span>Auto (Windows)</button></div></div>
+
+          <h4 class="sec">TALKING</h4>
+          <div class="setrow"><div class="lbl"><b>Conversation style</b><small id="engineInfo"><b>Live:</b> talk naturally, like a phone call. Jarvis answers instantly and you can interrupt (Gemini Live). <b>Classic:</b> you speak, then Jarvis replies, using whichever AI model you pick below.</small></div>
             <button class="btn" id="engLive">Live</button><button class="btn" id="engClassic">Classic</button></div>
-          <div class="setrow"><div class="lbl"><b>Live voice</b><small>The voice Jarvis uses in Live conversations (takes effect on the next call).</small></div>
-            <select id="liveVoiceSel" aria-label="Live voice"></select></div>
-          <div class="setrow"><div class="lbl"><b>Live reply speed</b><small>How long you must be quiet before Jarvis answers. Fast answers soonest; choose Patient if you get cut off while you pause to think.</small></div>
-            <button class="btn" data-pause="fast">Fast</button><button class="btn" data-pause="normal">Normal</button><button class="btn" data-pause="patient">Patient</button></div>
-          <div class="setrow"><div class="lbl"><b>Jarvis's voice</b><small>Natural neural voices. Ryan (British) sounds most like the films.</small></div>
-            <select id="voiceSel" aria-label="Jarvis voice"></select><button class="btn" id="voiceTest"><i data-ic="play"></i>Test</button></div>
-          <div class="setrow"><div class="lbl"><b>Spoken replies</b><small>Jarvis reads every answer aloud.</small></div>
+          <div class="setrow"><div class="lbl"><b>Hands-free</b><small>On: Jarvis is listening as soon as the app opens, so just start talking (no button). Off: press the mic or Ctrl+Space to talk.</small></div>
+            <button class="btn" id="voiceBtn2">On</button></div>
+          <div class="setrow"><div class="lbl"><b>Read answers aloud</b><small>Also speak the answers to things you type. (Live calls always talk.)</small></div>
             <button class="btn" id="speakBtn2">On</button></div>
-          <div class="setrow"><div class="lbl"><b>Hands-free mode</b><small>Jarvis keeps listening after each answer. Say "stop listening" to end it.</small></div>
-            <button class="btn" id="voiceBtn2">Off</button></div>
-          <div class="setrow"><div class="lbl"><b>Conversation mode</b><small>After answering something you said, Jarvis listens again for a follow-up, so you don't have to press the mic each time. Click the mic or press Esc to interrupt Jarvis.</small></div>
+          <div class="setrow"><div class="lbl"><b>Listen again after answering <span class="tagx">CLASSIC</span></b><small>After replying to something you said, Jarvis waits for your follow-up without a button press.</small></div>
             <button class="btn" id="followBtn">On</button></div>
-          <div class="setrow"><div class="lbl"><b>Loud alerts</b><small>Warnings, alarms, timers, low battery and errors pop up on screen and beep at full volume (Windows volume goes to 100% just for the beep, then back to yours).</small></div>
-            <button class="btn" id="loudBtn">On</button><button class="btn" id="alertTest"><i data-ic="bell"></i>Test</button></div>
-          <div class="setrow"><div class="lbl"><b>New conversation</b><small>Clears this chat. Long-term memories are kept.</small></div>
-            <button class="btn danger" id="resetBtn3"><i data-ic="refresh"></i>Reset</button></div>
-          <div class="setrow"><div class="lbl"><b>Language</b><small>Urdu mode: Jarvis listens for Urdu and replies in Urdu with a Pakistani Urdu voice (Asad). You can also say "Urdu mein baat karo".</small></div>
-            <button class="btn" id="langEn">English</button><button class="btn" id="langUr" style="font-family:var(--urdu)">اردو</button></div>
-          <div class="setrow"><div class="lbl"><b>Location</b><small id="locInfo">—</small></div></div>
-          <div class="setrow"><div class="lbl"><b>Microphone</b><small id="micInfo">Jarvis picks a microphone that actually hears you.</small></div>
+
+          <h4 class="sec">VOICES</h4>
+          <div class="setrow"><div class="lbl"><b>Call voice <span class="tagx">LIVE</span></b><small>How Jarvis sounds on Live calls. Kore and Aoede are female voices. Applies from the next call.</small></div>
+            <select id="liveVoiceSel" aria-label="Call voice"></select></div>
+          <div class="setrow"><div class="lbl"><b>Reading voice <span class="tagx">CLASSIC &amp; TYPED</span></b><small>How Jarvis sounds in Classic style and when reading typed answers aloud.</small></div>
+            <select id="voiceSel" aria-label="Reading voice"></select><button class="btn" id="voiceTest"><i data-ic="play"></i>Test</button></div>
+
+          <h4 class="sec">AI MODEL</h4>
+          <div class="setrow"><div class="lbl"><b>Who answers</b><small id="brainInfo">Automatic tries Gemini first and moves to the next one if it's busy. Pick one to talk to it first (the others stay as backup), or say "Groq pe chalo". Live calls always use Gemini Live.</small></div>
+            <select id="brainSel" aria-label="AI provider"></select><select id="brainModelSel" aria-label="Model"></select></div>
+
+          <h4 class="sec">MICROPHONE</h4>
+          <div class="setrow"><div class="lbl"><b>Microphone</b><small id="micInfo">Jarvis picks a microphone that actually hears you, and asks you when you plug in a new one (earbuds, headset).</small></div>
             <select id="micSel" aria-label="Microphone"></select>
             <button class="btn" id="micBoost" title="Set the microphone's Windows input level to 100%">Boost level</button></div>
-          <div class="setrow"><div class="lbl"><b>Speech recognition</b><small id="sttInfo">—</small></div></div>
-          <div class="setrow"><div class="lbl"><b>Shortcuts</b><small>Ctrl+Space: talk (starts/ends a Live conversation) · Ctrl+K: type a command · Esc: stop Jarvis talking / deny an approval</small></div></div>
+
+          <h4 class="sec">LANGUAGE</h4>
+          <div class="setrow"><div class="lbl"><b>Language</b><small>Urdu: Jarvis listens for Urdu and replies in Urdu with a Pakistani voice. You can also say "Urdu mein baat karo".</small></div>
+            <button class="btn" id="langEn">English</button><button class="btn" id="langUr" style="font-family:var(--urdu)">اردو</button></div>
+
+          <h4 class="sec">ALERTS</h4>
+          <div class="setrow"><div class="lbl"><b>Loud alerts</b><small>Alarms, timers, low battery and errors pop up and play at full volume, then your volume goes back to normal.</small></div>
+            <button class="btn" id="loudBtn">On</button></div>
+          <div class="setrow"><div class="lbl"><b>Alert sound</b><small>Pick a sound and press Play to hear it.</small></div>
+            <select id="toneSel" aria-label="Alert sound"></select><button class="btn" id="alertTest"><i data-ic="play"></i>Play</button></div>
+
+          <h4 class="sec">CHAT</h4>
+          <div class="setrow"><div class="lbl"><b>New conversation</b><small>Clears this chat. Memories and your profile stay.</small></div>
+            <button class="btn danger" id="resetBtn3"><i data-ic="refresh"></i>Reset</button></div>
+          <div class="setrow"><div class="lbl"><b>Keyboard shortcuts</b><small>Ctrl+Space: talk · Ctrl+K: type a message · Esc: stop Jarvis talking / deny an approval</small></div></div>
         </div></div>
       </section>
     </section>
@@ -790,6 +851,12 @@ body[data-state="listening"] .talk { border-color: var(--green); background: lin
 </div>
 
 <div id="alerts" aria-live="assertive"></div>
+<div class="subs" id="subs" title="Open the full conversation"></div>
+<div class="card micask" id="micAsk" role="dialog" aria-labelledby="micAskTitle">
+  <div class="ahead"><span class="aico"><i data-ic="mic"></i></span>
+    <div><h3 id="micAskTitle">New microphone connected</h3><small id="micAskSub">Which microphone should Jarvis use?</small></div></div>
+  <div class="opts" id="micAskOpts"></div>
+</div>
 
 <script>
 const TOKEN = "__TOKEN__";
@@ -829,6 +896,7 @@ const ICONS = {
   check: "M4 12l5 5L20 6",
   note: "M5 3h10l4 4v14H5zM14 3v5h5M8 13h8M8 17h6",
   x: "M6 6l12 12M18 6 6 18",
+  edit: "M4 20h4L19 9l-4-4L4 16zM14 6l4 4",
   check: "M5 12.5l4.5 4.5L19 7",
   briefcase: "M3 8h18v12H3zM8 8V5h8v3M3 13h18",
   swap: "M4 8h13l-3-3M20 16H7l3 3",
@@ -873,6 +941,7 @@ function nowT() { return new Date().toLocaleTimeString([], { hour: "2-digit", mi
 
 // ---------- navigation ----------
 function go(view) {
+  if (view !== "dash") $("subs").classList.remove("show");
   document.querySelectorAll(".view").forEach(v => v.classList.toggle("active", v.dataset.view === view));
   document.querySelectorAll(".navi").forEach(n => n.classList.toggle("active", n.dataset.view === view));
   if (view === "conv") { scrollChat(); $("input2").focus(); }
@@ -890,8 +959,19 @@ $("operator").onkeydown = e => { if (e.key === "Enter" || e.key === " ") { e.pre
 // ---------- conversation ----------
 function scrollChat() { const b = $("chatBody"); b.scrollTop = b.scrollHeight; }
 let lastUser = "", lastJarvis = "", lastJarvisLabel = AGENT_UP;
+let subsHide = 0;
+function showSubs() {      // captions appear while something happens, then fade (the globe stays clean)
+  $("subs").classList.add("show");
+  clearTimeout(subsHide);
+  subsHide = setTimeout(function hide() {
+    if (state === "thinking" || isSpeaking()) { subsHide = setTimeout(hide, 1500); return; }
+    $("subs").classList.remove("show");
+  }, 6000);
+}
 function renderSubs() {
   if (!lastUser && !lastJarvis) { $("subs").innerHTML = ""; return; }
+  const onDash = (document.querySelector(".view.active") || {}).dataset?.view === "dash";
+  if (!replaying && onDash) showSubs();
   const thinking = state === "thinking";
   $("subs").innerHTML = (lastUser ? `<div class="u"><b>YOU</b>${esc(lastUser)}</div>` : "")
     + `<div class="j${isUrdu(lastJarvis) ? " ur" : ""}"><b>${esc(lastJarvisLabel)}</b>${thinking && !lastJarvis ? '<span class="typing"><span></span><span></span><span></span></span>' : md(lastJarvis)}</div>`;
@@ -939,6 +1019,8 @@ const FRIENDLY = {
   find_old_files: ["Scanned for old files", "search"], clean_folder: ["Cleaned up a folder", "note"],
   renamed: ["Renamed the assistant", "user"], set_assistant_name: ["Renamed the assistant", "user"],
   set_theme: ["Changed the theme", "sun"], profile: ["Profile saved", "user"],
+  switch_ai_model: ["Switched AI model", "swap"], edit_memory: ["Edited a memory", "db"], merge_memories: ["Combined memories", "db"],
+  approval: ["Approval", "shield"], microphone: ["Microphone", "mic"],
 };
 // Warnings and alerts also pop up on screen and beep loudly (quiet: feed only)
 const alertSeen = {};
@@ -1097,6 +1179,13 @@ function handle(ev) {
       }
       micUi(); paintLive();
       break;
+    case "standby": live.standby = !!ev.on; paintLive(); renderLabel(); break;
+    case "mic_new": if (!replaying) askMic(ev, true); break;
+    case "mic_gone":
+      if (!replaying) addFeed({ title: `Microphone unplugged: ${ev.name}`, sub: ev.was_current ? "Switched to another mic automatically" : "", tag: "TIP", ic: "mic", time: ev.time });
+      if (micAsked && micAsked.name === ev.name) askMic(null);
+      loadMics();
+      break;
     case "live_partial":
       if (ev.who === "user") { lastUser = ev.text; lastJarvis = ""; lastJarvisLabel = AGENT_UP + " · LIVE"; }
       else { lastJarvis = ev.text; lastJarvisLabel = AGENT_UP + " · LIVE"; }
@@ -1196,6 +1285,7 @@ function applySettings(s) {
   if ("speak" in s) { settings.speak = s.speak; if (!s.speak) stopSpeaking(); }
   if (!useLive()) $("voiceBtn").classList.toggle("on", settings.voice_mode);
   $("voiceBtn2").classList.toggle("on", settings.voice_mode); $("voiceBtn2").textContent = settings.voice_mode ? "On" : "Off";
+  paintLive();
   $("speakBtn").classList.toggle("on", settings.speak);
   $("speakBtn").innerHTML = icon(settings.speak ? "speaker" : "mute");
   $("speakBtn2").classList.toggle("on", settings.speak); $("speakBtn2").textContent = settings.speak ? "On" : "Off";
@@ -1255,15 +1345,19 @@ $("langEn").onclick = () => post("/api/settings", { language: "en" });
 $("langUr").onclick = () => post("/api/settings", { language: "ur" });
 const toggleHF = () => post("/api/settings", { voice_mode: !settings.voice_mode });
 $("voiceBtn2").onclick = toggleHF;
-$("voiceBtn").onclick = () => live.active ? post("/api/live", { on: false }) : useLive() ? listen() : toggleHF();   // top button: start / end a Live call
+$("voiceBtn").onclick = () => live.active ? post("/api/live", { on: false }) : toggleHF();   // ends a call, otherwise hands-free on/off
 function paintLive() {
   const on = useLive();
-  $("voiceBtnTxt").textContent = live.active ? "End live conversation" : on ? "Start live conversation" : "Hands-free mode";
-  $("voiceBtn").title = on ? `Talk with ${AGENT} in real time, like a phone call` : `Hands-free: ${AGENT} keeps listening`;
-  $("voiceBtn").classList.toggle("on", live.active || (!on && settings.voice_mode));
+  $("voiceBtnTxt").textContent = live.active ? "End live conversation" : settings.voice_mode ? (on && live.standby ? "Hands-free: listening…" : "Hands-free is on") : "Hands-free is off";
+  $("voiceBtn").title = live.active ? "End the call" : settings.voice_mode ? `${AGENT} listens without a button press. Click to turn it off` : "Click to turn hands-free on";
+  $("voiceBtn").classList.toggle("on", live.active || settings.voice_mode);
   $("engLive").classList.toggle("on", live.engine === "live"); $("engClassic").classList.toggle("on", live.engine !== "live");
   $("engLive").disabled = !live.available;
-  if (!live.available) $("engineInfo").textContent = `Live conversation needs a GEMINI_API_KEY in .env. Classic: you speak, then ${AGENT} answers in the Ryan voice.`;
+  const info = $("engineInfo");
+  info.dataset.html = info.dataset.html || info.innerHTML;
+  const want = live.available || !lastStats ? info.dataset.html   // (unknown until the first status update)
+    : `Live calls need a GEMINI_API_KEY in .env. <b>Classic:</b> you speak, then ${esc(AGENT)} replies.`;
+  if (info.innerHTML !== want) info.innerHTML = want;
 }
 $("engLive").onclick = async () => { live.engine = "live"; paintLive(); renderLabel(); await post("/api/live", { engine: "live" }); };
 $("engClassic").onclick = async () => { live.engine = "classic"; if (live.active) await post("/api/live", { on: false }); paintLive(); renderLabel(); await post("/api/live", { engine: "classic" }); };
@@ -1413,7 +1507,10 @@ let quietUntil = 0;
 setInterval(() => {
   const talking = isSpeaking();
   if (talking) { quietUntil = Date.now() + 500; convo.spokeAt = Date.now(); }  // brief gap so the mic doesn't hear Jarvis
-  if (document.body.classList.contains("speaking") !== talking) { document.body.classList.toggle("speaking", talking); renderLabel(); }
+  if (document.body.classList.contains("speaking") !== talking) {
+    document.body.classList.toggle("speaking", talking); renderLabel();
+    if (isSpeaker() && !(live.active && live.phase === "speaking")) post("/api/speaking", { on: talking });   // hands-free mustn't hear me as you
+  }
 }, 150);
 
 // ---------- voice input: record in the page, Whisper turns it into text ----------
@@ -1545,7 +1642,7 @@ document.addEventListener("keydown", e => {
 });
 
 setInterval(() => {  // hands-free: keep listening whenever Jarvis is idle and quiet
-  if (settings.voice_mode && !live.active && isSpeaker() && !rec.active && !rec.busy && state === "idle" && !confirmQueue.length
+  if (lastStats && settings.voice_mode && !live.active && isSpeaker() && !rec.active && !rec.busy && state === "idle" && !confirmQueue.length   // (wait for the first status: native mic or not)
       && Date.now() > quietUntil && !isSpeaking()) listen({ handsFree: true });
 }, 400);
 
@@ -1621,7 +1718,11 @@ async function poll() {
     $("msMem").textContent = s.memories; $("msTurns").textContent = s.turns || 0; $("msTools").textContent = s.tool_calls || 0;
     const llms = (s.llms || []).filter(l => !["Whisper", "Neural voice"].includes(l.label));
     const up = llms.filter(l => ["active", "connected", "limited"].includes(l.status)).length;
-    $("ovLlm").textContent = `${up} connected`; $("ovLlm").className = up ? "warn" : "bad";
+    $("ovLlm").textContent = live.active ? "Gemini Live (call)" : s.provider ? `${s.provider}${s.brain && s.brain.preferred === "auto" ? " · auto" : ""}` : "none";
+    $("ovLlm").className = up ? "info" : "bad"; $("ovLlm").title = `${up} AI providers connected`;
+    paintBrain(s); paintTone(s); askMic(s.mic_prompt);
+    if (s.version) $("appVer").textContent = `Version ${s.version}`;
+    if (live.standby !== !!s.standby) { live.standby = !!s.standby; paintLive(); }
     $("bModels").textContent = up;
     $("llmCount").textContent = `${(s.llms || []).filter(l => ["active", "connected", "limited"].includes(l.status)).length} Connected`;
     $("modelTag").textContent = s.provider ? `Brain: ${s.provider}` : "—";
@@ -1634,7 +1735,6 @@ async function poll() {
     $("fLoc").textContent = s.location || "—";
     $("fWx").textContent = s.weather ? `${s.weather.temp_c}°C ${s.weather.condition}` : "—";
     $("fWx").title = s.weather ? `Feels ${s.weather.feels_c}°C · ${s.weather.min_c}–${s.weather.max_c}°C · rain ${s.weather.rain_chance}%` : "";
-    $("locInfo").textContent = `${s.location || "Unknown"}: used for weather and prayer times. To change it, tell ${AGENT} "my city is …".`;
     if (s.language && s.language !== settings.language) applySettings({ language: s.language });
     $("fPower").textContent = s.battery == null ? "Mains power" : `${s.battery}%${s.plugged ? " · charging" : ""}`;
     let netTxt = navigator.onLine ? "Online" : "Offline";
@@ -1652,8 +1752,6 @@ async function poll() {
     paintAlertSettings(s);
     renderTimeline(s.timers || []);
     renderLlms(s.llms || []);
-    $("sttInfo").textContent = s.stt === "whisper" ? "Whisper (Groq), very accurate. Gemini is the backup." :
-      s.stt === "gemini" ? "Gemini listens to your voice." : "Windows built-in recognizer (add a Groq key for Whisper).";
     if (constelN !== Math.min(s.memories, 24)) { constelN = Math.min(s.memories, 24); drawConstel(); }
     renderLabel();
   } catch (e) { /* server restarting */ }
@@ -1666,11 +1764,17 @@ function renderLlms(llms) {
       <div style="min-width:0"><b>${esc(l.label)}</b><small class="${stClass(l.status)}">${esc(l.status)}</small></div></div>`).join("");
 }
 function renderModels() {
-  const llms = (lastStats && lastStats.llms) || [];
-  $("modelList").innerHTML = llms.map((l, i) => `
+  const llms = (lastStats && lastStats.llms) || [], b = (lastStats && lastStats.brain) || { preferred: "auto", providers: [] };
+  const usable = new Set(b.providers.map(p => p.label));
+  $("modelList").innerHTML = `<div class="item"><span class="ico">${icon("swap")}</span><div style="min-width:0"><b>Automatic</b>
+      <small>${esc(b.providers.map(p => p.label).join(" → ") || "—")}: the next one takes over if one is busy</small></div>
+      <button class="btn${b.preferred === "auto" ? " on" : ""}" data-use="auto" style="margin-left:auto">${b.preferred === "auto" ? "In use" : "Use"}</button></div>`
+    + llms.map(l => `
     <div class="item"><span class="ico">${LLM_ABBR[l.label] || l.label[0]}</span><div style="min-width:0">
       <b>${esc(l.label)} <small class="${stClass(l.status)}" style="display:inline">· ${esc(l.status)}</small></b>
-      <small>${esc(l.detail || "")}</small></div></div>`).join("") || '<div class="empty">Loading…</div>';
+      <small>${esc(l.detail || "")}</small></div>
+      ${usable.has(l.label) ? `<button class="btn${b.preferred === l.label ? " on" : ""}" data-use="${esc(l.label)}" style="margin-left:auto">${b.preferred === l.label ? "In use" : "Use"}</button>` : ""}</div>`).join("");
+  $("modelList").querySelectorAll("[data-use]").forEach(x => x.onclick = () => useBrain(x.dataset.use, null));
 }
 
 // ---------- memory / tools pages ----------
@@ -1683,15 +1787,36 @@ async function loadInfo() {
       return `<div class="item"><span class="ico" style="color:${a ? a.color : "var(--cyan)"}">${icon((FRIENDLY[t.name] || [0, "zap"])[1])}</span>
         <div><b>${esc(t.name.replace(/_/g, " "))}</b><small>${esc(t.description)}</small></div></div>`;
     }).join("");
+    $("memMerge").disabled = j.memories.length < 2;
     $("memList").innerHTML = j.memories.length ? j.memories.map(m => `
-      <div class="item"><span class="ico">${icon("db")}</span><div style="min-width:0"><b>${esc(m.fact)}</b><small>Saved ${esc(m.saved || "")}</small></div>
+      <div class="item" data-mem="${m.id}"><span class="ico">${icon("db")}</span><div style="min-width:0;flex:1"><b>${esc(m.fact)}</b><small>Saved ${esc(m.saved || "")}</small></div>
+        <button class="x" data-edit="${m.id}" title="Edit" aria-label="Edit this memory">${icon("edit")}</button>
         <button class="x" data-forget="${m.id}" title="Forget this" aria-label="Forget this memory">${icon("x")}</button></div>`).join("")
       : '<div class="empty">Nothing yet. Tell ' + esc(AGENT) + ' something about yourself, e.g. "remember that my favourite colour is blue".</div>';
     $("noteList").innerHTML = j.notes.length ? j.notes.map(n => `<div class="item"><span class="ico">${icon("note")}</span><div><b>${esc(n.replace(/\.md$/, ""))}</b><small>data/notes</small></div></div>`).join("")
       : '<div class="empty">No notes yet. Say "take a note: …".</div>';
     document.querySelectorAll("[data-forget]").forEach(b => b.onclick = async () => { await post("/api/memory/forget", { id: +b.dataset.forget }); loadInfo(); poll(); });
+    document.querySelectorAll("[data-edit]").forEach(b => b.onclick = () => {
+      const m = j.memories.find(x => x.id === +b.dataset.edit), box = b.parentElement.querySelector("div");
+      box.innerHTML = `<textarea class="edit">${esc(m.fact)}</textarea><div class="acts"><button class="btn on" data-save>Save</button><button class="btn" data-cancel>Cancel</button></div>`;
+      const ta = box.querySelector("textarea"); ta.focus(); ta.setSelectionRange(ta.value.length, ta.value.length);
+      box.querySelector("[data-cancel]").onclick = loadInfo;
+      box.querySelector("[data-save]").onclick = async () => { await post("/api/memory/edit", { id: m.id, fact: ta.value }); loadInfo(); };
+      ta.onkeydown = e => { if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) box.querySelector("[data-save]").click(); if (e.key === "Escape") loadInfo(); };
+    });
   } catch (e) { console.warn(e); }
 }
+
+let mergeArmed = 0;
+$("memMerge").onclick = async () => {
+  if (Date.now() - mergeArmed > 4000) {          // ask once more before combining
+    mergeArmed = Date.now(); $("memMerge").textContent = "Click again to combine them all"; setTimeout(() => { $("memMerge").innerHTML = `${icon("db")}Combine all into one`; }, 4000); return;
+  }
+  mergeArmed = 0;
+  const r = await post("/api/memory/merge", {}); const j = r ? await r.json() : {};
+  addFeed({ title: "Memories combined", sub: j.message || "", tag: "LIVE", ic: "db" });
+  $("memMerge").innerHTML = `${icon("db")}Combine all into one`; loadInfo(); poll();
+};
 
 // ---------- AI core globe (drag to rotate, scroll to zoom, hover to probe, click to talk) ----------
 const globe = { cv: $("globe"), pts: [], links: [], w: 0, h: 0,
@@ -2013,7 +2138,61 @@ $("loudBtn").onclick = async () => {
   paintAlertSettings(lastStats || { loud_alerts: on });
   await post("/api/settings", { loud_alerts: on });
 };
-$("alertTest").onclick = () => { delete alertSeen["Test alert"]; raiseAlert("Test alert", "This is how warnings look and sound.", "WARN", "warn"); };
+$("alertTest").onclick = () => post("/api/alert", { kind: "warn", text: "Test", test: true, tone: $("toneSel").value });
+function paintTone(s) {
+  const sel = $("toneSel");
+  if (s.tones && !sel.options.length) sel.innerHTML = Object.entries(s.tones).map(([k, v]) => `<option value="${esc(k)}">${esc(v)}</option>`).join("");
+  if (s.alert_tone && document.activeElement !== sel) sel.value = s.alert_tone;
+}
+$("toneSel").onchange = () => { post("/api/settings", { alert_tone: $("toneSel").value }); $("alertTest").click(); };
+
+// ---------- AI model: who answers ----------
+function paintBrain(s) {
+  const b = s.brain; if (!b) return;
+  const sel = $("brainSel"), msel = $("brainModelSel");
+  const opts = [["auto", `Automatic (${b.providers.map(p => p.label).join(" → ")})`], ...b.providers.map(p => [p.label, p.label])];
+  const html = opts.map(([v, t]) => `<option value="${esc(v)}">${esc(t)}</option>`).join("");
+  if (sel.dataset.html !== html) { sel.innerHTML = html; sel.dataset.html = html; }
+  if (document.activeElement !== sel) sel.value = b.preferred;
+  const p = b.providers.find(x => x.label === sel.value);
+  msel.hidden = !p || p.models.length < 2;
+  if (p) {
+    const mh = p.models.map(m => `<option value="${esc(m)}">${esc(m.replace(/:free$/, " (free)"))}</option>`).join("");
+    if (msel.dataset.html !== mh) { msel.innerHTML = mh; msel.dataset.html = mh; }
+    if (document.activeElement !== msel) msel.value = p.model;
+  }
+}
+async function useBrain(provider, model) {
+  const r = await post("/api/settings", { brain: { provider, model } });
+  const j = r ? await r.json() : {};
+  $("brainInfo").textContent = j.message || j.error || "Couldn't switch.";
+  if (j.brain && lastStats) { lastStats.brain = j.brain; paintBrain(lastStats); renderModels(); }
+  poll();
+}
+$("brainSel").onchange = () => useBrain($("brainSel").value, null);
+$("brainModelSel").onchange = () => useBrain($("brainSel").value, $("brainModelSel").value);
+
+// ---------- a new microphone was plugged in: ask which one to use ----------
+let micAsked = null, micDismissed = "";
+function askMic(p, fresh = false) {
+  if (!p || p.name === micDismissed) { if (!p) { micAsked = null; $("micAsk").classList.remove("open"); } return; }
+  if (micAsked && micAsked.name === p.name) return;
+  micAsked = p;
+  const cur = p.current || "";
+  $("micAskSub").textContent = `${p.name} was just plugged in. Which microphone should ${AGENT} use?`;
+  const names = [p.name, ...(p.all || []).filter(n => n !== p.name)];
+  $("micAskOpts").innerHTML = names.map(n => `<button class="btn opt${n === p.name ? " new" : ""}" data-mic="${esc(n)}">${icon("mic")}${esc(n)}${n === p.name ? "<em>NEW</em>" : cur.startsWith(n.slice(0, 28)) ? "<em>IN USE</em>" : ""}</button>`).join("")
+    + `<button class="btn opt" data-mic-keep="1">${icon("x")}Decide later</button>`;
+  $("micAskOpts").querySelectorAll("[data-mic]").forEach(b => b.onclick = async () => {
+    $("micAsk").classList.remove("open"); micDismissed = p.name;
+    await post("/api/mic", { name: b.dataset.mic });
+    addFeed({ title: `Microphone: ${b.dataset.mic}`, sub: "Switched", tag: "LIVE", ic: "mic" });
+    setTimeout(loadMics, 1500);
+  });
+  $("micAskOpts").querySelector("[data-mic-keep]").onclick = () => { $("micAsk").classList.remove("open"); micDismissed = p.name; post("/api/mic", { keep: true }); };
+  $("micAsk").classList.add("open");
+  if (fresh && isSpeaker()) { chime("reminder"); speak(settings.language === "ur" ? "نیا مائیک لگا ہے۔ کون سا استعمال کروں؟" : "A new microphone is connected. Which one should I use?", true); }
+}
 document.querySelectorAll("[data-pause]").forEach(b => b.onclick = async () => {
   if (lastStats && lastStats.live) lastStats.live.pause = b.dataset.pause;
   paintAlertSettings(lastStats || { live: { pause: b.dataset.pause } });
@@ -2023,11 +2202,9 @@ document.querySelectorAll("[data-pause]").forEach(b => b.onclick = async () => {
 // ---------- profile ----------
 const PROFILE_UI = {   // placeholder, and whether it gets a big box
   name: ["e.g. Ali Khan"], call: [`What ${AGENT} calls you, e.g. Sir, Ali, Boss`], birthday: ["e.g. 14 August 2003"],
-  city: ["e.g. Karachi"], work: ["e.g. BS Computer Science, 5th semester"], languages: ["e.g. Urdu, English, Sindhi"],
-  family: ["e.g. Mother Fatima, brother Ahmed (12), best friend Hamza", true], interests: ["e.g. cricket, coding, Coke Studio, gaming", true],
-  favourites: ["e.g. biryani, Atif Aslam, Pakistan cricket team", true], routine: ["e.g. university 8am to 2pm, gym at 6pm, sleep around midnight", true],
-  goals: ["e.g. final year project in AI, learning React", true], health: ["e.g. allergic to peanuts, wears glasses", true],
-  style: ["e.g. short answers, Roman Urdu, a little humour", true], about: [`Anything else ${AGENT} should always know`, true],
+  city: ["e.g. Karachi"], languages: ["e.g. Urdu, English"],
+  about: ["Family, study or work, interests, routine and goals. e.g. I study BS Computer Science (5th semester). Family: mother, brother Ahmed. I love cricket and coding, gym at 6 pm, working on my final-year AI project.", true],
+  style: ["e.g. short answers, Roman Urdu, a little humour", true],
 };
 async function loadProfile() {
   try {
@@ -2069,14 +2246,12 @@ function applyTheme(mode) {
   const light = resolvedTheme() === "light";
   document.documentElement.dataset.theme = light ? "light" : "dark";
   readTheme();
-  $("themeBtn").innerHTML = icon(light ? "moon" : "sun");
-  $("themeBtn").title = light ? "Switch to the dark theme" : "Switch to the light theme";
+
   document.querySelectorAll("[data-theme-btn]").forEach(b => b.classList.toggle("on", b.dataset.themeBtn === themeMode));
   drawConstel();
 }
 function setTheme(mode) { applyTheme(mode); post("/api/settings", { theme: mode }); }
 if (lightMQ && lightMQ.addEventListener) lightMQ.addEventListener("change", () => { if (themeMode === "system") applyTheme(); });
-$("themeBtn").onclick = () => setTheme(resolvedTheme() === "light" ? "dark" : "light");
 document.querySelectorAll("[data-theme-btn]").forEach(b => b.onclick = () => setTheme(b.dataset.themeBtn));
 
 // ---------- the assistant's name ----------

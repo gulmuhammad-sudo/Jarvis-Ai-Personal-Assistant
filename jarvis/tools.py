@@ -46,6 +46,7 @@ class ToolContext:
         self.set_language: Callable[[str], None] | None = None   # set by the HUD / console
         self.set_name: Callable[[str], str] | None = None           # rename the assistant (HUD)
         self.set_theme: Callable[[str], None] | None = None         # light / dark Command Center (HUD)
+        self.set_brain: Callable[[str, str | None], str] | None = None  # choose the AI provider (HUD)
         self.language = "en"
 
 
@@ -225,6 +226,24 @@ def forget_memory(inp: dict, ctx: ToolContext) -> str:
     return memory.forget(int(inp["id"]))
 
 
+def edit_memory(inp: dict, ctx: ToolContext) -> str:
+    return memory.edit(int(inp["id"]), inp["fact"])
+
+
+def merge_memories(inp: dict, ctx: ToolContext) -> str:
+    return memory.merge([int(i) for i in inp.get("ids") or []] or None, inp.get("fact"))
+
+
+def switch_ai_model(inp: dict, ctx: ToolContext) -> str:
+    if not ctx.set_brain:
+        return "Switching the AI isn't available here."
+    try:
+        msg = ctx.set_brain(inp.get("provider") or "auto", inp.get("model") or None)
+    except ValueError as e:
+        return str(e)
+    return msg + " (Your next typed or Classic-voice message goes there; Live voice calls always use Gemini Live.)"
+
+
 def set_timer(inp: dict, ctx: ToolContext) -> str:
     seconds = float(inp["seconds"])
     if not 0 < seconds <= 7 * 86400:
@@ -373,6 +392,17 @@ TOOLS: list[tuple[dict, Callable[[dict, ToolContext], Any]]] = [
     ({"name": "recall_memories", "description": "List everything in long-term memory with ids.", "input_schema": _obj({})}, recall_memories),
     ({"name": "forget_memory", "description": "Delete a long-term memory by id.",
       "input_schema": _obj({"id": {"type": "integer"}}, ["id"])}, forget_memory),
+    ({"name": "edit_memory", "description": "Change the text of a long-term memory by id (call recall_memories first for the ids).",
+      "input_schema": _obj({"id": {"type": "integer"}, "fact": {"type": "string"}}, ["id", "fact"])}, edit_memory),
+    ({"name": "merge_memories",
+      "description": "Combine memories into ONE memory, e.g. 'put all my memories into one'. ids: which ones (empty = all). "
+                     "fact: optional tidy combined text you wrote; if empty they are joined as they are.",
+      "input_schema": _obj({"ids": {"type": "array", "items": {"type": "integer"}}, "fact": {"type": "string"}})}, merge_memories),
+    ({"name": "switch_ai_model",
+      "description": "Switch which AI answers: 'gemini', 'groq', 'openrouter', 'deepseek' or 'auto' (the normal order with "
+                     "automatic fallback), optionally a specific model of that provider. Use for 'Groq pe chalo', "
+                     "'use OpenRouter', 'switch back to automatic'.",
+      "input_schema": _obj({"provider": {"type": "string"}, "model": {"type": "string"}}, ["provider"])}, switch_ai_model),
     ({"name": "set_timer",
       "description": "Set a timer/reminder that fires after N seconds while Jarvis is running. Convert minutes/hours or a clock time to seconds first (call get_datetime if needed).",
       "input_schema": _obj({"seconds": {"type": "number"}, "message": {"type": "string"}}, ["seconds"])}, set_timer),
