@@ -912,6 +912,15 @@ body[data-state="listening"] .talk { border-color: var(--green); background: lin
             <select id="langSel" aria-label="Language"></select>
             <input class="txt" id="langOther" placeholder="Any language, e.g. Swahili" hidden><button class="btn" id="langOtherSave" hidden>Use</button></div>
 
+          <div class="setrow"><div class="lbl"><b>Chat text</b><small>How the chat is written on screen. English letters (Roman Urdu) by default; Urdu script only if you choose it here or say "Urdu mein type karke do".</small></div>
+            <button class="btn" data-chat-script="roman">English letters</button><button class="btn" data-chat-script="urdu">اردو</button></div>
+
+          <h4 class="sec">STARTUP</h4>
+          <div class="setrow"><div class="lbl"><b>Start with Windows</b><small>Opens by itself (in the tray, by the clock) when you sign in to Windows. Closing the window only hides it there; right-click the tray icon to quit.</small></div>
+            <button class="btn" id="bootBtn">On</button></div>
+          <div class="setrow"><div class="lbl"><b>Live call when it opens</b><small>Starts a Live conversation as soon as the app opens. After 3 quiet minutes it waits for you (or its name) again. Needs Hands-free on.</small></div>
+            <button class="btn" id="autoLiveBtn">On</button></div>
+
           <h4 class="sec">ALERTS</h4>
           <div class="setrow"><div class="lbl"><b>Loud alerts</b><small>Alarms, timers, low battery and errors pop up and play at full volume, then your volume goes back to normal.</small></div>
             <button class="btn" id="loudBtn">On</button></div>
@@ -1320,7 +1329,7 @@ renderTimeline();
 function handle(ev) {
   switch (ev.type) {
     case "user":
-      addMsg("user", ev.text, ev.source === "live" ? "YOU · LIVE" : ev.source === "voice" ? "YOU · VOICE" : "YOU");
+      addMsg("user", ev.text, ev.source === "live" ? "YOU · LIVE" : ev.source === "voice" ? "YOU · VOICE" : "YOU", ev.id);
       if (!replaying) convo.lastWasVoice = ev.source === "voice";
       break;
     case "jarvis": {
@@ -1402,9 +1411,13 @@ function handle(ev) {
       }
       micUi(); paintLive();
       break;
-    case "jarvis_update": {
+    case "jarvis_update": {          // a chat message rewritten in the script you asked for (English letters / Urdu)
       const el = chat.querySelector(`[data-mid="${ev.id}"]`);
-      if (el) { el.classList.add("ur"); el.innerHTML = `<div class="who" dir="ltr" style="text-align:left">${esc(el.querySelector(".who").textContent)}</div>${md(ev.text)}`; }
+      if (el) {
+        const user = el.classList.contains("user");
+        el.classList.toggle("ur", isUrdu(ev.text));
+        el.innerHTML = `<div class="who" dir="ltr" style="text-align:left">${esc(el.querySelector(".who").textContent)}</div>${user ? esc(ev.text) : md(ev.text)}`;
+      }
       if (lastJarvisId === ev.id) { lastJarvis = ev.text; renderSubs(); }
       break;
     }
@@ -1475,7 +1488,7 @@ function handle(ev) {
       myId = ev.client; speakerId = ev.speaker;
       chat.innerHTML = ""; msgCount = 0;
       replaying = true; ev.events.forEach(handle); replaying = false;
-      if (!greeted && ev.events.length === 1 && ev.events[0].type === "jarvis") speak(ev.events[0].text);
+      if (!greeted && ev.events.length === 1 && ev.events[0].type === "jarvis" && !ev.events[0].quiet) speak(ev.events[0].text);
       greeted = true;
       setState(ev.state); applySettings(ev);
       confirmQueue = ev.pending || []; showConfirm();
@@ -1532,6 +1545,7 @@ function applySettings(s) {
     paintLangSel();
   }
   if ("speak" in s) { settings.speak = s.speak; if (!s.speak) stopSpeaking(); }
+  if ("chat_script" in s || "start_with_windows" in s) { if (lastStats) Object.assign(lastStats, s); paintStartup(lastStats || s); }
   if (!useLive()) $("voiceBtn").classList.toggle("on", settings.voice_mode);
   $("voiceBtn2").classList.toggle("on", settings.voice_mode); $("voiceBtn2").textContent = settings.voice_mode ? "On" : "Off";
   paintLive();
@@ -2034,7 +2048,7 @@ async function poll() {
     hotFor.ram = s.ram > 92 ? hotFor.ram + 1 : 0; hotFor.cpu = s.cpu > 90 ? hotFor.cpu + 1 : 0;
     if (hotFor.ram >= 10) alertOnce("ram", { title: `Memory almost full (${Math.round(s.ram)}%)`, sub: "Close a few apps or browser tabs", tag: "WARN", ic: "warn" });
     if (hotFor.cpu >= 20) alertOnce("cpu", { title: `CPU running hot (${Math.round(s.cpu)}%) for 30 seconds`, sub: "Something is working hard. Ask me \"how's my PC doing?\" to see what", tag: "WARN", ic: "warn" });
-    paintAlertSettings(s);
+    paintAlertSettings(s); paintStartup(s);
     renderTimeline(s.timers || []);
     renderLlms(s.llms || []);
     if (constelN !== Math.min(s.memories, 24)) { constelN = Math.min(s.memories, 24); drawConstel(); }
@@ -2645,6 +2659,26 @@ $("loudBtn").onclick = async () => {
   paintAlertSettings(lastStats || { loud_alerts: on });
   await post("/api/settings", { loud_alerts: on });
 };
+// ---------- chat script + startup ----------
+function paintStartup(s) {
+  const boot = s.start_with_windows !== false, auto = s.live_on_open !== false;
+  $("bootBtn").textContent = boot ? "On" : "Off"; $("bootBtn").classList.toggle("on", boot);
+  $("autoLiveBtn").textContent = auto ? "On" : "Off"; $("autoLiveBtn").classList.toggle("on", auto);
+  document.querySelectorAll("[data-chat-script]").forEach(b => b.classList.toggle("on", b.dataset.chatScript === (s.chat_script || "roman")));
+}
+function toggleSetting(key) {
+  const on = !(lastStats && lastStats[key] !== false);
+  if (lastStats) lastStats[key] = on;
+  paintStartup(lastStats || { [key]: on });
+  post("/api/settings", { [key]: on });
+}
+$("bootBtn").onclick = () => toggleSetting("start_with_windows");
+$("autoLiveBtn").onclick = () => toggleSetting("live_on_open");
+document.querySelectorAll("[data-chat-script]").forEach(b => b.onclick = () => {
+  if (lastStats) lastStats.chat_script = b.dataset.chatScript;
+  paintStartup(lastStats || { chat_script: b.dataset.chatScript });
+  post("/api/settings", { chat_script: b.dataset.chatScript });
+});
 $("alertTest").onclick = () => post("/api/alert", { kind: "warn", text: "Test", test: true, tone: $("toneSel").value });
 function paintTone(s) {
   const sel = $("toneSel");

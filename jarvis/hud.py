@@ -70,6 +70,8 @@ def save_face_photo(data: bytes) -> Path:
     return out
 PORT = int(os.environ.get("JARVIS_HUD_PORT", "8765"))
 TOKEN = secrets.token_urlsafe(24)
+WINDOW_HOOK = None      # set by the desktop app: WINDOW_HOOK("show") brings its window back from the tray
+STARTUP_HOOK = None     # set by the desktop app: STARTUP_HOOK(on) adds / removes the "start with Windows" shortcut
 
 
 class Hub:
@@ -93,6 +95,7 @@ class Hub:
         self.recent_replies: list[tuple[float, str]] = []
         self.ctx = tools.ToolContext(confirm=self.confirm, notify=self.notify)
         self.ctx.set_language = self.set_language
+        self.ctx.set_chat_script = self.set_chat_script
         self.ctx.set_name = self.set_name
         self.ctx.set_theme = self.set_theme
         self.ctx.set_brain = self.set_brain
@@ -154,7 +157,9 @@ class Hub:
     # ---------- brain callbacks ----------
     def on_text(self, text: str) -> None:
         # The HUD page speaks replies itself (natural neural voice in Edge).
-        self.emit("jarvis", keep=True, text=text, provider=getattr(self.brain, "current", ""))
+        rid = self._next_id()
+        self.emit("jarvis", keep=True, text=text, provider=getattr(self.brain, "current", ""), id=rid)
+        self._chat_script_later(rid, text)                # (it is spoken as written; only the chat text changes)
         self.recent_replies = [(t, r) for t, r in self.recent_replies if time.time() - t < 120][-6:]
         self.recent_replies.append((time.time(), text))
 
@@ -225,6 +230,48 @@ class Hub:
 
     # ---------- wake word: only respond after you call its name ----------
     WAKE_FOLLOW_UP = 15                     # seconds it keeps listening for a follow-up before waiting for the name again
+
+    def chat_script(self) -> str:
+        """'roman' (default): the chat is typed in English letters; 'urdu': in Urdu script (only when you ask)."""
+        return "urdu" if schedule.get_setting("chat_script") == "urdu" else "roman"
+
+    def set_chat_script(self, script: str) -> None:
+        schedule.set_setting("chat_script", "urdu" if script == "urdu" else "roman")
+        self.emit("settings", chat_script=self.chat_script())
+
+    def _chat_text(self, rid: str, text: str) -> None:
+        """Write a chat message in the script you asked for, then update it on screen (a quick free AI call)."""
+        if self.chat_script() == "urdu":
+            if not urdu.mostly_latin(text):
+                return
+            out = urdu.to_urdu_script(text)
+        else:
+            if not urdu.has_other_script(text):
+                return
+            out = urdu.to_roman(text)
+        if not out or out == text:
+            return
+        for ev in self.history:                     # a page that reconnects gets the new version too
+            if ev.get("id") == rid:
+                ev["text"] = out
+        self.emit("jarvis_update", id=rid, text=out)
+
+    def _chat_script_later(self, rid: str, text: str) -> None:
+        if (self.chat_script() == "urdu" and urdu.mostly_latin(text)) or \
+                (self.chat_script() == "roman" and urdu.has_other_script(text)):
+            threading.Thread(target=self._chat_text, args=(rid, text), daemon=True).start()
+
+    def live_on_open(self) -> bool:
+        return schedule.get_setting("live_on_open", True) is not False
+
+    def auto_live(self) -> None:
+        """Live from the start: open a call as soon as the app is up. Like any call it ends after a few quiet
+        minutes, and then hands-free waits for you (or its name) again."""
+        if not self.standby_wanted():
+            return
+        print("[live] starting a call because the app just opened")
+        self.live_start(greet=f"[The app just opened. Greet {memory.call_name()} with one short, warm sentence in "
+                              f"{languages.name(self.language)} and say you are listening. Say nothing else.]")
 
     def wake_on(self) -> bool:
         return schedule.get_setting("wake_word", True) is not False
@@ -627,7 +674,10 @@ class Hub:
         text = text.strip()
         if not text:
             return
-        self.emit("user", keep=True, text=text, source=source)
+        rid = self._next_id()
+        self.emit("user", keep=True, text=text, source=source, id=rid)
+        if source not in ("typed", "scheduled"):             # what you typed stays exactly as you typed it
+            self._chat_script_later(rid, text)
         if source != "scheduled":
             self.last_source = source
         if source == "typed" and self.live and self.live.active:   # typed during a call: Jarvis answers out loud
@@ -732,15 +782,6 @@ class Hub:
         else:
             self.emit("error", keep=True, text=text)
 
-    def _urdu_script(self, rid: str, text: str) -> None:
-        out = urdu.to_urdu_script(text)
-        if not out:
-            return
-        for ev in self.history:                     # a page that reconnects gets the Urdu version too
-            if ev.get("id") == rid and ev.get("type") == "jarvis":
-                ev["text"] = out
-        self.emit("jarvis_update", id=rid, text=out)
-
     def _live_partial(self, who: str, text: str) -> None:
         text = self._script(text)
         self.emit("live_partial", who=who, text=text)
@@ -750,15 +791,15 @@ class Hub:
     def _live_heard(self, text: str) -> None:
         text = self._script(text)
         self._live_user = text
-        self.emit("user", keep=True, text=text, source="live")
+        rid = self._next_id()
+        self.emit("user", keep=True, text=text, source="live", id=rid)
+        self._chat_script_later(rid, text)
 
     def _live_reply(self, text: str, interrupted: bool) -> None:
         text = self._script(text)
         rid = self._next_id()
         self.emit("jarvis", keep=True, text=text, provider="Gemini Live", live=True, id=rid)
-        if self.language == "ur" and urdu.mostly_latin(text):
-            # Live writes its Urdu replies in English letters ("Main theek hoon"): show them in Urdu script
-            threading.Thread(target=self._urdu_script, args=(rid, text), daemon=True).start()
+        self._chat_script_later(rid, text)
         self.recent_replies = [(t, r) for t, r in self.recent_replies if time.time() - t < 120][-6:]
         self.recent_replies.append((time.time(), text))
         turns = getattr(self.brain, "turns", None)
@@ -860,6 +901,8 @@ class Hub:
                     "detail": tts.DEFAULT_VOICE}],
                "turns": len(getattr(self.brain, "turns", [])), "tool_calls": self.tool_calls,
                "computer": platform.node(), "user": memory.call_name(), "loud_alerts": alerts.loud(),
+               "live_on_open": self.live_on_open(), "tray": WINDOW_HOOK is not None, "chat_script": self.chat_script(),
+               "start_with_windows": schedule.get_setting("start_with_windows", True) is not False,
                "assistant_name": schedule.agent_name(), "theme": schedule.theme(),
                "version": __version__, "trusted": sorted(self.trusted), "languages": languages.choices(),
                "language_name": languages.name(self.language), "setup_done": bool(schedule.get_setting("setup_done")),
@@ -1026,6 +1069,10 @@ class Handler(BaseHTTPRequestHandler):
             return self._transcribe()
         if self.path == "/api/tts":
             return self._tts()
+        if self.path == "/api/window":                      # the app was opened again: show the window from the tray
+            if WINDOW_HOOK:
+                threading.Thread(target=WINDOW_HOOK, args=("show",), daemon=True).start()
+            return self._json({"ok": bool(WINDOW_HOOK)})
         if self.path == "/api/face_photo":                  # a picture for the Photo face (stays on this PC)
             length = int(self.headers.get("Content-Length", "0"))
             if not 0 < length <= 8 * 1024 * 1024:
@@ -1084,6 +1131,14 @@ class Handler(BaseHTTPRequestHandler):
                 HUB.set_language(str(data["language"]))
             if "loud_alerts" in data:
                 schedule.set_setting("loud_alerts", bool(data["loud_alerts"]))
+            if data.get("chat_script") in ("roman", "urdu"):
+                HUB.set_chat_script(data["chat_script"])
+            if "live_on_open" in data:
+                schedule.set_setting("live_on_open", bool(data["live_on_open"]))
+            if "start_with_windows" in data:
+                schedule.set_setting("start_with_windows", bool(data["start_with_windows"]))
+                if STARTUP_HOOK:
+                    threading.Thread(target=STARTUP_HOOK, args=(bool(data["start_with_windows"]),), daemon=True).start()
             if "theme" in data:
                 HUB.set_theme(str(data["theme"]))
             if "assistant_name" in data:
@@ -1275,7 +1330,8 @@ def port_in_use() -> bool:
         return sock.connect_ex(("127.0.0.1", PORT)) == 0
 
 
-def main(open_window: bool = True, watchdog: bool = True, ready: threading.Event | None = None) -> None:
+def main(open_window: bool = True, watchdog: bool = True, ready: threading.Event | None = None,
+         boot: bool = False) -> None:
     global HUB
     try:
         server = QuietServer(("127.0.0.1", PORT), Handler)
@@ -1297,15 +1353,23 @@ def main(open_window: bool = True, watchdog: bool = True, ready: threading.Event
         except Exception as e:
             print(f"[install] {e}")
     threading.Thread(target=shortcut_names, daemon=True).start()
+    auto_call = HUB.standby_wanted() and HUB.live_on_open() and live_mod.available()
     if HUB.standby_wanted():
-        HUB.standby_start(6)                        # hands-free from the start (after the window has opened)
+        if auto_call:
+            # Live from the start; after a Windows sign-in, give the network a moment first
+            t = threading.Timer(25 if boot else 6, HUB.auto_live)
+            t.daemon = True
+            t.start()
+        else:
+            HUB.standby_start(6)                    # hands-free from the start (after the window has opened)
     server.daemon_threads = True
     url = f"http://127.0.0.1:{PORT}/"
     print(f"Jarvis HUD running at {url}  (close the HUD window or press Ctrl+C to stop)")
     hour = datetime.now().hour
     part = "morning" if hour < 12 else "afternoon" if hour < 17 else "evening"
     HUB.history.append({"type": "jarvis", "time": datetime.now().strftime("%H:%M:%S"),
-                        "text": f"Good {part}, {memory.call_name()}. All systems online. How can I help?"})
+                        "text": f"Good {part}, {memory.call_name()}. All systems online. How can I help?",
+                        "quiet": auto_call})          # the Live call greets you out loud instead
     if open_window:
         _open_window(url)
     if watchdog:

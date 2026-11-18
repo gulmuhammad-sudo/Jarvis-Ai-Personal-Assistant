@@ -8,7 +8,13 @@ You choose its name and voice (it starts as "Jarvis"; this README calls it Jarvi
 ## Start it
 
 1. Double-click **`Personal Assistant.bat`**. The first run installs everything and adds a **Personal Assistant** shortcut (arc-reactor icon) to your Desktop and Start Menu.
-2. After that, open Jarvis from the shortcut. It opens as its own app window; closing the window stops Jarvis.
+2. After that, open it from the shortcut. It opens as its own app window.
+   - **Closing the window only hides it.** It keeps running with an icon by the clock (the **^** menu next to
+     Wi-Fi and volume). Click that icon to open it again; right-click it for **Start live call**, **Start with
+     Windows** and **Quit**.
+   - **Starts with Windows:** when you sign in it opens by itself in the tray (Settings → Startup to turn it off).
+   - **Live from the start:** as soon as it opens, a Live call starts and it greets you. After 3 quiet minutes it
+     waits for you (or its name) again. Settings → Startup → *Live call when it opens*.
 3. Click the mic (or press **Ctrl+Space**) and talk, or type in the box at the top (**Ctrl+K**).
 
 If something goes wrong, `data\jarvis.log` says what happened.
@@ -95,7 +101,9 @@ Click the mic, **Start live conversation** or press **Ctrl+Space**, then just ta
 - **Interrupt:** just start talking while it answers, or tap the mic / press **Esc**. Echo cancellation takes its
   own voice out of the mic, and it only stops for clear speech that lasts a moment, so it doesn't cut itself off.
   `data/jarvis.log` says how much echo was removed on each call.
-- **Urdu on screen:** replies spoken in Roman Urdu are also typed in Urdu script in the chat (when your language is Urdu).
+- **Chat text:** the chat is written in English letters (Urdu as Roman Urdu), even when it speaks Urdu. Say
+  "Urdu mein type karke do" (or Settings → Language → Chat text) and the chat is typed in Urdu script instead;
+  "English mein likho" switches back.
 - It knows today's date and the time the call started.
 - **End the call:** say "bye" / "bas, shukriya", tap the mic while he's listening, or press **End live conversation**.
   It also ends by itself after 3 quiet minutes.
@@ -139,8 +147,8 @@ Optional: `JARVIS_NAME` (starting name, default `Jarvis`) · `JARVIS_THEME` (`da
 | File | Job |
 |---|---|
 | `Personal Assistant.bat` | First run: installs everything and makes the shortcuts; then starts the app |
-| `run.py` | Starts the app (what the shortcut runs); `--install` makes the shortcuts |
-| `jarvis/desktop.py` | The native app window (WebView2), taskbar icon, log file |
+| `run.py` | Starts the app (what the shortcut runs); `--tray` starts it hidden in the tray; `--install` makes the shortcuts |
+| `jarvis/desktop.py` | The native app window (WebView2), tray icon and menu, taskbar icon, log file |
 | `jarvis/hud.py` + `hud.html` | The engine and the Command Center page. It only listens on `127.0.0.1`, with a secret token per launch, so websites can't control Jarvis. |
 | `jarvis/providers.py` | Gemini / Groq / OpenRouter / DeepSeek with fallback (`brain.py`: the instructions, optional Claude with an API key) |
 | `jarvis/tools.py` | Every action Jarvis can take. Add a skill: write a function and add its definition to one of the tool lists. |
@@ -151,6 +159,6 @@ Optional: `JARVIS_NAME` (starting name, default `Jarvis`) · `JARVIS_THEME` (`da
 | `jarvis/alerts.py` | The loud alert beep (raises the volume for the beep, then puts it back) |
 | `jarvis/aec.py` | Echo cancellation: removes the assistant's own voice from the mic so you can interrupt it |
 | `jarvis/wake.py`, `denoise.py` | Wake word (is the name in what was said?) and background-noise reduction |
-| `jarvis/languages.py`, `urdu.py` | Languages and voices; Live call text shown in Urdu script (Hindi letters and Roman Urdu rewritten) |
+| `jarvis/languages.py`, `urdu.py` | Languages and voices; chat text in English letters or, if you ask, Urdu script |
 | `jarvis/gpu.py` | GPU usage and GPU memory for the System gauges (Windows performance counters) |
 | `jarvis/voice.py` | Windows' own speech recognition (backup when no Groq/Gemini key) |

@@ -47,6 +47,7 @@ class ToolContext:
         self.set_name: Callable[[str], str] | None = None           # rename the assistant (HUD)
         self.set_theme: Callable[[str], None] | None = None         # light / dark Command Center (HUD)
         self.set_brain: Callable[[str, str | None], str] | None = None  # choose the AI provider (HUD)
+        self.set_chat_script: Callable[[str], None] | None = None     # chat text in English letters / Urdu script (HUD)
         self.language = "en"
 
     def approve(self, question: str, kind: str | None = None) -> bool:
@@ -730,6 +731,16 @@ def set_language(inp: dict, ctx: ToolContext) -> str:
             if lang == "ur" else "Language set to English.")
 
 
+def set_chat_script(inp: dict, ctx: ToolContext) -> str:
+    script = "urdu" if str(inp["script"]).lower().startswith("u") else "roman"
+    if ctx.set_chat_script:
+        ctx.set_chat_script(script)
+    else:
+        _sched.set_setting("chat_script", script)
+    return ("Done: the chat is now typed in Urdu script (English replies are translated into Urdu)."
+            if script == "urdu" else "Done: the chat is typed in English letters again (Roman Urdu for Urdu).")
+
+
 def set_assistant_name(inp: dict, ctx: ToolContext) -> str:
     try:
         name = ctx.set_name(inp["name"]) if ctx.set_name else _sched.set_agent_name(inp["name"])
@@ -784,6 +795,12 @@ LIFE_TOOLS = [
       "description": "Switch how Jarvis listens and speaks: 'urdu' (Urdu speech recognition, Urdu replies, Urdu voice) or 'english'. "
                      "Use when the user asks to talk in Urdu (e.g. 'Urdu mein baat karo') or in English.",
       "input_schema": _obj({"language": {"type": "string", "enum": ["urdu", "english"]}}, ["language"])}, set_language),
+    ({"name": "set_chat_script",
+      "description": "How the chat on screen is written (not how you speak). 'roman' (default): everything in English "
+                     "letters, Urdu as Roman Urdu. 'urdu': the chat is typed in Urdu script, English replies translated "
+                     "into Urdu. Use 'urdu' ONLY when the user asks for it, e.g. 'Urdu mein type karke do', 'Urdu mein "
+                     "likh ke do', 'chat ko Urdu mein translate karo'; 'roman' for 'English mein likho' / 'Roman mein likho'.",
+      "input_schema": _obj({"script": {"type": "string", "enum": ["roman", "urdu"]}}, ["script"])}, set_chat_script),
     ({"name": "set_assistant_name",
       "description": "Rename the assistant (you). Use when the user wants to call you something else, "
                      "e.g. 'your name is Maya now', 'tumhara naam Friday rakh do'. Everything keeps working; only the name changes.",

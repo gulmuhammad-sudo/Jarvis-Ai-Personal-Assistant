@@ -81,6 +81,26 @@ def fix_shortcut_names() -> list[str]:
     return [line.strip() for line in out.stdout.splitlines() if line.strip()]
 
 
+
+def startup_shortcut() -> Path:
+    import os
+    return Path(os.environ.get("APPDATA", "")) / "Microsoft" / "Windows" / "Start Menu" / "Programs" / "Startup" / f"{APP_NAME}.lnk"
+
+
+def set_startup(on: bool) -> None:
+    """Start with Windows: a shortcut in your Startup folder opens the app in the tray when you sign in."""
+    lnk = startup_shortcut()
+    try:
+        if on and not lnk.exists():
+            _shortcut(lnk, ROOT / ".venv" / "Scripts" / "pythonw.exe", "run.py --app --tray", ROOT,
+                      ICON if ICON.exists() else make_icon(), "Starts your personal AI assistant when you sign in")
+            print(f"[install] starts with Windows ({lnk.name} in the Startup folder)")
+        elif not on and lnk.exists():
+            lnk.unlink()
+            print("[install] no longer starts with Windows")
+    except Exception as e:
+        print(f"[install] couldn't change 'start with Windows': {e}")
+
 if __name__ == "__main__":
     for p in create_shortcuts():
         print("Created", p)

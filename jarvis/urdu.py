@@ -36,14 +36,35 @@ def mostly_latin(text: str) -> bool:
     return len(letters) > 3 and sum("a" <= c.lower() <= "z" for c in letters) / len(letters) > 0.7
 
 
+def has_other_script(text: str) -> bool:
+    """Any Urdu/Arabic or Hindi letters in it?"""
+    return any("\u0600" <= c <= "\u06ff" or "\u0900" <= c <= "\u097f" for c in text or "")
+
+
 def to_urdu_script(text: str) -> str:
-    """Roman Urdu ("Main theek hoon, Gul!") -> Urdu script ("میں ٹھیک ہوں، Gul!") with a quick free AI call.
+    """Roman Urdu ("Main theek hoon, Gul!") -> Urdu script ("میں ٹھیک ہوں، Gul!"); English is translated into Urdu.
     Only names, app names and numbers stay in English letters. "" if it couldn't be done."""
-    import os
-    prompt = ("Rewrite this spoken reply in Urdu script, keeping exactly the same words and meaning. Write every word "
-              "in Urdu letters, including the English words an Urdu speaker uses (volume -> والیوم, problem -> پرابلم, "
-              "check -> چیک). Only people's names, app or website names and numbers stay in English letters. "
+    prompt = ("Write this chat message in Urdu script. If it is Urdu written in English or Hindi letters, keep exactly "
+              "the same words and meaning, and write the English words an Urdu speaker uses in Urdu letters too "
+              "(volume -> والیوم, problem -> پرابلم, check -> چیک). If it is English, translate it into natural, simple Urdu. "
+              "Only people's names, app or website names and numbers stay in English letters. "
               "Reply with the rewritten text only.\n\n" + text)
+    out = _rewrite(prompt, lambda out: sum("\u0600" <= c <= "\u06ff" for c in out) > len(out) * 0.3)
+    return from_devanagari(out)                # (the AI now and then slips a Hindi-letter word in)
+
+
+def to_roman(text: str) -> str:
+    """Urdu or Hindi letters ("میں ٹھیک ہوں") -> English letters ("Main theek hoon"). "" if it couldn't be done."""
+    prompt = ("Rewrite this chat message in English letters. Urdu or Hindi words become Roman Urdu, written the usual "
+              "way Pakistanis type it (e.g. \"میں ٹھیک ہوں، آپ کیسے ہیں؟\" -> \"Main theek hoon, aap kaise hain?\"). "
+              "Keep exactly the same words and meaning: do not translate, add or drop anything; English stays as it is. "
+              "Reply with the rewritten text only.\n\n" + text)
+    return _rewrite(prompt, lambda out: not has_other_script(out))
+
+
+def _rewrite(prompt: str, good) -> str:
+    """One quick free AI call (Gemini, then Groq); the answer only if good(answer)."""
+    import os
     tries = []
     if os.environ.get("GEMINI_API_KEY"):
         tries.append(("https://generativelanguage.googleapis.com/v1beta/openai/", os.environ["GEMINI_API_KEY"], "gemini-3.5-flash-lite"))
@@ -55,10 +76,10 @@ def to_urdu_script(text: str) -> str:
             r = openai.OpenAI(api_key=key, base_url=base, timeout=15, max_retries=0).chat.completions.create(
                 model=model, messages=[{"role": "user", "content": prompt}], temperature=0)
             out = (r.choices[0].message.content or "").strip()
-            if sum("\u0600" <= c <= "\u06ff" for c in out) > len(out) * 0.3:
+            if out and good(out):
                 return out
         except Exception as e:
-            print(f"[urdu] couldn't rewrite in Urdu script with {model}: {str(e)[:80]}")
+            print(f"[urdu] couldn't rewrite the chat text with {model}: {str(e)[:80]}")
     return ""
 
 

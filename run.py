@@ -1,6 +1,7 @@
 """Start the Personal Assistant.
 
     pythonw run.py              the app in its own window (what the Desktop shortcut runs)
+    pythonw run.py --tray       start hidden in the tray (what "start with Windows" runs)
     python run.py --install     create the Desktop + Start Menu shortcuts
     python run.py --no-window   only the engine; open http://127.0.0.1:8765 yourself (for testing)
 """
@@ -13,6 +14,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Personal Assistant")
     parser.add_argument("--app", action="store_true", help="the app in its own window (default)")
     parser.add_argument("--install", action="store_true", help="create the Desktop / Start Menu shortcuts")
+    parser.add_argument("--tray", action="store_true", help="start hidden in the tray (Windows sign-in)")
     parser.add_argument("--no-window", action="store_true", help="engine only, no window")
     args = parser.parse_args()
 
@@ -25,4 +27,4 @@ if __name__ == "__main__":
         main(open_window=False)
     else:
         from jarvis.desktop import main
-        main()
+        main(tray=args.tray)
