@@ -34,7 +34,6 @@ class EchoCanceller:
         self.margin = margin_ms / 1000                        # read a little earlier than "heard at the same time"
         self.last_push: tuple[int, float] | None = None       # (samples written so far, wall time the last one is heard)
         self.din = np.zeros(0)
-        self.dout = np.zeros(0)
         self.lock = threading.Lock()
         self.erle = 0.0                                       # how much echo it removes (dB, for the log)
         self.started = False

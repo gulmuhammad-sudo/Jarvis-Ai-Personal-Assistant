@@ -2632,7 +2632,7 @@ paintFollow();
 $("micSel").onchange = async () => { await post("/api/mic", { name: $("micSel").value || null }); loadMics(); };
 loadMics();
 
-// ---------- loud alerts + live reply speed ----------
+// ---------- loud alerts ----------
 function paintAlertSettings(s) {
   const on = s.loud_alerts !== false;
   $("loudBtn").textContent = on ? "On" : "Off"; $("loudBtn").classList.toggle("on", on);

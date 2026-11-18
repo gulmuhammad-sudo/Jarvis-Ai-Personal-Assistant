@@ -32,7 +32,6 @@ _load_dotenv(ROOT / ".env")
 MODEL = os.environ.get("JARVIS_MODEL", "claude-opus-5-5")      # only used with an Anthropic API key
 EFFORT = os.environ.get("JARVIS_EFFORT", "medium")              # low | medium | high | xhigh | max
 USER_NAME = os.environ.get("JARVIS_USER_NAME", "Sir")
-VOICE_RATE = int(os.environ.get("JARVIS_VOICE_RATE", "185"))    # console voice speed
 DEFAULT_PROVIDERS = "gemini,groq,openrouter,deepseek"
 
 

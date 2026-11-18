@@ -30,7 +30,7 @@ from . import alerts, approvals, denoise, gpu, languages, memory, schedule, stt,
 from .brain import make_brain
 from .config import NOTES_DIR
 from .providers import provider_status
-from .voice import Voice
+from .voice import listen as windows_listen
 
 try:
     from . import recorder          # native microphone (sounddevice)
@@ -68,7 +68,6 @@ def save_face_photo(data: bytes) -> Path:
     out = DATA_DIR / f"face_photo{ext}"
     out.write_bytes(data)
     return out
-TITLE_HOOK = None          # set by the desktop app: renames the window when the assistant is renamed
 PORT = int(os.environ.get("JARVIS_HUD_PORT", "8765"))
 TOKEN = secrets.token_urlsafe(24)
 
@@ -207,7 +206,6 @@ class Hub:
 
     def set_name(self, name: str) -> str:
         """Rename the assistant. Every open window reloads with the new name; nothing else changes."""
-        old = schedule.agent_name()
         name = schedule.set_agent_name(name)          # ValueError for an unusable name
         if hasattr(self.brain, "refresh_system"):
             self.brain.refresh_system()
@@ -817,7 +815,7 @@ class Hub:
     def listen_once(self) -> None:
         """Fallback when no Groq/Gemini key: the built-in Windows recognizer (less accurate)."""
         self.set_state("listening")
-        text = Voice.listen()
+        text = windows_listen()
         self.set_state("thinking" if self.busy else "idle")
         self.heard(text)
 

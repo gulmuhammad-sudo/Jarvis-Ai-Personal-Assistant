@@ -13,8 +13,8 @@ import re
 import time
 from typing import Callable
 
-from . import languages, memory, schedule, tools
-from .brain import SYSTEM_PROMPT, VOICE_OFF_NOTE, system_prompt, VOICE_ON_NOTE, ProviderError, make_claude
+from . import languages, schedule, tools
+from .brain import VOICE_OFF_NOTE, system_prompt, VOICE_ON_NOTE, ProviderError, make_claude
 from .config import provider_order
 
 # name: (label, base_url, key env var, model env var, models to try in order, can see images)

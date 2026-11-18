@@ -1,8 +1,9 @@
-# J.A.R.V.I.S. — your personal AI assistant
+# Personal Assistant — your own AI assistant for Windows
 
-A Jarvis-style desktop assistant for Windows. It **talks, listens and acts on your PC**, in English or Urdu.
+A Jarvis-style desktop assistant. It **talks, listens and acts on your PC**, in English, Urdu or any other language.
+You choose its name and voice (it starts as "Jarvis"; this README calls it Jarvis).
 
-**Free to run.** Jarvis uses free AI keys (Gemini → Groq → OpenRouter) and switches automatically if one is busy or down.
+**Free to run.** It uses free AI keys (Gemini → Groq → OpenRouter) and switches automatically if one is busy or down.
 
 ## Start it
 
@@ -15,8 +16,11 @@ If something goes wrong, `data\jarvis.log` says what happened.
 ## Make it yours
 
 - **Just the face at first:** the Command Center opens with only the assistant's face; the grid button at the top
-  shows or hides the details around it (remembered). **Face:** Globe, Mask or Rings (setup wizard or Settings → Appearance).
-- **Talk over it any time:** it stops as soon as you start talking and listens. Echo cancellation removes its own
+  shows or hides the details around it (remembered).
+- **Face:** Globe, Mask, Rings or **Photo** (in the setup wizard or Settings → Appearance → Face). Photo shows any
+  picture you choose, for example a real person's face, in a glowing frame that lights up as it talks. Press
+  **Choose a picture…** (JPG, PNG, WEBP or GIF, up to 8 MB). The picture stays on your PC (`data/face_photo.*`).
+- **Talk over it any time:** start talking clearly and it stops and listens. Echo cancellation removes its own
   voice from the mic, so this works on laptop speakers too (a headset is still best).
 
 - **Wake word (busy rooms):** with hands-free on, say its name first ("Maya…" or "Maya, mausam batao"). It answers
@@ -29,8 +33,8 @@ If something goes wrong, `data\jarvis.log` says what happened.
 - **Activity:** click an item to see exactly what was done and its result.
 
 - **Name:** Settings → **Assistant's name** (or just say "your name is Maya now" / "tumhara naam Friday rakh do").
-  The new name is used everywhere: how it introduces itself, Live calls, approvals, the window title and every
-  label on screen. Nothing else changes; every skill keeps working. For a female voice pick Kore or Aoede in
+  The new name is used for how it introduces itself, Live calls, approvals, the wake word and the labels on
+  screen. The app itself (window title, shortcut) is always called **Personal Assistant**; every skill keeps working. For a female voice pick Kore or Aoede in
   Settings → Live voice (and Sonia/Libby for Classic).
 - **Appearance:** Settings → Assistant → **Appearance** (Dark, Light, or Auto to follow Windows), or say "light mode".
 
@@ -49,7 +53,7 @@ If something goes wrong, `data\jarvis.log` says what happened.
 - **Left menu:** Command Center, Conversations (full chat), Memory (what Jarvis remembers + your notes), Profile, Tools & Skills, AI Models, Settings.
 - **Profile** (left menu, or click your name at the top right): your name, what Jarvis should call you, birthday, city, languages, one "About me" box (family, study/work, interests, routine, goals) and how you like replies. Jarvis uses it in every conversation, typed or Live. It is saved in `data/profile.json` and sent to the AI with your messages, so leave out anything private.
 - **Alerts:** warnings (alarms, timers, low battery, errors, mic muted, PC overloaded for 30 s) pop up at the top of the screen and **beep at full volume**: Windows volume goes to 100% just for the beep, then back to yours. Esc or × dismisses one. Turn it off in Settings → **Loud alerts** (then it beeps at your normal volume).
-- **Centre globe:** Jarvis's AI core. Drag to rotate, scroll to zoom, hover to probe, click to talk. Cyan = standing by, green = listening, amber = thinking, pulsing = speaking. The latest exchange shows under it.
+- **Centre face:** the globe (or the face you chose). Click it to talk; the globe can also be dragged and zoomed. Cyan = standing by, green = listening, amber = thinking, pulsing = speaking. The conversation itself is in the chat panel and on the Conversations page.
 - **Activity:** everything Jarvis does, reminders, AI model switches and PC warnings.
 - **Agents:** Jarvis's skills (Research, Browser, Memory, Task, Vision, System) light up while they work.
 - **Timeline:** your timers, alarms and today's remaining prayers. **Models:** which AI providers are connected.
@@ -88,16 +92,14 @@ Click the mic, **Start live conversation** or press **Ctrl+Space**, then just ta
 (Gemini Live, free with your Gemini key) hears you while you speak and answers out loud straight away
 (under a second after you stop). Every skill still works: apps, YouTube, alarms, PC control, approvals.
 
-- **Reply speed:** Settings → **Live reply speed**. *Fast* (default) answers after 0.4 s of quiet; if Jarvis
-  jumps in while you pause to think, choose *Normal* (0.65 s) or *Patient* (1 s). `data/jarvis.log` notes how
-  quickly each reply started.
-
-- **Interrupt him:** tap the mic or press **Esc** while he talks. On a headset (or with the speakers turned
-  down) you can also just start talking over him. On loud laptop speakers his own voice leaks back into the
-  mic, so Jarvis ignores sound that is quieter than his echo. That stops him interrupting himself.
+- **Interrupt:** just start talking while it answers, or tap the mic / press **Esc**. Echo cancellation takes its
+  own voice out of the mic, and it only stops for clear speech that lasts a moment, so it doesn't cut itself off.
+  `data/jarvis.log` says how much echo was removed on each call.
+- **Urdu on screen:** replies spoken in Roman Urdu are also typed in Urdu script in the chat (when your language is Urdu).
+- It knows today's date and the time the call started.
 - **End the call:** say "bye" / "bas, shukriya", tap the mic while he's listening, or press **End live conversation**.
   It also ends by itself after 3 quiet minutes.
-- **Voice:** Settings → **Live voice** (Charon by default; he speaks with a British accent). The Ryan voice is
+- **Voice:** Settings → **Live voice** (Charon by default; Kore and Aoede are female voices). The Ryan voice is
   only in Classic mode.
 - **Free limits:** if one live model hits its free limit, Jarvis carries on with the next one
   (3.1 Flash Live, the quickest → 3.8 Live → 2.5 Flash Native Audio) and rests the busy one for 15 minutes.
@@ -130,7 +132,7 @@ Optional: `JARVIS_NAME` (starting name, default `Jarvis`) · `JARVIS_THEME` (`da
 - Every reply is labelled with the AI that wrote it (e.g. "JARVIS · GEMINI"), and switches show in Activity.
 - If a provider fails *after* it already did something on your PC, Jarvis stops and tells you instead of repeating the action on another model.
 - Gemini and OpenRouter's default model can read screenshots; Groq and DeepSeek can't.
-- **Claude (optional):** put `claude` first in `JARVIS_PROVIDERS` and either sign in with `claude auth login` (Claude account with Pro) or add `ANTHROPIC_API_KEY`.
+- **Claude (optional, paid):** add `ANTHROPIC_API_KEY` and put `claude` first in `JARVIS_PROVIDERS`. Without a key it is skipped.
 
 ## How it works
 
@@ -143,12 +145,12 @@ Optional: `JARVIS_NAME` (starting name, default `Jarvis`) · `JARVIS_THEME` (`da
 | `jarvis/providers.py` | Gemini / Groq / OpenRouter / DeepSeek with fallback (`brain.py`: the instructions, optional Claude with an API key) |
 | `jarvis/tools.py` | Every action Jarvis can take. Add a skill: write a function and add its definition to one of the tool lists. |
 | `jarvis/schedule.py` | Alarms, prayer times, weather, news, battery warnings, morning briefing |
-| `jarvis/live.py` | Live conversation (Gemini Live): mic and speaker streaming, echo guard, tools, model fallback |
+| `jarvis/live.py` | Live conversation (Gemini Live): mic and speaker streaming, interrupting, tools, model fallback |
 | `jarvis/recorder.py`, `stt.py`, `tts.py` | Classic mode: microphone, speech-to-text (Whisper), voice (Ryan / Asad) |
 | `jarvis/memory.py`, `config.py` | Your profile, long-term memory, settings and safe saving of the `data/` files |
 | `jarvis/alerts.py` | The loud alert beep (raises the volume for the beep, then puts it back) |
 | `jarvis/aec.py` | Echo cancellation: removes the assistant's own voice from the mic so you can interrupt it |
 | `jarvis/wake.py`, `denoise.py` | Wake word (is the name in what was said?) and background-noise reduction |
-| `jarvis/languages.py`, `urdu.py` | Languages and voices; Urdu shown in Urdu script on Live calls |
+| `jarvis/languages.py`, `urdu.py` | Languages and voices; Live call text shown in Urdu script (Hindi letters and Roman Urdu rewritten) |
 | `jarvis/gpu.py` | GPU usage and GPU memory for the System gauges (Windows performance counters) |
 | `jarvis/voice.py` | Windows' own speech recognition (backup when no Groq/Gemini key) |

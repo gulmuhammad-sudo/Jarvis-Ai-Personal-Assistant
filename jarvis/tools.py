@@ -47,6 +47,7 @@ class ToolContext:
         self.set_name: Callable[[str], str] | None = None           # rename the assistant (HUD)
         self.set_theme: Callable[[str], None] | None = None         # light / dark Command Center (HUD)
         self.set_brain: Callable[[str, str | None], str] | None = None  # choose the AI provider (HUD)
+        self.language = "en"
 
     def approve(self, question: str, kind: str | None = None) -> bool:
         """Ask before acting. kind groups similar requests: once you allow e.g. "powershell", the HUD stops
@@ -55,7 +56,6 @@ class ToolContext:
             return self.confirm(question, kind=kind)
         except TypeError:                     # a confirm() that doesn't know about kinds (console)
             return self.confirm(question)
-        self.language = "en"
 
 
 def _ps(command: str, timeout: int = 60) -> subprocess.CompletedProcess:
