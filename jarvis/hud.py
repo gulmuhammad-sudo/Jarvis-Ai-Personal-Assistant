@@ -447,6 +447,8 @@ class Hub:
             schedule.set_setting("reading_voice", str(d["reading_voice"])[:60])
         if "wake_word" in d:
             schedule.set_setting("wake_word", bool(d["wake_word"]))
+        if d.get("face") in ("globe", "mask", "rings"):
+            schedule.set_setting("face", d["face"])
         if d.get("engine") in ("live", "classic"):
             self.voice_engine = d["engine"]
             schedule.set_setting("voice_engine", self.voice_engine)
@@ -827,7 +829,7 @@ class Hub:
                "language_name": languages.name(self.language), "setup_done": bool(schedule.get_setting("setup_done")),
                "reading_voice": schedule.get_setting("reading_voice"),
                "hands_free": self.voice_mode, "standby": self.standby_on, "mic_prompt": self.mic_prompt,
-               "wake_word": self.wake_on(), "noise_reduction": denoise.level(),
+               "wake_word": self.wake_on(), "noise_reduction": denoise.level(), "face": schedule.get_setting("face") or "globe",
                "alert_tone": alerts.tone(), "tones": alerts.TONES,
                "brain": self.brain.options() if hasattr(self.brain, "options") else None,
                "language": self.language,
@@ -891,7 +893,8 @@ class Handler(BaseHTTPRequestHandler):
             name = schedule.agent_name()
             html = (HTML_FILE.read_text(encoding="utf-8").replace("__TOKEN__", TOKEN)
                     .replace('"__AGENT__"', json.dumps(name)).replace("__AGENT__", _html.escape(name))
-                    .replace("__THEME__", schedule.theme()).replace("__USER__", memory.call_name()))
+                    .replace("__THEME__", schedule.theme()).replace("__FACE__", schedule.get_setting("face") or "globe")
+                    .replace("__USER__", memory.call_name()))
             body = html.encode()
             self.send_response(200)
             self.send_header("Content-Type", "text/html; charset=utf-8")
@@ -996,6 +999,8 @@ class Handler(BaseHTTPRequestHandler):
                 HUB.toggle_voice_mode(bool(data["voice_mode"]))
             if data.get("reading_voice"):
                 schedule.set_setting("reading_voice", str(data["reading_voice"])[:60])
+            if data.get("face") in ("globe", "mask", "rings"):
+                schedule.set_setting("face", data["face"])
             if "wake_word" in data:
                 schedule.set_setting("wake_word", bool(data["wake_word"]))
                 if HUB.standby_on:                     # restart the waiting with the new mode

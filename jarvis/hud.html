@@ -506,6 +506,15 @@ h4.sec { font-family: var(--sans); font-size: 12px; letter-spacing: .14em; color
 .snav .btn { height: 42px; padding: 0 20px; }
 .serr { color: var(--red); font-size: 13px; min-height: 18px; }
 
+/* ---------- focus mode: just the face; the toggle at the top shows the details ---------- */
+body.focus .dash .row2, body.focus .dash .row3, body.focus .dash .row1 > .card:not(.hero) { display: none; }
+body.focus .dash .row1 { grid-template-columns: minmax(0, 1fr); flex: 1; }
+.fprev { height: 58px; border-radius: 8px; border: 1px solid var(--hair-2); background: var(--bg); display: grid; place-items: center; }
+.fprev svg { width: 70px; height: 46px; fill: none; stroke: var(--cyan); stroke-width: 1.3; stroke-linejoin: round; stroke-linecap: round; }
+.fprev svg .f { fill: var(--cyan); stroke: none; }
+body[data-face="mask"] .heroText { top: auto; bottom: 16px; transform: none; }
+body[data-face="mask"] .heroText .t1 { font-size: clamp(18px, 1.6vw, 24px); letter-spacing: .34em; }
+
 /* ---------- footer ---------- */
 .foot { grid-area: foot; display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 12px; padding: 0 8px; border: 1px solid var(--hair); border-radius: var(--r); background: var(--surface); }
 .chips { display: flex; gap: 18px; min-width: 0; padding-left: 6px; }
@@ -692,6 +701,7 @@ body[data-state="listening"] .talk { border-color: var(--green); background: lin
         <input id="input" placeholder="Ask Jarvis anything…  (Ctrl+K)" aria-label="Message Jarvis">
         <button type="submit" aria-label="Send"><i data-ic="send"></i></button>
       </form>
+      <button class="iconbtn" id="detailsBtn" title="Show the details around the face" aria-label="Show or hide details" aria-pressed="false"><i data-ic="grid"></i></button>
       <button class="iconbtn lang" id="langBtn" title="Language: English / Urdu (click to switch)" aria-label="Switch language">EN</button>
       <button class="iconbtn" id="speakBtn" title="Spoken replies on/off" aria-label="Spoken replies"><i data-ic="speaker"></i></button>
       <button class="iconbtn" id="resetBtn" title="Start a new conversation" aria-label="New conversation"><i data-ic="refresh"></i></button>
@@ -721,7 +731,7 @@ body[data-state="listening"] .talk { border-color: var(--green); background: lin
           <canvas id="globe" aria-hidden="true"></canvas>
           <div id="stateLabel">Standing by</div>
           <div id="modelTag">—</div>
-          <div class="heroText"><div class="t1" id="heroName">JARVIS</div><div class="t3">AI CORE · V3.0</div></div>
+          <div class="heroText"><div class="t1" id="heroName">JARVIS</div></div>
           <div id="globeHint">drag to rotate · scroll to zoom · click to talk</div>
           <div id="globeRead"></div>
         </section>
@@ -854,6 +864,8 @@ body[data-state="listening"] .talk { border-color: var(--green); background: lin
               <button class="tcard" data-theme-btn="dark"><span class="tprev dark"><i class="s"></i><i class="a"></i><i></i></span>Dark</button>
               <button class="tcard" data-theme-btn="light"><span class="tprev light"><i class="s"></i><i class="a"></i><i></i></span>Light</button>
               <button class="tcard" data-theme-btn="system"><span class="tprev auto"><i class="s"></i><i class="a"></i><i></i></span>Auto (Windows)</button></div></div>
+          <div class="setrow"><div class="lbl"><b>Face</b><small>What your assistant looks like in the middle of the Command Center.</small></div>
+            <div class="themecards"><button class="tcard fcard" data-face-btn="globe"><span class="fprev"><svg viewBox="0 0 60 40" aria-hidden="true"><circle cx="30" cy="20" r="15"/><ellipse cx="30" cy="20" rx="6.5" ry="15"/><ellipse cx="30" cy="20" rx="15" ry="5.5"/><circle class="f" cx="30" cy="20" r="2.2"/></svg></span>Globe</button><button class="tcard fcard" data-face-btn="mask"><span class="fprev"><svg viewBox="0 0 60 40" aria-hidden="true"><path d="M30 3 L40 5 L45 12 L46 20 L43 28 L37 34 L30 37 L23 34 L17 28 L14 20 L15 12 L20 5 Z"/><path class="f" d="M21.5 17.5 Q25 15.2 28.3 17.6 Q25 19 21.5 17.5 Z M31.7 17.6 Q35 15.2 38.5 17.5 Q35 19 31.7 17.6 Z"/><path d="M25 27 h10 M26.5 25.6 v2.8 M30 24.8 v4.4 M33.5 25.6 v2.8"/></svg></span>Mask</button><button class="tcard fcard" data-face-btn="rings"><span class="fprev"><svg viewBox="0 0 60 40" aria-hidden="true"><circle cx="30" cy="20" r="15" stroke-dasharray="5 3"/><circle cx="30" cy="20" r="10.5" stroke-dasharray="9 4"/><circle class="f" cx="30" cy="20" r="5"/></svg></span>Rings</button></div></div>
 
           <div class="setrow"><div class="lbl"><b>First-time setup</b><small>Walk through the welcome setup again: name, language, voices, look, hands-free and AI keys.</small></div>
             <button class="btn" id="setupAgain"><i data-ic="refresh"></i>Run setup</button></div>
@@ -983,11 +995,13 @@ body[data-state="listening"] .talk { border-color: var(--green); background: lin
           <button class="btn" id="sReadTest"><i data-ic="play"></i>Listen</button></div>
       </section>
       <section class="spage" data-step="look">
-        <h2>Pick a look</h2><p class="lead">You'll see it change straight away. Auto follows your Windows light/dark setting.</p>
+        <h2>Pick a look</h2><p class="lead">Colours and the face of your assistant. You'll see them change straight away.</p>
         <div class="themecards">
           <button class="tcard" data-setup-theme="dark"><span class="tprev dark"><i class="s"></i><i class="a"></i><i></i></span>Dark</button>
           <button class="tcard" data-setup-theme="light"><span class="tprev light"><i class="s"></i><i class="a"></i><i></i></span>Light</button>
           <button class="tcard" data-setup-theme="system"><span class="tprev auto"><i class="s"></i><i class="a"></i><i></i></span>Auto (Windows)</button></div>
+        <h3 class="ssub">FACE</h3>
+        <div class="themecards"><button class="tcard fcard" data-setup-face="globe"><span class="fprev"><svg viewBox="0 0 60 40" aria-hidden="true"><circle cx="30" cy="20" r="15"/><ellipse cx="30" cy="20" rx="6.5" ry="15"/><ellipse cx="30" cy="20" rx="15" ry="5.5"/><circle class="f" cx="30" cy="20" r="2.2"/></svg></span>Globe</button><button class="tcard fcard" data-setup-face="mask"><span class="fprev"><svg viewBox="0 0 60 40" aria-hidden="true"><path d="M30 3 L40 5 L45 12 L46 20 L43 28 L37 34 L30 37 L23 34 L17 28 L14 20 L15 12 L20 5 Z"/><path class="f" d="M21.5 17.5 Q25 15.2 28.3 17.6 Q25 19 21.5 17.5 Z M31.7 17.6 Q35 15.2 38.5 17.5 Q35 19 31.7 17.6 Z"/><path d="M25 27 h10 M26.5 25.6 v2.8 M30 24.8 v4.4 M33.5 25.6 v2.8"/></svg></span>Mask</button><button class="tcard fcard" data-setup-face="rings"><span class="fprev"><svg viewBox="0 0 60 40" aria-hidden="true"><circle cx="30" cy="20" r="15" stroke-dasharray="5 3"/><circle cx="30" cy="20" r="10.5" stroke-dasharray="9 4"/><circle class="f" cx="30" cy="20" r="5"/></svg></span>Rings</button></div>
       </section>
       <section class="spage" data-step="talk">
         <h2>How do you want to talk?</h2><p class="lead">Hands-free means you never need to press a button.</p>
@@ -1962,6 +1976,7 @@ async function poll() {
     $("ovLlm").textContent = live.active ? "Gemini Live (call)" : s.provider ? `${s.provider}${s.brain && s.brain.preferred === "auto" ? " · auto" : ""}` : "none";
     $("ovLlm").className = up ? "info" : "bad"; $("ovLlm").title = `${up} AI providers connected`;
     paintBrain(s); paintTone(s); askMic(s.mic_prompt); paintWake(s);
+    if (s.face && s.face !== faceMode && !$("setup").classList.contains("open")) applyFace(s.face);
     $("setupAgain").closest(".setrow").hidden = !!s.setup_done;
     if (s.languages && !$("langSel").options.length) paintLangSel();
     if (s.reading_voice && s.reading_voice !== voiceId && document.activeElement !== $("voiceSel") && [...$("voiceSel").options].some(o => o.value === s.reading_voice)) {
@@ -2308,11 +2323,161 @@ function drawConstel() {
 // Full 60 fps only while something is happening; a calm 30 fps when standing by, 15 when Jarvis
 // is in the background. Keeps the GPU (and battery) free for you.
 let lastDraw = 0;
+// ---------- the other faces: a holographic mask and pulse rings ----------
+let faceMode = "__FACE__";
+function faceColor(t) {                               // shared with the globe: colour follows the state
+  const dt = clamp((t - (globe.lastT || t - 16.7)) / 16.7, 0.5, 4); globe.lastT = t;
+  const key = currentLabel(), target = STATE_RGB[key === "transcribing" ? "thinking" : key] || STATE_RGB.idle;
+  colNow = colNow.map((c, i) => c + (target[i] - c) * (1 - 0.92 ** dt));
+  const [r, gg, b] = colNow.map(Math.round);
+  return { dt, key, col: a => `rgba(${r},${gg},${b},${a})`, ink: a => `rgba(${THEME.node.join(",")},${a})` };
+}
+function talkLevel(t) {                               // how much the mouth / rings move
+  const speaking = document.body.classList.contains("speaking") || (live.active && live.phase === "speaking");
+  if (speaking) return 0.3 + 0.7 * Math.abs(Math.sin(t / 83) * Math.sin(t / 211 + 1.3));
+  if (rec.active || (live.active && live.phase === "listening")) return Math.min(1, rec.level * 1.4);
+  return 0;
+}
+// half a face (x >= 0): [x, y, depth]; mirrored for the other side
+const MASK_HALF = [[0, -1.05, -.05], [.45, -.97, -.12], [.74, -.7, -.25], [.84, -.3, -.32], [.8, .1, -.3], [.68, .48, -.24],
+  [.46, .8, -.15], [.2, .98, -.06], [0, 1.03, 0], [0, -.62, .18], [.4, -.62, .08], [.34, -.3, .14], [0, -.2, .26], [0, .2, .4],
+  [.13, .28, .27], [.5, .16, .08], [.27, .52, .14], [0, .78, .16], [.4, .62, .02], [.62, -.2, -.08]];
+const MASK_EDGES_HALF = [[0, 1], [1, 2], [2, 3], [3, 4], [4, 5], [5, 6], [6, 7], [7, 8], [0, 9], [1, 10], [9, 10], [10, 2], [10, 19],
+  [19, 3], [19, 4], [10, 11], [9, 11], [11, 12], [9, 12], [12, 13], [11, 15], [19, 15], [4, 15], [15, 5], [15, 14], [13, 14], [14, 16],
+  [15, 16], [16, 18], [5, 18], [18, 6], [18, 17], [16, 17], [17, 7], [17, 8], [11, 19]];
+const MASK = (() => {
+  const pts = MASK_HALF.map(p => p.slice()), mirror = {};
+  MASK_HALF.forEach((p, i) => { if (p[0] !== 0) { mirror[i] = pts.length; pts.push([-p[0], p[1], p[2]]); } else mirror[i] = i; });
+  const edges = [...MASK_EDGES_HALF, ...MASK_EDGES_HALF.map(([a, b]) => [mirror[a], mirror[b]])];
+  const outline = [0, 1, 2, 3, 4, 5, 6, 7, 8].concat([7, 6, 5, 4, 3, 2, 1].map(i => mirror[i]));
+  return { pts, edges, outline };
+})();
+const mask = { yaw: 0, pitch: 0, blinkAt: 0, blink: 0 };
+function drawMask(t) {
+  const g = globe.cv.getContext("2d"), w = globe.w, h = globe.h;
+  if (!w) return;
+  const { dt, key, col, ink } = faceColor(t);
+  const lvl = talkLevel(t), area = h - 46;
+  globe.zoom += (globe.zoomT - globe.zoom) * (1 - 0.88 ** dt);
+  const R = Math.min(w * 0.2, area * 0.42) * globe.zoom, cx = w / 2, cy = area * 0.5;
+  // the head turns a little toward the mouse, and drifts gently on its own
+  const ty = globe.hover ? clamp((globe.hover.x - cx) / w, -.5, .5) * 0.9 : Math.sin(t / 3800) * 0.18;
+  const tp = globe.hover ? clamp((globe.hover.y - cy) / h, -.5, .5) * 0.5 : Math.sin(t / 5200) * 0.06;
+  mask.yaw += (ty - mask.yaw) * (1 - 0.9 ** dt); mask.pitch += (tp - mask.pitch) * (1 - 0.9 ** dt);
+  const cyw = Math.cos(mask.yaw), syw = Math.sin(mask.yaw), cp = Math.cos(mask.pitch), sp = Math.sin(mask.pitch);
+  const P = ([x, y, z]) => { const x1 = x * cyw + z * syw, z1 = -x * syw + z * cyw, y1 = y * cp - z1 * sp; return [cx + x1 * R, cy + y1 * R, z1]; };
+  g.clearRect(0, 0, w, h);
+  const halo = g.createRadialGradient(cx, cy, R * 0.2, cx, cy, R * 1.7);
+  halo.addColorStop(0, col(0.2 + lvl * 0.12)); halo.addColorStop(0.6, col(0.05)); halo.addColorStop(1, col(0));
+  g.fillStyle = halo; g.beginPath(); g.arc(cx, cy, R * 1.7, 0, Math.PI * 2); g.fill();
+  const pr = MASK.pts.map(P);
+  // the face: a soft fill, then the mesh (front edges brighter), then the nodes
+  g.beginPath(); MASK.outline.forEach((i, k) => k ? g.lineTo(pr[i][0], pr[i][1]) : g.moveTo(pr[i][0], pr[i][1])); g.closePath();
+  const fill = g.createLinearGradient(cx, cy - R, cx, cy + R); fill.addColorStop(0, col(0.13)); fill.addColorStop(1, col(0.04));
+  g.fillStyle = fill; g.fill();
+  g.lineWidth = 1.2; g.strokeStyle = col(0.75); g.stroke();
+  g.lineWidth = 0.8;
+  for (const [a, b] of MASK.edges) {
+    const z = (pr[a][2] + pr[b][2]) / 2;
+    g.strokeStyle = col(0.18 + clamp(z + 0.3, 0, 0.7) * 0.6);
+    g.beginPath(); g.moveTo(pr[a][0], pr[a][1]); g.lineTo(pr[b][0], pr[b][1]); g.stroke();
+  }
+  g.fillStyle = ink(0.75);
+  for (const p of pr) { g.beginPath(); g.arc(p[0], p[1], 1.4, 0, Math.PI * 2); g.fill(); }
+  // a slow scan line across the face
+  const sy = cy + R * (((t / 2600) % 2) - 1);
+  const scan = g.createLinearGradient(0, sy - 6, 0, sy + 6); scan.addColorStop(0, col(0)); scan.addColorStop(0.5, col(0.16)); scan.addColorStop(1, col(0));
+  g.save(); g.beginPath(); MASK.outline.forEach((i, k) => k ? g.lineTo(pr[i][0], pr[i][1]) : g.moveTo(pr[i][0], pr[i][1])); g.clip();
+  g.fillStyle = scan; g.fillRect(cx - R, sy - 6, R * 2, 12); g.restore();
+  // eyes: blink now and then; open wide while listening; look around while thinking
+  if (t > mask.blinkAt) { mask.blink = t; mask.blinkAt = t + 3500 + Math.random() * 4000; }
+  const blink = t - mask.blink < 140 ? 0.15 : 1;
+  const open = (key === "listening" ? 1.35 : key === "thinking" || key === "transcribing" ? 0.7 : 1) * blink;
+  for (const side of [-1, 1]) {
+    const [ex, ey] = P([side * 0.33, -0.1, 0.13]);
+    const ew = R * 0.2 * Math.max(0.55, cyw), eh = R * 0.055 * open;
+    g.save(); g.shadowColor = col(0.9); g.shadowBlur = 16;
+    g.fillStyle = col(0.9);
+    g.beginPath(); g.moveTo(ex - ew / 2, ey); g.quadraticCurveTo(ex, ey - eh * 2, ex + ew / 2, ey); g.quadraticCurveTo(ex, ey + eh * 1.2, ex - ew / 2, ey); g.fill();
+    g.restore();
+    const look = key === "thinking" || key === "transcribing" ? Math.sin(t / 260) * ew * 0.3 : mask.yaw * ew * 0.4;
+    g.fillStyle = ink(0.95); g.beginPath(); g.arc(ex + look, ey - eh * 0.25, Math.max(1.5, eh * 0.55), 0, Math.PI * 2); g.fill();
+  }
+  // mouth: equalizer bars that move with the voice
+  const [mx, my] = P([0, 0.5, 0.16]), bars = 11, mw = R * 0.36 * Math.max(0.6, cyw), bw = mw / bars;
+  for (let i = 0; i < bars; i++) {
+    const shape = 1 - Math.abs(i - (bars - 1) / 2) / ((bars - 1) / 2) * 0.6;
+    const wob = 0.55 + 0.45 * Math.sin(t / 70 + i * 1.7) * Math.sin(t / 190 + i);
+    const bh = Math.max(R * 0.012, R * 0.16 * lvl * shape * wob);
+    g.fillStyle = col(0.55 + lvl * 0.45);
+    g.fillRect(mx - mw / 2 + i * bw + bw * 0.22, my - bh / 2, bw * 0.56, bh);
+  }
+}
+function drawRings(t) {
+  const g = globe.cv.getContext("2d"), w = globe.w, h = globe.h;
+  if (!w) return;
+  const { dt, key, col, ink } = faceColor(t);
+  const lvl = talkLevel(t), area = h - 46, busy = key === "thinking" || key === "transcribing";
+  globe.zoom += (globe.zoomT - globe.zoom) * (1 - 0.88 ** dt);
+  const R = Math.min(w * 0.3, area * 0.4) * globe.zoom * (1 + lvl * 0.04), cx = w / 2, cy = area * 0.53;
+  g.clearRect(0, 0, w, h);
+  const halo = g.createRadialGradient(cx, cy, 0, cx, cy, R * 1.5);
+  halo.addColorStop(0, col(0.32 + lvl * 0.2)); halo.addColorStop(0.35, col(0.1)); halo.addColorStop(1, col(0));
+  g.fillStyle = halo; g.beginPath(); g.arc(cx, cy, R * 1.5, 0, Math.PI * 2); g.fill();
+  // rings turning at different speeds (faster while thinking)
+  const speed = busy ? 3 : 1;
+  [[0.48, 0.0009, [14, 8], 2], [0.64, -0.0006, [40, 12], 1.4], [0.8, 0.0004, [4, 10], 2.2], [0.97, -0.0003, [90, 20, 8, 20], 1]].forEach(([rr, sp, dash, lw], i) => {
+    g.save(); g.translate(cx, cy); g.rotate(t * sp * speed + i);
+    g.setLineDash(dash.map(d => d * R / 200)); g.lineWidth = lw; g.strokeStyle = col(0.5 - i * 0.07);
+    g.beginPath(); g.arc(0, 0, R * rr, 0, Math.PI * 2); g.stroke(); g.restore();
+  });
+  // spikes around the outside follow the voice
+  const n = 96;
+  g.lineWidth = 1.6;
+  for (let i = 0; i < n; i++) {
+    const a = (i / n) * Math.PI * 2 + t / 9000;
+    const v = 0.5 + 0.5 * Math.sin(t / 120 + i * 0.9) * Math.sin(t / 310 + i * 0.37);
+    const len = R * (0.025 + lvl * 0.2 * v + (busy ? 0.03 * v : 0));
+    const r0 = R * 1.06;
+    g.strokeStyle = col(0.25 + v * 0.5);
+    g.beginPath(); g.moveTo(cx + Math.cos(a) * r0, cy + Math.sin(a) * r0); g.lineTo(cx + Math.cos(a) * (r0 + len), cy + Math.sin(a) * (r0 + len)); g.stroke();
+  }
+  // the core
+  const core = g.createRadialGradient(cx, cy, 0, cx, cy, R * 0.34 * (1 + lvl * 0.3));
+  core.addColorStop(0, ink(0.95)); core.addColorStop(0.25, col(0.85)); core.addColorStop(1, col(0));
+  g.fillStyle = core; g.beginPath(); g.arc(cx, cy, R * 0.34 * (1 + lvl * 0.3), 0, Math.PI * 2); g.fill();
+}
+function applyFace(mode) {
+  faceMode = ["globe", "mask", "rings"].includes(mode) ? mode : "globe";
+  document.body.dataset.face = faceMode;
+  document.querySelectorAll("[data-face-btn]").forEach(b => b.classList.toggle("on", b.dataset.faceBtn === faceMode));
+}
+document.querySelectorAll("[data-face-btn]").forEach(b => b.onclick = () => { applyFace(b.dataset.faceBtn); post("/api/settings", { face: faceMode }); });
+
+// ---------- focus mode: only the face at first; the button at the top shows the details ----------
+function applyDetails(show) {
+  document.body.classList.toggle("focus", !show);
+  $("detailsBtn").classList.toggle("on", show); $("detailsBtn").setAttribute("aria-pressed", String(show));
+  $("detailsBtn").title = show ? "Hide the details (just the face)" : "Show the details around the face";
+  requestAnimationFrame(() => { sizeCanvases(); drawConstel(); });
+}
+$("detailsBtn").onclick = () => {
+  const show = document.body.classList.contains("focus");
+  storeSet("jarvis.details", show ? "show" : "hide");
+  if (show) go("dash");
+  applyDetails(show);
+};
+applyDetails(storeGet("jarvis.details") === "show");     // new users: just the face
+
 function frame(t) {
   const busy = globe.drag || globe.hover || live.active || rec.active || currentLabel() !== "idle"
     || document.body.classList.contains("speaking");
   const fps = busy ? 60 : document.hasFocus() ? 30 : 15;
-  if (!document.hidden && t - lastDraw >= 1000 / fps - 4) { lastDraw = t; drawGlobe(t); drawWave(t); }
+  if (!document.hidden && t - lastDraw >= 1000 / fps - 4) {
+    lastDraw = t;
+    (faceMode === "mask" ? drawMask : faceMode === "rings" ? drawRings : drawGlobe)(t);
+    drawWave(t);
+  }
   requestAnimationFrame(frame);
 }
 window.addEventListener("resize", () => { sizeCanvases(); drawConstel(); });
@@ -2558,7 +2723,7 @@ function pickOpt(attr, val) { document.querySelectorAll(`#setup [${attr}]`).forE
 async function openSetup(force = false) {
   try { S = await (await fetch(`/api/setup?token=${TOKEN}`, { cache: "no-store" })).json(); } catch (e) { return; }
   if (S.done && !force) return;
-  S.themeBefore = themeMode; S.voiceBefore = voiceId; S.newKeys = {};
+  S.themeBefore = themeMode; S.voiceBefore = voiceId; S.faceBefore = faceMode; S.newKeys = {};
   $("sName").value = S.name || "Jarvis"; $("sCall").value = S.call || "";
   chipGroup("sNameChips", ["Jarvis", "Maya", "Friday", "Nova", "Zara", "Max"].map(n => [n, n]), S.name, v => { $("sName").value = v; });
   const first = (S.user_name || "").split(" ")[0];
@@ -2570,6 +2735,7 @@ async function openSetup(force = false) {
   $("sReadVoice").innerHTML = S.reading_voices.map(v => `<option value="${esc(v.id)}">${esc(v.name)}</option>`).join("");
   $("sReadVoice").value = S.reading_voice;
   S.theme = themeMode; pickOpt("data-setup-theme", S.theme);
+  S.face = faceMode; pickOpt("data-setup-face", S.face);
   pickOpt("data-hf", S.hands_free ? 1 : 0); pickOpt("data-eng", S.engine); pickOpt("data-wake", S.wake_word ? 1 : 0);
   $("sKeys").innerHTML = Object.entries(KEY_INFO).map(([k, [label, url, why]]) => `<div class="keyrow"><b>${label}</b>${S.keys[k]
       ? `<span class="ok">✓ Connected</span>`
@@ -2589,7 +2755,7 @@ function showStep() {
   if (STEPS[sIdx] === "done") {
     const keys = Object.entries(KEY_INFO).filter(([k]) => S.keys[k] || S.newKeys[k]).map(([, v]) => v[0]);
     const rows = [["Assistant", name], ["Calls you", $("sCall").value.trim() || "Sir"], ["Language", langName(S.language)],
-      ["Call voice", S.live_voice], ["Reading voice", ($("sReadVoice").selectedOptions[0] || {}).text || ""], ["Look", { dark: "Dark", light: "Light", system: "Auto (Windows)" }[S.theme]],
+      ["Call voice", S.live_voice], ["Reading voice", ($("sReadVoice").selectedOptions[0] || {}).text || ""], ["Look", { dark: "Dark", light: "Light", system: "Auto (Windows)" }[S.theme] + " · " + { globe: "Globe", mask: "Mask", rings: "Rings" }[S.face]],
       ["Hands-free", S.hands_free ? "On" : "Off"], ["Wake word", S.wake_word ? `On (say "${name}")` : "Off"], ["Style", S.engine === "live" ? "Live" : "Classic"], ["AI connected", keys.join(", ") || "none yet"]];
     $("sSum").innerHTML = rows.map(([k, v]) => `<span>${esc(k)}</span><b>${esc(v)}</b>`).join("");
     $("sDoneTitle").textContent = `All set! Meet ${name}.`;
@@ -2606,7 +2772,7 @@ $("sNext").onclick = async () => {
   if (step !== "done") { sIdx++; showStep(); return; }
   $("sNext").disabled = true;
   const r = await post("/api/setup", { name: $("sName").value.trim(), call: $("sCall").value.trim(), language: S.language, live_voice: S.live_voice,
-    reading_voice: $("sReadVoice").value, theme: S.theme, hands_free: S.hands_free, engine: S.engine, keys: S.newKeys, wake_word: S.wake_word });
+    reading_voice: $("sReadVoice").value, theme: S.theme, hands_free: S.hands_free, engine: S.engine, keys: S.newKeys, wake_word: S.wake_word, face: S.face });
   const j = r ? await r.json() : { ok: false, problems: ["Couldn't reach the assistant."] };
   $("sNext").disabled = false;
   if (!j.ok) { $("sErr").textContent = (j.problems || []).join(" "); sIdx = 1; showStep(); return; }
@@ -2616,11 +2782,12 @@ $("sNext").onclick = async () => {
 };
 $("sBack").onclick = () => { if (sIdx) { sIdx--; showStep(); } };
 $("sSkip").onclick = async () => {
-  applyTheme(S.themeBefore); voiceId = S.voiceBefore;
+  applyTheme(S.themeBefore); voiceId = S.voiceBefore; applyFace(S.faceBefore || faceMode);
   await post("/api/setup", {});
   $("setup").classList.remove("open");
 };
 document.querySelectorAll("[data-setup-theme]").forEach(b => b.onclick = () => { S.theme = b.dataset.setupTheme; pickOpt("data-setup-theme", S.theme); applyTheme(S.theme); });
+document.querySelectorAll("[data-setup-face]").forEach(b => b.onclick = () => { S.face = b.dataset.setupFace; pickOpt("data-setup-face", S.face); applyFace(S.face); });
 document.querySelectorAll("#setup [data-hf]").forEach(b => b.onclick = () => { S.hands_free = b.dataset.hf === "1"; pickOpt("data-hf", b.dataset.hf); });
 document.querySelectorAll("#setup [data-eng]").forEach(b => b.onclick = () => { S.engine = b.dataset.eng; pickOpt("data-eng", S.engine); });
 document.querySelectorAll("#setup [data-wake]").forEach(b => b.onclick = () => { S.wake_word = b.dataset.wake === "1"; pickOpt("data-wake", b.dataset.wake); });
@@ -2642,6 +2809,7 @@ window.addEventListener("resize", placeClock);
 brand();
 requestAnimationFrame(placeClock); setTimeout(placeClock, 600);
 applyTheme();
+applyFace(faceMode);
 openSetup();          // first run: the welcome setup
 sizeCanvases(); drawConstel();
 requestAnimationFrame(frame);

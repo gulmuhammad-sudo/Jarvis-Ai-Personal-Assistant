@@ -1,6 +1,6 @@
 """Creates the Jarvis app icon and the Desktop + Start Menu shortcuts.
 
-Run once (Jarvis.bat does it automatically):  python run.py --install
+Run once ("Personal Assistant.bat" does it automatically):  python run.py --install
 """
 from __future__ import annotations
 

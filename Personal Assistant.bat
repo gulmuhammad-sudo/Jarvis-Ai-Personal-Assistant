@@ -1,9 +1,9 @@
 @echo off
-rem Opens the Jarvis desktop app. First run installs everything and adds a "Jarvis" shortcut to your Desktop and Start Menu.
-title J.A.R.V.I.S.
+rem Personal Assistant: installs itself on the first run, then starts.
+title Personal Assistant
 cd /d "%~dp0"
 if not exist ".venv\Scripts\python.exe" (
-    echo First-time setup: installing Jarvis...
+    echo First-time setup: installing the Personal Assistant...
     python -m venv .venv || (echo Python 3.10+ is required: https://www.python.org/downloads/ & pause & exit /b 1)
     ".venv\Scripts\python.exe" -m pip install -q -r requirements.txt
 )

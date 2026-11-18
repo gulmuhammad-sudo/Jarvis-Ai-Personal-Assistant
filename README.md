@@ -6,14 +6,18 @@ A Jarvis-style desktop assistant for Windows. It **talks, listens and acts on yo
 
 ## Start it
 
-1. Double-click **`Jarvis.bat`**. The first run installs everything and adds a **Personal Assistant** shortcut (arc-reactor icon) to your Desktop and Start Menu.
+1. Double-click **`Personal Assistant.bat`**. The first run installs everything and adds a **Personal Assistant** shortcut (arc-reactor icon) to your Desktop and Start Menu.
 2. After that, open Jarvis from the shortcut. It opens as its own app window; closing the window stops Jarvis.
 3. Click the mic (or press **Ctrl+Space**) and talk, or type in the box at the top (**Ctrl+K**).
 
-Prefer the terminal? **`Jarvis Console.bat`** (add `--voice` to talk to it).
 If something goes wrong, `data\jarvis.log` says what happened.
 
 ## Make it yours
+
+- **Just the face at first:** the Command Center opens with only the assistant's face; the grid button at the top
+  shows or hides the details around it (remembered). **Face:** Globe, Mask or Rings (setup wizard or Settings → Appearance).
+- **Talk over it any time:** it stops as soon as you start talking and listens. Echo cancellation removes its own
+  voice from the mic, so this works on laptop speakers too (a headset is still best).
 
 - **Wake word (busy rooms):** with hands-free on, say its name first ("Maya…" or "Maya, mausam batao"). It answers
   "Haan ji, main sun rahi hoon", listens for ~15 s of follow-ups, then waits for its name again. Settings → Wake word.
@@ -132,17 +136,19 @@ Optional: `JARVIS_NAME` (starting name, default `Jarvis`) · `JARVIS_THEME` (`da
 
 | File | Job |
 |---|---|
-| `run.py` | Starts Jarvis: `--app` desktop app (what the shortcut runs), `--console` terminal, `--install` shortcuts |
+| `Personal Assistant.bat` | First run: installs everything and makes the shortcuts; then starts the app |
+| `run.py` | Starts the app (what the shortcut runs); `--install` makes the shortcuts |
 | `jarvis/desktop.py` | The native app window (WebView2), taskbar icon, log file |
 | `jarvis/hud.py` + `hud.html` | The engine and the Command Center page. It only listens on `127.0.0.1`, with a secret token per launch, so websites can't control Jarvis. |
-| `jarvis/providers.py` | Gemini / Groq / OpenRouter / DeepSeek with fallback (`brain.py`, `brain_cc.py`: optional Claude) |
+| `jarvis/providers.py` | Gemini / Groq / OpenRouter / DeepSeek with fallback (`brain.py`: the instructions, optional Claude with an API key) |
 | `jarvis/tools.py` | Every action Jarvis can take. Add a skill: write a function and add its definition to one of the tool lists. |
 | `jarvis/schedule.py` | Alarms, prayer times, weather, news, battery warnings, morning briefing |
 | `jarvis/live.py` | Live conversation (Gemini Live): mic and speaker streaming, echo guard, tools, model fallback |
 | `jarvis/recorder.py`, `stt.py`, `tts.py` | Classic mode: microphone, speech-to-text (Whisper), voice (Ryan / Asad) |
 | `jarvis/memory.py`, `config.py` | Your profile, long-term memory, settings and safe saving of the `data/` files |
 | `jarvis/alerts.py` | The loud alert beep (raises the volume for the beep, then puts it back) |
+| `jarvis/aec.py` | Echo cancellation: removes the assistant's own voice from the mic so you can interrupt it |
 | `jarvis/wake.py`, `denoise.py` | Wake word (is the name in what was said?) and background-noise reduction |
 | `jarvis/languages.py`, `urdu.py` | Languages and voices; Urdu shown in Urdu script on Live calls |
 | `jarvis/gpu.py` | GPU usage and GPU memory for the System gauges (Windows performance counters) |
-| `jarvis/app.py`, `voice.py` | The console version and its Windows voice |
+| `jarvis/voice.py` | Windows' own speech recognition (backup when no Groq/Gemini key) |

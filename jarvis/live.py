@@ -107,6 +107,24 @@ class _Resampler:
         return out.astype(np.float32)
 
 
+def _ahead(cb_time, field: str, fallback: float) -> float:
+    """Seconds until the speaker block is heard (PortAudio's timing if it gives one)."""
+    try:
+        d = getattr(cb_time, field) - cb_time.currentTime
+        return d if 0 <= d < 1 else fallback
+    except Exception:
+        return fallback
+
+
+def _ago(cb_time, field: str, fallback: float) -> float:
+    """Seconds since the mic block's first sample was captured."""
+    try:
+        d = cb_time.currentTime - getattr(cb_time, field)
+        return d if 0 <= d < 1 else fallback
+    except Exception:
+        return fallback
+
+
 class LiveSession:
     """One live conversation. start() returns at once; everything runs on its own thread."""
 
@@ -160,8 +178,11 @@ class LiveSession:
         self._last_voice = 0.0                      # when you last made a sound (for the reply-delay log)
         self.delays: list[float] = []
         self._tasks: set = set()                    # tools running in the background
+        self._aec = None                            # echo canceller (set up with the audio)
+        self._in_latency, self._out_latency, self._mic_rate = 0.02, 0.05, 48000
         self._hold_until = 0.0                      # an alert beep is playing: don't send the mic
         self.barge_ins = 0                          # times you talked over him (for the log)
+        self._barge_run = 0                         # blocks in a row that sounded like you, not his echo
         self.debug: tuple = ()
         self._hp = signal.butter(2, 100, "hp", fs=IN_RATE, output="sos")
         self._hp_zi = signal.sosfilt_zi(self._hp) * 0
@@ -210,6 +231,7 @@ class LiveSession:
             raise RuntimeError(f"Your microphone ({dev['name']}) is muted in Windows. Press Unmute and try again.")
         self.mic = dev["name"]
         self._resample = _Resampler(dev["rate"])
+        self._mic_rate = dev["rate"]
         recorder._recording.set()               # stop device rescans from killing these streams
         inp = sd.InputStream(device=dev["index"], channels=1, samplerate=dev["rate"], dtype="float32",
                              blocksize=int(dev["rate"] * BLOCK), callback=self._mic_callback, latency="low")
@@ -221,6 +243,12 @@ class LiveSession:
             out = sd.OutputStream(samplerate=self._out_rate, channels=1, dtype="int16",
                                   blocksize=int(self._out_rate * 0.02), callback=self._speaker_callback, latency="low")
         self._streams = [inp, out]
+        self._in_latency = float(getattr(inp, "latency", 0.02) or 0.02)
+        self._out_latency = float(getattr(out, "latency", 0.05) or 0.05)
+        from . import aec
+        if schedule.get_setting("echo_cancel", True) is not False:
+            self._ref_rs = _Resampler(self._out_rate, IN_RATE)
+            self._aec = aec.EchoCanceller(key=f"{self.mic}|{self._out_rate}")   # starts from what it learned last call
         inp.start()
         out.start()
         print(f"[live] mic: {self.mic} @ {dev['rate']} Hz, speaker @ {self._out_rate} Hz, voice {self.voice}")
@@ -235,13 +263,16 @@ class LiveSession:
         self._streams = []
         recorder._recording.clear()
 
-    def _speaker_callback(self, outdata, frames, _time, _status) -> None:
+    def _speaker_callback(self, outdata, frames, cb_time, _status) -> None:
         need = frames * 2
         with self._out_lock:
             chunk = bytes(self._out[:need])
             del self._out[:need]
         a = np.frombuffer(chunk.ljust(need, b"\0"), "<i2")
         now = time.time()
+        if self._aec is not None:                 # tell the echo canceller exactly what is about to be heard
+            ahead = _ahead(cb_time, "outputBufferDacTime", self._out_latency)
+            self._aec.push_ref(self._ref_rs(a.astype(np.float32) / 32768.0).astype(np.float64), now + ahead)
         if chunk:
             self._last_play = now
         level = float(np.sqrt(np.mean((a / 32768.0) ** 2)))
@@ -255,11 +286,16 @@ class LiveSession:
         with self._out_lock:
             return bool(self._out) or time.time() - self._last_play < 0.25
 
-    def _mic_callback(self, indata, frames, _time, _status) -> None:
+    def _mic_callback(self, indata, frames, cb_time, _status) -> None:
+        captured = time.time() - _ago(cb_time, "inputBufferAdcTime", self._in_latency + frames / max(self._mic_rate, 1))
         x = self._resample(indata[:, 0].astype(np.float32))
         if x.size == 0:
             return
         x, self._hp_zi = signal.sosfilt(self._hp, x, zi=self._hp_zi)      # drop fan/AC rumble
+        if self._aec is not None:
+            x = self._aec.process(x, captured)                             # take his own voice out of the mic
+            if x.size == 0:
+                return
         if self._dn is not None:
             x = self._dn.process(x)                                        # turn background noise down
             if x.size == 0:
@@ -274,10 +310,17 @@ class LiveSession:
                 ref = max((lvl for t, lvl in self._play_hist if now - t < 0.5), default=0.0)
             expected = self._coupling * ref
             self.debug = (round(rms, 4), round(expected, 4), round(self._coupling, 3), round(self._speech, 4))
-            if rms > expected * 2.5 + self._floor * 3 and rms > self._speech * 0.5:
-                if now >= self._gate_until:
+            opened = now < self._gate_until
+            # louder than his own echo = you. Once you've cut in, a weaker test keeps it open between syllables.
+            if rms > (expected * 1.3 + self._floor * 2 if opened else expected * 2.0 + self._floor * 2.5):
+                self._barge_run += 1
+            else:
+                self._barge_run = 0
+            if self._barge_run >= (1 if opened else 2):            # 80 ms of you (one echo spike isn't enough)
+                if not opened:
                     self.barge_ins += 1
-                self._gate_until = now + 1.2              # you are talking over him: let it through
+                    self._stop_talking()                           # stop at once: no waiting for Google
+                self._gate_until = now + 2.0
                 self._last_activity = now
             elif now >= self._gate_until and ref > 0.003:
                 # just his echo: learn the leak quickly when it is stronger than thought, forget it slowly
@@ -306,6 +349,13 @@ class LiveSession:
             self.on_level(round(min(1.0, rms * gain * 6), 3) if gate_open else 0.0)
         if self._loop and self._mic_q:
             self._loop.call_soon_threadsafe(self._mic_q.put_nowait, pcm)
+
+    def _stop_talking(self) -> None:
+        """You talked over him: silence the speaker now and skip the rest of that answer."""
+        with self._out_lock:
+            self._out.clear()
+        self._drop_turn = self._in_turn
+        print(f"[live] you interrupted (#{self.barge_ins})")
 
     def _play(self, pcm: bytes) -> None:
         if self._out_rate != OUT_RATE:
@@ -342,8 +392,9 @@ class LiveSession:
             **extra,
             realtime_input_config=types.RealtimeInputConfig(
                 automatic_activity_detection=types.AutomaticActivityDetection(
-                    start_of_speech_sensitivity=(types.StartSensitivity.START_SENSITIVITY_LOW if getattr(self, "quiet_room", False)
-                                                 else types.StartSensitivity.START_SENSITIVITY_HIGH),
+                    # HIGH: notice you quickly, also when you talk over him (the wake word already keeps
+                    # other people out; a less sensitive setting made interrupting him almost impossible)
+                    start_of_speech_sensitivity=types.StartSensitivity.START_SENSITIVITY_HIGH,
                     end_of_speech_sensitivity=types.EndSensitivity.END_SENSITIVITY_HIGH,
                     silence_duration_ms=pause_ms())),
             response_modalities=["AUDIO"],

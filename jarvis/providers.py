@@ -219,8 +219,8 @@ class MultiBrain:
             try:
                 if name == "claude":
                     backend = make_claude(ctx, self._text, self._tool)
-                    if getattr(backend, "claude", True) is None:  # Claude Code not installed
-                        self.skipped.append("Claude (Claude Code not installed)")
+                    if backend is None:                          # no ANTHROPIC_API_KEY
+                        self.skipped.append("Claude (no ANTHROPIC_API_KEY)")
                         continue
                     label = "Claude"
                 elif name in OPENAI_COMPATIBLE:

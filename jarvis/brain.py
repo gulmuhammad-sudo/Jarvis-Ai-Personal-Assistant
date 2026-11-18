@@ -61,12 +61,11 @@ def make_brain(ctx, on_text, on_tool):
 
 
 def make_claude(ctx, on_text, on_tool):
-    """Claude via the Anthropic API if a key is set, otherwise the user's Claude account (Claude Code)."""
+    """Claude via the Anthropic API (needs ANTHROPIC_API_KEY in .env); None without a key."""
     import os
     if os.environ.get("ANTHROPIC_API_KEY") or os.environ.get("ANTHROPIC_AUTH_TOKEN"):
         return Brain(ctx, on_text=on_text, on_tool=on_tool)
-    from .brain_cc import ClaudeCodeBrain
-    return ClaudeCodeBrain(ctx, on_text=on_text, on_tool=on_tool)
+    return None
 
 
 class Brain:
