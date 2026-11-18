@@ -5,6 +5,12 @@ You choose its name and voice (it starts as "Jarvis"; this README calls it Jarvi
 
 **Free to run.** It uses free AI keys (Gemini → Groq → OpenRouter) and switches automatically if one is busy or down.
 
+## Download
+
+**[Download Personal Assistant Setup.exe](https://github.com/gulmuhammad-sudo/Jarvis-Ai-Personal-Assistant/releases)**
+(open the newest release and pick `Personal.Assistant.Setup.exe` under *Assets*). Windows 10/11, about 100 MB.
+If Windows says "Windows protected your PC", press **More info → Run anyway** (the app isn't code-signed).
+
 ## Install
 
 1. Run **`Personal Assistant Setup.exe`**. It installs for you only (no admin rights) and walks you through:
