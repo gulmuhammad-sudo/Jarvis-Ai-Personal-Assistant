@@ -183,6 +183,8 @@ class LiveSession:
         self._hold_until = 0.0                      # an alert beep is playing: don't send the mic
         self.barge_ins = 0                          # times you talked over him (for the log)
         self._barge_run = 0                         # blocks in a row that sounded like you, not his echo
+        self._play_started = 0.0                    # when the current answer started playing
+        self._stopped = False                       # already silenced for this interruption
         self.debug: tuple = ()
         self._hp = signal.butter(2, 100, "hp", fs=IN_RATE, output="sos")
         self._hp_zi = signal.sosfilt_zi(self._hp) * 0
@@ -274,6 +276,8 @@ class LiveSession:
             ahead = _ahead(cb_time, "outputBufferDacTime", self._out_latency)
             self._aec.push_ref(self._ref_rs(a.astype(np.float32) / 32768.0).astype(np.float64), now + ahead)
         if chunk:
+            if now - self._last_play > 0.3:
+                self._play_started = now           # a new answer starts playing
             self._last_play = now
         level = float(np.sqrt(np.mean((a / 32768.0) ** 2)))
         with self._out_lock:                                    # recent loudness, for the echo guard
@@ -311,17 +315,24 @@ class LiveSession:
             expected = self._coupling * ref
             self.debug = (round(rms, 4), round(expected, 4), round(self._coupling, 3), round(self._speech, 4))
             opened = now < self._gate_until
-            # louder than his own echo = you. Once you've cut in, a weaker test keeps it open between syllables.
-            if rms > (expected * 1.3 + self._floor * 2 if opened else expected * 2.0 + self._floor * 2.5):
-                self._barge_run += 1
-            else:
-                self._barge_run = 0
-            if self._barge_run >= (1 if opened else 2):            # 80 ms of you (one echo spike isn't enough)
-                if not opened:
-                    self.barge_ins += 1
-                    self._stop_talking()                           # stop at once: no waiting for Google
+            settling = now - self._play_started < 0.8      # start of an answer: the echo canceller re-settles
+            # you, not his echo: clearly louder than the echo AND about as loud as you normally talk.
+            # Once you've cut in, a weaker test keeps it open between syllables.
+            strong = rms > expected * 2.0 + self._floor * 2.5 and rms > self._speech * 0.5
+            keep = rms > expected * 1.3 + self._floor * 2
+            self._barge_run = self._barge_run + 1 if (keep if opened else strong) else 0
+            if not opened and not settling and self._barge_run >= 2:
+                self.barge_ins += 1                        # let your voice through to Google (it decides too)
+                self._gate_until = now + 2.0
+                self._stopped = False
+                self._last_activity = now
+                self.debug = (round(rms, 4), round(expected, 4), round(self._coupling, 3), round(self._speech, 4))
+            elif opened and keep:
                 self._gate_until = now + 2.0
                 self._last_activity = now
+                if self._barge_run >= 8 and not self._stopped:   # 0.3 s of you talking over him: stop now
+                    self._stopped = True
+                    self._stop_talking()
             elif now >= self._gate_until and ref > 0.003:
                 # just his echo: learn the leak quickly when it is stronger than thought, forget it slowly
                 ratio = rms / ref
@@ -355,7 +366,8 @@ class LiveSession:
         with self._out_lock:
             self._out.clear()
         self._drop_turn = self._in_turn
-        print(f"[live] you interrupted (#{self.barge_ins})")
+        erle = f", echo removed {self._aec.erle:.0f} dB" if self._aec is not None else ""
+        print(f"[live] you interrupted (#{self.barge_ins}; mic {self.debug[0]} vs echo {self.debug[1]}{erle})")
 
     def _play(self, pcm: bytes) -> None:
         if self._out_rate != OUT_RATE:
@@ -378,7 +390,9 @@ class LiveSession:
         lang = languages.clean(schedule.get_setting("language") or "en")
         lang_line = ("if the user speaks Urdu (or Hindi/Roman Urdu), reply in natural spoken Urdu. English gets English."
                      if lang == "en" else f"always reply in natural spoken {languages.name(lang)}, whatever language the user uses.")
-        system = system_prompt() + LIVE_NOTE.format(user=user, language=lang_line)
+        from datetime import datetime
+        system = (system_prompt() + LIVE_NOTE.format(user=user, language=lang_line)
+                  + f"\nToday is {datetime.now():%A %d %B %Y}; the time when this call started was {datetime.now():%H:%M}.\n")
         if self.history:
             system += "\nEarlier in this conversation (typed or spoken before the call):\n" + "\n".join(
                 f"{user}: {u[:300]}\n{me}: {r[:300]}" for u, r in self.history)
@@ -414,6 +428,8 @@ class LiveSession:
             self.on_error(f"Live conversation stopped: {type(e).__name__}: {e}")
         finally:
             self.active = False
+            if self._aec is not None:
+                print(f"[live] echo canceller removed about {self._aec.erle:.0f} dB of my own voice")
             self._close_audio()
             self._set_phase("")
             self.on_end(self.end_reason)

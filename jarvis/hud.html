@@ -512,6 +512,12 @@ body.focus .dash .row1 { grid-template-columns: minmax(0, 1fr); flex: 1; }
 .fprev { height: 58px; border-radius: 8px; border: 1px solid var(--hair-2); background: var(--bg); display: grid; place-items: center; }
 .fprev svg { width: 70px; height: 46px; fill: none; stroke: var(--cyan); stroke-width: 1.3; stroke-linejoin: round; stroke-linecap: round; }
 .fprev svg .f { fill: var(--cyan); stroke: none; }
+.fphoto { overflow: hidden; position: relative; }
+.fphoto img { width: 100%; height: 100%; object-fit: cover; object-position: 50% 25%; }
+.fphoto em { font-style: normal; font-size: 11.5px; color: var(--muted); }
+.facepick { font-size: 12.5px; color: var(--muted); margin-top: 8px; display: flex; gap: 10px; align-items: center; }
+body[data-face="photo"] .heroText { top: auto; bottom: 16px; transform: none; }
+body[data-face="photo"] .heroText .t1 { font-size: clamp(18px, 1.6vw, 24px); letter-spacing: .34em; }
 body[data-face="mask"] .heroText { top: auto; bottom: 16px; transform: none; }
 body[data-face="mask"] .heroText .t1 { font-size: clamp(18px, 1.6vw, 24px); letter-spacing: .34em; }
 
@@ -864,8 +870,10 @@ body[data-state="listening"] .talk { border-color: var(--green); background: lin
               <button class="tcard" data-theme-btn="dark"><span class="tprev dark"><i class="s"></i><i class="a"></i><i></i></span>Dark</button>
               <button class="tcard" data-theme-btn="light"><span class="tprev light"><i class="s"></i><i class="a"></i><i></i></span>Light</button>
               <button class="tcard" data-theme-btn="system"><span class="tprev auto"><i class="s"></i><i class="a"></i><i></i></span>Auto (Windows)</button></div></div>
-          <div class="setrow"><div class="lbl"><b>Face</b><small>What your assistant looks like in the middle of the Command Center.</small></div>
-            <div class="themecards"><button class="tcard fcard" data-face-btn="globe"><span class="fprev"><svg viewBox="0 0 60 40" aria-hidden="true"><circle cx="30" cy="20" r="15"/><ellipse cx="30" cy="20" rx="6.5" ry="15"/><ellipse cx="30" cy="20" rx="15" ry="5.5"/><circle class="f" cx="30" cy="20" r="2.2"/></svg></span>Globe</button><button class="tcard fcard" data-face-btn="mask"><span class="fprev"><svg viewBox="0 0 60 40" aria-hidden="true"><path d="M30 3 L40 5 L45 12 L46 20 L43 28 L37 34 L30 37 L23 34 L17 28 L14 20 L15 12 L20 5 Z"/><path class="f" d="M21.5 17.5 Q25 15.2 28.3 17.6 Q25 19 21.5 17.5 Z M31.7 17.6 Q35 15.2 38.5 17.5 Q35 19 31.7 17.6 Z"/><path d="M25 27 h10 M26.5 25.6 v2.8 M30 24.8 v4.4 M33.5 25.6 v2.8"/></svg></span>Mask</button><button class="tcard fcard" data-face-btn="rings"><span class="fprev"><svg viewBox="0 0 60 40" aria-hidden="true"><circle cx="30" cy="20" r="15" stroke-dasharray="5 3"/><circle cx="30" cy="20" r="10.5" stroke-dasharray="9 4"/><circle class="f" cx="30" cy="20" r="5"/></svg></span>Rings</button></div></div>
+          <div class="setrow"><div class="lbl"><b>Face</b><small>What your assistant looks like in the middle of the Command Center. Photo: any picture, e.g. your own (it stays on this PC).</small>
+            <div class="facepick"><button class="btn" id="facePickBtn"><i data-ic="user"></i>Choose a picture…</button><span id="facePickMsg"></span></div></div>
+            <input type="file" id="facePick" accept="image/png,image/jpeg,image/webp,image/gif" hidden>
+            <div class="themecards"><button class="tcard fcard" data-face-btn="globe"><span class="fprev"><svg viewBox="0 0 60 40" aria-hidden="true"><circle cx="30" cy="20" r="15"/><ellipse cx="30" cy="20" rx="6.5" ry="15"/><ellipse cx="30" cy="20" rx="15" ry="5.5"/><circle class="f" cx="30" cy="20" r="2.2"/></svg></span>Globe</button><button class="tcard fcard" data-face-btn="mask"><span class="fprev"><svg viewBox="0 0 60 40" aria-hidden="true"><path d="M30 3 L40 5 L45 12 L46 20 L43 28 L37 34 L30 37 L23 34 L17 28 L14 20 L15 12 L20 5 Z"/><path class="f" d="M21.5 17.5 Q25 15.2 28.3 17.6 Q25 19 21.5 17.5 Z M31.7 17.6 Q35 15.2 38.5 17.5 Q35 19 31.7 17.6 Z"/><path d="M25 27 h10 M26.5 25.6 v2.8 M30 24.8 v4.4 M33.5 25.6 v2.8"/></svg></span>Mask</button><button class="tcard fcard" data-face-btn="rings"><span class="fprev"><svg viewBox="0 0 60 40" aria-hidden="true"><circle cx="30" cy="20" r="15" stroke-dasharray="5 3"/><circle cx="30" cy="20" r="10.5" stroke-dasharray="9 4"/><circle class="f" cx="30" cy="20" r="5"/></svg></span>Rings</button><button class="tcard fcard" data-face-btn="photo"><span class="fprev fphoto"><img alt="" hidden><em>Add a picture</em></span>Photo</button></div></div>
 
           <div class="setrow"><div class="lbl"><b>First-time setup</b><small>Walk through the welcome setup again: name, language, voices, look, hands-free and AI keys.</small></div>
             <button class="btn" id="setupAgain"><i data-ic="refresh"></i>Run setup</button></div>
@@ -1001,7 +1009,8 @@ body[data-state="listening"] .talk { border-color: var(--green); background: lin
           <button class="tcard" data-setup-theme="light"><span class="tprev light"><i class="s"></i><i class="a"></i><i></i></span>Light</button>
           <button class="tcard" data-setup-theme="system"><span class="tprev auto"><i class="s"></i><i class="a"></i><i></i></span>Auto (Windows)</button></div>
         <h3 class="ssub">FACE</h3>
-        <div class="themecards"><button class="tcard fcard" data-setup-face="globe"><span class="fprev"><svg viewBox="0 0 60 40" aria-hidden="true"><circle cx="30" cy="20" r="15"/><ellipse cx="30" cy="20" rx="6.5" ry="15"/><ellipse cx="30" cy="20" rx="15" ry="5.5"/><circle class="f" cx="30" cy="20" r="2.2"/></svg></span>Globe</button><button class="tcard fcard" data-setup-face="mask"><span class="fprev"><svg viewBox="0 0 60 40" aria-hidden="true"><path d="M30 3 L40 5 L45 12 L46 20 L43 28 L37 34 L30 37 L23 34 L17 28 L14 20 L15 12 L20 5 Z"/><path class="f" d="M21.5 17.5 Q25 15.2 28.3 17.6 Q25 19 21.5 17.5 Z M31.7 17.6 Q35 15.2 38.5 17.5 Q35 19 31.7 17.6 Z"/><path d="M25 27 h10 M26.5 25.6 v2.8 M30 24.8 v4.4 M33.5 25.6 v2.8"/></svg></span>Mask</button><button class="tcard fcard" data-setup-face="rings"><span class="fprev"><svg viewBox="0 0 60 40" aria-hidden="true"><circle cx="30" cy="20" r="15" stroke-dasharray="5 3"/><circle cx="30" cy="20" r="10.5" stroke-dasharray="9 4"/><circle class="f" cx="30" cy="20" r="5"/></svg></span>Rings</button></div>
+        <div class="facepick" style="margin:-4px 0 10px"><button class="btn" id="sFacePick"><i data-ic="user"></i>Use a picture…</button><span id="sFacePickMsg"></span></div>
+        <div class="themecards"><button class="tcard fcard" data-setup-face="globe"><span class="fprev"><svg viewBox="0 0 60 40" aria-hidden="true"><circle cx="30" cy="20" r="15"/><ellipse cx="30" cy="20" rx="6.5" ry="15"/><ellipse cx="30" cy="20" rx="15" ry="5.5"/><circle class="f" cx="30" cy="20" r="2.2"/></svg></span>Globe</button><button class="tcard fcard" data-setup-face="mask"><span class="fprev"><svg viewBox="0 0 60 40" aria-hidden="true"><path d="M30 3 L40 5 L45 12 L46 20 L43 28 L37 34 L30 37 L23 34 L17 28 L14 20 L15 12 L20 5 Z"/><path class="f" d="M21.5 17.5 Q25 15.2 28.3 17.6 Q25 19 21.5 17.5 Z M31.7 17.6 Q35 15.2 38.5 17.5 Q35 19 31.7 17.6 Z"/><path d="M25 27 h10 M26.5 25.6 v2.8 M30 24.8 v4.4 M33.5 25.6 v2.8"/></svg></span>Mask</button><button class="tcard fcard" data-setup-face="rings"><span class="fprev"><svg viewBox="0 0 60 40" aria-hidden="true"><circle cx="30" cy="20" r="15" stroke-dasharray="5 3"/><circle cx="30" cy="20" r="10.5" stroke-dasharray="9 4"/><circle class="f" cx="30" cy="20" r="5"/></svg></span>Rings</button><button class="tcard fcard" data-setup-face="photo"><span class="fprev fphoto"><img alt="" hidden><em>Add a picture</em></span>Photo</button></div>
       </section>
       <section class="spage" data-step="talk">
         <h2>How do you want to talk?</h2><p class="lead">Hands-free means you never need to press a button.</p>
@@ -1153,9 +1162,11 @@ function renderSubs() {
     + `<div class="j${isUrdu(lastJarvis) ? " ur" : ""}"><b>${esc(lastJarvisLabel)}</b>${thinking && !lastJarvis ? '<span class="typing"><span></span><span></span><span></span></span>' : md(lastJarvis)}</div>`;
   $("subs").scrollTop = $("subs").scrollHeight;
 }
-function addMsg(kind, text, label) {
+let lastJarvisId = null;
+function addMsg(kind, text, label, id = null) {
   removeTyping();
   const el = document.createElement("div");
+  if (id) el.dataset.mid = id;
   el.className = `msg ${kind}${isUrdu(text) ? " ur" : ""}`;
   el.innerHTML = `<div class="who" dir="ltr" style="text-align:left">${esc(label)}</div>${kind === "user" ? esc(text) : md(text)}`;
   chat.appendChild(el);
@@ -1314,7 +1325,8 @@ function handle(ev) {
       break;
     case "jarvis": {
       const label = ev.provider ? `${AGENT_UP} · ${ev.provider.toUpperCase()}` : AGENT_UP;
-      addMsg("jarvis", ev.text, label);
+      addMsg("jarvis", ev.text, label, ev.id);
+      lastJarvisId = ev.id || null;
       if (!replaying && !ev.live) speak(ev.text);       // Live answers are already spoken by Jarvis himself
       break;
     }
@@ -1390,6 +1402,12 @@ function handle(ev) {
       }
       micUi(); paintLive();
       break;
+    case "jarvis_update": {
+      const el = chat.querySelector(`[data-mid="${ev.id}"]`);
+      if (el) { el.classList.add("ur"); el.innerHTML = `<div class="who" dir="ltr" style="text-align:left">${esc(el.querySelector(".who").textContent)}</div>${md(ev.text)}`; }
+      if (lastJarvisId === ev.id) { lastJarvis = ev.text; renderSubs(); }
+      break;
+    }
     case "tool_result": {
       const d = feedInfo[ev.id];
       if (d) { d.result = ev.result; d.error = ev.error; d.awaiting = false; if (detailId === ev.id) openDetail(ev.id); }
@@ -1976,6 +1994,7 @@ async function poll() {
     $("ovLlm").textContent = live.active ? "Gemini Live (call)" : s.provider ? `${s.provider}${s.brain && s.brain.preferred === "auto" ? " · auto" : ""}` : "none";
     $("ovLlm").className = up ? "info" : "bad"; $("ovLlm").title = `${up} AI providers connected`;
     paintBrain(s); paintTone(s); askMic(s.mic_prompt); paintWake(s);
+    if ("face_photo" in s) loadPhoto(s.face_photo);
     if (s.face && s.face !== faceMode && !$("setup").classList.contains("open")) applyFace(s.face);
     $("setupAgain").closest(".setrow").hidden = !!s.setup_done;
     if (s.languages && !$("langSel").options.length) paintLangSel();
@@ -2447,8 +2466,80 @@ function drawRings(t) {
   core.addColorStop(0, ink(0.95)); core.addColorStop(0.25, col(0.85)); core.addColorStop(1, col(0));
   g.fillStyle = core; g.beginPath(); g.arc(cx, cy, R * 0.34 * (1 + lvl * 0.3), 0, Math.PI * 2); g.fill();
 }
+// the Photo face: a picture (yours, or any), breathing gently, with a ring that pulses with the voice
+const photo = { img: null, version: -1 };
+function loadPhoto(version) {
+  if (version === photo.version) return;
+  photo.version = version;
+  photo.img = null;
+  document.querySelectorAll(".fphoto").forEach(f => { f.querySelector("img").hidden = !version; f.querySelector("em").hidden = !!version; });
+  if (!version) return;
+  const img = new Image();
+  img.onload = () => { photo.img = img; };
+  img.src = `/api/face_photo?token=${TOKEN}&v=${version}`;
+  document.querySelectorAll(".fphoto img").forEach(i => { i.src = img.src; });
+}
+function drawPhoto(t) {
+  const g = globe.cv.getContext("2d"), w = globe.w, h = globe.h;
+  if (!w) return;
+  const { dt, key, col } = faceColor(t);
+  const lvl = talkLevel(t), area = h - 46;
+  globe.zoom += (globe.zoomT - globe.zoom) * (1 - 0.88 ** dt);
+  const R = Math.min(w * 0.24, area * 0.43) * globe.zoom, cx = w / 2, cy = area * 0.5;
+  g.clearRect(0, 0, w, h);
+  const halo = g.createRadialGradient(cx, cy, R * 0.6, cx, cy, R * 1.6);
+  halo.addColorStop(0, col(0.28 + lvl * 0.25)); halo.addColorStop(1, col(0));
+  g.fillStyle = halo; g.beginPath(); g.arc(cx, cy, R * 1.6, 0, Math.PI * 2); g.fill();
+  const breathe = 1 + Math.sin(t / 1600) * 0.006 + lvl * 0.018;
+  g.save(); g.beginPath(); g.arc(cx, cy, R, 0, Math.PI * 2); g.clip();
+  if (photo.img) {
+    const im = photo.img, s = Math.max((2 * R) / im.width, (2 * R) / im.height) * 1.08 * breathe;
+    const iw = im.width * s, ih = im.height * s;
+    g.drawImage(im, cx - iw / 2, cy - R - (ih - 2 * R) * 0.15, iw, ih);   // cover the circle; faces sit high in a portrait
+    const v = g.createRadialGradient(cx, cy, R * 0.55, cx, cy, R);   // soft edge in the theme colour
+    v.addColorStop(0, "rgba(0,0,0,0)"); v.addColorStop(1, col(0.35));
+    g.fillStyle = v; g.fillRect(cx - R, cy - R, 2 * R, 2 * R);
+    const sweep = ((t / 3200) % 2) - 0.5;                            // a slow light sweep
+    const lg = g.createLinearGradient(cx - R + sweep * 2 * R, cy - R, cx - R + sweep * 2 * R + R * 0.6, cy + R);
+    lg.addColorStop(0, "rgba(255,255,255,0)"); lg.addColorStop(0.5, "rgba(255,255,255,0.08)"); lg.addColorStop(1, "rgba(255,255,255,0)");
+    g.fillStyle = lg; g.fillRect(cx - R, cy - R, 2 * R, 2 * R);
+  } else {
+    g.fillStyle = col(0.12); g.fillRect(cx - R, cy - R, 2 * R, 2 * R);
+  }
+  g.restore();
+  // the ring: pulses with the voice; spins while thinking
+  g.lineWidth = 3 + lvl * 5; g.strokeStyle = col(0.75 + lvl * 0.25); g.shadowColor = col(0.9); g.shadowBlur = 12 + lvl * 20;
+  g.beginPath(); g.arc(cx, cy, R + 4, 0, Math.PI * 2); g.stroke(); g.shadowBlur = 0;
+  if (key === "thinking" || key === "transcribing") {
+    g.lineWidth = 3; g.strokeStyle = col(0.9);
+    g.beginPath(); g.arc(cx, cy, R + 14, t / 300, t / 300 + 1.2); g.stroke();
+  }
+  for (let i = 0; i < 3; i++) {                                       // voice ripples
+    const k = ((t / 1200) + i / 3) % 1, rr = R + 8 + k * R * 0.35 * (0.3 + lvl);
+    g.lineWidth = 1.5; g.strokeStyle = col((1 - k) * (0.15 + lvl * 0.5));
+    g.beginPath(); g.arc(cx, cy, rr, 0, Math.PI * 2); g.stroke();
+  }
+}
+async function pickFacePhoto(msgEl) {
+  const input = $("facePick");
+  input.value = "";
+  input.onchange = async () => {
+    const f = input.files[0]; if (!f) return;
+    msgEl.textContent = "Saving…";
+    const r = await fetch("/api/face_photo", { method: "POST", headers: { "Content-Type": f.type || "application/octet-stream", "X-Jarvis-Token": TOKEN }, body: f });
+    const j = await r.json().catch(() => ({}));
+    if (!r.ok) { msgEl.textContent = j.error || "Couldn't use that picture."; return; }
+    msgEl.textContent = "Done";
+    loadPhoto(j.version); applyFace("photo");
+    if (S) { S.face = "photo"; pickOpt("data-setup-face", "photo"); }
+  };
+  input.click();
+}
+$("facePickBtn").onclick = () => pickFacePhoto($("facePickMsg"));
+$("sFacePick").onclick = () => pickFacePhoto($("sFacePickMsg"));
 function applyFace(mode) {
-  faceMode = ["globe", "mask", "rings"].includes(mode) ? mode : "globe";
+  faceMode = ["globe", "mask", "rings", "photo"].includes(mode) ? mode : "globe";
+  if (faceMode === "photo" && !photo.version) { $("facePickBtn").classList.add("on"); }
   document.body.dataset.face = faceMode;
   document.querySelectorAll("[data-face-btn]").forEach(b => b.classList.toggle("on", b.dataset.faceBtn === faceMode));
 }
@@ -2475,7 +2566,7 @@ function frame(t) {
   const fps = busy ? 60 : document.hasFocus() ? 30 : 15;
   if (!document.hidden && t - lastDraw >= 1000 / fps - 4) {
     lastDraw = t;
-    (faceMode === "mask" ? drawMask : faceMode === "rings" ? drawRings : drawGlobe)(t);
+    (faceMode === "mask" ? drawMask : faceMode === "rings" ? drawRings : faceMode === "photo" ? drawPhoto : drawGlobe)(t);
     drawWave(t);
   }
   requestAnimationFrame(frame);
@@ -2755,7 +2846,7 @@ function showStep() {
   if (STEPS[sIdx] === "done") {
     const keys = Object.entries(KEY_INFO).filter(([k]) => S.keys[k] || S.newKeys[k]).map(([, v]) => v[0]);
     const rows = [["Assistant", name], ["Calls you", $("sCall").value.trim() || "Sir"], ["Language", langName(S.language)],
-      ["Call voice", S.live_voice], ["Reading voice", ($("sReadVoice").selectedOptions[0] || {}).text || ""], ["Look", { dark: "Dark", light: "Light", system: "Auto (Windows)" }[S.theme] + " · " + { globe: "Globe", mask: "Mask", rings: "Rings" }[S.face]],
+      ["Call voice", S.live_voice], ["Reading voice", ($("sReadVoice").selectedOptions[0] || {}).text || ""], ["Look", { dark: "Dark", light: "Light", system: "Auto (Windows)" }[S.theme] + " · " + { globe: "Globe", mask: "Mask", rings: "Rings", photo: "Photo" }[S.face]],
       ["Hands-free", S.hands_free ? "On" : "Off"], ["Wake word", S.wake_word ? `On (say "${name}")` : "Off"], ["Style", S.engine === "live" ? "Live" : "Classic"], ["AI connected", keys.join(", ") || "none yet"]];
     $("sSum").innerHTML = rows.map(([k, v]) => `<span>${esc(k)}</span><b>${esc(v)}</b>`).join("");
     $("sDoneTitle").textContent = `All set! Meet ${name}.`;

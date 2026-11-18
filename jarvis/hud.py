@@ -43,6 +43,31 @@ except ImportError:
     psutil = None
 
 HTML_FILE = Path(__file__).with_name("hud.html")
+FACES = ("globe", "mask", "rings", "photo")
+
+
+def face_photo() -> Path | None:
+    from .config import DATA_DIR
+    return next((p for p in (DATA_DIR / f"face_photo{e}" for e in (".jpg", ".png", ".webp", ".gif")) if p.exists()), None)
+
+
+def face_photo_version() -> int:
+    f = face_photo()
+    return int(f.stat().st_mtime) if f else 0
+
+
+def save_face_photo(data: bytes) -> Path:
+    """Keep one picture for the Photo face (in data/, never uploaded anywhere)."""
+    from .config import DATA_DIR
+    ext = (".jpg" if data[:3] == b"\xff\xd8\xff" else ".png" if data[:8] == b"\x89PNG\r\n\x1a\n"
+           else ".webp" if data[:4] == b"RIFF" and data[8:12] == b"WEBP" else ".gif" if data[:4] == b"GIF8" else "")
+    if not ext:
+        raise ValueError("That isn't a picture (use JPG, PNG, WEBP or GIF).")
+    for old in DATA_DIR.glob("face_photo.*"):
+        old.unlink()
+    out = DATA_DIR / f"face_photo{ext}"
+    out.write_bytes(data)
+    return out
 TITLE_HOOK = None          # set by the desktop app: renames the window when the assistant is renamed
 PORT = int(os.environ.get("JARVIS_HUD_PORT", "8765"))
 TOKEN = secrets.token_urlsafe(24)
@@ -447,7 +472,7 @@ class Hub:
             schedule.set_setting("reading_voice", str(d["reading_voice"])[:60])
         if "wake_word" in d:
             schedule.set_setting("wake_word", bool(d["wake_word"]))
-        if d.get("face") in ("globe", "mask", "rings"):
+        if d.get("face") in FACES:
             schedule.set_setting("face", d["face"])
         if d.get("engine") in ("live", "classic"):
             self.voice_engine = d["engine"]
@@ -709,6 +734,15 @@ class Hub:
         else:
             self.emit("error", keep=True, text=text)
 
+    def _urdu_script(self, rid: str, text: str) -> None:
+        out = urdu.to_urdu_script(text)
+        if not out:
+            return
+        for ev in self.history:                     # a page that reconnects gets the Urdu version too
+            if ev.get("id") == rid and ev.get("type") == "jarvis":
+                ev["text"] = out
+        self.emit("jarvis_update", id=rid, text=out)
+
     def _live_partial(self, who: str, text: str) -> None:
         text = self._script(text)
         self.emit("live_partial", who=who, text=text)
@@ -722,7 +756,11 @@ class Hub:
 
     def _live_reply(self, text: str, interrupted: bool) -> None:
         text = self._script(text)
-        self.emit("jarvis", keep=True, text=text, provider="Gemini Live", live=True)
+        rid = self._next_id()
+        self.emit("jarvis", keep=True, text=text, provider="Gemini Live", live=True, id=rid)
+        if self.language == "ur" and urdu.mostly_latin(text):
+            # Live writes its Urdu replies in English letters ("Main theek hoon"): show them in Urdu script
+            threading.Thread(target=self._urdu_script, args=(rid, text), daemon=True).start()
         self.recent_replies = [(t, r) for t, r in self.recent_replies if time.time() - t < 120][-6:]
         self.recent_replies.append((time.time(), text))
         turns = getattr(self.brain, "turns", None)
@@ -830,6 +868,7 @@ class Hub:
                "reading_voice": schedule.get_setting("reading_voice"),
                "hands_free": self.voice_mode, "standby": self.standby_on, "mic_prompt": self.mic_prompt,
                "wake_word": self.wake_on(), "noise_reduction": denoise.level(), "face": schedule.get_setting("face") or "globe",
+               "face_photo": face_photo_version(),
                "alert_tone": alerts.tone(), "tones": alerts.TONES,
                "brain": self.brain.options() if hasattr(self.brain, "options") else None,
                "language": self.language,
@@ -925,6 +964,19 @@ class Handler(BaseHTTPRequestHandler):
                                "saved": schedule.get_setting("mic")})
         if path == "/api/setup":
             return self._json(HUB.setup_info())
+        if path == "/api/face_photo":
+            f = face_photo()
+            if not f:
+                return self._json({"error": "no photo"}, 404)
+            body = f.read_bytes()
+            self.send_response(200)
+            self.send_header("Content-Type", {".jpg": "image/jpeg", ".png": "image/png", ".webp": "image/webp",
+                                              ".gif": "image/gif"}[f.suffix])
+            self.send_header("Content-Length", str(len(body)))
+            self.send_header("Cache-Control", "no-store")
+            self.end_headers()
+            self.wfile.write(body)
+            return
         if path == "/api/profile":
             return self._json({"profile": memory.profile(), "fields": memory.PROFILE_FIELDS})
         if path == "/api/voices":
@@ -976,6 +1028,17 @@ class Handler(BaseHTTPRequestHandler):
             return self._transcribe()
         if self.path == "/api/tts":
             return self._tts()
+        if self.path == "/api/face_photo":                  # a picture for the Photo face (stays on this PC)
+            length = int(self.headers.get("Content-Length", "0"))
+            if not 0 < length <= 8 * 1024 * 1024:
+                return self._json({"error": "Pick a picture smaller than 8 MB."}, 400)
+            try:
+                save_face_photo(self.rfile.read(length))
+            except ValueError as e:
+                return self._json({"error": str(e)}, 400)
+            schedule.set_setting("face", "photo")
+            HUB.emit("settings", face="photo", face_photo=face_photo_version())
+            return self._json({"ok": True, "version": face_photo_version()})
         try:
             length = int(self.headers.get("Content-Length", "0"))
             data = json.loads(self.rfile.read(length) or b"{}")
@@ -999,7 +1062,7 @@ class Handler(BaseHTTPRequestHandler):
                 HUB.toggle_voice_mode(bool(data["voice_mode"]))
             if data.get("reading_voice"):
                 schedule.set_setting("reading_voice", str(data["reading_voice"])[:60])
-            if data.get("face") in ("globe", "mask", "rings"):
+            if data.get("face") in FACES:
                 schedule.set_setting("face", data["face"])
             if "wake_word" in data:
                 schedule.set_setting("wake_word", bool(data["wake_word"]))

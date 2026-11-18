@@ -31,6 +31,37 @@ DIGITS = {chr(0x0966 + i): str(i) for i in range(10)}
 _WORD = re.compile(r"[ऀ-ॣ०-ॿ]+")     # (not the danda "।", that's punctuation)
 
 
+def mostly_latin(text: str) -> bool:
+    letters = [c for c in text if c.isalpha()]
+    return len(letters) > 3 and sum("a" <= c.lower() <= "z" for c in letters) / len(letters) > 0.7
+
+
+def to_urdu_script(text: str) -> str:
+    """Roman Urdu ("Main theek hoon, Gul!") -> Urdu script ("میں ٹھیک ہوں، Gul!") with a quick free AI call.
+    Only names, app names and numbers stay in English letters. "" if it couldn't be done."""
+    import os
+    prompt = ("Rewrite this spoken reply in Urdu script, keeping exactly the same words and meaning. Write every word "
+              "in Urdu letters, including the English words an Urdu speaker uses (volume -> والیوم, problem -> پرابلم, "
+              "check -> چیک). Only people's names, app or website names and numbers stay in English letters. "
+              "Reply with the rewritten text only.\n\n" + text)
+    tries = []
+    if os.environ.get("GEMINI_API_KEY"):
+        tries.append(("https://generativelanguage.googleapis.com/v1beta/openai/", os.environ["GEMINI_API_KEY"], "gemini-3.5-flash-lite"))
+    if os.environ.get("GROQ_API_KEY"):
+        tries.append(("https://api.groq.com/openai/v1", os.environ["GROQ_API_KEY"], "openai/gpt-oss-20b"))
+    for base, key, model in tries:
+        try:
+            import openai
+            r = openai.OpenAI(api_key=key, base_url=base, timeout=15, max_retries=0).chat.completions.create(
+                model=model, messages=[{"role": "user", "content": prompt}], temperature=0)
+            out = (r.choices[0].message.content or "").strip()
+            if sum("\u0600" <= c <= "\u06ff" for c in out) > len(out) * 0.3:
+                return out
+        except Exception as e:
+            print(f"[urdu] couldn't rewrite in Urdu script with {model}: {str(e)[:80]}")
+    return ""
+
+
 def has_devanagari(text: str) -> bool:
     return bool(text) and any("ऀ" <= ch <= "ॿ" for ch in text)
 
