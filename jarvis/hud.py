@@ -168,7 +168,7 @@ class Hub:
         return f"a{self._ids}"
 
     def on_tool(self, name: str, args: dict) -> None:
-        if name != "switching_model":
+        if name not in ("switching_model", "live_reconnecting", "microphone"):   # (notices, not actions)
             self.tool_calls += 1
         short = ", ".join(f"{k}={str(v)[:50]}" for k, v in args.items())
         tid = self._next_id()
@@ -1225,7 +1225,7 @@ class Handler(BaseHTTPRequestHandler):
             gen = tts.stream(text, voice, HUB.language)
             first = next(gen)                  # fail before sending headers if the service is down
         except Exception as e:
-            print(f"[speech] stream failed: {type(e).__name__}: {e}")
+            print(f"[speech] stream failed for {text[:50]!r} ({voice}): {type(e).__name__}: {e}")
             return self._json({"error": f"{type(e).__name__}: {e}"}, 502)
         print(f"[speech] streaming, first audio after {time.time() - t0:.2f}s: {text[:50]!r}")
         self.send_response(200)

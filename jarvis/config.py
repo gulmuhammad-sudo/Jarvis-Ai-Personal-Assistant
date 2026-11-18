@@ -5,6 +5,10 @@ import threading
 from pathlib import Path
 
 import sys
+import warnings
+
+# pycaw warns about every audio device property it can't read: harmless, and it filled the log
+warnings.filterwarnings("ignore", category=UserWarning, module="pycaw")
 
 APP_NAME = "Personal Assistant"     # the app's name never changes (the assistant inside can be called anything)
 FROZEN = bool(getattr(sys, "frozen", False))      # the installed .exe (built with PyInstaller)
@@ -81,6 +85,15 @@ def read_json(path: Path, default):
 
 def write_json(path: Path, data) -> None:
     """Write atomically (temp file + replace), so a crash mid-write can't leave a half-written file."""
+    import time
     tmp = path.with_name(path.name + ".tmp")
     tmp.write_text(json.dumps(data, indent=2, ensure_ascii=False), encoding="utf-8")
-    os.replace(tmp, path)
+    for attempt in range(20):
+        try:
+            os.replace(tmp, path)
+            return
+        except PermissionError:
+            # Windows keeps a file locked for a moment while antivirus / search indexing / OneDrive reads it
+            if attempt == 19:
+                raise
+            time.sleep(0.05 * (attempt + 1))

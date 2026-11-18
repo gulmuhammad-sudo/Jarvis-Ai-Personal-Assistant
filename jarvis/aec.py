@@ -101,7 +101,15 @@ class EchoCanceller:
                 self.W = np.fft.rfft(w, axis=1)
                 if not talk and mic_e > 1e-8:
                     self.erle = 0.95 * self.erle + 0.05 * 10 * np.log10(mic_e / (float(np.dot(e, e)) + 1e-12))
+                if self.erle < -3.0:
+                    # it made things worse (the speaker, volume or delay changed since it learned): start over
+                    print(f"[aec] filter went wrong ({self.erle:.0f} dB), learning again")
+                    self.W[:] = 0
+                    self.erle, self.started = 0.0, False
+                    _cache.pop(self.key, None)
+            if float(np.dot(e, e)) > mic_e:
+                e = mic                       # never send more than the mic heard (a wrong guess would add noise)
             out.append(e)
-        if self.key:
+        if self.key and self.erle > 3.0:          # only remember a filter that works
             _cache[self.key] = self.W
         return np.concatenate(out).astype(np.float32) if out else np.zeros(0, np.float32)

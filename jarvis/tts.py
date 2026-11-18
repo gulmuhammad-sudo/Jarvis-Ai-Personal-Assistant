@@ -61,13 +61,33 @@ def _communicate(text: str, voice: str | None, lang: str | None = None):
     return edge_tts.Communicate(text, v, rate=rate, pitch=pitch, connect_timeout=8)
 
 
+async def _audio(text: str, voice: str | None, lang: str | None):
+    """MP3 chunks. If the chosen voice can't read the text at all (another script or language: the service
+    answers "NoAudioReceived"), a multilingual voice of the same gender reads it instead."""
+    got = False
+    try:
+        async for chunk in _communicate(text, voice, lang).stream():
+            if chunk["type"] == "audio":
+                got = True
+                yield chunk["data"]
+    except Exception as e:
+        if got or type(e).__name__ != "NoAudioReceived":
+            raise
+        import edge_tts
+        female = any(f in (voice or DEFAULT_VOICE) for f in _FEMALE)
+        alt = "en-US-AvaMultilingualNeural" if female else "en-US-AndrewMultilingualNeural"
+        print(f"[speech] {voice or DEFAULT_VOICE} couldn't read {text[:40]!r}; {alt} reads it instead")
+        async for chunk in edge_tts.Communicate(text, alt, connect_timeout=8).stream():
+            if chunk["type"] == "audio":
+                yield chunk["data"]
+
+
 def synthesize(text: str, voice: str | None = None, lang: str | None = None) -> bytes:
     """Return the whole sentence as MP3. Raises on network/service errors."""
     async def run() -> bytes:
         audio = bytearray()
-        async for chunk in _communicate(text, voice, lang).stream():
-            if chunk["type"] == "audio":
-                audio += chunk["data"]
+        async for chunk in _audio(text, voice, lang):
+            audio += chunk
         return bytes(audio)
 
     data = asyncio.run_coroutine_threadsafe(run(), _loop()).result(timeout=30)
@@ -82,9 +102,8 @@ def stream(text: str, voice: str | None = None, lang: str | None = None):
 
     async def run() -> None:
         try:
-            async for chunk in _communicate(text, voice, lang).stream():
-                if chunk["type"] == "audio":
-                    q.put(chunk["data"])
+            async for chunk in _audio(text, voice, lang):
+                q.put(chunk)
         except Exception as e:
             q.put(e)
         finally:

@@ -70,6 +70,32 @@ END_TOOL = {"name": "end_conversation",
             "input_schema": {"type": "object", "properties": {}}}
 
 
+_NETWORK = ("1006", "1011", "getaddrinfo", "timed out", "timeout", "connection", "network", "unreachable",
+            "10054", "10060", "11001", "eof", "closed")
+
+
+def _is_network(e: BaseException) -> bool:
+    """A dropped / missing internet connection (worth retrying), not a problem with the key or the request."""
+    text = f"{type(e).__name__} {e}".lower()
+    if any(k in text for k in ("api key", "permission", "quota", "exhausted", "429")):
+        return False
+    return isinstance(e, (ConnectionError, TimeoutError, OSError)) or any(k in text for k in _NETWORK)
+
+
+def _friendly(e: BaseException) -> str:
+    """What to tell the person, instead of Google's raw error ("APIError: 1006 None. abnormal closure")."""
+    text = f"{type(e).__name__} {e}".lower()
+    if "api key" in text or "permission" in text or ("1008" in text and "inactivity" not in text):
+        return "Google didn't accept the Gemini key. Check it in Settings > AI keys."
+    if "quota" in text or "exhausted" in text or "429" in text:
+        return "today's free Live minutes are used up. Classic style (Settings) still works."
+    if "getaddrinfo" in text or "11001" in text or "unreachable" in text:
+        return "there's no internet connection. Press the mic to start again when you're back online."
+    if _is_network(e):
+        return "the connection to Google dropped and didn't come back. Press the mic to start again."
+    return f"{type(e).__name__}: {str(e)[:160]}"
+
+
 def available() -> bool:
     return genai is not None and bool(os.environ.get("GEMINI_API_KEY"))
 
@@ -170,6 +196,7 @@ class LiveSession:
         self._held: deque[bytes] = deque(maxlen=int(0.3 / BLOCK))   # mic audio held back during his speech
         self._in_turn = False                       # Jarvis is in the middle of an answer
         self._mute_checked, self._muted = time.time(), False
+        self._last_sent = time.time()                # last audio sent to Google (keep-alive silence after 5 s)
         self._pending_text: list[str] = []
         self._last_voice = 0.0                      # when you last made a sound (for the reply-delay log)
         self.delays: list[float] = []
@@ -354,8 +381,11 @@ class LiveSession:
         if now - self._last_level > 0.08:
             self._last_level = now
             self.on_level(round(min(1.0, rms * gain * 6), 3) if gate_open else 0.0)
-        if self._loop and self._mic_q:
-            self._loop.call_soon_threadsafe(self._mic_q.put_nowait, pcm)
+        if self._loop and self._mic_q and self.active:
+            try:
+                self._loop.call_soon_threadsafe(self._mic_q.put_nowait, pcm)
+            except RuntimeError:              # the call just ended (its event loop is closed): nothing to send to
+                pass
 
     def _stop_talking(self) -> None:
         """You talked over him: silence the speaker now and skip the rest of that answer."""
@@ -418,19 +448,31 @@ class LiveSession:
             session_resumption=types.SessionResumptionConfig(handle=handle))
 
     def _thread(self) -> None:
+        from concurrent.futures import ThreadPoolExecutor
+        # tools and mute checks run here, not in asyncio's default pool: ending the call never waits for them
+        # (asyncio.run would wait up to 5 minutes for e.g. an approval nobody answers)
+        self._pool = ThreadPoolExecutor(max_workers=4, thread_name_prefix="jarvis-live-tool")
         try:
             asyncio.run(self._main())
         except Exception as e:
-            self.on_error(f"Live conversation stopped: {type(e).__name__}: {e}")
+            self.on_error(f"Live conversation stopped: {_friendly(e)}")
         finally:
             self.active = False
+            self._close_audio()                  # (normally already closed by _main, before its loop closed)
+            self._pool.shutdown(wait=False, cancel_futures=True)
             if self._aec is not None:
                 print(f"[live] echo canceller removed about {self._aec.erle:.0f} dB of my own voice")
-            self._close_audio()
             self._set_phase("")
             self.on_end(self.end_reason)
 
     async def _main(self) -> None:
+        try:
+            await self._main_inner()
+        finally:
+            self.active = False
+            self._close_audio()                  # stop the mic before the event loop closes
+
+    async def _main_inner(self) -> None:
         self._loop = asyncio.get_running_loop()
         self._mic_q = asyncio.Queue()
         if self.preroll is not None and self.preroll.size:   # hands-free start: your first words go first
@@ -475,11 +517,16 @@ class LiveSession:
                     self.on_tool("switching_model", {"from": self.model, "to": MODELS[model_i], "reason": msg[:80]})
                     continue
                 failures += 1
-                if failures >= 3 or any(k in msg for k in ("1008", "API key", "PERMISSION", "exhausted", "quota")):
+                network = _is_network(e) or "inactivity" in msg.lower()   # (1008 for inactivity: just reconnect)
+                if (failures >= (6 if network else 3)
+                        or (not network and any(k in msg for k in ("1008", "API key", "PERMISSION", "exhausted", "quota")))):
                     self.end_reason = "error"
-                    self.on_error(f"Live conversation couldn't continue: {msg[:200]}")
+                    self.on_error(f"Live conversation stopped: {_friendly(e)}")
                     break
-                await asyncio.sleep(1.5)
+                if network and failures == 2:
+                    self.on_tool("live_reconnecting", {"reason": "the internet connection dropped, trying again"})
+                # a dropped connection gets a bit longer each time (about 30 s in all) before giving up
+                await asyncio.sleep(min(1.5 * failures, 8) if network else 1.5)
             finally:
                 self._session = None
 
@@ -504,11 +551,16 @@ class LiveSession:
                 pcm = b""
             if pcm is None or not self.active:
                 break
+            if not pcm and time.time() - self._last_sent > 5:
+                # nothing sent for a while (it was talking, or waiting for an approval / a slow tool): a little
+                # silence keeps Google from closing the call ("1008 Session closed due to client inactivity")
+                pcm = bytes(int(IN_RATE * 0.1) * 2)
             if pcm:
                 await session.send_realtime_input(audio=types.Blob(data=pcm, mime_type=f"audio/pcm;rate={IN_RATE}"))
+                self._last_sent = time.time()
             if time.time() - self._mute_checked > 3:          # Teams or the mic key can mute it mid-call
                 self._mute_checked = time.time()
-                muted = await asyncio.get_running_loop().run_in_executor(None, recorder.is_muted, self.mic)
+                muted = await asyncio.get_running_loop().run_in_executor(self._pool, recorder.is_muted, self.mic)
                 if muted and not self._muted:
                     self.on_error(f"Your microphone ({self.mic}) just got muted in Windows, so I can't hear you. "
                                   "Press Unmute (Teams or the keyboard's mic key may have muted it).")
@@ -597,7 +649,7 @@ class LiveSession:
                 continue
             self._set_phase("thinking")
             self.on_tool(name, args)
-            out, err = await asyncio.get_running_loop().run_in_executor(None, tools.execute, name, args, self.ctx)
+            out, err = await asyncio.get_running_loop().run_in_executor(self._pool, tools.execute, name, args, self.ctx)
             if isinstance(out, list):                    # a screenshot: send the picture itself
                 for block in out:
                     if block.get("type") == "image":
