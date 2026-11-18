@@ -41,11 +41,7 @@ MODEL = MODELS[0]
 _resting: dict[str, float] = dict(schedule.get_setting("live_resting") or {})
 REST_FOR = 15 * 60
 DEFAULT_VOICE = os.environ.get("JARVIS_LIVE_VOICE", "Charon")
-VOICES = {   # Gemini's voices (male-sounding ones first; Charon is the closest to the films' Jarvis)
-    "Charon": "deep, informative", "Iapetus": "clear", "Orus": "firm", "Sadaltager": "knowledgeable",
-    "Rasalgethi": "informative", "Algenib": "gravelly", "Fenrir": "lively", "Puck": "upbeat",
-    "Umbriel": "easy-going", "Schedar": "even", "Kore": "firm (female)", "Aoede": "breezy (female)",
-}
+VOICES = languages.LIVE_VOICES
 IN_RATE, OUT_RATE = 16000, 24000      # what Gemini Live takes in / sends back (16-bit mono PCM)
 BLOCK = 0.04                          # seconds of mic audio per message
 IDLE_STOP = 180                       # end the call after 3 minutes with nobody talking

@@ -535,21 +535,12 @@ class Hub:
 
     def _save_keys(self, keys: dict) -> list[str]:
         """Write new API keys to .env (your PC only) and connect those AIs right away."""
-        from .config import ROOT
+        from .config import save_env_keys
         new = {self.KEYS[k]: str(v).strip() for k, v in keys.items() if k in self.KEYS and str(v or "").strip()}
         new = {k: v for k, v in new.items() if re.fullmatch(r"[A-Za-z0-9_\-.:]{16,200}", v)}
         if not new:
             return []
-        env = ROOT / ".env"
-        lines = env.read_text(encoding="utf-8").splitlines() if env.exists() else []
-        for key, value in new.items():
-            hit = next((i for i, l in enumerate(lines) if l.split("=", 1)[0].strip() == key), None)
-            if hit is None:
-                lines.append(f"{key}={value}")
-            else:
-                lines[hit] = f"{key}={value}"
-            os.environ[key] = value
-        env.write_text("\n".join(lines) + "\n", encoding="utf-8")
+        save_env_keys(new)
         self.brain = make_brain(self.ctx, on_text=self.on_text, on_tool=self.on_tool)   # pick up the new AIs
         self.brain.set_voice_mode(self.voice_mode)
         if self.language != "en":
@@ -1343,16 +1334,6 @@ def main(open_window: bool = True, watchdog: bool = True, ready: threading.Event
     gpu.monitor()                                   # GPU usage, sampled every 2 s
     threading.Thread(target=HUB.weather_loop, daemon=True).start()
     threading.Thread(target=HUB.mic_watch, daemon=True).start()
-
-    def shortcut_names() -> None:
-        try:
-            from . import install
-            fixed = install.fix_shortcut_names()
-            if fixed:
-                print(f"[install] shortcuts renamed to '{install.APP_NAME}': {', '.join(fixed)}")
-        except Exception as e:
-            print(f"[install] {e}")
-    threading.Thread(target=shortcut_names, daemon=True).start()
     auto_call = HUB.standby_wanted() and HUB.live_on_open() and live_mod.available()
     if HUB.standby_wanted():
         if auto_call:

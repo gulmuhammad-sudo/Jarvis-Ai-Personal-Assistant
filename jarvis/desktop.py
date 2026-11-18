@@ -13,9 +13,7 @@ import threading
 import time
 from pathlib import Path
 
-from .config import DATA_DIR, ROOT
-
-ICON = ROOT / "assets" / "jarvis.ico"
+from .config import DATA_DIR, ICON
 LOG = DATA_DIR / "jarvis.log"
 
 

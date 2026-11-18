@@ -5,10 +5,13 @@ You choose its name and voice (it starts as "Jarvis"; this README calls it Jarvi
 
 **Free to run.** It uses free AI keys (Gemini → Groq → OpenRouter) and switches automatically if one is busy or down.
 
-## Start it
+## Install
 
-1. Double-click **`Personal Assistant.bat`**. The first run installs everything and adds a **Personal Assistant** shortcut (arc-reactor icon) to your Desktop and Start Menu.
-2. After that, open it from the shortcut. It opens as its own app window.
+1. Run **`Personal Assistant Setup.exe`**. It installs for you only (no admin rights) and walks you through:
+   install folder · the assistant's name and what it calls you · language, talking style and voices · theme,
+   face and chat text · your free AI keys · start with Windows, Live call on open, hands-free and wake word.
+   If you used the older run.py / .bat version, Setup finds it and brings over its settings, memories, notes and keys.
+2. Open **Personal Assistant** from the Start Menu or the Desktop. It is a normal app (`Personal Assistant.exe`).
    - **Closing the window only hides it.** It keeps running with an icon by the clock (the **^** menu next to
      Wi-Fi and volume). Click that icon to open it again; right-click it for **Start live call**, **Start with
      Windows** and **Quit**.
@@ -17,7 +20,22 @@ You choose its name and voice (it starts as "Jarvis"; this README calls it Jarvi
      waits for you (or its name) again. Settings → Startup → *Live call when it opens*.
 3. Click the mic (or press **Ctrl+Space**) and talk, or type in the box at the top (**Ctrl+K**).
 
-If something goes wrong, `data\jarvis.log` says what happened.
+- **Your data** (settings, memories, notes, keys, the log) is in `%APPDATA%\Personal Assistant`.
+  If something goes wrong, `jarvis.log` there says what happened.
+- **Uninstall:** Windows Settings → Apps → Installed apps → Personal Assistant → Uninstall. It asks whether to
+  keep your data for next time.
+
+### Build it yourself
+
+```
+python -m venv .venv
+.venv\Scripts\pip install -r requirements.txt pyinstaller
+.venv\Scripts\python packaging\build.py
+```
+
+That makes `dist\Personal Assistant Setup.exe` (the installer) and `dist\Personal Assistant\` (the app).
+To run straight from the code instead: `.venv\Scripts\pythonw -m jarvis` (its data then lives in `data\`
+and its keys in `.env` next to the code).
 
 ## Make it yours
 
@@ -122,7 +140,7 @@ Click the mic, **Start live conversation** or press **Ctrl+Space**, then just ta
 - **Conversation mode:** after answering something you *said*, Jarvis listens again for a follow-up, so you don't need to press the mic each time. Click the mic or press **Esc** to interrupt Jarvis. You can turn it off in Settings.
 - The last 5 recordings are kept in `data/voice_debug` to diagnose voice problems.
 
-## Settings (`.env`)
+## Settings (`.env` in your data folder)
 
 ```
 JARVIS_USER_NAME=Sir                         # what Jarvis calls you
@@ -146,8 +164,9 @@ Optional: `JARVIS_NAME` (starting name, default `Jarvis`) · `JARVIS_THEME` (`da
 
 | File | Job |
 |---|---|
-| `Personal Assistant.bat` | First run: installs everything and makes the shortcuts; then starts the app |
-| `run.py` | Starts the app (what the shortcut runs); `--tray` starts it hidden in the tray; `--install` makes the shortcuts |
+| `packaging/` | `build.py` builds the .exe and the installer; `setup_app.py` + `setup.html` are the install wizard |
+| `jarvis/__main__.py` | Starts the app (`--tray`: hidden in the tray; `--uninstall`: what Windows runs to remove it) |
+| `jarvis/install.py` | Shortcuts, start with Windows, the Settings → Apps entry and uninstalling |
 | `jarvis/desktop.py` | The native app window (WebView2), tray icon and menu, taskbar icon, log file |
 | `jarvis/hud.py` + `hud.html` | The engine and the Command Center page. It only listens on `127.0.0.1`, with a secret token per launch, so websites can't control Jarvis. |
 | `jarvis/providers.py` | Gemini / Groq / OpenRouter / DeepSeek with fallback (`brain.py`: the instructions, optional Claude with an API key) |

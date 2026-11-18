@@ -101,3 +101,10 @@ def reply_note(code: str) -> str:
 
 def choices() -> list[dict]:
     return [{"code": k, "name": v[0], "native": v[1], "rtl": v[5]} for k, v in LANGUAGES.items()]
+
+
+LIVE_VOICES = {   # Gemini Live's voices (male-sounding ones first; Charon is the closest to the films' Jarvis)
+    "Charon": "deep, informative", "Iapetus": "clear", "Orus": "firm", "Sadaltager": "knowledgeable",
+    "Rasalgethi": "informative", "Algenib": "gravelly", "Fenrir": "lively", "Puck": "upbeat",
+    "Umbriel": "easy-going", "Schedar": "even", "Kore": "firm (female)", "Aoede": "breezy (female)",
+}
