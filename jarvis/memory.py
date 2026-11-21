@@ -286,6 +286,55 @@ def as_text(limit: int = PROMPT_LIMIT) -> str:
                            for i in shown) + more
 
 
+# ---------------- knowledge graph (Memory page › Graph) ----------------
+# capitalised words that are not names or places
+_NOT_NAMES = set("""
+i i'm im my me mine we our you your he she his her they their it its the a an and or but if so to of in on at by for
+with from as is are was were be been am has have had do does did not no yes this that these those there here when
+what who where why how which user users likes like loves love prefers prefer wants want works work lives live
+studies study goes go plays play uses use usually always never often sometimes every daily monday tuesday wednesday
+thursday friday saturday sunday january february march april may june july august september october november
+december mr mrs ms dr sir madam also very much more most some any all
+mera meri mere main mujhe mujh hum ham hamara aap ap ka ki ke ko se mein hai hain tha thi the aur bhi
+""".split())
+_NAME = re.compile(r"\b[A-Z][a-zA-Z'-]{2,}")
+
+
+def _names(fact: str) -> set[str]:
+    """Capitalised words that look like names or places ("Hina's" counts as "Hina")."""
+    out = set()
+    for w in _NAME.findall(fact or ""):
+        w = re.sub(r"'s$", "", w).strip("'-")
+        if len(w) > 2 and w.lower() not in _NOT_NAMES:
+            out.add(w)
+    return out
+
+
+def graph(limit: int = 120) -> dict:
+    """You in the middle, your memory categories around you, each memory on its category, and the names/places
+    that appear in two or more memories linking those memories together."""
+    items = all_facts()[:limit]
+    nodes = [{"id": "you", "kind": "you", "label": call_name()}]
+    links: list[dict] = []
+    for cat in CATEGORIES:
+        if any(m["category"] == cat for m in items):
+            nodes.append({"id": f"c:{cat}", "kind": "category", "label": cat, "category": cat})
+            links.append({"source": "you", "target": f"c:{cat}"})
+    seen: dict[str, list[int]] = {}
+    for m in items:
+        nodes.append({"id": f"m:{m['id']}", "kind": "memory", "label": m["fact"], "memory": m["id"],
+                      "category": m["category"], "importance": m["importance"]})
+        links.append({"source": f"c:{m['category']}", "target": f"m:{m['id']}"})
+        for name in _names(m["fact"]):
+            seen.setdefault(name, []).append(m["id"])
+    for name, ids in sorted(seen.items()):
+        if len(ids) < 2:
+            continue
+        nodes.append({"id": f"e:{name}", "kind": "name", "label": name})
+        links.extend({"source": f"e:{name}", "target": f"m:{i}"} for i in ids)
+    return {"nodes": nodes, "links": links}
+
+
 # ---------------- "Shall I remember that?" ----------------
 _SELF = re.compile(
     r"\b(my name is|call me|i am a|i'?m a|i work|i study|i live|i'?m from|i was born|my birthday|i (really )?(like|love|"

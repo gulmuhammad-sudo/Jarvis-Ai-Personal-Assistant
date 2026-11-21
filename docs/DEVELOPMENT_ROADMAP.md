@@ -29,9 +29,9 @@ enough to finish, test and release on its own. Numbers in brackets are decisions
 
 ## Phase 4 — Memory and personal intelligence
 - [x] Personal Intelligence Engine on SQLite: profile, memories with categories/importance, search [9, 100, 104]
-- [~] Memory dashboard with search and a simple knowledge graph view [40] (search done, graph not yet)
+- [x] Memory dashboard with search and a simple knowledge graph view [40]
 - [x] User-controlled learning (suggested memories you approve) [29]
-- [ ] Skills / custom instructions [103]
+- [x] Skills / custom instructions [103] (Rules + Routines)
 
 ## Phase 5 — Windows computer agent
 - [ ] Window management and desktop layouts [102, 71]

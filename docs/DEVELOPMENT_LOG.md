@@ -2,6 +2,19 @@
 
 Newest first. Each entry: what was done, how it was tested, what is open, the next task.
 
+## 2026-11-21 — Session 2, part 4: skills and memory graph (v1.15.0) — Phase 4 done
+
+**Done** — `jarvis/skills.py` + migration 3 (table `skills`), skills in the system prompt (5000-char budget),
+tools `use_skill` and `save_skill` (approval required), `/api/skills/save|enable|delete|run`, Tools & Skills page
+(My skills), `memory.graph()` + Memory › Graph (SVG force layout, no library, works offline).
+Design choice: the Profile already has "How I like replies", so "custom instructions" are skills of kind Rule
+instead of a second free-text box.
+
+**Tested** — pytest 148 passed, 2 skipped; running test copy (see TESTING_REPORT). 1.14.0 packaged exe 14/14.
+
+**Next** — ask the owner: build 1.15.0 / update the installed app, or Phase 5 (Windows computer agent), or the
+universal command bar.
+
 ## 2026-11-21 — Session 2, part 3: Personal Intelligence Engine (v1.14.0)
 
 **Done** — database migration 2 (`memories` table), `memory.py` rewritten (categories, importance, dedupe, search,

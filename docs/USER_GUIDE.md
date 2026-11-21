@@ -87,7 +87,12 @@ and its keys in `.env` next to the code).
   "use OpenRouter" / "automatic". The one you pick answers first, the others stay as backup, and "Brain" in Core
   status shows who is answering. Live calls always use Gemini Live (choose Classic style to talk to another AI by voice).
 - **New microphone:** plug in earbuds or a headset and Jarvis asks which mic to use (even mid-call).
-- **Memory:** edit any memory (✎), forget it (×), or "Combine all into one" (also by voice: "put all my memories into one").
+- **Memory:** search, filter by category, set stars (importance), edit (✎), forget (×), or "Combine all into one"
+  (also by voice: "put all my memories into one"). **Graph** shows them as a map: you, your categories, each memory,
+  and the people/places that link them. When you tell it something lasting about yourself it asks "Remember this?";
+  nothing is saved unless you press Save (off switch: Settings › Privacy).
+- **Skills** (Tools & Skills page): **Rules** are followed in every reply ("Keep answers short"); **Routines** run when
+  you say "run my <name>" or press Run. Each has On/Off. The assistant can save one for you only after you approve.
 - **Alert sound:** Settings → Alerts → Alert sound (Chime, Classic beeps, Siren, Digital pulse) with a Play button.
 
 ## The Command Center

@@ -38,6 +38,16 @@ MIGRATIONS: list[str] = [
            updated TEXT NOT NULL,
            uses INTEGER NOT NULL DEFAULT 0);
        CREATE INDEX memories_category ON memories(category);""",
+    # 3: skills = your own instructions: "always" rules (every reply) or routines you run by name
+    """CREATE TABLE skills (
+           id INTEGER PRIMARY KEY AUTOINCREMENT,
+           name TEXT NOT NULL UNIQUE COLLATE NOCASE,
+           instructions TEXT NOT NULL,
+           mode TEXT NOT NULL DEFAULT 'ask',             -- always | ask
+           enabled INTEGER NOT NULL DEFAULT 1,
+           created TEXT NOT NULL,
+           updated TEXT NOT NULL,
+           uses INTEGER NOT NULL DEFAULT 0);""",
 ]
 
 # event types worth keeping across restarts (not live captions, levels, approval prompts...)

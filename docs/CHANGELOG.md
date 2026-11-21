@@ -2,6 +2,18 @@
 
 Each version is also a git tag (`git tag -n20 vX.Y.Z` shows its notes). Newest first.
 
+## 1.15.0 — 2026-11-21
+- Skills (Tools & Skills page): write your own instructions once.
+  - **Rules** are followed in every reply ("Keep answers short", "Use metric units").
+  - **Routines** run when you ask by name ("run my morning briefing") or press **Run**.
+  - Each has On/Off, Edit and Delete; three examples to start from.
+  - The assistant can save a skill for you, but only after you press Authorize, so a web page can't plant
+    lasting instructions.
+- Memory › **Graph**: a map of what the assistant knows — you in the middle, your categories around you, each
+  memory (bigger = more stars), and the people/places that appear in several memories linking them. Hover to
+  read, click to open it in the list.
+- Saving, changing and deleting skills is written to the audit log.
+
 ## 1.14.0 — 2026-11-21
 - Personal Intelligence Engine: memories now live in the app database with a category (personal, family,
   people, work, study, health, likes, routine, other) and an importance (1-3 stars). Your old memories are

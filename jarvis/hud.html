@@ -774,6 +774,65 @@ svg.ic { transition: transform .28s cubic-bezier(.3, 1.5, .5, 1), color .2s, fil
 .memsuggest textarea { width: 100%; margin-top: 6px; min-height: 44px; }
 .memsuggest .acts { display: flex; align-items: center; gap: 8px; margin-top: 8px; flex-wrap: wrap; }
 .memsuggest .acts small { color: var(--dim); }
+/* memory graph */
+.memlist[hidden], .memcats[hidden], .memgraph[hidden], .skform[hidden] { display: none !important; }
+.seg { display: inline-flex; height: 38px; border: 1px solid var(--hair-2); border-radius: 10px; overflow: hidden; background: var(--surface-2); }
+.seg button { border: 0; background: none; color: var(--muted); padding: 0 12px; font: inherit; font-size: 13px; display: inline-flex; align-items: center; gap: 6px; cursor: pointer; transition: color .15s, background .15s; }
+.seg button svg.ic { width: 15px; height: 15px; }
+.seg button + button { border-left: 1px solid var(--hair-2); }
+.seg button:hover { color: var(--text); }
+.seg button.on { color: var(--cyan); background: rgba(var(--c-accent), .12); }
+.memgraph { position: relative; margin-top: 10px; border: 1px solid var(--hair); border-radius: 12px; overflow: hidden;
+  background: radial-gradient(circle at 50% 50%, rgba(var(--c-accent), .06), transparent 65%); animation: rowIn .4s cubic-bezier(.2, .8, .2, 1) both; }
+.memgraph svg { display: block; width: 100%; height: 480px; touch-action: none; }
+.memgraph line { stroke: rgba(var(--c-fill), .14); stroke-width: 1; transition: opacity .2s, stroke .2s; }
+.memgraph line.nm { stroke: rgba(251, 191, 36, .35); stroke-dasharray: 3 3; }
+.memgraph .gn { cursor: pointer; transition: opacity .2s; }
+.memgraph .gn circle { stroke: var(--bg); stroke-width: 1.5; transition: r .2s; }
+.memgraph .gn:hover circle, .memgraph .gn:focus circle { stroke: var(--text); }
+.memgraph .gn:focus { outline: none; }
+.memgraph .gn.you circle { fill: var(--cyan); filter: drop-shadow(0 0 10px rgba(var(--c-accent), .75)); }
+.memgraph .gn.name circle { fill: var(--bg); stroke: var(--amber); stroke-width: 2; }
+.memgraph text { font-size: 11.5px; fill: var(--muted); pointer-events: none; paint-order: stroke; stroke: var(--bg); stroke-width: 3px; }
+.memgraph .gn.you text { fill: var(--text); font-weight: 600; font-size: 12.5px; }
+.memgraph .gn.category text { fill: var(--text); }
+.memgraph.focus .gn:not(.hi), .memgraph.focus line:not(.hi) { opacity: .12; }
+.memgraph.focus line.hi { stroke: rgba(var(--c-accent), .6); }
+.mgtip { position: absolute; max-width: 320px; padding: 8px 10px; border-radius: 8px; background: var(--surface-2); border: 1px solid var(--hair-2);
+  color: var(--text); font-size: 12.5px; line-height: 1.45; pointer-events: none; box-shadow: 0 8px 24px rgba(0, 0, 0, .35); z-index: 2; }
+.mgtip small { display: block; color: var(--muted); margin-top: 3px; }
+.mglegend { position: absolute; left: 10px; bottom: 8px; right: 10px; display: flex; gap: 12px; flex-wrap: wrap; font-size: 11px; color: var(--dim); pointer-events: none; }
+.mglegend i { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 5px; vertical-align: 0; }
+.memgraph .gempty { position: absolute; inset: 0; display: grid; place-items: center; color: var(--muted); font-size: 13px; text-align: center; padding: 20px; }
+.memitem.flash { animation: memFlash 1.6s ease-out; }
+@keyframes memFlash { 0%, 30% { border-color: var(--cyan); box-shadow: 0 0 0 3px rgba(var(--c-accent), .25); } }
+/* skills */
+.skillbar { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 10px; }
+.skillbar small { color: var(--muted); font-size: 12.5px; flex: 1; min-width: 240px; line-height: 1.5; }
+.skillbar small b { color: var(--text); font-weight: 500; }
+.list.skilllist { grid-template-columns: 1fr; margin-bottom: 4px; }
+.skitem { animation: rowIn .35s cubic-bezier(.2, .8, .2, 1) both; animation-delay: calc(var(--i, 0) * 30ms); align-items: center; }
+.skitem.off > div, .skitem.off > .ico { opacity: .5; }
+.skitem .skt { white-space: pre-wrap; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+.skmode { font: 500 10px var(--mono); letter-spacing: .1em; padding: 1px 6px; border-radius: 5px; border: 1px solid var(--hair-2); color: var(--muted); margin-left: 8px; vertical-align: 2px; }
+.skmode.always { color: var(--violet); border-color: rgba(167, 139, 250, .45); }
+.skmode.ask { color: var(--cyan); border-color: rgba(var(--c-accent), .4); }
+.skacts { display: flex; align-items: center; gap: 6px; margin-left: auto; flex-shrink: 0; }
+.skacts .btn { height: 30px; padding: 0 10px; font-size: 12.5px; }
+.skacts .btn.switch { font-size: 0; height: 28px !important; padding: 0; margin-left: 4px; }
+.skacts .btn.danger:hover { color: var(--red); border-color: rgba(248, 113, 113, .5); }
+.skform { border: 1px solid rgba(var(--c-accent), .45); background: rgba(var(--c-accent), .05); border-radius: 12px; padding: 12px; margin-bottom: 10px;
+  display: grid; gap: 8px; animation: rowIn .35s cubic-bezier(.2, .8, .2, 1) both; }
+.skform .row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.skform input, .skform select, .skform textarea { border-radius: 8px; border: 1px solid var(--hair-2); background: var(--bg); color: var(--text); font: inherit; font-size: 13.5px; padding: 0 10px; }
+.skform input { flex: 1; min-width: 200px; height: 36px; } .skform select { height: 36px; }
+.skform textarea { min-height: 96px; padding: 8px 10px; resize: vertical; line-height: 1.5; }
+.skform input:focus, .skform select:focus, .skform textarea:focus { outline: none; border-color: rgba(var(--c-accent), .6); }
+.skform .err { color: var(--red); font-size: 12.5px; }
+.skform .row small { color: var(--dim); font-size: 12px; }
+.skex { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; margin: 2px 0 8px; }
+.skex small { color: var(--dim); font-size: 12px; margin-right: 2px; }
+@media (max-width: 760px) { .skitem { flex-wrap: wrap; } .skacts { margin-left: 38px; } }
 /* respect "reduce animations" in Windows */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: .001ms !important; animation-iteration-count: 1 !important; transition-duration: .001ms !important; }
@@ -932,9 +991,17 @@ svg.ic { transition: transform .28s cubic-bezier(.3, 1.5, .5, 1), color .2s, fil
         <div class="body">
           <div id="memSuggest" class="memsuggest" hidden></div>
           <div class="memtools"><div class="memsearch"><i data-ic="search"></i><input id="memQ" placeholder="Search memories…" aria-label="Search memories" autocomplete="off"></div>
+            <div class="seg" id="memView" role="tablist" aria-label="Show memories as">
+              <button class="on" data-mv="list" role="tab" aria-selected="true"><i data-ic="tasks"></i>List</button>
+              <button data-mv="graph" role="tab" aria-selected="false"><i data-ic="globe"></i>Graph</button></div>
             <button class="btn" id="memMerge"><i data-ic="db"></i>Combine all into one</button></div>
           <div class="memcats" id="memCats"></div>
           <div class="list memlist" id="memList"></div>
+          <div class="memgraph" id="memGraph" hidden>
+            <svg id="memSvg" role="img" aria-label="Graph of your memories: you in the middle, categories around you, names that link memories"></svg>
+            <div class="mgtip" id="mgTip" hidden></div>
+            <div class="mglegend" id="mgLegend"></div>
+          </div>
           <h4 class="sec">NOTES</h4>
           <div class="list" id="noteList"></div>
         </div>
@@ -958,8 +1025,16 @@ svg.ic { transition: transform .28s cubic-bezier(.3, 1.5, .5, 1), color .2s, fil
     <!-- Tools -->
     <section class="view" data-view="tools">
       <section class="card page">
-        <h3>Tools &amp; Skills <span class="more" style="cursor:default">What Jarvis can do on your PC</span></h3>
-        <div class="body"><div class="list" id="toolList"></div></div>
+        <h3>Tools &amp; Skills <span class="more" style="cursor:default">Your own skills, and what Jarvis can do on your PC</span></h3>
+        <div class="body">
+          <h4 class="sec">MY SKILLS</h4>
+          <div class="skillbar"><button class="btn on" id="skNew"><i data-ic="zap"></i>New skill</button>
+            <small><b>Rules</b> are followed in every reply. <b>Routines</b> run when you ask for them by name ("run my morning briefing") or press Run. Saved on this PC and sent to the AI with your messages.</small></div>
+          <div class="skform" id="skForm" hidden></div>
+          <div class="list skilllist" id="skillList"></div>
+          <h4 class="sec">BUILT-IN TOOLS</h4>
+          <div class="list" id="toolList"></div>
+        </div>
       </section>
     </section>
 
@@ -1361,7 +1436,7 @@ const FRIENDLY = {
   open_application: ["Launched an app", "pc"], open_path: ["Opened a file or folder", "note"],
   find_files: ["Searched your files", "search"], read_text_file: ["Read a file", "note"],
   save_note: ["Saved a note", "note"], list_notes: ["Checked your notes", "note"],
-  remember_fact: ["Saved to memory", "db"], recall_memories: ["Recalled memories", "db"], forget_memory: ["Removed a memory", "db"],
+  remember_fact: ["Saved to memory", "db"], recall_memories: ["Recalled memories", "db"], forget_memory: ["Removed a memory", "db"], use_skill: ["Used a skill", "zap"], save_skill: ["Saved a skill", "zap"],
   set_timer: ["Set a timer", "clock"], list_timers: ["Checked timers", "clock"], cancel_timer: ["Cancelled a timer", "clock"],
   media_control: ["Media control", "speaker"], clipboard: ["Used the clipboard", "note"],
   look_at_screen: ["Scanned your screen", "eye"], run_powershell: ["Ran a PowerShell command", "cpu"],
@@ -1445,7 +1520,7 @@ document.addEventListener("keydown", e => { if (e.key === "Escape" && detailId &
 const AGENTS = [
   { id: "research", name: "Research Agent", ic: "search", color: "var(--cyan)", tools: ["web_search", "fetch_webpage", "search_web_in_browser", "daily_briefing", "get_weather"] },
   { id: "browser", name: "Browser Agent", ic: "globe", color: "var(--amber)", tools: ["open_website", "open_application", "open_path", "play_youtube"] },
-  { id: "memory", name: "Memory Agent", ic: "db", color: "var(--violet)", tools: ["remember_fact", "recall_memories", "forget_memory", "save_note", "list_notes", "read_text_file", "find_files"] },
+  { id: "memory", name: "Memory Agent", ic: "db", color: "var(--violet)", tools: ["remember_fact", "recall_memories", "forget_memory", "use_skill", "save_skill", "save_note", "list_notes", "read_text_file", "find_files"] },
   { id: "task", name: "Task Agent", ic: "tasks", color: "var(--blue)", tools: ["set_timer", "list_timers", "cancel_timer", "get_datetime", "set_alarm", "list_alarms", "delete_alarm", "prayer_times", "prayer_reminders"] },
   { id: "vision", name: "Vision Agent", ic: "eye", color: "var(--green)", tools: ["look_at_screen", "take_screenshot"] },
   { id: "system", name: "System Agent", ic: "cpu", color: "var(--muted)", tools: ["system_status", "run_powershell", "lock_computer", "media_control", "clipboard", "set_language", "set_location",
@@ -1586,6 +1661,9 @@ function handle(ev) {
       break;
     case "memory_suggest_clear":
       memSuggestions.length = 0; showMemSuggest();
+      break;
+    case "skills_changed":
+      loadInfo();
       break;
     case "memory_suggest":
       if (!replaying && !memSuggestions.some(x => x.fact === ev.fact)) {
@@ -2342,6 +2420,10 @@ async function loadInfo() {
     $("memMerge").disabled = j.memories.length < 2;
     memAll = j.memories;
     renderMemories();
+    memGraphData = j.graph;
+    if (memViewMode === "graph") renderGraph();
+    skAll = j.skills || [];
+    renderSkills();
     $("noteList").innerHTML = j.notes.length ? j.notes.map(n => `<div class="item"><span class="ico">${icon("note")}</span><div><b>${esc(n.replace(/\.md$/, ""))}</b><small>data/notes</small></div></div>`).join("")
       : '<div class="empty">No notes yet. Say "take a note: …".</div>';
   } catch (e) { console.warn(e); }
@@ -2401,6 +2483,188 @@ function showMemSuggest() {
   };
   box.querySelector('[data-ms="no"]').onclick = () => { memSuggestions.shift(); showMemSuggest(); };
 }
+
+// ---------- memory graph: you, your categories, memories, and the names that link them ----------
+const CAT_COLOR = { personal: "var(--cyan)", family: "var(--violet)", people: "#f472b6", work: "var(--amber)", study: "#60a5fa",
+  health: "var(--green)", preferences: "#fb923c", routine: "#2dd4bf", other: "var(--muted)" };
+let memGraphData = null, memViewMode = "list", mgAnim = 0;
+function setMemView(mode) {
+  memViewMode = mode;
+  document.querySelectorAll("#memView [data-mv]").forEach(b => { const on = b.dataset.mv === mode; b.classList.toggle("on", on); b.setAttribute("aria-selected", on); });
+  $("memList").hidden = mode === "graph"; $("memCats").hidden = mode === "graph"; $("memGraph").hidden = mode !== "graph";
+  $("memQ").closest(".memsearch").style.visibility = mode === "graph" ? "hidden" : "";
+  if (mode === "graph") renderGraph(); else cancelAnimationFrame(mgAnim);
+}
+document.querySelectorAll("#memView [data-mv]").forEach(b => b.onclick = () => setMemView(b.dataset.mv));
+
+function renderGraph() {
+  cancelAnimationFrame(mgAnim);
+  const box = $("memGraph"), svg = $("memSvg"), tip = $("mgTip");
+  const W = Math.max(320, box.clientWidth || 800), H = 480, cx = W / 2, cy = H / 2;
+  svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
+  box.querySelector(".gempty")?.remove();
+  const data = memGraphData || { nodes: [], links: [] };
+  const used = new Set(data.nodes.filter(n => n.category).map(n => n.category));
+  $("mgLegend").innerHTML = Object.entries(MEM_CATS).filter(([k]) => used.has(k)).map(([k, [l]]) => `<span><i style="background:${CAT_COLOR[k]}"></i>${l}</span>`).join("")
+    + (data.nodes.some(n => n.kind === "name") ? `<span><i style="border:2px solid var(--amber);width:6px;height:6px"></i>Names / places in 2+ memories</span>` : "");
+  if (data.nodes.length <= 1) {
+    svg.innerHTML = "";
+    box.insertAdjacentHTML("beforeend", '<div class="gempty">No memories yet. Your memories, their categories and the people and places in them will show here.</div>');
+    return;
+  }
+  // starting places: you in the middle, categories on a ring, each memory fanned out behind its category
+  const N = data.nodes.map(n => ({ ...n, x: cx, y: cy, vx: 0, vy: 0 })), byId = {};
+  N.forEach(n => byId[n.id] = n);
+  const cats = N.filter(n => n.kind === "category");
+  cats.forEach((c, i) => { c.a = (i / cats.length) * Math.PI * 2 - Math.PI / 2; c.x = cx + Math.cos(c.a) * 120; c.y = cy + Math.sin(c.a) * 120; });
+  cats.forEach(c => {
+    const mine = N.filter(n => n.kind === "memory" && n.category === c.category);
+    mine.forEach((m, j) => { const a = c.a + (j - (mine.length - 1) / 2) * 0.22; m.x = cx + Math.cos(a) * 210; m.y = cy + Math.sin(a) * 190; });
+  });
+  N.filter(n => n.kind === "name").forEach((n, i) => { const a = i * 2.4; n.x = cx + Math.cos(a) * 60; n.y = cy + Math.sin(a) * 60; });
+  const L = data.links.map(l => ({ s: byId[l.source], t: byId[l.target], nm: l.source.startsWith("e:") })).filter(l => l.s && l.t);
+  const R = n => n.kind === "you" ? 15 : n.kind === "category" ? 10 : n.kind === "name" ? 7 : 3.5 + (n.importance || 1) * 1.8;
+  const sc = Math.min(W, H) / 480, REST = l => l.s.kind === "you" ? 150 * sc : l.nm ? 85 * sc : 72 * sc;
+  // draw once, then move
+  const NS = "http://www.w3.org/2000/svg";
+  svg.innerHTML = "";
+  const gl = document.createElementNS(NS, "g"), gn = document.createElementNS(NS, "g");
+  svg.append(gl, gn);
+  L.forEach(l => { l.el = document.createElementNS(NS, "line"); if (l.nm) l.el.classList.add("nm"); gl.append(l.el); });
+  N.forEach(n => {
+    const g = document.createElementNS(NS, "g"); g.classList.add("gn", n.kind); g.setAttribute("tabindex", "0");
+    const c = document.createElementNS(NS, "circle"); c.setAttribute("r", R(n));
+    if (n.kind === "category" || n.kind === "memory") c.style.fill = CAT_COLOR[n.category] || CAT_COLOR.other;
+    g.append(c);
+    if (n.kind !== "memory") {
+      const t = document.createElementNS(NS, "text");
+      t.textContent = n.kind === "category" ? (MEM_CATS[n.category] || [n.label])[0] : n.label.length > 18 ? n.label.slice(0, 17) + "…" : n.label;
+      t.setAttribute("text-anchor", "middle"); t.setAttribute("dy", R(n) + 13); g.append(t);
+    }
+    g.setAttribute("role", "button");
+    g.setAttribute("aria-label", n.kind === "memory" ? n.label : n.kind === "category" ? `${(MEM_CATS[n.category] || [n.label])[0]} memories` : n.label);
+    n.el = g; gn.append(g);
+  });
+  // hover: show the full text and light up its neighbours; click: open it in the list
+  const near = n => { const s = new Set([n]); L.forEach(l => { if (l.s === n) s.add(l.t); if (l.t === n) s.add(l.s); }); return s; };
+  const focusOn = n => {
+    const s = near(n); box.classList.add("focus");
+    N.forEach(m => m.el.classList.toggle("hi", s.has(m)));
+    L.forEach(l => l.el.classList.toggle("hi", l.s === n || l.t === n));
+    const stars = n.kind === "memory" ? " · " + "★".repeat(n.importance || 1) : "";
+    tip.innerHTML = n.kind === "memory" ? `${esc(n.label)}<small>${esc((MEM_CATS[n.category] || [n.category])[0])}${stars} · click to open</small>`
+      : n.kind === "category" ? `${esc((MEM_CATS[n.category] || [n.category])[0])}<small>${s.size - 2} memories · click to show them</small>`
+      : n.kind === "name" ? `${esc(n.label)}<small>in ${s.size - 1} memories · click to find them</small>` : `${esc(n.label)}<small>you</small>`;
+    tip.hidden = false;
+    const bw = box.clientWidth, sx = bw / W;
+    tip.style.left = Math.min(bw - 330, Math.max(8, n.x * sx + 14)) + "px"; tip.style.top = Math.max(8, n.y * sx - 10) + "px";
+  };
+  const unfocus = () => { box.classList.remove("focus"); tip.hidden = true; };
+  const open = n => {
+    if (n.kind === "you") return;
+    memCat = n.kind === "category" ? n.category : "";
+    $("memQ").value = n.kind === "name" ? n.label : "";
+    setMemView("list"); renderMemories();
+    if (n.kind === "memory") {
+      const el = $("memList").querySelector(`[data-mem="${n.memory}"]`);
+      if (el) { el.scrollIntoView({ block: "center", behavior: "smooth" }); el.classList.add("flash"); setTimeout(() => el.classList.remove("flash"), 1700); }
+    }
+  };
+  N.forEach(n => {
+    n.el.addEventListener("pointerenter", () => focusOn(n)); n.el.addEventListener("pointerleave", unfocus);
+    n.el.addEventListener("focus", () => focusOn(n)); n.el.addEventListener("blur", unfocus);
+    n.el.addEventListener("click", () => open(n));
+    n.el.addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); open(n); } });
+  });
+  const draw = () => {
+    L.forEach(l => { l.el.setAttribute("x1", l.s.x.toFixed(1)); l.el.setAttribute("y1", l.s.y.toFixed(1)); l.el.setAttribute("x2", l.t.x.toFixed(1)); l.el.setAttribute("y2", l.t.y.toFixed(1)); });
+    N.forEach(n => n.el.setAttribute("transform", `translate(${n.x.toFixed(1)},${n.y.toFixed(1)})`));
+  };
+  // a small force layout: nodes push apart, links pull together, everything drifts to the middle
+  const step = alpha => {
+    for (let i = 0; i < N.length; i++) for (let j = i + 1; j < N.length; j++) {
+      const a = N[i], b = N[j]; let dx = b.x - a.x, dy = b.y - a.y, d2 = dx * dx + dy * dy || 0.01;
+      if (d2 > 90000) continue;
+      const f = (a.kind === "memory" && b.kind === "memory" ? 450 : 1100) / d2 * alpha, d = Math.sqrt(d2);
+      dx /= d; dy /= d; a.vx -= dx * f; a.vy -= dy * f; b.vx += dx * f; b.vy += dy * f;
+    }
+    L.forEach(l => {
+      const dx = l.t.x - l.s.x, dy = l.t.y - l.s.y, d = Math.hypot(dx, dy) || 0.01, f = (d - REST(l)) * 0.04 * alpha;
+      l.s.vx += dx / d * f; l.s.vy += dy / d * f; l.t.vx -= dx / d * f; l.t.vy -= dy / d * f;
+    });
+    N.forEach(n => {
+      if (n.kind === "you") { n.x = cx; n.y = cy; n.vx = n.vy = 0; return; }
+      n.vx += (cx - n.x) * 0.0012 * alpha; n.vy += (cy - n.y) * 0.002 * alpha;
+      n.x += (n.vx *= 0.6); n.y += (n.vy *= 0.6);
+      const r = R(n) + 4; n.x = clamp(n.x, r, W - r); n.y = clamp(n.y, r, H - r - 14);
+    });
+  };
+  if (matchMedia("(prefers-reduced-motion: reduce)").matches) { for (let k = 0; k < 260; k++) step(1); draw(); return; }
+  for (let i = 0; i < 120; i++) step(1);     // settle most of the way at once (also when the window is in the background)
+  let k = 120;
+  const tick = () => { for (let i = 0; i < 2; i++) step(Math.max(0.15, 1 - k / 260)); draw(); if (++k < 260 && !$("memGraph").hidden) mgAnim = requestAnimationFrame(tick); };
+  tick();
+}
+window.addEventListener("resize", () => { if (memViewMode === "graph" && !$("memGraph").hidden) renderGraph(); });
+
+// ---------- skills: your own rules and routines ----------
+const SK_EXAMPLES = [
+  { name: "Morning briefing", mode: "ask", instructions: "Tell me today's date, the weather in my city, today's prayer times and any reminders or alarms for today. Keep it short and friendly." },
+  { name: "Short answers", mode: "always", instructions: "Keep answers to two or three sentences unless I ask for more detail." },
+  { name: "Study quiz", mode: "ask", instructions: "Ask me 5 questions, one at a time, on the topic I name. After each answer tell me if I was right and explain briefly." },
+];
+let skAll = [], skDelArmed = { id: 0, at: 0 };
+function renderSkills() {
+  const box = $("skillList");
+  box.innerHTML = skAll.length ? skAll.map((k, i) => `
+      <div class="item skitem${k.enabled ? "" : " off"}" style="--i:${Math.min(i, 12)}"><span class="ico" style="color:${k.mode === "always" ? "var(--violet)" : "var(--cyan)"}">${icon(k.mode === "always" ? "shield" : "zap")}</span>
+        <div style="min-width:0;flex:1"><b>${esc(k.name)}<span class="skmode ${k.mode}">${k.mode === "always" ? "RULE" : "ROUTINE"}</span></b>
+          <small class="skt">${esc(k.instructions)}</small>
+          <small>${k.mode === "always" ? "Followed in every reply" : `Say "run my ${esc(k.name.toLowerCase())}"`}${k.uses ? ` · used ${k.uses}×` : ""}</small></div>
+        <div class="skacts">
+          ${k.mode === "ask" ? `<button class="btn" data-skrun="${k.id}"${k.enabled ? "" : " disabled"} title="Run it now">${icon("play")}Run</button>` : ""}
+          <button class="btn" data-skedit="${k.id}" title="Edit">${icon("edit")}</button>
+          <button class="btn danger" data-skdel="${k.id}" title="Delete" aria-label="Delete ${esc(k.name)}">${icon("x")}</button>
+          <button class="btn switch${k.enabled ? " on" : ""}" role="switch" aria-checked="${k.enabled}" data-skon="${k.id}" title="${k.enabled ? "On" : "Off"}" aria-label="${esc(k.name)} on or off">${k.enabled ? "On" : "Off"}</button>
+        </div></div>`).join("")
+    : `<div class="empty">No skills yet. Make one with <b>New skill</b>, or start from an example:</div>
+       <div class="skex">${SK_EXAMPLES.map((e, i) => `<button class="chip2" data-skex="${i}">${icon(e.mode === "always" ? "shield" : "zap")}${esc(e.name)}</button>`).join("")}</div>`;
+  box.querySelectorAll("[data-skex]").forEach(b => b.onclick = () => skillForm(SK_EXAMPLES[+b.dataset.skex]));
+  box.querySelectorAll("[data-skedit]").forEach(b => b.onclick = () => skillForm(skAll.find(k => k.id === +b.dataset.skedit)));
+  box.querySelectorAll("[data-skon]").forEach(b => b.onclick = async () => { await post("/api/skills/enable", { id: +b.dataset.skon, on: !b.classList.contains("on") }); loadInfo(); });
+  box.querySelectorAll("[data-skrun]").forEach(b => b.onclick = async () => { await post("/api/skills/run", { id: +b.dataset.skrun }); go("dash"); });
+  box.querySelectorAll("[data-skdel]").forEach(b => b.onclick = async () => {
+    const id = +b.dataset.skdel;
+    if (skDelArmed.id !== id || Date.now() - skDelArmed.at > 4000) {     // ask once more before deleting
+      skDelArmed = { id, at: Date.now() }; b.innerHTML = `${icon("x")}Delete?`; setTimeout(() => { if (b.isConnected) b.innerHTML = icon("x"); }, 4000); return;
+    }
+    skDelArmed = { id: 0, at: 0 };
+    await post("/api/skills/delete", { id }); loadInfo();
+  });
+}
+function skillForm(k) {
+  const f = $("skForm"), edit = k && k.id;
+  f.hidden = false;
+  f.innerHTML = `<div class="row"><input id="skName" maxlength="40" placeholder="Name, e.g. Morning briefing" aria-label="Skill name" value="${esc(k ? k.name : "")}">
+      <select id="skMode" aria-label="Kind of skill"><option value="ask">Routine · run it by name</option><option value="always">Rule · every reply</option></select></div>
+    <textarea id="skText" maxlength="1500" aria-label="What the skill should do" placeholder="What should ${esc(AGENT)} do? Write it like you'd tell a person, step by step.">${esc(k ? k.instructions : "")}</textarea>
+    <div class="row"><button class="btn on" id="skSave">${icon("check")}${edit ? "Save changes" : "Save skill"}</button><button class="btn" id="skCancel">Cancel</button>
+      <small id="skCount"></small><span class="err" id="skErr"></span></div>`;
+  $("skMode").value = k ? k.mode : "ask";
+  const count = () => $("skCount").textContent = `${$("skText").value.length} / 1500`;
+  $("skText").oninput = count; count();
+  $("skCancel").onclick = () => { f.hidden = true; f.innerHTML = ""; };
+  $("skSave").onclick = async () => {
+    const r = await post("/api/skills/save", { id: edit ? k.id : null, name: $("skName").value, instructions: $("skText").value, mode: $("skMode").value, enabled: k && "enabled" in k ? k.enabled : true });
+    const j = r ? await r.json() : { error: "The app didn't answer." };
+    if (j.error) { if ($("skErr")) $("skErr").textContent = j.error; return; }    // (the form may have been closed meanwhile)
+    f.hidden = true; f.innerHTML = ""; loadInfo();
+  };
+  $("skText").onkeydown = e => { if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) $("skSave").click(); if (e.key === "Escape") $("skCancel").click(); };
+  (k && k.name ? $("skText") : $("skName")).focus();
+  f.scrollIntoView({ block: "nearest", behavior: "smooth" });
+}
+$("skNew").onclick = () => skillForm(null);
 
 let mergeArmed = 0;
 $("memMerge").onclick = async () => {

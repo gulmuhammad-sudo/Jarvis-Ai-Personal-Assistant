@@ -33,7 +33,8 @@ Open **Personal Assistant** from the Start Menu or the Desktop.
 
 - Live voice conversations you can interrupt, in English, Urdu (Roman or Urdu script) and more
 - Open apps, files and websites; search the web; play YouTube; weather, news, prayer times
-- Timers, alarms, notes and long-term memory you can edit
+- Timers, alarms, notes and long-term memory you can search, edit and see as a graph
+- Your own skills: rules it always follows and routines you run by name
 - PC control: volume, brightness, Wi-Fi/Bluetooth, screenshots, cleaning old files, PowerShell
 - Works **offline** if you want: local AI ([Ollama](https://ollama.com), free), speech recognition and voices
   on your PC — one-time downloads from inside the app

@@ -16,7 +16,8 @@ One Python process (`Personal Assistant.exe`, or `pythonw -m jarvis` from source
      ├── tts.py                    neural voices (edge-tts, online); page speechSynthesis as backup
      ├── wake.py, urdu.py, languages.py   name detection, Urdu/Roman/Hindi script handling, languages
      ├── tools.py                  every action on the PC (~47 tools) behind approvals
-     ├── memory.py, schedule.py    profile + facts; alarms, weather, prayers, news, settings
+     ├── memory.py, skills.py      Personal Intelligence Engine: profile, memories, graph; your rules/routines
+     ├── storage.py, schedule.py   SQLite (history, memories, skills); alarms, weather, prayers, news, settings
      ├── alerts.py, gpu.py         loud alerts; GPU counters
      └── install.py                shortcuts, start with Windows, Apps entry, uninstall
  hud.html    ── the whole Command Center UI (one page, canvas faces, settings, setup wizard)

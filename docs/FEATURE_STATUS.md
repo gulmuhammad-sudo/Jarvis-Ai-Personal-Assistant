@@ -70,7 +70,7 @@ audio, installer, uninstaller, packaged-exe smoke test). They are being moved in
 | 37 | Fully customizable voice | PARTIALLY IMPLEMENTED | `jarvis/tts.py`, `jarvis/live.py`, `jarvis/languages.py` | — | none | 12 Live + 10 reading voices. Speed/pitch only via `.env`; no local TTS |
 | 38 | Smart notification center | PARTIALLY IMPLEMENTED | `jarvis/alerts.py`, Activity feed in `jarvis/hud.html` | — | none | Pop-ups + feed (not kept after restart). Missing: history, filters, do-not-disturb |
 | 39 | AI agent ecosystem | NOT IMPLEMENTED | (the HUD "Agents" panel only lights up tool categories) | 20 | — | — |
-| 40 | Knowledge graph and memory dashboard | PARTIALLY IMPLEMENTED | Memory page in `jarvis/hud.html`, `jarvis/memory.py` | 9 | test_memory_engine, running app | 1.14.0: search box, category chips with counts, category and importance (stars) per memory, edit/merge/forget. No graph view yet |
+| 40 | Knowledge graph and memory dashboard | IMPLEMENTED BUT NEEDS TESTING | Memory page in `jarvis/hud.html` (List / Graph), `memory.graph()` | 9 | test_skills_graph (graph, names), running app | 1.15.0: graph view — you in the middle, categories, memories (size = stars), names/places found in 2+ memories link them; hover shows the text, click opens it in the list. Not yet tried by the owner |
 | 41 | Complete UI customization | PARTIALLY IMPLEMENTED | `jarvis/hud.html` | — | test_pages; running-app checks | Theme, face, focus mode, settings in tabs, animated icons (1.12–1.13). Missing: colours, layout, panel choice |
 | 42 | Multi-user voice profiles | NOT IMPLEMENTED | — | 7 | — | — |
 | 43 | Windows software manager | NOT IMPLEMENTED | — | 26 | — | `winget` is free and built in |
@@ -148,7 +148,7 @@ audio, installer, uninstaller, packaged-exe smoke test). They are being moved in
 | 100 | Personal user understanding engine | PARTIALLY IMPLEMENTED | `jarvis/memory.py` (profile + top memories in every prompt) | 9 | test_memory_engine | Shared Personal Intelligence Engine with 9, 29, 40, 103, 104. 1.14.0: categories, importance, search. Missing: skills/custom instructions [103] |
 | 101 | Multi-agent command center | NOT IMPLEMENTED | — | 20, 39 | — | — |
 | 102 | Desktop and window management | NOT IMPLEMENTED | — | — | — | — |
-| 103 | Knowledge and skill expansion | NOT IMPLEMENTED | — | 100 | — | — |
+| 103 | Knowledge and skill expansion | PARTIALLY IMPLEMENTED | `jarvis/skills.py`, `storage.py` (table `skills`), tools `use_skill` / `save_skill`, Tools & Skills page | 100 | test_skills_graph 11 | 1.15.0: your own skills — Rules (every reply) and Routines (run by name or the Run button), on/off, edit, delete; the AI can save one only after you approve. Missing: importing documents as knowledge, shareable skill packs |
 | 104 | User understanding for all user types | PARTIALLY IMPLEMENTED | same as 100 | 100 | none | Same engine as 100 |
 | 105 | Personality and emotional intelligence | NOT IMPLEMENTED | — | 16 | — | — |
 | 106 | Universal device and app integration | NOT IMPLEMENTED | — | 91 | — | — |
@@ -157,13 +157,13 @@ audio, installer, uninstaller, packaged-exe smoke test). They are being moved in
 | 109 | Command history and activity timeline | PARTIALLY IMPLEMENTED | `jarvis/storage.py` (SQLite), `jarvis/audit.py`, Conversations page, Settings › Privacy | — | test_storage 4, test_guard_audit | 1.9.0: conversation + activity survive restarts; permanent audit record viewable in Settings. Missing: timeline page with search and dates |
 | 110 | Modular expansion and upgrade system | NOT IMPLEMENTED | — | 13 | — | — |
 
-## Totals (after v1.14.0, 21 Nov 2026)
+## Totals (after v1.15.0, 21 Nov 2026)
 
 | Status | Count |
 |---|---|
 | IMPLEMENTED AND VERIFIED | 1 |
-| IMPLEMENTED BUT NEEDS TESTING | 11 |
+| IMPLEMENTED BUT NEEDS TESTING | 12 |
 | PARTIALLY IMPLEMENTED | 41 |
-| NOT IMPLEMENTED | 47 |
+| NOT IMPLEMENTED | 46 |
 | BLOCKED BY EXTERNAL DEPENDENCY | 0 |
 | NOT APPLICABLE | 10 |

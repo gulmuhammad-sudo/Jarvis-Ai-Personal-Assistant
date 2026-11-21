@@ -37,6 +37,11 @@ def system_prompt(template: str | None = None) -> str:
     from . import schedule
     name = schedule.agent_name()
     text = (template or SYSTEM_PROMPT).format(name=name, user=memory.call_name(), memories=memory.as_text())
+    from . import skills
+    try:
+        text += skills.prompt_text()     # your own rules and saved routines (Tools & Skills page)
+    except Exception as e:               # a broken database must never stop the assistant from answering
+        print(f"[skills] couldn't load: {e}")
     from .guard import SYSTEM_RULE
     text += SYSTEM_RULE                  # text from web pages / files is data, never instructions
     if name.lower() != "jarvis":

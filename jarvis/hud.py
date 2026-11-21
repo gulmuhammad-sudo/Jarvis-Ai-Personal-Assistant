@@ -26,7 +26,7 @@ from urllib.parse import parse_qs
 
 from . import __version__
 from . import live as live_mod
-from . import alerts, approvals, audit, denoise, gpu, languages, local_ai, local_stt, local_tts, memory, schedule, stt, storage, tools, tts, urdu, wake
+from . import alerts, approvals, audit, denoise, gpu, languages, local_ai, local_stt, local_tts, memory, schedule, skills, stt, storage, tools, tts, urdu, wake
 from .brain import make_brain
 from .config import NOTES_DIR
 from .providers import provider_status
@@ -195,6 +195,14 @@ class Hub:
         if isinstance(out, list):              # a screenshot: the picture went to the AI
             out = "Screenshot taken and shown to the AI."
         self.emit("tool_result", keep=True, id=tid, name=name, result=str(out)[:4000], error=bool(err))
+        if name == "save_skill" and not err and str(out).startswith(("Saved", "Updated")):
+            self.skills_changed()
+
+    def skills_changed(self) -> None:
+        """A skill was added/changed/removed: the AI's instructions follow, open pages refresh their list."""
+        if hasattr(self.brain, "refresh_system"):
+            self.brain.refresh_system()
+        self.emit("skills_changed")
 
     def notify(self, msg: str, kind: str = "reminder") -> None:
         self.emit("notify", keep=True, text=msg, kind=kind)
@@ -817,9 +825,9 @@ class Hub:
             tools.STOP.clear()                 # a new instruction: Stop is over
         rid = self._next_id()
         self.emit("user", keep=True, text=text, source=source, id=rid)
-        if source != "scheduled":
+        if source not in ("scheduled", "skill"):        # a skill's own text isn't you talking about yourself
             self._suggest_memory(text)
-        if source not in ("typed", "scheduled"):             # what you typed stays exactly as you typed it
+        if source not in ("typed", "scheduled", "skill"):             # what you typed stays exactly as you typed it
             self._chat_script_later(rid, text)
         if source != "scheduled":
             self.last_source = source
@@ -1163,6 +1171,8 @@ class Handler(BaseHTTPRequestHandler):
                 "tools": [{"name": d["name"], "description": d["description"].split(". ")[0].rstrip(".") + "."}
                           for d in tools.TOOL_DEFINITIONS + tools.WEB_TOOL_DEFINITIONS],
                 "memories": memory.all_facts(),
+                "graph": memory.graph(),
+                "skills": skills.all_skills(),
                 "notes": sorted((n.name for n in NOTES_DIR.glob("*.md")), reverse=True)})
         if path == "/api/tts_stream":
             return self._tts_stream(query)
@@ -1420,6 +1430,31 @@ class Handler(BaseHTTPRequestHandler):
             msg = memory.remember(str(data.get("fact", "")), data.get("category"), None, source="suggested")
             HUB.emit("tool", keep=True, name="remember_fact", id=HUB._next_id(), args=f"saved because you said yes: {str(data.get('fact', ''))[:60]}")
             return self._json({"message": msg})
+        elif self.path == "/api/skills/save":          # Tools & Skills page: add / change
+            try:
+                sid = data.get("id")
+                s = skills.save(str(data.get("name", "")), str(data.get("instructions", "")),
+                                str(data.get("mode") or "ask"), data.get("enabled", True) is not False,
+                                int(sid) if sid not in (None, "") else None)
+            except (ValueError, TypeError) as e:
+                return self._json({"error": str(e)}, 400)
+            audit.record("skill_saved", name=s["name"], mode=s["mode"], by="you")
+            HUB.skills_changed()
+            return self._json({"ok": True, "skill": s})
+        elif self.path == "/api/skills/enable":
+            skills.set_enabled(int(data.get("id", -1)), bool(data.get("on")))
+            HUB.skills_changed()
+        elif self.path == "/api/skills/delete":
+            s = skills.get(int(data.get("id", -1)))
+            if s and skills.delete(s["id"]):
+                audit.record("skill_deleted", name=s["name"])
+                HUB.skills_changed()
+        elif self.path == "/api/skills/run":            # the Run button = you typed "run my skill …"
+            s = skills.get(int(data.get("id", -1)))
+            if not s:
+                return self._json({"error": "That skill is gone."}, 404)
+            skills.used(s["id"])
+            threading.Thread(target=HUB.submit, args=(skills.run_message(s), "skill"), daemon=True).start()
         elif self.path == "/api/memory/merge":
             return self._json({"message": memory.merge([int(i) for i in data.get("ids") or []] or None)})
         elif self.path == "/api/reset":
