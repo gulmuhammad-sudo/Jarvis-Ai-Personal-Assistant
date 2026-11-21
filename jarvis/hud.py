@@ -1127,6 +1127,19 @@ class Handler(BaseHTTPRequestHandler):
         if not self._host_ok():
             return self._json({"error": "bad host"}, 403)
         path, _, query = self.path.partition("?")
+        if path == "/favicon.ico":                         # the app icon in the window / browser tab
+            from .config import ICON
+            try:
+                body = ICON.read_bytes()
+            except OSError:
+                return self._json({"error": "no icon"}, 404)
+            self.send_response(200)
+            self.send_header("Content-Type", "image/x-icon")
+            self.send_header("Content-Length", str(len(body)))
+            self.send_header("Cache-Control", "max-age=86400")
+            self.end_headers()
+            self.wfile.write(body)
+            return
         if path == "/":
             name = schedule.agent_name()
             html = (HTML_FILE.read_text(encoding="utf-8").replace("__TOKEN__", TOKEN)

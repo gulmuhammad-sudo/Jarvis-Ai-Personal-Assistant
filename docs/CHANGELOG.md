@@ -2,6 +2,14 @@
 
 Each version is also a git tag (`git tag -n20 vX.Y.Z` shows its notes). Newest first.
 
+## 1.12.0 — 2026-11-21
+- Settings in tabs: General · Voice & Mic · AI · Privacy · Permissions · Alerts. Permissions (Ask / Allow /
+  Never per action, and "Allowed until restart") are now in one place, separate from Privacy.
+- App icon (favicon) in the window/browser tab.
+- Tidy project folder: builds happen in %TEMP%\PersonalAssistant-build; the project only gets
+  dist\Personal Assistant Setup.exe.
+- Short README; the full guide moved to docs/USER_GUIDE.md.
+
 ## 1.11.0 — 2026-11-21
 - Voices that speak on this PC (Settings › Voices › Voice source: Auto / Online / This PC): Alan and Jenny
   (British), Fasih (Urdu), Rohan and Priyamvada (Hindi), ~20 MB each, downloaded when you press Download.

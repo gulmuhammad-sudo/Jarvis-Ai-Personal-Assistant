@@ -7,6 +7,7 @@
 (function () { var t = "__THEME__"; try { if (t === "system") t = matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark"; } catch (e) {}
   document.documentElement.dataset.theme = t === "light" ? "light" : "dark"; })();</script>
 <title>Personal Assistant</title>
+<link rel="icon" type="image/x-icon" href="/favicon.ico">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Noto+Nastaliq+Urdu:wght@400;600&display=swap" rel="stylesheet">
 <style>
@@ -364,6 +365,15 @@ body[data-state="thinking"] .iconbtn.stop { background: rgba(255, 107, 107, .16)
 .item .x { margin-left: auto; background: none; border: 0; color: var(--dim); padding: 2px; }
 .item .x:hover { color: var(--red); }
 .settings { display: grid; gap: 8px; max-width: 760px; }
+.settabs { display: flex; flex-wrap: wrap; gap: 6px; padding: 4px; border: 1px solid var(--hair); border-radius: 12px;
+  background: rgba(var(--c-fill), .02); position: sticky; top: 0; z-index: 2; backdrop-filter: blur(8px); }
+.settab { flex: 1 1 auto; padding: 8px 14px; border-radius: 9px; border: 1px solid transparent; background: none;
+  color: var(--muted); font: inherit; font-size: 13px; cursor: pointer; white-space: nowrap; }
+.settab:hover { color: var(--text); background: rgba(var(--c-fill), .04); }
+.settab.on { color: var(--cyan); border-color: rgba(92, 207, 255, .35); background: rgba(92, 207, 255, .08); }
+.setgroup { display: none; gap: 8px; }
+.setgroup.on { display: grid; }
+.setgroup > h4.sec:first-child { margin-top: 10px; }
 .setrow { display: flex; align-items: center; gap: 12px; padding: 12px 14px; border-radius: 10px; border: 1px solid var(--hair); background: rgba(var(--c-fill), .015); flex-wrap: wrap; }
 .setrow .lbl { flex: 1; min-width: 200px; }
 .setrow .lbl b { display: block; font-size: 14.5px; font-weight: 500; } .setrow .lbl small { color: var(--muted); font-size: 13px; }
@@ -880,6 +890,8 @@ body[data-state="listening"] .talk { border-color: var(--green); background: lin
       <section class="card page">
         <h3>Settings <span class="more" id="appVer" style="cursor:default"></span></h3>
         <div class="body"><div class="settings">
+          <div class="settabs" role="tablist" aria-label="Settings sections"><button class="settab" role="tab" data-settab="general">General</button><button class="settab" role="tab" data-settab="voice">Voice &amp; Mic</button><button class="settab" role="tab" data-settab="ai">AI</button><button class="settab" role="tab" data-settab="privacy">Privacy</button><button class="settab" role="tab" data-settab="permissions">Permissions</button><button class="settab" role="tab" data-settab="alerts">Alerts</button></div>
+          <div class="setgroup" data-setgroup="general" role="tabpanel">
           <h4 class="sec">ASSISTANT</h4>
           <div class="setrow"><div class="lbl"><b>Name</b><small id="agentMsg">What your assistant is called everywhere: in replies, on calls and on this screen. You can also just say "your name is Maya now".</small></div>
             <input class="txt" id="agentName" maxlength="24" aria-label="Assistant's name" autocomplete="off" spellcheck="false"><button class="btn" id="agentSave">Rename</button></div>
@@ -896,6 +908,27 @@ body[data-state="listening"] .talk { border-color: var(--green); background: lin
           <div class="setrow"><div class="lbl"><b>First-time setup</b><small>Walk through the welcome setup again: name, language, voices, look, hands-free and AI keys.</small></div>
             <button class="btn" id="setupAgain"><i data-ic="refresh"></i>Run setup</button></div>
 
+          <h4 class="sec">LANGUAGE</h4>
+          <div class="setrow"><div class="lbl"><b>Language</b><small id="langInfo">Jarvis listens and replies in this language, with a matching voice. Pick one or type any other. You can also say "Urdu mein baat karo".</small></div>
+            <select id="langSel" aria-label="Language"></select>
+            <input class="txt" id="langOther" placeholder="Any language, e.g. Swahili" hidden><button class="btn" id="langOtherSave" hidden>Use</button></div>
+
+          <div class="setrow"><div class="lbl"><b>Chat text</b><small>How the chat is written on screen. English letters (Roman Urdu) by default; Urdu script only if you choose it here or say "Urdu mein type karke do".</small></div>
+            <button class="btn" data-chat-script="roman">English letters</button><button class="btn" data-chat-script="urdu">اردو</button></div>
+
+          <h4 class="sec">STARTUP</h4>
+          <div class="setrow"><div class="lbl"><b>Start with Windows</b><small>Opens by itself (in the tray, by the clock) when you sign in to Windows. Closing the window only hides it there; right-click the tray icon to quit.</small></div>
+            <button class="btn" id="bootBtn">On</button></div>
+          <div class="setrow"><div class="lbl"><b>Live call when it opens</b><small>Starts a Live conversation as soon as the app opens. After 3 quiet minutes it waits for you (or its name) again. Needs Hands-free on.</small></div>
+            <button class="btn" id="autoLiveBtn">On</button></div>
+
+          <h4 class="sec">CHAT</h4>
+          <div class="setrow"><div class="lbl"><b>New conversation</b><small>Clears this chat. Memories and your profile stay.</small></div>
+            <button class="btn danger" id="resetBtn3"><i data-ic="refresh"></i>Reset</button></div>
+          <div class="setrow"><div class="lbl"><b>Keyboard shortcuts</b><small>Ctrl+Space: talk · Ctrl+K: type a message · Esc: stop Jarvis talking / deny an approval</small></div></div>
+
+          </div>
+          <div class="setgroup" data-setgroup="voice" role="tabpanel">
           <h4 class="sec">TALKING</h4>
           <div class="setrow"><div class="lbl"><b>Conversation style</b><small id="engineInfo"><b>Live:</b> talk naturally, like a phone call. <b>Classic:</b> you speak, then Jarvis replies (works with every AI model).</small></div>
             <button class="btn" id="engLive">Live</button><button class="btn" id="engClassic">Classic</button></div>
@@ -921,10 +954,6 @@ body[data-state="listening"] .talk { border-color: var(--green); background: lin
           <div class="setrow"><div class="lbl"><b>Pitch</b><small id="pitchInfo">Lower or higher voice (online voices only; the voices on this PC keep their own pitch).</small></div>
             <input type="range" id="pitchRange" min="-20" max="20" step="1" aria-label="Pitch" style="width:200px"></div>
 
-          <h4 class="sec">AI MODEL</h4>
-          <div class="setrow"><div class="lbl"><b>Who answers</b><small id="brainInfo">Automatic tries Gemini first and moves to the next one if it's busy. Pick one to talk to it first (the others stay as backup), or say "Groq pe chalo". Live calls always use Gemini Live.</small></div>
-            <select id="brainSel" aria-label="AI provider"></select><select id="brainModelSel" aria-label="Model"></select></div>
-
           <h4 class="sec">MICROPHONE</h4>
           <div class="setrow"><div class="lbl"><b>Speech to text</b><small id="sttInfo">How your voice becomes text. Auto: online services when there's internet (fastest), this PC when there isn't. This PC: always on your computer — works offline and nothing you say leaves it.</small></div>
             <button class="btn" data-stt="auto">Auto</button><button class="btn" data-stt="cloud">Online</button><button class="btn" data-stt="local">This PC</button></div>
@@ -935,43 +964,41 @@ body[data-state="listening"] .talk { border-color: var(--green); background: lin
           <div class="setrow"><div class="lbl"><b>Noise reduction</b><small>Turns background noise down (fans, AC, a busy room) before Jarvis listens. Strong removes more but can make quiet voices thinner. A headset helps most.</small></div>
             <select id="noiseSel" aria-label="Noise reduction"><option value="off">Off</option><option value="normal">Normal</option><option value="strong">Strong</option></select></div>
 
-          <h4 class="sec">LANGUAGE</h4>
-          <div class="setrow"><div class="lbl"><b>Language</b><small id="langInfo">Jarvis listens and replies in this language, with a matching voice. Pick one or type any other. You can also say "Urdu mein baat karo".</small></div>
-            <select id="langSel" aria-label="Language"></select>
-            <input class="txt" id="langOther" placeholder="Any language, e.g. Swahili" hidden><button class="btn" id="langOtherSave" hidden>Use</button></div>
+          </div>
+          <div class="setgroup" data-setgroup="ai" role="tabpanel">
+          <h4 class="sec">AI MODEL</h4>
+          <div class="setrow"><div class="lbl"><b>Who answers</b><small id="brainInfo">Automatic tries Gemini first and moves to the next one if it's busy. Pick one to talk to it first (the others stay as backup), or say "Groq pe chalo". Live calls always use Gemini Live.</small></div>
+            <select id="brainSel" aria-label="AI provider"></select><select id="brainModelSel" aria-label="Model"></select></div>
 
-          <div class="setrow"><div class="lbl"><b>Chat text</b><small>How the chat is written on screen. English letters (Roman Urdu) by default; Urdu script only if you choose it here or say "Urdu mein type karke do".</small></div>
-            <button class="btn" data-chat-script="roman">English letters</button><button class="btn" data-chat-script="urdu">اردو</button></div>
+          <div class="setrow"><div class="lbl"><b>Local AI, models and keys</b><small>Free AI on this PC (Ollama), model downloads and which AIs are connected are on the AI Models page.</small></div>
+            <button class="btn" data-go="models"><i data-ic="layers"></i>Open AI Models</button></div>
 
-          <h4 class="sec">STARTUP</h4>
-          <div class="setrow"><div class="lbl"><b>Start with Windows</b><small>Opens by itself (in the tray, by the clock) when you sign in to Windows. Closing the window only hides it there; right-click the tray icon to quit.</small></div>
-            <button class="btn" id="bootBtn">On</button></div>
-          <div class="setrow"><div class="lbl"><b>Live call when it opens</b><small>Starts a Live conversation as soon as the app opens. After 3 quiet minutes it waits for you (or its name) again. Needs Hands-free on.</small></div>
-            <button class="btn" id="autoLiveBtn">On</button></div>
-
+          </div>
+          <div class="setgroup" data-setgroup="privacy" role="tabpanel">
           <h4 class="sec">PRIVACY</h4>
           <div class="setrow"><div class="lbl"><b>Keep conversation history</b><small>Your chat and the Activity list are saved on this PC (never uploaded), so they are still there after a restart.</small></div>
             <button class="btn" id="keepHistBtn">On</button><button class="btn" id="clearHistBtn">Clear saved history</button></div>
           <div class="setrow"><div class="lbl"><b>What it did on this PC</b><small>A permanent record of every action and every approval (keys, passwords and file contents are never written to it).</small></div>
             <button class="btn" id="auditBtn">Show</button></div>
           <div class="auditlist" id="auditList" hidden></div>
-          <div class="setrow"><div class="lbl"><b>Permissions</b><small>For each kind of action: ask you every time, never do it, or (only for the safer ones) do it without asking. Shutting down, deleting and replacing files always ask.</small></div></div>
-          <div class="permlist" id="permList"></div>
 
+          </div>
+          <div class="setgroup" data-setgroup="permissions" role="tabpanel">
+          <h4 class="sec">PERMISSIONS</h4>
+          <div class="setrow"><div class="lbl"><b>Each kind of action</b><small>Ask: you approve every time. Allow: done without asking (only for the safer ones). Never: refused without asking. Shutting down, deleting and replacing files always ask.</small></div></div>
+          <div class="permlist" id="permList"></div>
+          <div class="setrow"><div class="lbl"><b>Allowed until restart</b><small id="trustInfo">Jarvis asks before risky actions. Once you allow a kind (like PowerShell commands) it stops asking until the app restarts. Shutdown, restart and deleting files are always asked.</small></div>
+            <button class="btn" id="trustReset">Ask every time again</button></div>
+
+          </div>
+          <div class="setgroup" data-setgroup="alerts" role="tabpanel">
           <h4 class="sec">ALERTS</h4>
           <div class="setrow"><div class="lbl"><b>Loud alerts</b><small>Alarms, timers, low battery and errors pop up and play at full volume, then your volume goes back to normal.</small></div>
             <button class="btn" id="loudBtn">On</button></div>
           <div class="setrow"><div class="lbl"><b>Alert sound</b><small>Pick a sound and press Play to hear it.</small></div>
             <select id="toneSel" aria-label="Alert sound"></select><button class="btn" id="alertTest"><i data-ic="play"></i>Play</button></div>
 
-          <h4 class="sec">PERMISSIONS</h4>
-          <div class="setrow"><div class="lbl"><b>Risky actions</b><small id="trustInfo">Jarvis asks before risky actions. Once you allow a kind (like PowerShell commands) it stops asking until the app restarts. Shutdown, restart and deleting files are always asked.</small></div>
-            <button class="btn" id="trustReset">Ask every time again</button></div>
-
-          <h4 class="sec">CHAT</h4>
-          <div class="setrow"><div class="lbl"><b>New conversation</b><small>Clears this chat. Memories and your profile stay.</small></div>
-            <button class="btn danger" id="resetBtn3"><i data-ic="refresh"></i>Reset</button></div>
-          <div class="setrow"><div class="lbl"><b>Keyboard shortcuts</b><small>Ctrl+Space: talk · Ctrl+K: type a message · Esc: stop Jarvis talking / deny an approval</small></div></div>
+          </div>
         </div></div>
       </section>
     </section>
@@ -2769,6 +2796,17 @@ $("followBtn").onclick = () => { convo.on = !convo.on; storeSet("jarvis.followup
 paintFollow();
 $("micSel").onchange = async () => { await post("/api/mic", { name: $("micSel").value || null }); loadMics(); };
 loadMics();
+
+// ---------- settings tabs ----------
+function setTab(name) {
+  if (!document.querySelector(`[data-setgroup="${name}"]`)) name = "general";
+  document.querySelectorAll("[data-settab]").forEach(b => { const on = b.dataset.settab === name; b.classList.toggle("on", on); b.setAttribute("aria-selected", on); });
+  document.querySelectorAll("[data-setgroup]").forEach(g => g.classList.toggle("on", g.dataset.setgroup === name));
+  storeSet("jarvis.settab", name);
+}
+document.querySelectorAll("[data-settab]").forEach(b => b.onclick = () => setTab(b.dataset.settab));
+document.querySelectorAll("[data-setgroup] [data-go]").forEach(b => b.onclick = () => go(b.dataset.go));
+setTab(storeGet("jarvis.settab") || "general");
 
 // ---------- voices on this PC, speed and pitch ----------
 let ttsDl = null;

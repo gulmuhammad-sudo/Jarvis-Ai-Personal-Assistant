@@ -20,7 +20,7 @@ from pathlib import Path
 
 HERE = Path(getattr(sys, "_MEIPASS", Path(__file__).resolve().parent))
 PAYLOAD = HERE / "payload" / "app.zip" if getattr(sys, "frozen", False) else \
-    Path(__file__).resolve().parent.parent / "build" / "payload" / "app.zip"
+    Path(os.environ.get("TEMP") or "C:/Windows/Temp") / "PersonalAssistant-build" / "payload" / "app.zip"
 APP_NAME = "Personal Assistant"
 # Settings live where the installed app looks for them (JARVIS_DATA_DIR only for testing the installer).
 DATA = Path(os.environ.get("JARVIS_DATA_DIR") or

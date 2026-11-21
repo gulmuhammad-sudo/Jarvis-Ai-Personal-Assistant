@@ -3,9 +3,11 @@
     .venv\\Scripts\\python.exe -m pip install pyinstaller
     .venv\\Scripts\\python.exe packaging\\build.py
 
-Makes:
-    dist\\Personal Assistant\\Personal Assistant.exe    the app (one folder, what gets installed)
-    dist\\Personal Assistant Setup.exe                 the installer: the one file to run or share
+Makes one file in the project:
+    dist\\Personal Assistant Setup.exe      the installer: the one file to run or share
+Everything else (PyInstaller's work files, the app folder that goes inside the installer) is made in
+%TEMP%\\PersonalAssistant-build, so the project folder stays clean. The app folder there
+(...\\app\\Personal Assistant\\Personal Assistant.exe) can be run directly to test the build.
 """
 from __future__ import annotations
 
@@ -13,12 +15,14 @@ import re
 import shutil
 import subprocess
 import sys
+import tempfile
 import zipfile
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 PKG = ROOT / "packaging"
-BUILD, DIST = ROOT / "build", ROOT / "dist"
+BUILD = Path(tempfile.gettempdir()) / "PersonalAssistant-build"     # work files: outside the project
+DIST = ROOT / "dist"                                                # only the installer ends up here
 NAME = "Personal Assistant"
 ICON = ROOT / "assets" / "jarvis.ico"
 VERSION = re.search(r'__version__ = "([^"]+)"', (ROOT / "jarvis" / "__init__.py").read_text(encoding="utf-8")).group(1)
@@ -55,11 +59,12 @@ def main() -> None:
         from jarvis.install import make_icon
         make_icon()
     BUILD.mkdir(exist_ok=True)
-    app_dir = DIST / NAME
+    DIST.mkdir(exist_ok=True)
+    app_dir = BUILD / "app" / NAME
     shutil.rmtree(app_dir, ignore_errors=True)
 
     # 1) the app: one folder with "Personal Assistant.exe"
-    pyinstaller(f"--name={NAME}", f"--distpath={DIST}", f"--version-file={version_file('Personal Assistant', NAME)}",
+    pyinstaller(f"--name={NAME}", f"--distpath={BUILD / 'app'}",f"--version-file={version_file('Personal Assistant', NAME)}",
                 f"--add-data={ROOT / 'jarvis' / 'hud.html'}{SEP}jarvis", f"--add-data={ROOT / 'assets'}{SEP}assets",
                 "--collect-submodules=jarvis", "--collect-data=edge_tts", "--collect-data=certifi",
                 "--collect-all=pywhispercpp",          # local speech-to-text: native whisper.cpp library

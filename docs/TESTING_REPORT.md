@@ -11,6 +11,14 @@ set PA_TEST_NETWORK=1 && .venv\Scripts\python -m pytest tests   # also the onlin
 .venv\Scripts\python packaging\build.py              # then smoke-test the packaged exe (see below)
 ```
 
+## 2026-11-21 — Settings tabs, favicon, tidy folder (v1.12.0)
+
+| Suite | Result | Notes |
+|---|---|---|
+| `pytest tests` | 116 passed, 2 skipped | page scripts parse; all 184 element ids kept after regrouping Settings |
+| Running app (test copy) | pass | 6 tabs, each shows the right rows; Permissions tab has the 8 kinds + "Allowed until restart"; Privacy has history + audit only; /favicon.ico 200 image/x-icon; no console errors |
+| Build into %TEMP% | not run yet | build.py changed; next build checks it |
+
 ## 2026-11-21 — Speech to text on this PC (v1.10.0)
 
 | Suite | Result | Notes |

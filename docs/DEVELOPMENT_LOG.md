@@ -14,6 +14,19 @@ Not done: packaged exe build with the new native libraries (sherpa_onnx, espeakn
 
 **Next** — build and smoke-test the exe; then NEXT_STEPS.md (universal command bar, Personal Intelligence Engine).
 
+## 2026-11-21 — Session 2: settings tabs, favicon, tidy folder, short README (v1.12.0)
+
+**Done** — Settings regrouped into 6 tabs (script kept every id); Permissions separate from Privacy; favicon;
+build output moved to %TEMP%\PersonalAssistant-build (old build/ and dist app folder deleted, ~570 MB);
+.venv/.claude/.env hidden in Explorer; README shortened, full text in docs/USER_GUIDE.md. The owner chose to
+keep the per-user install location (AppData\Local\Programs) — uninstall from Settings › Apps / Control Panel
+already works.
+
+**Tested** — pytest 116 + 2 skipped; running-app check (TESTING_REPORT.md).
+
+**Next** — build 1.12.0 (first build with the new Temp location), update the owner's installed app (still
+1.7.1), publish a GitHub release with `gh` (ask first).
+
 ## 2026-11-21 — Session 1, part 5: speech to text on this PC (v1.10.0, committed locally)
 
 **Done** — `jarvis/local_stt.py` (whisper.cpp via pywhispercpp: faster-whisper isn't installable on Python 3.15

@@ -15,7 +15,7 @@
    - read the code it touches first;
    - add/adjust tests in `tests/` (temporary data folder only; fake keys only; never the real `.env`/`keys.dat`);
    - run `pytest tests`; for packaging changes also `python packaging\build.py` and smoke-test
-     `dist\Personal Assistant\Personal Assistant.exe --no-window` with `JARVIS_DATA_DIR` and `JARVIS_HUD_PORT`
+     `%TEMP%\PersonalAssistant-build\app\Personal Assistant\Personal Assistant.exe --no-window` with `JARVIS_DATA_DIR` and `JARVIS_HUD_PORT`
      set to a temporary folder / spare port;
    - update FEATURE_STATUS.md, TESTING_REPORT.md, DEVELOPMENT_LOG.md, NEXT_STEPS.md, CHANGELOG.md;
    - bump `__version__`, commit, annotated tag `vX.Y.Z` with the change list, push `main --follow-tags`.
