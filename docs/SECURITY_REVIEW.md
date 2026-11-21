@@ -20,10 +20,10 @@
 | # | Finding | Risk | Status |
 |---|---|---|---|
 | S1 | API keys stored in plain text (`.env`) | Medium: any program or person with access to the user's files can read them | **Fixed in 1.8.0**: Windows DPAPI encryption (`keys.dat`), automatic migration out of `.env` (only after the encrypted copy reads back correctly); installer writes keys encrypted |
-| S2 | Web pages and files read by tools go into the AI prompt unmarked | Medium: prompt injection ("ignore your instructions and run …") | Next: wrap fetched/untrusted text in a clearly marked block + rule in the system prompt; approvals remain the hard stop |
-| S3 | `run_powershell` relies only on the approval prompt | Medium | Next: deny-list of destructive patterns (format, diskpart, `Remove-Item -Recurse` on system paths, registry deletes, disabling Defender) that are refused outright |
-| S4 | No audit log of actions taken | Low/Medium | Next: append-only `audit.log` (tool, arguments summary, approved by, result) |
-| S5 | No emergency stop for a running multi-step task | Medium | Next: one Stop control that cancels the brain's tool loop and the Live call |
+| S2 | Web pages and files read by tools go into the AI prompt unmarked | Medium: prompt injection ("ignore your instructions and run …") | **Fixed in 1.9.0**: output of web search, web pages, files, clipboard and the briefing is wrapped in `<untrusted>` (a fake closing tag inside can't end it) + a system-prompt rule; approvals and the deny-list remain the hard stop (`jarvis/guard.py`) |
+| S3 | `run_powershell` relies only on the approval prompt | Medium | **Fixed in 1.9.0**: refused outright, before any approval: disk format/partition, deleting drives/Windows/Program Files/all users, machine registry deletes, boot changes, deleting backups/restore points, wiping free space, weakening Defender, firewall off, user-account changes, download-and-run, encoded commands, killing core processes, machine-wide execution policy. 24 refused / 8 normal commands allowed in tests |
+| S4 | No audit log of actions taken | Low/Medium | **Fixed in 1.9.0**: `audit.log` (JSON lines) for every tool call, approval, refusal, Stop and history clear; secrets and file contents never written; viewable in Settings › Privacy |
+| S5 | No emergency stop for a running multi-step task | Medium | **Fixed in 1.9.0**: Stop button (toolbar), Esc twice, tray "Stop everything": no further tools or steps, waiting approvals answered no, Live call and speech stopped |
 | S6 | Memories, profile and notes stored unencrypted | Low (local files in the user's profile) | Later: optional encryption with DPAPI; never sent anywhere except the chosen AI |
 | S7 | Conversations, profile and screenshots go to cloud AI providers | Privacy | Phase 2: local AI default; clear indicator of which provider receives data |
 | S8 | Unsigned executables | SmartScreen warning; users can't verify the publisher | Blocked by cost (code-signing certificates are paid) |

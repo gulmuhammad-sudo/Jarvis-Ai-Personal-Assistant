@@ -2,6 +2,23 @@
 
 Newest first. Each entry: what was done, how it was tested, what is open, the next task.
 
+## 2026-11-21 — Session 1, part 2: rest of Phase 1 + local AI (v1.9.0)
+
+**Done**
+- `jarvis/audit.py` (audit log), `jarvis/guard.py` (untrusted-text marking, PowerShell deny-list),
+  Emergency Stop (`tools.STOP`, loops in providers/brain/Ollama, `/api/stop`, Stop button, Esc twice, tray),
+  `jarvis/storage.py` (SQLite + migrations; history restored at start; Settings › Privacy: keep / clear / audit view),
+  `jarvis/local_ai.py` + `OllamaBrain` + AI Models "Local AI" card (detect, start, download with progress,
+  choose model, prefer local).
+- Ran the app (isolated test copy) in the browser pane after each feature, as the owner asked.
+
+**Tested** — pytest 80/80; running-app checks listed in TESTING_REPORT.md. A page-script break (literal line
+break inside a JS string) was found by running the app and is now caught by tests/test_pages.py.
+
+**Open** — real Ollama not installed (needs the owner's OK); 1.8.0/1.9.0 installers not on GitHub Releases yet.
+
+**Next** — NEXT_STEPS.md step 1–2.
+
 ## 2026-11-21 — Session 1: repository audit, Phase 1 foundation (v1.8.0)
 
 **Done**

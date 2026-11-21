@@ -25,7 +25,7 @@ from pathlib import Path
 from typing import Any, Callable
 from urllib.parse import quote_plus
 
-from . import memory
+from . import audit, guard, memory
 from . import schedule as _sched
 from .config import NOTES_DIR, ROOT, SCREENSHOT_DIR
 
@@ -33,6 +33,10 @@ try:
     import psutil
 except ImportError:  # optional
     psutil = None
+
+# Emergency stop: set by the Stop button / tray menu. While set, no tool runs and every approval is "no";
+# it is cleared when you give the next instruction.
+STOP = threading.Event()
 
 
 class ToolContext:
@@ -53,10 +57,15 @@ class ToolContext:
     def approve(self, question: str, kind: str | None = None) -> bool:
         """Ask before acting. kind groups similar requests: once you allow e.g. "powershell", the HUD stops
         asking for that kind until the app restarts (never for shutdown/restart or deleting files)."""
-        try:
-            return self.confirm(question, kind=kind)
-        except TypeError:                     # a confirm() that doesn't know about kinds (console)
-            return self.confirm(question)
+        if STOP.is_set():
+            granted = False
+        else:
+            try:
+                granted = bool(self.confirm(question, kind=kind))
+            except TypeError:                 # a confirm() that doesn't know about kinds (console)
+                granted = bool(self.confirm(question))
+        audit.record("approval", kind=kind or "", question=question, granted=granted)
+        return granted
 
 
 def _ps(command: str, timeout: int = 60) -> subprocess.CompletedProcess:
@@ -375,6 +384,11 @@ def look_at_screen(_: dict, ctx: ToolContext) -> list[dict] | str:
 def run_powershell(inp: dict, ctx: ToolContext) -> str:
     cmd = inp["command"]
     why = inp.get("reason", "")
+    blocked = guard.check_powershell(cmd)
+    if blocked:
+        audit.record("blocked", tool="run_powershell", command=cmd, reason=blocked)
+        return (f"I won't run that command: it means {blocked}, which is too risky to do automatically, even "
+                "with your OK. If you really need it, run it yourself in PowerShell.")
     if not ctx.approve(kind="powershell", question=f"{_sched.agent_name()} wants to run this PowerShell command{f' ({why})' if why else ''}:\n    {cmd}"):
         return "The user declined to run this command."
     try:
@@ -495,13 +509,22 @@ RESULT_HOOK: Callable[[str, dict, Any, bool], None] | None = None   # the HUD sh
 
 
 def execute(name: str, tool_input: dict, ctx: ToolContext) -> tuple[Any, bool]:
-    """Run a tool. Returns (content, is_error)."""
+    """Run a tool. Returns (content, is_error). Every call goes into the audit log; text from web pages, files
+    and the clipboard comes back marked as untrusted (see guard.py)."""
+    args = tool_input if isinstance(tool_input, dict) else {}
+    if STOP.is_set():
+        audit.record("tool", tool=name, args=args, ok=False, result="stopped by the user")
+        return "Stopped: the user pressed Stop. Don't continue this task; say it was stopped.", True
     out, err = _execute(name, tool_input, ctx)
+    audit.record("tool", tool=name, args=args, ok=not err,
+                 result=(out if isinstance(out, str) else "[image]")[:120])
     if RESULT_HOOK:
         try:
-            RESULT_HOOK(name, tool_input if isinstance(tool_input, dict) else {}, out, err)
+            RESULT_HOOK(name, args, out, err)
         except Exception:
             pass
+    if not err and isinstance(out, str) and guard.is_untrusted(name, args):
+        out = guard.wrap(name, out)
     return out, err
 
 

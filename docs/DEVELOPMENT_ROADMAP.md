@@ -7,16 +7,16 @@ enough to finish, test and release on its own. Numbers in brackets are decisions
 - [x] Repository audit, version check, 110-decision matrix, docs (2026-11-21)
 - [x] `tests/` with pytest, isolated data folder, no real keys (2026-11-21, v1.8.0)
 - [x] API keys encrypted with Windows DPAPI, migrated out of `.env` safely [26] (v1.8.0)
-- [ ] Audit log of actions (tool, summary, approval, result) [26, 109]
-- [ ] Prompt-injection guard for web pages / files given to the AI [26, 31]
-- [ ] PowerShell deny-list for destructive commands [26, 44]
-- [ ] Emergency stop: cancel the running task and the Live call [20, 26]
-- [ ] SQLite storage layer with versioned migrations; history and activity kept across restarts [109]
+- [x] Audit log of actions (tool, summary, approval, result) [26, 109] (v1.9.0)
+- [x] Prompt-injection guard for web pages / files given to the AI [26, 31] (v1.9.0)
+- [x] PowerShell deny-list for destructive commands [26, 44] (v1.9.0)
+- [x] Emergency stop: cancel the running task and the Live call [20, 26] (v1.9.0)
+- [x] SQLite storage layer with versioned migrations; history and activity kept across restarts [109] (v1.9.0)
 
 ## Phase 2 — AI brain and models
-- [ ] Ollama backend (OpenAI-compatible endpoint on localhost) [2, 5]
-- [ ] Model discovery, "is Ollama running", pull a recommended model with consent [90]
-- [ ] Routing: local first, cloud for vision/long context when allowed, offline fallback [14, 12]
+- [x] Ollama backend (native /api/chat so the context size can be set) [2, 5] (v1.9.0)
+- [x] Model discovery, "is Ollama running", pull a recommended model with consent [90] (v1.9.0)
+- [~] Routing: local first (setting), cloud fallback (v1.9.0); still to do: route by task (vision, long context) [14, 12]
 - [ ] API keys fully optional; first-run works with local AI only [3, 15]
 - [ ] Model diagnostics on the AI Models page [99]
 

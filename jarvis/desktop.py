@@ -126,6 +126,8 @@ class Tray:
             open_item.Click += show
             live_item = menu.Items.Add("Start live call")
             live_item.Click += later(toggle_live)
+            stop_item = menu.Items.Add("Stop everything")
+            stop_item.Click += later(lambda: hud.HUB and hud.HUB.emergency_stop("tray menu"))
             menu.Items.Add(WF.ToolStripSeparator())
             boot_item = WF.ToolStripMenuItem("Start with Windows")
             boot_item.Click += later(toggle_startup)

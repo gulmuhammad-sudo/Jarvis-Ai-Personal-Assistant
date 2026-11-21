@@ -2,6 +2,19 @@
 
 Each version is also a git tag (`git tag -n20 vX.Y.Z` shows its notes). Newest first.
 
+## 1.9.0 — 2026-11-21
+- Local AI: works with Ollama (free) on this PC — offline, private, no limits. AI Models page: Get Ollama,
+  Check again / Start, download a recommended model (with your OK and progress), choose the model,
+  "Prefer local AI" (on: local first, cloud as backup).
+- Emergency Stop: a Stop button, Esc twice, or "Stop everything" in the tray menu stops the running task,
+  waiting approvals, the Live call and speech.
+- Audit log: every action and approval is recorded (never keys, passwords or file contents); Settings › Privacy › Show.
+- Prompt-injection guard: text from web pages, files and the clipboard is marked as untrusted for the AI.
+- Dangerous PowerShell commands (formatting disks, deleting Windows, switching off Defender/firewall, user
+  accounts, download-and-run…) are refused outright, even with approval.
+- Conversation and Activity are kept across restarts (local SQLite database); Settings › Privacy can switch
+  this off or clear it.
+
 ## 1.8.0 — 2026-11-21
 - API keys are stored encrypted for your Windows account (DPAPI, `keys.dat`) instead of plain text in `.env`;
   existing keys move over automatically on first start (removed from `.env` only after they read back correctly).

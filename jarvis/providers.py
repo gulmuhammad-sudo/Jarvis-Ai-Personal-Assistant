@@ -1,4 +1,7 @@
-"""Multi-provider brain: Gemini, Groq, OpenRouter, DeepSeek (and optionally Claude) with automatic fallback.
+"""Multi-provider brain: local AI (Ollama), Gemini, Groq, OpenRouter, DeepSeek (and optionally Claude), with fallback.
+
+Local AI goes first when Ollama is running with a suitable model (Settings: "Prefer local AI"), so the assistant
+works offline and nothing leaves the PC; cloud providers are the backup (or the other way round if you prefer).
 
 JARVIS_PROVIDERS in .env sets the order. Jarvis asks the first provider that is
 configured; if it fails (limit hit, bad key, offline) *before doing anything on the
@@ -13,7 +16,7 @@ import re
 import time
 from typing import Callable
 
-from . import languages, schedule, tools
+from . import languages, local_ai, schedule, tools
 from .brain import VOICE_OFF_NOTE, system_prompt, VOICE_ON_NOTE, ProviderError, make_claude
 from .config import provider_order
 
@@ -138,6 +141,11 @@ class OpenAICompatBrain:
         final = ""
         try:
             for _ in range(MAX_STEPS):
+                if tools.STOP.is_set():                  # you pressed Stop: no more steps
+                    self._note = None
+                    final = "Okay, I stopped."
+                    self.on_text(final)
+                    return final
                 resp = self._create()
                 if not resp.choices:
                     raise ProviderError(f"{self.label} returned an empty response")
@@ -198,6 +206,105 @@ class OpenAICompatBrain:
             self._trim()
 
 
+# A small local model gets the everyday tools only: all ~47 tool descriptions would fill its context.
+LOCAL_TOOLS = ("get_datetime", "system_status", "open_website", "search_web_in_browser", "open_application",
+               "open_path", "find_files", "read_text_file", "save_note", "list_notes", "remember_fact",
+               "recall_memories", "set_timer", "list_timers", "cancel_timer", "media_control", "clipboard",
+               "web_search", "fetch_webpage", "get_weather", "play_youtube", "set_alarm", "list_alarms",
+               "close_app", "take_screenshot", "write_file")
+
+
+def prefer_local() -> bool:
+    return schedule.get_setting("prefer_local", True) is not False
+
+
+class OllamaBrain:
+    """Local AI through Ollama's /api/chat, with the same tool loop as the cloud providers."""
+
+    def __init__(self, ctx: tools.ToolContext, on_text: Callable[[str], None], on_tool: Callable[[str, dict], None],
+                 model: str):
+        self.label, self.ctx, self.on_text, self.on_tool = "Local AI", ctx, on_text, on_tool
+        have = local_ai.models()
+        self.models = [m["name"] for m in have if m["tools"]] or [model]
+        self.model = model
+        self.vision = any(m["name"] == model and m["vision"] for m in have)
+        defs = [d for d in tools.TOOL_DEFINITIONS + tools.WEB_TOOL_DEFINITIONS if d["name"] in LOCAL_TOOLS]
+        self.tool_defs = [{"type": "function", "function": {"name": d["name"], "description": d["description"],
+                                                            "parameters": d["input_schema"]}} for d in defs]
+        self.language = "en"
+        self._note: str | None = None
+        self.reset()
+
+    def reset(self) -> None:
+        self.system = system_prompt() + TOOL_DISCIPLINE
+        self.messages: list[dict] = []
+
+    def set_voice_mode(self, on: bool) -> None:
+        self._note = VOICE_ON_NOTE if on else VOICE_OFF_NOTE
+
+    def ask(self, user_text: str) -> str:
+        checkpoint = len(self.messages)
+        self.messages.append({"role": "user", "content": f"[{self._note}]\n\n{user_text}" if self._note else user_text})
+        system = self.system + (URDU_NOTE if self.language == "ur" else languages.reply_note(self.language))
+        acted, final = False, ""
+        try:
+            for _ in range(MAX_STEPS):
+                if tools.STOP.is_set():
+                    final = "Okay, I stopped."
+                    self.on_text(final)
+                    return final
+                msg = local_ai.chat(self.model, [{"role": "system", "content": system}] + self.messages, self.tool_defs)
+                calls = msg.get("tool_calls") or []
+                content = (msg.get("content") or "").strip()
+                self.messages.append({"role": "assistant", "content": content, **({"tool_calls": calls} if calls else {})})
+                if not calls:
+                    final = content or "(no answer)"
+                    self.on_text(final)
+                    self._note = None
+                    return final
+                for call in calls:
+                    fn = call.get("function") or {}
+                    name, args = fn.get("name", ""), fn.get("arguments") or {}
+                    if isinstance(args, str):
+                        try:
+                            args = json.loads(args)
+                        except json.JSONDecodeError:
+                            args = None
+                    if not isinstance(args, dict) or name not in LOCAL_TOOLS:
+                        result, err = f"Can't use {name!r} here; use one of the listed tools.", True
+                    else:
+                        self.on_tool(name, args)
+                        acted = True
+                        result, err = tools.execute(name, args, self.ctx)
+                    if isinstance(result, list):         # a screenshot: a text-only model can't look at it
+                        result = " ".join(b.get("text", "") for b in result if b.get("type") == "text") + \
+                                 " (This local model can't see images.)"
+                    self.messages.append({"role": "tool", "tool_name": name,
+                                          "content": ("ERROR: " if err else "") + str(result)[:8000]})
+            final = "That took more steps than I allow myself in one go. Shall I keep going?"
+            self.on_text(final)
+            return final
+        except (OSError, ValueError) as e:           # Ollama stopped, or the model isn't there any more
+            self.messages = self.messages[:checkpoint]
+            err = ProviderError(f"Local AI ({self.model}): {type(e).__name__}: {str(e)[:120]}")
+            err.acted = acted
+            raise err
+        finally:
+            if len(self.messages) > KEEP_MESSAGES:
+                cut = len(self.messages) - KEEP_MESSAGES
+                while cut < len(self.messages) and self.messages[cut]["role"] != "user":
+                    cut += 1
+                self.messages = self.messages[cut:]
+
+
+def chain() -> list[str]:
+    """Providers to try, in order: JARVIS_PROVIDERS, with local AI first (or last) unless it's listed there."""
+    names = provider_order()
+    if "ollama" not in names:
+        names = ["ollama", *names] if prefer_local() else [*names, "ollama"]
+    return names
+
+
 class MultiBrain:
     """Routes each message through the provider chain, falling back on failure."""
 
@@ -215,9 +322,15 @@ class MultiBrain:
         self.down: dict[str, str] = {}      # label -> reason (removed for this session)
         self.limited: dict[str, str] = {}   # label -> last temporary error
 
-        for name in provider_order():
+        for name in chain():
             try:
-                if name == "claude":
+                if name == "ollama":
+                    model = local_ai.pick_model() if local_ai.running() else None
+                    if not model:
+                        continue                       # Ollama not running / no suitable model: skip quietly
+                    backend = OllamaBrain(ctx, self._text, self._tool, model)
+                    label = backend.label
+                elif name == "claude":
                     backend = make_claude(ctx, self._text, self._tool)
                     if backend is None:                          # no ANTHROPIC_API_KEY
                         self.skipped.append("Claude (no ANTHROPIC_API_KEY)")
@@ -287,7 +400,7 @@ class MultiBrain:
     def refresh_system(self) -> None:
         """The profile or memories changed: rebuild the instructions, keeping the conversation."""
         for _, b in self.backends:
-            if isinstance(b, OpenAICompatBrain):
+            if isinstance(b, (OpenAICompatBrain, OllamaBrain)):
                 b.system = system_prompt() + TOOL_DISCIPLINE
             elif hasattr(b, "system") and not hasattr(b, "_pending_note"):     # Anthropic API backend
                 b.system = system_prompt()
@@ -309,7 +422,8 @@ class MultiBrain:
 
     def ask(self, user_text: str) -> str:
         if not self.backends:
-            msg = "No AI provider is set up. Sign in to Claude or add an API key to .env."
+            msg = ("No AI is set up yet. For free AI on this PC (works offline), install Ollama and download a model "
+                   "on the AI Models page; or add a free Gemini or Groq key in Settings.")
             self.on_text(msg)
             return msg
         failures: list[str] = []
@@ -360,7 +474,22 @@ def provider_status(brain) -> list[dict]:
     limited = getattr(brain, "limited", {})
     current = getattr(brain, "current", "")
     out = []
-    for name in provider_order():
+    for name in chain():
+        if name == "ollama":
+            label = "Local AI"
+            if label in down:
+                out.append({"label": label, "status": "offline", "detail": down[label]})
+            elif label in names:
+                model = next((getattr(b, "model", "") for l, b in getattr(brain, "backends", []) if l == label), "")
+                status = "active" if label == current else ("limited" if label in limited else "connected")
+                out.append({"label": label, "status": status, "detail": limited.get(label, f"{model} (on this PC)")})
+            elif not local_ai.installed():
+                out.append({"label": label, "status": "not set up", "detail": "install Ollama (free) to use AI offline"})
+            elif not local_ai.running():
+                out.append({"label": label, "status": "offline", "detail": "Ollama isn't running"})
+            else:
+                out.append({"label": label, "status": "not set up", "detail": "download a model on the AI Models page"})
+            continue
         if name == "claude":
             label, detail = "Claude", "your Claude account"
         elif name in OPENAI_COMPATIBLE:

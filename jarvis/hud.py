@@ -26,7 +26,7 @@ from urllib.parse import parse_qs
 
 from . import __version__
 from . import live as live_mod
-from . import alerts, approvals, denoise, gpu, languages, memory, schedule, stt, tools, tts, urdu, wake
+from . import alerts, approvals, audit, denoise, gpu, languages, local_ai, memory, schedule, stt, storage, tools, tts, urdu, wake
 from .brain import make_brain
 from .config import NOTES_DIR
 from .providers import provider_status
@@ -86,7 +86,7 @@ class Hub:
         self.speak = True
         self.voice_mode = False
         self.busy = False
-        self.history: list[dict] = []  # replayed to a page that reconnects
+        self.history: list[dict] = self._restore_history()  # replayed to a page that (re)connects
         self.last_client_seen = time.time()
         self.cpu = 0.0
         self.tool_calls = 0
@@ -146,6 +146,8 @@ class Hub:
         if keep:
             self.history.append(ev)
             self.history = self.history[-200:]
+            if self.keep_history():
+                storage.add_event(ev)             # kept across restarts (only chat / activity types)
         with self.sub_lock:
             for q in self.subscribers:
                 q.put(ev)
@@ -165,7 +167,31 @@ class Hub:
 
     def _next_id(self) -> str:
         self._ids += 1
-        return f"a{self._ids}"
+        return f"{self._launch}{self._ids}"            # unique across restarts (saved history keeps old ids)
+
+    @staticmethod
+    def keep_history() -> bool:
+        return schedule.get_setting("keep_history", True) is not False
+
+    def _restore_history(self) -> list[dict]:
+        """Conversation and activity from earlier sessions (SQLite), so they survive a restart."""
+        import secrets as _s
+        self._launch = "e" + _s.token_hex(2) + "-"
+        if not self.keep_history():
+            return []
+        out = []
+        for ev in storage.recent_events(150):
+            ev = {**ev, "old": True}
+            if ev.get("type") == "tool":
+                ev["pending"] = False             # whatever was running then has long finished
+            out.append(ev)
+        return out
+
+    def clear_history(self) -> None:
+        n = storage.clear_events()
+        self.history = []
+        audit.record("history_cleared", events=n)
+        self.emit("history_cleared")
 
     def on_tool(self, name: str, args: dict) -> None:
         if name not in ("switching_model", "live_reconnecting", "microphone"):   # (notices, not actions)
@@ -254,6 +280,7 @@ class Hub:
         for ev in self.history:                     # a page that reconnects gets the new version too
             if ev.get("id") == rid:
                 ev["text"] = out
+        storage.update_text(rid, out)
         self.emit("jarvis_update", id=rid, text=out)
 
     def _chat_script_later(self, rid: str, text: str) -> None:
@@ -541,11 +568,38 @@ class Hub:
         if not new:
             return []
         save_env_keys(new)
-        self.brain = make_brain(self.ctx, on_text=self.on_text, on_tool=self.on_tool)   # pick up the new AIs
+        self.rebuild_brain()                    # pick up the new AIs
+        return [k for k, env_name in self.KEYS.items() if env_name in new]
+
+    def rebuild_brain(self) -> None:
+        """Re-read which AIs are available (new key, Ollama started, model downloaded, local/cloud order)."""
+        self.brain = make_brain(self.ctx, on_text=self.on_text, on_tool=self.on_tool)
         self.brain.set_voice_mode(self.voice_mode)
         if self.language != "en":
             self.brain.set_language(self.language)
-        return [k for k, env_name in self.KEYS.items() if env_name in new]
+        self.emit("settings", brain_changed=True)
+
+    # ---------- local AI (Ollama) ----------
+    def local_info(self) -> dict:
+        from .providers import prefer_local
+        return {**local_ai.status(), "prefer_local": prefer_local(), "download_page": local_ai.DOWNLOAD_PAGE,
+                "pulling": getattr(self, "_pulling", None)}
+
+    def local_pull(self, model: str) -> None:
+        """Download a model in the background (you pressed Download, after seeing its size)."""
+        if getattr(self, "_pulling", None):
+            return
+        self._pulling = model
+        audit.record("local_model_download", model=model)
+        try:
+            local_ai.pull(model, lambda status, frac: self.emit("local_pull", model=model, status=status,
+                                                              frac=None if frac is None else round(frac, 3)))
+            self.emit("local_pull", model=model, status="success", frac=1.0, done=True)
+            self.rebuild_brain()
+        except Exception as e:
+            self.emit("local_pull", model=model, status=f"failed: {str(e)[:120]}", frac=None, done=True, error=True)
+        finally:
+            self._pulling = None
 
     def set_theme(self, mode: str) -> None:
         schedule.set_setting("theme", mode if mode in schedule.THEMES else "dark")
@@ -604,6 +658,22 @@ class Hub:
                   args=f"{'allowed' if allow else 'denied'} by {how}"
                        + (f"; won't ask again for {self.TRUSTABLE[kind]} until the app restarts" if remembered else ""))
         return True
+
+    def emergency_stop(self, how: str = "button") -> None:
+        """Stop everything now: the running task (no more tools or steps), waiting approvals (answered "no"),
+        the Live call and anything being spoken. Cleared by your next instruction."""
+        tools.STOP.set()
+        for cid in list(self.pending):
+            self.answer_confirm(cid, False, how="Stop")
+        if self.live and self.live.active:
+            self.live_stop("stopped")
+        if self.recording:
+            self.recording.stop()
+        audit.record("emergency_stop", how=how)
+        print(f"[stop] everything stopped ({how})")
+        self.emit("stopped", how=how)
+        self.emit("tool", keep=True, name="emergency_stop", id=self._next_id(), args=f"stopped everything ({how})")
+        self.set_state("idle")
 
     def voice_answer(self, text: str) -> bool:
         """If an approval is waiting, a short spoken "yes"/"no" answers it. True if the text was used."""
@@ -665,6 +735,8 @@ class Hub:
         text = text.strip()
         if not text:
             return
+        if source != "scheduled":
+            tools.STOP.clear()                 # a new instruction: Stop is over
         rid = self._next_id()
         self.emit("user", keep=True, text=text, source=source, id=rid)
         if source not in ("typed", "scheduled"):             # what you typed stays exactly as you typed it
@@ -728,6 +800,7 @@ class Hub:
 
     def live_start(self, preroll=None, greet: str | None = None, idle_stop: float | None = None,
                    quiet_room: bool = False) -> None:
+        tools.STOP.clear()                     # starting a call is a new instruction
         self.standby_halt()                    # the call needs the microphone
         with self._listen_lock:
             if self.live and self.live.active:
@@ -893,6 +966,7 @@ class Hub:
                "turns": len(getattr(self.brain, "turns", [])), "tool_calls": self.tool_calls,
                "computer": platform.node(), "user": memory.call_name(), "loud_alerts": alerts.loud(),
                "live_on_open": self.live_on_open(), "tray": WINDOW_HOOK is not None, "chat_script": self.chat_script(),
+               "keep_history": self.keep_history(),
                "start_with_windows": schedule.get_setting("start_with_windows", True) is not False,
                "assistant_name": schedule.agent_name(), "theme": schedule.theme(),
                "version": __version__, "trusted": sorted(self.trusted), "languages": languages.choices(),
@@ -978,6 +1052,10 @@ class Handler(BaseHTTPRequestHandler):
             return self._json({"error": "forbidden"}, 403)
         if path == "/api/stats":
             return self._json(HUB.stats())
+        if path == "/api/local":                            # AI Models page: Ollama status
+            return self._json(HUB.local_info())
+        if path == "/api/audit":                            # Settings > Privacy: what it did on this PC
+            return self._json({"events": audit.recent(200)})
         if path == "/api/info":
             return self._json({
                 "tools": [{"name": d["name"], "description": d["description"].split(". ")[0].rstrip(".") + "."}
@@ -1060,6 +1138,33 @@ class Handler(BaseHTTPRequestHandler):
             return self._transcribe()
         if self.path == "/api/tts":
             return self._tts()
+        if self.path == "/api/local":
+            try:
+                data = json.loads(self.rfile.read(int(self.headers.get("Content-Length", "0"))) or b"{}")
+            except (ValueError, json.JSONDecodeError):
+                return self._json({"error": "bad json"}, 400)
+            if "prefer_local" in data:
+                schedule.set_setting("prefer_local", bool(data["prefer_local"]))
+                HUB.rebuild_brain()
+            action = data.get("action")
+            if action == "rescan":
+                local_ai._cache["models"] = None
+                local_ai.start()
+                HUB.rebuild_brain()
+            elif action == "use" and data.get("model") in [m["name"] for m in local_ai.models(refresh=True)]:
+                schedule.set_setting("local_model", data["model"])
+                HUB.rebuild_brain()
+            elif action == "pull" and data.get("model") in [r[0] for r in local_ai.RECOMMENDED]:
+                threading.Thread(target=HUB.local_pull, args=(data["model"],), daemon=True).start()
+            elif action == "get_ollama":                    # the free download page, in your normal browser
+                os.startfile(local_ai.DOWNLOAD_PAGE)
+            return self._json(HUB.local_info())
+        if self.path == "/api/history/clear":              # Settings > Privacy: forget the saved conversation
+            HUB.clear_history()
+            return self._json({"ok": True})
+        if self.path == "/api/stop":                        # Emergency stop (button, Esc twice, tray menu)
+            threading.Thread(target=HUB.emergency_stop, args=("button",), daemon=True).start()
+            return self._json({"ok": True})
         if self.path == "/api/window":                      # the app was opened again: show the window from the tray
             if WINDOW_HOOK:
                 threading.Thread(target=WINDOW_HOOK, args=("show",), daemon=True).start()
@@ -1124,6 +1229,8 @@ class Handler(BaseHTTPRequestHandler):
                 schedule.set_setting("loud_alerts", bool(data["loud_alerts"]))
             if data.get("chat_script") in ("roman", "urdu"):
                 HUB.set_chat_script(data["chat_script"])
+            if "keep_history" in data:
+                schedule.set_setting("keep_history", bool(data["keep_history"]))
             if "live_on_open" in data:
                 schedule.set_setting("live_on_open", bool(data["live_on_open"]))
             if "start_with_windows" in data:
@@ -1350,7 +1457,7 @@ def main(open_window: bool = True, watchdog: bool = True, ready: threading.Event
     part = "morning" if hour < 12 else "afternoon" if hour < 17 else "evening"
     HUB.history.append({"type": "jarvis", "time": datetime.now().strftime("%H:%M:%S"),
                         "text": f"Good {part}, {memory.call_name()}. All systems online. How can I help?",
-                        "quiet": auto_call})          # the Live call greets you out loud instead
+                        "quiet": auto_call, "greeting": True})   # the Live call greets you out loud instead
     if open_window:
         _open_window(url)
     if watchdog:

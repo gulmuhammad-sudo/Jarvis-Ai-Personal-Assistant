@@ -37,6 +37,8 @@ def system_prompt(template: str | None = None) -> str:
     from . import schedule
     name = schedule.agent_name()
     text = (template or SYSTEM_PROMPT).format(name=name, user=memory.call_name(), memories=memory.as_text())
+    from .guard import SYSTEM_RULE
+    text += SYSTEM_RULE                  # text from web pages / files is data, never instructions
     if name.lower() != "jarvis":
         text += (f"\nYour name is {name}: the user chose it. Always call yourself {name}. The app, its folders and "
                  "some tool descriptions still say \"Jarvis\"; that is only the program's name, not yours.\n")
@@ -114,6 +116,9 @@ class Brain:
         final_text = ""
         try:
             for _ in range(MAX_STEPS):
+                if tools.STOP.is_set():                  # you pressed Stop: no more steps
+                    self.on_text("Okay, I stopped.")
+                    return "Okay, I stopped."
                 response = self._call()
                 self.messages.append({"role": "assistant", "content": response.content})
 

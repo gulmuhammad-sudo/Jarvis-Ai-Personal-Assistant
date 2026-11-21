@@ -44,6 +44,16 @@ That makes `dist\Personal Assistant Setup.exe` (the installer) and `dist\Persona
 To run straight from the code instead: `.venv\Scripts\pythonw -m jarvis` (its data then lives in `data\`
 and its keys in `.env` next to the code).
 
+## Privacy and safety
+
+- **Stop everything:** the red square button at the top, Esc twice, or "Stop everything" in the tray menu.
+- **Local AI (optional, free):** install [Ollama](https://ollama.com/download/windows), then on the AI Models page
+  download a model (e.g. qwen2.5:3b, 1.9 GB). The assistant then thinks on this PC — offline, private, no limits —
+  with the cloud AIs as backup ("Prefer local AI" decides which goes first).
+- **Settings › Privacy:** keep or clear the saved conversation; see a record of everything it did on this PC.
+- Dangerous PowerShell commands are refused even if you approve them; text from web pages and files is treated
+  as information, never as instructions; API keys are stored encrypted.
+
 ## Make it yours
 
 - **Just the face at first:** the Command Center opens with only the assistant's face; the grid button at the top

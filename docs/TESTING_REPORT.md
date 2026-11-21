@@ -11,6 +11,16 @@ set PA_TEST_NETWORK=1 && .venv\Scripts\python -m pytest tests   # also the onlin
 .venv\Scripts\python packaging\build.py              # then smoke-test the packaged exe (see below)
 ```
 
+## 2026-11-21 — Phase 1 rest + local AI (v1.9.0)
+
+| Suite | Result | Notes |
+|---|---|---|
+| `pytest tests` | **80 passed** | + guard/audit (38: 24 dangerous commands refused, 8 normal allowed, untrusted marking, audit redaction, approvals logged, Stop), storage (4), local AI against a fake Ollama (7), page scripts parse with Node + every wired button exists (3) |
+| Running app (test copy, isolated data, browser pane) | pass | audit log records tool calls; Settings › Privacy shows them; Stop button stops and is logged; conversation came back after restarting the app; AI Models shows the Local AI card |
+| Bug caught while running it | fixed | a `\n` written into hud.html as a real line break stopped the whole page script; now caught by tests/test_pages.py |
+| Real Ollama | not tested | Ollama isn't installed on this PC |
+| Packaged exe 1.9.0 (isolated data, fake Ollama, spare port) | 7/7 | version; local AI found and first in the chain; answered with a tool; audit has the tool + Stop; conversation back after restart; `assistant.db` created |
+
 ## 2026-11-21 — Phase 1 (v1.8.0)
 
 | Suite | Result | Notes |

@@ -181,6 +181,11 @@ body[data-state="listening"] .mic::before { border-color: rgba(var(--c-green), .
 .search input::placeholder { color: var(--dim); }
 .search button { background: none; border: 0; color: var(--muted); border-radius: 7px; height: 28px; width: 30px; display: grid; place-items: center; }
 .search button:hover { color: var(--cyan); background: var(--cyan-ink); }
+.iconbtn.stop { color: #ff6b6b; border-color: rgba(255, 107, 107, .45); }
+.iconbtn.stop:hover { background: rgba(255, 107, 107, .12); }
+body[data-state="thinking"] .iconbtn.stop { background: rgba(255, 107, 107, .16); }
+.auditlist { max-height: 260px; overflow: auto; font: 12px/1.5 ui-monospace, Consolas, monospace; color: var(--muted);
+  border: 1px solid var(--hair-2); border-radius: 10px; padding: 8px 10px; margin-top: 8px; white-space: pre-wrap; }
 .iconbtn { width: 36px; height: 36px; border-radius: 10px; border: 1px solid var(--hair-2); background: var(--surface); color: var(--muted); display: grid; place-items: center; transition: color .15s, border-color .15s; }
 .iconbtn:hover { color: var(--text); border-color: rgba(var(--c-accent), .4); }
 .iconbtn.on { color: var(--cyan); }
@@ -343,6 +348,9 @@ body[data-state="listening"] .mic::before { border-color: rgba(var(--c-green), .
 .btn.on { color: var(--green); border-color: rgba(var(--c-green), .45); }
 .btn.danger { color: var(--red); border-color: rgba(var(--c-red), .35); }
 .list { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 8px; }
+#localCard { grid-template-columns: 1fr; }
+#localCard .item { align-items: center; }
+#localCard .item .btn { flex: none; margin-left: 6px; }
 .item { padding: 10px 12px; border-radius: 10px; border: 1px solid var(--hair); background: rgba(var(--c-fill), .015); display: flex; gap: 10px; align-items: flex-start; transition: border-color .15s; }
 .item:hover { border-color: var(--hair-2); }
 .item .ico { width: 28px; height: 28px; border-radius: 7px; display: grid; place-items: center; background: rgba(var(--c-fill), .04); color: var(--muted); flex-shrink: 0; font-family: var(--mono); font-size: 10px; }
@@ -707,6 +715,7 @@ body[data-state="listening"] .talk { border-color: var(--green); background: lin
         <input id="input" placeholder="Ask Jarvis anything…  (Ctrl+K)" aria-label="Message Jarvis">
         <button type="submit" aria-label="Send"><i data-ic="send"></i></button>
       </form>
+      <button class="iconbtn stop" id="stopBtn" title="Stop everything: the task, the call, speaking (Esc twice)" aria-label="Stop everything"><i data-ic="stop"></i></button>
       <button class="iconbtn" id="detailsBtn" title="Show the details around the face" aria-label="Show or hide details" aria-pressed="false"><i data-ic="grid"></i></button>
       <button class="iconbtn lang" id="langBtn" title="Language: English / Urdu (click to switch)" aria-label="Switch language">EN</button>
       <button class="iconbtn" id="speakBtn" title="Spoken replies on/off" aria-label="Spoken replies"><i data-ic="speaker"></i></button>
@@ -847,12 +856,16 @@ body[data-state="listening"] .talk { border-color: var(--green); background: lin
     <section class="view" data-view="models">
       <section class="card page">
         <h3>AI Models <span class="more" style="cursor:default">Tried in order; the next one takes over if one fails</span></h3>
-        <div class="body"><div class="list" id="modelList"></div>
+        <div class="body">
+          <h4 class="sec">LOCAL AI · ON THIS PC</h4>
+          <div class="list" id="localCard"><div class="empty">Checking for local AI…</div></div>
+          <h4 class="sec">ALL AIs</h4>
+          <div class="list" id="modelList"></div>
           <h4 class="sec">HOW TO SWITCH</h4>
           <div class="item"><span class="ico"><i data-ic="swap"></i></span><div><b>Press Use on a provider above, or say "Groq pe chalo" / "use OpenRouter"</b>
             <small>The one you pick answers first and the others stay as backup. "Automatic" goes back to the normal order. Live voice calls always use Gemini Live; switch to Classic style in Settings to talk to another AI by voice.</small></div></div>
-          <div class="item"><span class="ico"><i data-ic="note"></i></span><div><b class="keepname">Add a provider: edit the .env file in the Jarvis folder</b>
-            <small>Add GEMINI_API_KEY, GROQ_API_KEY, OPENROUTER_API_KEY or DEEPSEEK_API_KEY, then restart Jarvis.</small></div></div>
+          <div class="item"><span class="ico"><i data-ic="note"></i></span><div><b>Add a free cloud AI: Settings › Run setup › AI keys</b>
+            <small>Gemini, Groq or OpenRouter keys are free. They are stored encrypted for your Windows account.</small></div></div>
         </div>
       </section>
     </section>
@@ -920,6 +933,13 @@ body[data-state="listening"] .talk { border-color: var(--green); background: lin
             <button class="btn" id="bootBtn">On</button></div>
           <div class="setrow"><div class="lbl"><b>Live call when it opens</b><small>Starts a Live conversation as soon as the app opens. After 3 quiet minutes it waits for you (or its name) again. Needs Hands-free on.</small></div>
             <button class="btn" id="autoLiveBtn">On</button></div>
+
+          <h4 class="sec">PRIVACY</h4>
+          <div class="setrow"><div class="lbl"><b>Keep conversation history</b><small>Your chat and the Activity list are saved on this PC (never uploaded), so they are still there after a restart.</small></div>
+            <button class="btn" id="keepHistBtn">On</button><button class="btn" id="clearHistBtn">Clear saved history</button></div>
+          <div class="setrow"><div class="lbl"><b>What it did on this PC</b><small>A permanent record of every action and every approval (keys, passwords and file contents are never written to it).</small></div>
+            <button class="btn" id="auditBtn">Show</button></div>
+          <div class="auditlist" id="auditList" hidden></div>
 
           <h4 class="sec">ALERTS</h4>
           <div class="setrow"><div class="lbl"><b>Loud alerts</b><small>Alarms, timers, low battery and errors pop up and play at full volume, then your volume goes back to normal.</small></div>
@@ -1061,6 +1081,7 @@ const $ = id => document.getElementById(id);
 // ---------- icons ----------
 const ICONS = {
   grid: "M4 4h6v6H4zM14 4h6v6h-6zM4 14h6v6H4zM14 14h6v6h-6z",
+  stop: "M7 7h10v10H7z",
   chat: "M4 5h16v11H9l-5 4z",
   db: "M12 3c4.4 0 8 1.3 8 3s-3.6 3-8 3-8-1.3-8-3 3.6-3 8-3zM4 6v6c0 1.7 3.6 3 8 3s8-1.3 8-3V6M4 12v6c0 1.7 3.6 3 8 3s8-1.3 8-3v-6",
   wrench: "M14.7 6.3a4 4 0 0 0-5.4 5.4L3 18l3 3 6.3-6.3a4 4 0 0 0 5.4-5.4l-2.5 2.5-2.4-.6-.6-2.4z",
@@ -1095,6 +1116,7 @@ const ICONS = {
   briefcase: "M3 8h18v12H3zM8 8V5h8v3M3 13h18",
   swap: "M4 8h13l-3-3M20 16H7l3 3",
   cpu: "M7 7h10v10H7zM10 3v4M14 3v4M10 17v4M14 17v4M3 10h4M3 14h4M17 10h4M17 14h4",
+  download: "M12 4v11M7 10l5 5 5-5M5 20h14",
   moon: "M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z",
   pin: "M12 21s-7-6.2-7-12a7 7 0 0 1 14 0c0 5.8-7 12-7 12zM12 6.5a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5z",
   sun: "M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8zM12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4",
@@ -1141,7 +1163,7 @@ function go(view) {
   if (view === "conv") { scrollChat(); $("input2").focus(); }
   if (view === "memory" || view === "tools") loadInfo();
   if (view === "profile") loadProfile();
-  if (view === "models") renderModels();
+  if (view === "models") { renderModels(); loadLocal(); }
   if (view === "dash") requestAnimationFrame(() => { sizeCanvases(); drawConstel(); });
 }
 document.querySelectorAll(".navi").forEach(n => n.onclick = () => go(n.dataset.view));
@@ -1411,6 +1433,17 @@ function handle(ev) {
       }
       micUi(); paintLive();
       break;
+    case "stopped":
+      stopSpeaking(); convo.armed = false;
+      if (!replaying) addFeed({ title: "Stopped everything", sub: "Task, call and speech stopped. Your next instruction starts fresh.", tag: "INFO", ic: "shield" });
+      break;
+    case "history_cleared":
+      chat.innerHTML = ""; msgCount = 0; $("bConv").textContent = 0; lastUser = lastJarvis = ""; renderSubs();
+      break;
+    case "local_pull":
+      if (localInfo) { localInfo.pulling = ev.done ? null : ev.model; renderLocal(ev); }
+      if (ev.done && !replaying) { addFeed({ title: ev.error ? `Couldn't download ${ev.model}` : `Downloaded ${ev.model}`, sub: ev.error ? ev.status : "Local AI is ready", tag: ev.error ? "WARN" : "INFO", ic: "cpu" }); loadLocal(); }
+      break;
     case "jarvis_update": {          // a chat message rewritten in the script you asked for (English letters / Urdu)
       const el = chat.querySelector(`[data-mid="${ev.id}"]`);
       if (el) {
@@ -1488,7 +1521,8 @@ function handle(ev) {
       myId = ev.client; speakerId = ev.speaker;
       chat.innerHTML = ""; msgCount = 0;
       replaying = true; ev.events.forEach(handle); replaying = false;
-      if (!greeted && ev.events.length === 1 && ev.events[0].type === "jarvis" && !ev.events[0].quiet) speak(ev.events[0].text);
+      { const last = ev.events[ev.events.length - 1];       // the start-up greeting (saved chat comes before it)
+        if (!greeted && last && last.greeting && !last.quiet) speak(last.text); }
       greeted = true;
       setState(ev.state); applySettings(ev);
       confirmQueue = ev.pending || []; showConfirm();
@@ -1924,6 +1958,11 @@ setInterval(() => {
   }
 }, 200);
 document.addEventListener("keydown", e => {
+  if (e.key === "Escape") {                       // Esc twice quickly = Stop everything
+    const now = Date.now();
+    if (now - (window._lastEsc || 0) < 700) { window._lastEsc = 0; emergencyStop(); return; }
+    window._lastEsc = now;
+  }
   if (e.key === "Escape" && !confirmQueue.length && live.active && live.phase === "speaking") { post("/api/live", { interrupt: true }); return; }
   if (e.key === "Escape" && !confirmQueue.length && isSpeaking()) { stopSpeaking(); convo.armed = false; }
 });
@@ -2048,15 +2087,15 @@ async function poll() {
     hotFor.ram = s.ram > 92 ? hotFor.ram + 1 : 0; hotFor.cpu = s.cpu > 90 ? hotFor.cpu + 1 : 0;
     if (hotFor.ram >= 10) alertOnce("ram", { title: `Memory almost full (${Math.round(s.ram)}%)`, sub: "Close a few apps or browser tabs", tag: "WARN", ic: "warn" });
     if (hotFor.cpu >= 20) alertOnce("cpu", { title: `CPU running hot (${Math.round(s.cpu)}%) for 30 seconds`, sub: "Something is working hard. Ask me \"how's my PC doing?\" to see what", tag: "WARN", ic: "warn" });
-    paintAlertSettings(s); paintStartup(s);
+    paintAlertSettings(s); paintStartup(s); paintPrivacy(s);
     renderTimeline(s.timers || []);
     renderLlms(s.llms || []);
     if (constelN !== Math.min(s.memories, 24)) { constelN = Math.min(s.memories, 24); drawConstel(); }
     renderLabel();
   } catch (e) { /* server restarting */ }
 }
-const LLM_ABBR = { Claude: "C", Gemini: "G", Groq: "Gq", OpenRouter: "OR", DeepSeek: "DS", Whisper: "W", "Neural voice": "V" };
-function stClass(st) { return st === "no key" ? "s-no" : `s-${st}`; }
+const LLM_ABBR = { "Local AI": "PC", Claude: "C", Gemini: "G", Groq: "Gq", OpenRouter: "OR", DeepSeek: "DS", Whisper: "W", "Neural voice": "V" };
+function stClass(st) { return st === "no key" || st === "not set up" ? "s-no" : `s-${st}`; }
 function renderLlms(llms) {
   setHTML($("llms"), llms.map(l => `
     <div class="llm" title="${esc(l.detail || "")}"><span class="ico">${LLM_ABBR[l.label] || l.label[0]}</span>
@@ -2074,6 +2113,51 @@ function renderModels() {
       <small>${esc(l.detail || "")}</small></div>
       ${usable.has(l.label) ? `<button class="btn${b.preferred === l.label ? " on" : ""}" data-use="${esc(l.label)}" style="margin-left:auto">${b.preferred === l.label ? "In use" : "Use"}</button>` : ""}</div>`).join("");
   $("modelList").querySelectorAll("[data-use]").forEach(x => x.onclick = () => useBrain(x.dataset.use, null));
+}
+
+// ---------- local AI (Ollama) ----------
+let localInfo = null;
+async function loadLocal(action) {
+  try {
+    localInfo = action ? await post("/api/local", action)
+                       : await (await fetch(`/api/local?token=${TOKEN}`, { cache: "no-store" })).json();
+  } catch { localInfo = null; }
+  renderLocal();
+}
+function renderLocal(pull) {
+  const L = localInfo, box = $("localCard");
+  if (!L) { box.innerHTML = '<div class="empty">Couldn\'t check for local AI.</div>'; return; }
+  const row = (ic, title, sub, buttons = "") => `<div class="item"><span class="ico">${icon(ic)}</span><div style="min-width:0;flex:1"><b>${title}</b><small>${sub}</small></div>${buttons}</div>`;
+  let html = "";
+  if (!L.running) {
+    html += row("cpu", L.installed ? "Ollama is installed but not running" : "Free AI that runs on this PC",
+      L.installed ? "Start it to use AI offline. Nothing leaves your computer." :
+        "Install Ollama (free) and the assistant can think without internet or API keys. Download it from ollama.com, install, then press Check again.",
+      `${L.installed ? "" : '<button class="btn" data-local="get_ollama">Get Ollama</button>'}<button class="btn" data-local="rescan">${L.installed ? "Start" : "Check again"}</button>`);
+  } else {
+    const usable = L.models.filter(m => m.tools);
+    html += row("cpu", L.model ? `Local AI ready: ${esc(L.model)}` : "Ollama is running: download a model",
+      L.model ? "Answers come from this PC (works offline, private)." : "Pick one below. Smaller is faster; bigger is smarter.",
+      `<button class="btn" data-local="rescan">Check again</button>`);
+    for (const m of usable) html += row("db", esc(m.name), `${m.size_gb} GB${m.vision ? " · can see images" : ""}`,
+      `<button class="btn${m.name === L.model ? " on" : ""}" data-use-local="${esc(m.name)}">${m.name === L.model ? "In use" : "Use"}</button>`);
+    for (const r of L.recommended.filter(r => !L.models.some(m => m.name === r.name))) {
+      const busy = L.pulling === r.name || (pull && pull.model === r.name && !pull.done);
+      const pct = pull && pull.model === r.name && pull.frac != null ? ` ${Math.round(pull.frac * 100)}%` : "";
+      html += row("download", `${esc(r.name)} · ${esc(r.size)}`, esc(r.about) + (busy ? ` — ${esc(pull ? pull.status : "downloading")}${pct}` : ""),
+        `<button class="btn" data-pull="${esc(r.name)}"${busy || L.pulling ? " disabled" : ""}>${busy ? "Downloading…" : "Download"}</button>`);
+    }
+  }
+  html += row("swap", "Prefer local AI", "On: local AI answers first and cloud AIs are the backup. Off: cloud first, local when offline.",
+    `<button class="btn${L.prefer_local ? " on" : ""}" id="preferLocal">${L.prefer_local ? "On" : "Off"}</button>`);
+  box.innerHTML = html;
+  box.querySelectorAll("[data-local]").forEach(b => b.onclick = () => { b.disabled = true; loadLocal({ action: b.dataset.local }); });
+  box.querySelectorAll("[data-use-local]").forEach(b => b.onclick = () => loadLocal({ action: "use", model: b.dataset.useLocal }));
+  box.querySelectorAll("[data-pull]").forEach(b => b.onclick = () => {
+    const r = L.recommended.find(x => x.name === b.dataset.pull);
+    if (confirm(`Download ${r.name} (${r.size}) from Ollama? It stays on this PC.`)) loadLocal({ action: "pull", model: r.name });
+  });
+  $("preferLocal").onclick = () => loadLocal({ prefer_local: !L.prefer_local });
 }
 
 // ---------- memory / tools pages ----------
@@ -2645,6 +2729,30 @@ $("followBtn").onclick = () => { convo.on = !convo.on; storeSet("jarvis.followup
 paintFollow();
 $("micSel").onchange = async () => { await post("/api/mic", { name: $("micSel").value || null }); loadMics(); };
 loadMics();
+
+// ---------- emergency stop + privacy ----------
+function emergencyStop() { stopSpeaking(); convo.armed = false; post("/api/stop", {}); }
+$("stopBtn").onclick = emergencyStop;
+function paintPrivacy(s) {
+  const on = s.keep_history !== false;
+  $("keepHistBtn").textContent = on ? "On" : "Off"; $("keepHistBtn").classList.toggle("on", on);
+}
+$("keepHistBtn").onclick = () => toggleSetting("keep_history");
+$("clearHistBtn").onclick = async () => {
+  if (!confirm("Delete the saved conversation and activity history from this PC? This can't be undone.")) return;
+  await post("/api/history/clear", {});
+};
+$("auditBtn").onclick = async () => {
+  const box = $("auditList");
+  if (!box.hidden) { box.hidden = true; $("auditBtn").textContent = "Show"; return; }
+  const r = await fetch(`/api/audit?token=${TOKEN}`, { cache: "no-store" }).then(r => r.json()).catch(() => ({ events: [] }));
+  box.textContent = (r.events || []).slice().reverse().map(e => {
+    const what = e.event === "tool" ? `${e.tool} ${e.ok ? "ok" : "failed"}` : e.event === "approval" ? `asked (${e.kind || "action"}): ${e.granted ? "allowed" : "denied"}`
+      : e.event === "blocked" ? `refused ${e.tool}: ${e.reason}` : e.event.replace(/_/g, " ");
+    return `${e.time}  ${what}`;
+  }).join("\n") || "Nothing yet.";
+  box.hidden = false; $("auditBtn").textContent = "Hide";
+};
 
 // ---------- loud alerts ----------
 function paintAlertSettings(s) {
