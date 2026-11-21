@@ -18,6 +18,8 @@ set PA_TEST_NETWORK=1 && .venv\Scripts\python -m pytest tests   # also the onlin
 | `pytest tests` | 148 passed, 2 skipped | new tests/test_skills_graph.py (11): save/edit/find/limits, rules first, only enabled skills reach the AI (and `brain.system_prompt`), prompt budget lists the rest by name, `use_skill`, `save_skill` refused without approval and while Stop is on, name extraction, graph links only names in 2+ memories |
 | Running app (test copy) | pass after 3 fixes | graph: 19 nodes, names Ali/Hina/Lahore; hover tooltip + neighbours lit; click name → list filtered, click category → chip, click memory → scrolled + highlighted. Skills: examples, save, duplicate name error, On/Off, two-click Delete, audit `skill_saved`/`skill_deleted`. Fixed: list stayed visible in Graph mode (CSS beat `hidden`), graph bunched in the middle (layout spread + pre-settled), "On" text inside skill switches; also a console error when the form closed before Save answered |
 | Run button with a real AI | not run | would spend the owner's AI quota from the test copy; `run_message` is unit-tested |
+| Packaged exe 1.15.0 (isolated data, real local voice + speech model, fake Ollama) | 19/19 | the 14 checks of 1.14.0 plus: memory graph, skills saved (rules first), **Run** sends the routine and the (fake local) AI answers, skills in the audit log, skills kept after restart |
+| Setup.exe size | 142 MB | |
 
 ## 2026-11-21 — Personal Intelligence Engine (v1.14.0)
 
