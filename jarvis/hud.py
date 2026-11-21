@@ -43,31 +43,7 @@ except ImportError:
     psutil = None
 
 HTML_FILE = Path(__file__).with_name("hud.html")
-FACES = ("globe", "mask", "rings", "photo")
-
-
-def face_photo() -> Path | None:
-    from .config import DATA_DIR
-    return next((p for p in (DATA_DIR / f"face_photo{e}" for e in (".jpg", ".png", ".webp", ".gif")) if p.exists()), None)
-
-
-def face_photo_version() -> int:
-    f = face_photo()
-    return int(f.stat().st_mtime) if f else 0
-
-
-def save_face_photo(data: bytes) -> Path:
-    """Keep one picture for the Photo face (in data/, never uploaded anywhere)."""
-    from .config import DATA_DIR
-    ext = (".jpg" if data[:3] == b"\xff\xd8\xff" else ".png" if data[:8] == b"\x89PNG\r\n\x1a\n"
-           else ".webp" if data[:4] == b"RIFF" and data[8:12] == b"WEBP" else ".gif" if data[:4] == b"GIF8" else "")
-    if not ext:
-        raise ValueError("That isn't a picture (use JPG, PNG, WEBP or GIF).")
-    for old in DATA_DIR.glob("face_photo.*"):
-        old.unlink()
-    out = DATA_DIR / f"face_photo{ext}"
-    out.write_bytes(data)
-    return out
+FACES = ("globe", "mask", "rings")
 PORT = int(os.environ.get("JARVIS_HUD_PORT", "8765"))
 TOKEN = secrets.token_urlsafe(24)
 WINDOW_HOOK = None      # set by the desktop app: WINDOW_HOOK("show") brings its window back from the tray
@@ -1067,7 +1043,6 @@ class Hub:
                "reading_voice": schedule.get_setting("reading_voice"),
                "hands_free": self.voice_mode, "standby": self.standby_on, "mic_prompt": self.mic_prompt,
                "wake_word": self.wake_on(), "noise_reduction": denoise.level(), "face": schedule.get_setting("face") or "globe",
-               "face_photo": face_photo_version(),
                "alert_tone": alerts.tone(), "tones": alerts.TONES,
                "brain": self.brain.options() if hasattr(self.brain, "options") else None,
                "language": self.language,
@@ -1180,19 +1155,6 @@ class Handler(BaseHTTPRequestHandler):
                                "saved": schedule.get_setting("mic")})
         if path == "/api/setup":
             return self._json(HUB.setup_info())
-        if path == "/api/face_photo":
-            f = face_photo()
-            if not f:
-                return self._json({"error": "no photo"}, 404)
-            body = f.read_bytes()
-            self.send_response(200)
-            self.send_header("Content-Type", {".jpg": "image/jpeg", ".png": "image/png", ".webp": "image/webp",
-                                              ".gif": "image/gif"}[f.suffix])
-            self.send_header("Content-Length", str(len(body)))
-            self.send_header("Cache-Control", "no-store")
-            self.end_headers()
-            self.wfile.write(body)
-            return
         if path == "/api/profile":
             return self._json({"profile": memory.profile(), "fields": memory.PROFILE_FIELDS})
         if path == "/api/voices":
@@ -1275,17 +1237,6 @@ class Handler(BaseHTTPRequestHandler):
             if WINDOW_HOOK:
                 threading.Thread(target=WINDOW_HOOK, args=("show",), daemon=True).start()
             return self._json({"ok": bool(WINDOW_HOOK)})
-        if self.path == "/api/face_photo":                  # a picture for the Photo face (stays on this PC)
-            length = int(self.headers.get("Content-Length", "0"))
-            if not 0 < length <= 8 * 1024 * 1024:
-                return self._json({"error": "Pick a picture smaller than 8 MB."}, 400)
-            try:
-                save_face_photo(self.rfile.read(length))
-            except ValueError as e:
-                return self._json({"error": str(e)}, 400)
-            schedule.set_setting("face", "photo")
-            HUB.emit("settings", face="photo", face_photo=face_photo_version())
-            return self._json({"ok": True, "version": face_photo_version()})
         try:
             length = int(self.headers.get("Content-Length", "0"))
             data = json.loads(self.rfile.read(length) or b"{}")

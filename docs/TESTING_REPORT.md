@@ -11,6 +11,15 @@ set PA_TEST_NETWORK=1 && .venv\Scripts\python -m pytest tests   # also the onlin
 .venv\Scripts\python packaging\build.py              # then smoke-test the packaged exe (see below)
 ```
 
+## 2026-11-21 — UI polish, Photo face removed (v1.13.0)
+
+| Suite | Result | Notes |
+|---|---|---|
+| Packaged exe 1.12.0 (isolated data, real local voice + speech model, fake Ollama) | 9/10 → fixed | version, favicon, offline engines inside the exe, voice on this PC (3.0 s WAV), local AI, Stop, history after restart passed; **speech-to-text on this PC failed in the exe** (`'NoneType' object has no attribute 'flush'`: no console) → fixed in local_stt.py + tests/test_frozen_quirks.py; recheck in the 1.13.0 exe |
+| `pytest tests` | 117 passed, 2 skipped | |
+| Running app (test copy) | pass | 8 switches (click flips, aria-checked follows), 29 rows aligned label/controls, 11 section + 6 tab icons, Photo face gone, rows animate in, no console errors |
+| Setup.exe size | 141 MB | up from 104 MB: offline speech + voice engines |
+
 ## 2026-11-21 — Settings tabs, favicon, tidy folder (v1.12.0)
 
 | Suite | Result | Notes |

@@ -535,12 +535,6 @@ body.focus .dash .row1 { grid-template-columns: minmax(0, 1fr); flex: 1; }
 .fprev { height: 58px; border-radius: 8px; border: 1px solid var(--hair-2); background: var(--bg); display: grid; place-items: center; }
 .fprev svg { width: 70px; height: 46px; fill: none; stroke: var(--cyan); stroke-width: 1.3; stroke-linejoin: round; stroke-linecap: round; }
 .fprev svg .f { fill: var(--cyan); stroke: none; }
-.fphoto { overflow: hidden; position: relative; }
-.fphoto img { width: 100%; height: 100%; object-fit: cover; object-position: 50% 25%; }
-.fphoto em { font-style: normal; font-size: 11.5px; color: var(--muted); }
-.facepick { font-size: 12.5px; color: var(--muted); margin-top: 8px; display: flex; gap: 10px; align-items: center; }
-body[data-face="photo"] .heroText { top: auto; bottom: 16px; transform: none; }
-body[data-face="photo"] .heroText .t1 { font-size: clamp(18px, 1.6vw, 24px); letter-spacing: .34em; }
 body[data-face="mask"] .heroText { top: auto; bottom: 16px; transform: none; }
 body[data-face="mask"] .heroText .t1 { font-size: clamp(18px, 1.6vw, 24px); letter-spacing: .34em; }
 
@@ -683,6 +677,80 @@ body[data-state="listening"] .talk { border-color: var(--green); background: lin
 }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: 0s !important; animation-iteration-count: 1 !important; transition-duration: 0s !important; }
+}
+
+/* ===================== polish (1.13): icons, motion, settings ===================== */
+svg.ic { transition: transform .28s cubic-bezier(.3, 1.5, .5, 1), color .2s, filter .2s; }
+/* side menu: every icon sits in a small tile; the open page's tile glows */
+.navi svg.ic { width: 30px; height: 30px; padding: 6px; box-sizing: border-box; border-radius: 9px;
+  background: rgba(var(--c-fill), .035); border: 1px solid var(--hair); }
+.navi:hover svg.ic { color: var(--cyan); border-color: rgba(var(--c-accent), .35); transform: translateY(-1px); }
+.navi.active svg.ic { color: var(--cyan); background: rgba(var(--c-accent), .16); border-color: rgba(var(--c-accent), .55);
+  box-shadow: 0 0 14px rgba(var(--c-accent), .35); }
+.navi.active::before { animation: navMark .3s ease both; }
+@keyframes navMark { from { transform: scaleY(0); opacity: 0; } }
+.navi { transition: color .15s, background .15s, transform .15s; }
+.navi:active { transform: scale(.98); }
+/* buttons: press feedback and a soft glow */
+.btn, .iconbtn, .settab, .tcard { transition: border-color .15s, color .15s, background .2s, transform .12s, box-shadow .2s; }
+.btn:active, .iconbtn:active, .settab:active, .tcard:active { transform: scale(.96); }
+.iconbtn:hover, .btn:hover { box-shadow: 0 0 0 3px rgba(var(--c-accent), .07); }
+.btn svg.ic, .iconbtn svg.ic { width: 16px; height: 16px; }
+/* each icon has its own small hover move */
+:is(.navi, .btn, .iconbtn, .talk, .settab, .qbtn):hover .ic-gear { transform: rotate(90deg); }
+:is(.navi, .btn, .iconbtn, .settab):hover .ic-refresh { transform: rotate(-180deg); }
+:is(.navi, .btn, .iconbtn, .talk, .settab):hover .ic-mic { animation: icPulse .9s ease-in-out infinite; }
+:is(.navi, .btn, .iconbtn, .settab, .qbtn):hover :is(.ic-chat, .ic-db, .ic-user, .ic-layers, .ic-briefcase, .ic-tasks, .ic-note) { animation: icHop .5s ease; }
+:is(.navi, .btn, .iconbtn, .settab):hover .ic-wrench { transform: rotate(-25deg); }
+:is(.btn, .iconbtn, .qbtn):hover .ic-play, :is(.btn, .iconbtn):hover .ic-play2 { transform: translateX(2px) scale(1.1); }
+:is(.btn, .iconbtn, .search):hover .ic-send { transform: translate(2px, -2px); }
+:is(.btn, .iconbtn, .settab):hover .ic-bell { animation: icRing .6s ease; transform-origin: 50% 10%; }
+:is(.btn, .iconbtn, .search):hover .ic-search, .search:focus-within .ic-search { transform: scale(1.12); color: var(--cyan); }
+:is(.btn, .iconbtn):hover .ic-stop { transform: scale(.8); }
+:is(.btn, .iconbtn):hover .ic-speaker, :is(.btn, .iconbtn):hover .ic-mute { animation: icPulse .8s ease-in-out infinite; }
+:is(.btn, .iconbtn, .navi):hover .ic-sun { transform: rotate(45deg); }
+:is(.btn, .iconbtn, .navi):hover .ic-moon { transform: rotate(-20deg); }
+:is(.btn, .iconbtn, .navi):hover .ic-grid { transform: rotate(90deg) scale(.95); }
+:is(.btn, .iconbtn, .navi):hover .ic-swap { transform: rotate(180deg); }
+:is(.btn, .iconbtn):hover .ic-download { animation: icDrop .6s ease; }
+:is(.btn, .iconbtn, .x):hover .ic-x { transform: rotate(90deg); }
+:is(.btn, .iconbtn, .navi, .settab):hover :is(.ic-shield, .ic-check, .ic-zap, .ic-globe, .ic-eye, .ic-edit) { transform: scale(1.15); }
+@keyframes icPulse { 50% { transform: scale(1.16); } }
+@keyframes icHop { 35% { transform: translateY(-3px); } 70% { transform: translateY(1px); } }
+@keyframes icRing { 20% { transform: rotate(14deg); } 40% { transform: rotate(-12deg); } 60% { transform: rotate(8deg); } 80% { transform: rotate(-4deg); } }
+@keyframes icDrop { 40% { transform: translateY(3px); } }
+/* settings: tabs with icons, every row = label on the left, controls on the right */
+.settab { display: inline-flex; align-items: center; justify-content: center; gap: 7px; }
+.settab svg.ic { width: 15px; height: 15px; }
+.settab.on { box-shadow: inset 0 -2px 0 var(--cyan), 0 0 16px rgba(var(--c-accent), .12); }
+.settings h4.sec { display: flex; align-items: center; gap: 8px; }
+.settings h4.sec svg.ic { width: 15px; height: 15px; padding: 4px; border-radius: 7px; box-sizing: content-box;
+  background: rgba(var(--c-accent), .1); color: var(--cyan); }
+.setrow { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; column-gap: 20px; row-gap: 10px;
+  transition: border-color .2s, background .2s, transform .2s; }
+.setrow:hover { border-color: rgba(var(--c-accent), .25); background: rgba(var(--c-accent), .025); }
+.setrow > .lbl { min-width: 0; }
+.setrow > .ctrl { display: flex; align-items: center; justify-content: flex-end; flex-wrap: wrap; gap: 8px; }
+.setrow > .ctrl > .themecards { justify-content: flex-end; }
+.setrow.wide { grid-template-columns: 1fr; }
+.setrow.wide > .ctrl { justify-content: flex-start; }
+.setrow select, .setrow .txt, .setrow .btn { height: 36px; }
+@media (max-width: 760px) { .setrow { grid-template-columns: 1fr; } .setrow > .ctrl { justify-content: flex-start; } }
+.setgroup.on > * { animation: rowIn .38s cubic-bezier(.2, .8, .2, 1) both; animation-delay: calc(var(--i, 0) * 28ms); }
+@keyframes rowIn { from { opacity: 0; transform: translateY(10px); } }
+/* On/Off settings look like switches (the word stays for screen readers) */
+.btn.switch { width: 52px; min-width: 52px; height: 28px !important; padding: 0; border-radius: 999px; font-size: 0; position: relative;
+  background: rgba(var(--c-fill), .08); border-color: var(--hair-2); }
+.btn.switch::after { content: ""; position: absolute; top: 3px; left: 3px; width: 20px; height: 20px; border-radius: 50%;
+  background: var(--muted); transition: transform .28s cubic-bezier(.3, 1.5, .5, 1), background .2s, box-shadow .2s; }
+.btn.switch.on { background: rgba(var(--c-accent), .28); border-color: rgba(var(--c-accent), .7); }
+.btn.switch.on::after { transform: translateX(24px); background: var(--cyan); box-shadow: 0 0 10px rgba(var(--c-accent), .6); }
+.btn.switch:focus-visible { outline: 2px solid var(--cyan); outline-offset: 2px; }
+/* range sliders in the accent colour */
+.setrow input[type=range] { accent-color: var(--cyan); cursor: pointer; }
+/* respect "reduce animations" in Windows */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: .001ms !important; animation-iteration-count: 1 !important; transition-duration: .001ms !important; }
 }
 </style>
 </head>
@@ -900,10 +968,8 @@ body[data-state="listening"] .talk { border-color: var(--green); background: lin
               <button class="tcard" data-theme-btn="dark"><span class="tprev dark"><i class="s"></i><i class="a"></i><i></i></span>Dark</button>
               <button class="tcard" data-theme-btn="light"><span class="tprev light"><i class="s"></i><i class="a"></i><i></i></span>Light</button>
               <button class="tcard" data-theme-btn="system"><span class="tprev auto"><i class="s"></i><i class="a"></i><i></i></span>Auto (Windows)</button></div></div>
-          <div class="setrow"><div class="lbl"><b>Face</b><small>What your assistant looks like in the middle of the Command Center. Photo: any picture, e.g. your own (it stays on this PC).</small>
-            <div class="facepick"><button class="btn" id="facePickBtn"><i data-ic="user"></i>Choose a picture…</button><span id="facePickMsg"></span></div></div>
-            <input type="file" id="facePick" accept="image/png,image/jpeg,image/webp,image/gif" hidden>
-            <div class="themecards"><button class="tcard fcard" data-face-btn="globe"><span class="fprev"><svg viewBox="0 0 60 40" aria-hidden="true"><circle cx="30" cy="20" r="15"/><ellipse cx="30" cy="20" rx="6.5" ry="15"/><ellipse cx="30" cy="20" rx="15" ry="5.5"/><circle class="f" cx="30" cy="20" r="2.2"/></svg></span>Globe</button><button class="tcard fcard" data-face-btn="mask"><span class="fprev"><svg viewBox="0 0 60 40" aria-hidden="true"><path d="M30 3 L40 5 L45 12 L46 20 L43 28 L37 34 L30 37 L23 34 L17 28 L14 20 L15 12 L20 5 Z"/><path class="f" d="M21.5 17.5 Q25 15.2 28.3 17.6 Q25 19 21.5 17.5 Z M31.7 17.6 Q35 15.2 38.5 17.5 Q35 19 31.7 17.6 Z"/><path d="M25 27 h10 M26.5 25.6 v2.8 M30 24.8 v4.4 M33.5 25.6 v2.8"/></svg></span>Mask</button><button class="tcard fcard" data-face-btn="rings"><span class="fprev"><svg viewBox="0 0 60 40" aria-hidden="true"><circle cx="30" cy="20" r="15" stroke-dasharray="5 3"/><circle cx="30" cy="20" r="10.5" stroke-dasharray="9 4"/><circle class="f" cx="30" cy="20" r="5"/></svg></span>Rings</button><button class="tcard fcard" data-face-btn="photo"><span class="fprev fphoto"><img alt="" hidden><em>Add a picture</em></span>Photo</button></div></div>
+          <div class="setrow"><div class="lbl"><b>Face</b><small>What your assistant looks like in the middle of the Command Center.</small></div>
+            <div class="themecards"><button class="tcard fcard" data-face-btn="globe"><span class="fprev"><svg viewBox="0 0 60 40" aria-hidden="true"><circle cx="30" cy="20" r="15"/><ellipse cx="30" cy="20" rx="6.5" ry="15"/><ellipse cx="30" cy="20" rx="15" ry="5.5"/><circle class="f" cx="30" cy="20" r="2.2"/></svg></span>Globe</button><button class="tcard fcard" data-face-btn="mask"><span class="fprev"><svg viewBox="0 0 60 40" aria-hidden="true"><path d="M30 3 L40 5 L45 12 L46 20 L43 28 L37 34 L30 37 L23 34 L17 28 L14 20 L15 12 L20 5 Z"/><path class="f" d="M21.5 17.5 Q25 15.2 28.3 17.6 Q25 19 21.5 17.5 Z M31.7 17.6 Q35 15.2 38.5 17.5 Q35 19 31.7 17.6 Z"/><path d="M25 27 h10 M26.5 25.6 v2.8 M30 24.8 v4.4 M33.5 25.6 v2.8"/></svg></span>Mask</button><button class="tcard fcard" data-face-btn="rings"><span class="fprev"><svg viewBox="0 0 60 40" aria-hidden="true"><circle cx="30" cy="20" r="15" stroke-dasharray="5 3"/><circle cx="30" cy="20" r="10.5" stroke-dasharray="9 4"/><circle class="f" cx="30" cy="20" r="5"/></svg></span>Rings</button></div></div>
 
           <div class="setrow"><div class="lbl"><b>First-time setup</b><small>Walk through the welcome setup again: name, language, voices, look, hands-free and AI keys.</small></div>
             <button class="btn" id="setupAgain"><i data-ic="refresh"></i>Run setup</button></div>
@@ -1082,8 +1148,7 @@ body[data-state="listening"] .talk { border-color: var(--green); background: lin
           <button class="tcard" data-setup-theme="light"><span class="tprev light"><i class="s"></i><i class="a"></i><i></i></span>Light</button>
           <button class="tcard" data-setup-theme="system"><span class="tprev auto"><i class="s"></i><i class="a"></i><i></i></span>Auto (Windows)</button></div>
         <h3 class="ssub">FACE</h3>
-        <div class="facepick" style="margin:-4px 0 10px"><button class="btn" id="sFacePick"><i data-ic="user"></i>Use a picture…</button><span id="sFacePickMsg"></span></div>
-        <div class="themecards"><button class="tcard fcard" data-setup-face="globe"><span class="fprev"><svg viewBox="0 0 60 40" aria-hidden="true"><circle cx="30" cy="20" r="15"/><ellipse cx="30" cy="20" rx="6.5" ry="15"/><ellipse cx="30" cy="20" rx="15" ry="5.5"/><circle class="f" cx="30" cy="20" r="2.2"/></svg></span>Globe</button><button class="tcard fcard" data-setup-face="mask"><span class="fprev"><svg viewBox="0 0 60 40" aria-hidden="true"><path d="M30 3 L40 5 L45 12 L46 20 L43 28 L37 34 L30 37 L23 34 L17 28 L14 20 L15 12 L20 5 Z"/><path class="f" d="M21.5 17.5 Q25 15.2 28.3 17.6 Q25 19 21.5 17.5 Z M31.7 17.6 Q35 15.2 38.5 17.5 Q35 19 31.7 17.6 Z"/><path d="M25 27 h10 M26.5 25.6 v2.8 M30 24.8 v4.4 M33.5 25.6 v2.8"/></svg></span>Mask</button><button class="tcard fcard" data-setup-face="rings"><span class="fprev"><svg viewBox="0 0 60 40" aria-hidden="true"><circle cx="30" cy="20" r="15" stroke-dasharray="5 3"/><circle cx="30" cy="20" r="10.5" stroke-dasharray="9 4"/><circle class="f" cx="30" cy="20" r="5"/></svg></span>Rings</button><button class="tcard fcard" data-setup-face="photo"><span class="fprev fphoto"><img alt="" hidden><em>Add a picture</em></span>Photo</button></div>
+        <div class="themecards"><button class="tcard fcard" data-setup-face="globe"><span class="fprev"><svg viewBox="0 0 60 40" aria-hidden="true"><circle cx="30" cy="20" r="15"/><ellipse cx="30" cy="20" rx="6.5" ry="15"/><ellipse cx="30" cy="20" rx="15" ry="5.5"/><circle class="f" cx="30" cy="20" r="2.2"/></svg></span>Globe</button><button class="tcard fcard" data-setup-face="mask"><span class="fprev"><svg viewBox="0 0 60 40" aria-hidden="true"><path d="M30 3 L40 5 L45 12 L46 20 L43 28 L37 34 L30 37 L23 34 L17 28 L14 20 L15 12 L20 5 Z"/><path class="f" d="M21.5 17.5 Q25 15.2 28.3 17.6 Q25 19 21.5 17.5 Z M31.7 17.6 Q35 15.2 38.5 17.5 Q35 19 31.7 17.6 Z"/><path d="M25 27 h10 M26.5 25.6 v2.8 M30 24.8 v4.4 M33.5 25.6 v2.8"/></svg></span>Mask</button><button class="tcard fcard" data-setup-face="rings"><span class="fprev"><svg viewBox="0 0 60 40" aria-hidden="true"><circle cx="30" cy="20" r="15" stroke-dasharray="5 3"/><circle cx="30" cy="20" r="10.5" stroke-dasharray="9 4"/><circle class="f" cx="30" cy="20" r="5"/></svg></span>Rings</button></div>
       </section>
       <section class="spage" data-step="talk">
         <h2>How do you want to talk?</h2><p class="lead">Hands-free means you never need to press a button.</p>
@@ -1156,7 +1221,6 @@ const ICONS = {
   note: "M5 3h10l4 4v14H5zM14 3v5h5M8 13h8M8 17h6",
   x: "M6 6l12 12M18 6 6 18",
   edit: "M4 20h4L19 9l-4-4L4 16zM14 6l4 4",
-  check: "M5 12.5l4.5 4.5L19 7",
   briefcase: "M3 8h18v12H3zM8 8V5h8v3M3 13h18",
   swap: "M4 8h13l-3-3M20 16H7l3 3",
   cpu: "M7 7h10v10H7zM10 3v4M14 3v4M10 17v4M14 17v4M3 10h4M3 14h4M17 10h4M17 14h4",
@@ -1166,7 +1230,7 @@ const ICONS = {
   sun: "M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8zM12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4",
   play2: "M8 5v14l11-7z",
 };
-function icon(name) { return `<svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="${ICONS[name] || ICONS.info}"/></svg>`; }
+function icon(name) { return `<svg class="ic ic-${name}" viewBox="0 0 24 24" aria-hidden="true"><path d="${ICONS[name] || ICONS.info}"/></svg>`; }
 function paintIcons(root = document) { root.querySelectorAll("i[data-ic]").forEach(el => { el.outerHTML = icon(el.dataset.ic); }); }
 paintIcons();
 
@@ -2114,7 +2178,6 @@ async function poll() {
     $("ovLlm").textContent = live.active ? "Gemini Live (call)" : s.provider ? `${s.provider}${s.brain && s.brain.preferred === "auto" ? " · auto" : ""}` : "none";
     $("ovLlm").className = up ? "info" : "bad"; $("ovLlm").title = `${up} AI providers connected`;
     paintBrain(s); paintTone(s); askMic(s.mic_prompt); paintWake(s);
-    if ("face_photo" in s) loadPhoto(s.face_photo);
     if (s.face && s.face !== faceMode && !$("setup").classList.contains("open")) applyFace(s.face);
     $("setupAgain").closest(".setrow").hidden = !!s.setup_done;
     if (s.languages && !$("langSel").options.length) paintLangSel();
@@ -2631,80 +2694,8 @@ function drawRings(t) {
   core.addColorStop(0, ink(0.95)); core.addColorStop(0.25, col(0.85)); core.addColorStop(1, col(0));
   g.fillStyle = core; g.beginPath(); g.arc(cx, cy, R * 0.34 * (1 + lvl * 0.3), 0, Math.PI * 2); g.fill();
 }
-// the Photo face: a picture (yours, or any), breathing gently, with a ring that pulses with the voice
-const photo = { img: null, version: -1 };
-function loadPhoto(version) {
-  if (version === photo.version) return;
-  photo.version = version;
-  photo.img = null;
-  document.querySelectorAll(".fphoto").forEach(f => { f.querySelector("img").hidden = !version; f.querySelector("em").hidden = !!version; });
-  if (!version) return;
-  const img = new Image();
-  img.onload = () => { photo.img = img; };
-  img.src = `/api/face_photo?token=${TOKEN}&v=${version}`;
-  document.querySelectorAll(".fphoto img").forEach(i => { i.src = img.src; });
-}
-function drawPhoto(t) {
-  const g = globe.cv.getContext("2d"), w = globe.w, h = globe.h;
-  if (!w) return;
-  const { dt, key, col } = faceColor(t);
-  const lvl = talkLevel(t), area = h - 46;
-  globe.zoom += (globe.zoomT - globe.zoom) * (1 - 0.88 ** dt);
-  const R = Math.min(w * 0.24, area * 0.43) * globe.zoom, cx = w / 2, cy = area * 0.5;
-  g.clearRect(0, 0, w, h);
-  const halo = g.createRadialGradient(cx, cy, R * 0.6, cx, cy, R * 1.6);
-  halo.addColorStop(0, col(0.28 + lvl * 0.25)); halo.addColorStop(1, col(0));
-  g.fillStyle = halo; g.beginPath(); g.arc(cx, cy, R * 1.6, 0, Math.PI * 2); g.fill();
-  const breathe = 1 + Math.sin(t / 1600) * 0.006 + lvl * 0.018;
-  g.save(); g.beginPath(); g.arc(cx, cy, R, 0, Math.PI * 2); g.clip();
-  if (photo.img) {
-    const im = photo.img, s = Math.max((2 * R) / im.width, (2 * R) / im.height) * 1.08 * breathe;
-    const iw = im.width * s, ih = im.height * s;
-    g.drawImage(im, cx - iw / 2, cy - R - (ih - 2 * R) * 0.15, iw, ih);   // cover the circle; faces sit high in a portrait
-    const v = g.createRadialGradient(cx, cy, R * 0.55, cx, cy, R);   // soft edge in the theme colour
-    v.addColorStop(0, "rgba(0,0,0,0)"); v.addColorStop(1, col(0.35));
-    g.fillStyle = v; g.fillRect(cx - R, cy - R, 2 * R, 2 * R);
-    const sweep = ((t / 3200) % 2) - 0.5;                            // a slow light sweep
-    const lg = g.createLinearGradient(cx - R + sweep * 2 * R, cy - R, cx - R + sweep * 2 * R + R * 0.6, cy + R);
-    lg.addColorStop(0, "rgba(255,255,255,0)"); lg.addColorStop(0.5, "rgba(255,255,255,0.08)"); lg.addColorStop(1, "rgba(255,255,255,0)");
-    g.fillStyle = lg; g.fillRect(cx - R, cy - R, 2 * R, 2 * R);
-  } else {
-    g.fillStyle = col(0.12); g.fillRect(cx - R, cy - R, 2 * R, 2 * R);
-  }
-  g.restore();
-  // the ring: pulses with the voice; spins while thinking
-  g.lineWidth = 3 + lvl * 5; g.strokeStyle = col(0.75 + lvl * 0.25); g.shadowColor = col(0.9); g.shadowBlur = 12 + lvl * 20;
-  g.beginPath(); g.arc(cx, cy, R + 4, 0, Math.PI * 2); g.stroke(); g.shadowBlur = 0;
-  if (key === "thinking" || key === "transcribing") {
-    g.lineWidth = 3; g.strokeStyle = col(0.9);
-    g.beginPath(); g.arc(cx, cy, R + 14, t / 300, t / 300 + 1.2); g.stroke();
-  }
-  for (let i = 0; i < 3; i++) {                                       // voice ripples
-    const k = ((t / 1200) + i / 3) % 1, rr = R + 8 + k * R * 0.35 * (0.3 + lvl);
-    g.lineWidth = 1.5; g.strokeStyle = col((1 - k) * (0.15 + lvl * 0.5));
-    g.beginPath(); g.arc(cx, cy, rr, 0, Math.PI * 2); g.stroke();
-  }
-}
-async function pickFacePhoto(msgEl) {
-  const input = $("facePick");
-  input.value = "";
-  input.onchange = async () => {
-    const f = input.files[0]; if (!f) return;
-    msgEl.textContent = "Saving…";
-    const r = await fetch("/api/face_photo", { method: "POST", headers: { "Content-Type": f.type || "application/octet-stream", "X-Jarvis-Token": TOKEN }, body: f });
-    const j = await r.json().catch(() => ({}));
-    if (!r.ok) { msgEl.textContent = j.error || "Couldn't use that picture."; return; }
-    msgEl.textContent = "Done";
-    loadPhoto(j.version); applyFace("photo");
-    if (S) { S.face = "photo"; pickOpt("data-setup-face", "photo"); }
-  };
-  input.click();
-}
-$("facePickBtn").onclick = () => pickFacePhoto($("facePickMsg"));
-$("sFacePick").onclick = () => pickFacePhoto($("sFacePickMsg"));
 function applyFace(mode) {
-  faceMode = ["globe", "mask", "rings", "photo"].includes(mode) ? mode : "globe";
-  if (faceMode === "photo" && !photo.version) { $("facePickBtn").classList.add("on"); }
+  faceMode = ["globe", "mask", "rings"].includes(mode) ? mode : "globe";
   document.body.dataset.face = faceMode;
   document.querySelectorAll("[data-face-btn]").forEach(b => b.classList.toggle("on", b.dataset.faceBtn === faceMode));
 }
@@ -2731,7 +2722,7 @@ function frame(t) {
   const fps = busy ? 60 : document.hasFocus() ? 30 : 15;
   if (!document.hidden && t - lastDraw >= 1000 / fps - 4) {
     lastDraw = t;
-    (faceMode === "mask" ? drawMask : faceMode === "rings" ? drawRings : faceMode === "photo" ? drawPhoto : drawGlobe)(t);
+    (faceMode === "mask" ? drawMask : faceMode === "rings" ? drawRings : drawGlobe)(t);
     drawWave(t);
   }
   requestAnimationFrame(frame);
@@ -2797,11 +2788,39 @@ paintFollow();
 $("micSel").onchange = async () => { await post("/api/mic", { name: $("micSel").value || null }); loadMics(); };
 loadMics();
 
+// ---------- settings polish: icons, aligned rows, switches, row animation ----------
+(function polishSettings() {
+  const SEC = { "ASSISTANT": "user", "LANGUAGE": "globe", "STARTUP": "zap", "CHAT": "chat", "TALKING": "mic", "VOICES": "speaker",
+    "MICROPHONE": "mic", "AI MODEL": "layers", "PRIVACY": "shield", "PERMISSIONS": "check", "ALERTS": "bell" };
+  document.querySelectorAll(".settings h4.sec").forEach(h => { const n = SEC[h.textContent.trim()]; if (n) h.insertAdjacentHTML("afterbegin", icon(n)); });
+  const TAB = { general: "gear", voice: "mic", ai: "layers", privacy: "shield", permissions: "check", alerts: "bell" };
+  document.querySelectorAll("[data-settab]").forEach(b => b.insertAdjacentHTML("afterbegin", icon(TAB[b.dataset.settab] || "info")));
+  document.querySelectorAll(".settings .setrow").forEach(row => {       // label left, all controls together on the right
+    const items = [...row.children].filter(c => !c.classList.contains("lbl") && !(c.tagName === "INPUT" && c.type === "file"));
+    if (!items.length) return;
+    const ctrl = document.createElement("div");
+    ctrl.className = "ctrl";
+    items.forEach(c => ctrl.appendChild(c));
+    row.appendChild(ctrl);
+    if (ctrl.querySelector(".themecards")) row.classList.add("wide");
+  });
+  for (const id of ["voiceBtn2", "wakeBtn", "speakBtn2", "followBtn", "bootBtn", "autoLiveBtn", "keepHistBtn", "loudBtn"]) {
+    const b = $(id); if (!b) continue;
+    b.classList.add("switch"); b.setAttribute("role", "switch");
+    const sync = () => b.setAttribute("aria-checked", b.classList.contains("on"));
+    sync(); new MutationObserver(sync).observe(b, { attributes: true, attributeFilter: ["class"] });
+  }
+})();
+
 // ---------- settings tabs ----------
 function setTab(name) {
   if (!document.querySelector(`[data-setgroup="${name}"]`)) name = "general";
   document.querySelectorAll("[data-settab]").forEach(b => { const on = b.dataset.settab === name; b.classList.toggle("on", on); b.setAttribute("aria-selected", on); });
-  document.querySelectorAll("[data-setgroup]").forEach(g => g.classList.toggle("on", g.dataset.setgroup === name));
+  document.querySelectorAll("[data-setgroup]").forEach(g => {
+    const on = g.dataset.setgroup === name;
+    g.classList.toggle("on", false);
+    if (on) { [...g.children].forEach((c, i) => c.style.setProperty("--i", Math.min(i, 14))); void g.offsetWidth; g.classList.add("on"); }   // replay the row animation
+  });
   storeSet("jarvis.settab", name);
 }
 document.querySelectorAll("[data-settab]").forEach(b => b.onclick = () => setTab(b.dataset.settab));
@@ -3168,7 +3187,7 @@ function showStep() {
   if (STEPS[sIdx] === "done") {
     const keys = Object.entries(KEY_INFO).filter(([k]) => S.keys[k] || S.newKeys[k]).map(([, v]) => v[0]);
     const rows = [["Assistant", name], ["Calls you", $("sCall").value.trim() || "Sir"], ["Language", langName(S.language)],
-      ["Call voice", S.live_voice], ["Reading voice", ($("sReadVoice").selectedOptions[0] || {}).text || ""], ["Look", { dark: "Dark", light: "Light", system: "Auto (Windows)" }[S.theme] + " · " + { globe: "Globe", mask: "Mask", rings: "Rings", photo: "Photo" }[S.face]],
+      ["Call voice", S.live_voice], ["Reading voice", ($("sReadVoice").selectedOptions[0] || {}).text || ""], ["Look", { dark: "Dark", light: "Light", system: "Auto (Windows)" }[S.theme] + " · " + { globe: "Globe", mask: "Mask", rings: "Rings" }[S.face] || "Globe"],
       ["Hands-free", S.hands_free ? "On" : "Off"], ["Wake word", S.wake_word ? `On (say "${name}")` : "Off"], ["Style", S.engine === "live" ? "Live" : "Classic"], ["AI connected", keys.join(", ") || "none yet"]];
     $("sSum").innerHTML = rows.map(([k, v]) => `<span>${esc(k)}</span><b>${esc(v)}</b>`).join("");
     $("sDoneTitle").textContent = `All set! Meet ${name}.`;

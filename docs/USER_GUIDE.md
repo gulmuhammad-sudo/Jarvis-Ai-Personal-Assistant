@@ -61,9 +61,7 @@ and its keys in `.env` next to the code).
 
 - **Just the face at first:** the Command Center opens with only the assistant's face; the grid button at the top
   shows or hides the details around it (remembered).
-- **Face:** Globe, Mask, Rings or **Photo** (in the setup wizard or Settings → Appearance → Face). Photo shows any
-  picture you choose, for example a real person's face, in a glowing frame that lights up as it talks. Press
-  **Choose a picture…** (JPG, PNG, WEBP or GIF, up to 8 MB). The picture stays on your PC (`data/face_photo.*`).
+- **Face:** Globe, Mask or Rings (in the setup wizard or Settings › General › Face).
 - **Talk over it any time:** start talking clearly and it stops and listens. Echo cancellation removes its own
   voice from the mic, so this works on laptop speakers too (a headset is still best).
 

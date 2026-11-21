@@ -2,6 +2,15 @@
 
 Each version is also a git tag (`git tag -n20 vX.Y.Z` shows its notes). Newest first.
 
+## 1.13.0 — 2026-11-21
+- New look for icons everywhere: menu icons sit in small tiles (the open page glows), every icon has its own
+  hover animation (gear turns, mic pulses, bell rings, refresh spins…), buttons give a press effect.
+- Settings: icons on tabs and sections, every row has its label on the left and controls on the right, On/Off
+  settings are real switches, rows slide in when you open a tab. Windows' "reduce animations" is respected.
+- Removed the Photo face (Globe, Mask and Rings remain; a saved Photo choice shows the Globe).
+- Fixed: speech-to-text on this PC failed inside the installed app (no console to write logs to) — found by
+  testing the packaged exe.
+
 ## 1.12.0 — 2026-11-21
 - Settings in tabs: General · Voice & Mic · AI · Privacy · Permissions · Alerts. Permissions (Ask / Allow /
   Never per action, and "Allowed until restart") are now in one place, separate from Privacy.

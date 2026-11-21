@@ -98,12 +98,23 @@ def download(name: str, on_progress=None) -> Path:
     return dest
 
 
+def _consoles() -> None:
+    """The installed app has no console (sys.stdout/stderr are None) and pywhispercpp flushes them: give it a
+    harmless sink instead of crashing ("'NoneType' object has no attribute 'flush'")."""
+    import sys
+    if sys.stdout is None:
+        sys.stdout = open(os.devnull, "w", encoding="utf-8")
+    if sys.stderr is None:
+        sys.stderr = open(os.devnull, "w", encoding="utf-8")
+
+
 def _model(name: str):
     if _loaded["name"] != name:
+        _consoles()
         from pywhispercpp.model import Model
         threads = max(2, min(8, (os.cpu_count() or 4) // 2))
         _loaded["model"] = Model(str(model_file(name)), n_threads=threads, print_progress=False,
-                                 print_realtime=False, redirect_whispercpp_logs_to=None)
+                                 print_realtime=False, redirect_whispercpp_logs_to=False)
         _loaded["name"] = name
     return _loaded["model"]
 
@@ -132,6 +143,7 @@ def transcribe(pcm: np.ndarray, language: str | None = None) -> str:
     if not name:
         raise RuntimeError("no local speech model downloaded")
     with _lock:                      # one at a time: the model isn't thread-safe and uses several CPU cores
+        _consoles()
         segs = _model(name).transcribe(np.ascontiguousarray(pcm, dtype=np.float32),
                                        language=language or "auto", translate=False, no_context=True,
                                        single_segment=False, print_progress=False)

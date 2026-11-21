@@ -14,6 +14,15 @@ Not done: packaged exe build with the new native libraries (sherpa_onnx, espeakn
 
 **Next** — build and smoke-test the exe; then NEXT_STEPS.md (universal command bar, Personal Intelligence Engine).
 
+## 2026-11-21 — Session 2, part 2: UI polish (v1.13.0)
+
+**Done** — icon tiles + per-icon hover motion across the app, settings alignment/switches/section icons/row
+animation, reduced-motion support, Photo face removed (UI, upload API, drawing code, installer choice), duplicate
+`check` icon removed. Packaged-exe check of 1.12.0 found a frozen-only bug (local STT with no console) — fixed.
+
+**Next** — build 1.13.0, re-run the exe check, update the owner's installed app (1.7.1) with Setup, then ask
+before starting the next roadmap phase.
+
 ## 2026-11-21 — Session 2: settings tabs, favicon, tidy folder, short README (v1.12.0)
 
 **Done** — Settings regrouped into 6 tabs (script kept every id); Permissions separate from Privacy; favicon;

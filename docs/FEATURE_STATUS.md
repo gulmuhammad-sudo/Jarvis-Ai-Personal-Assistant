@@ -71,7 +71,7 @@ audio, installer, uninstaller, packaged-exe smoke test). They are being moved in
 | 38 | Smart notification center | PARTIALLY IMPLEMENTED | `jarvis/alerts.py`, Activity feed in `jarvis/hud.html` | — | none | Pop-ups + feed (not kept after restart). Missing: history, filters, do-not-disturb |
 | 39 | AI agent ecosystem | NOT IMPLEMENTED | (the HUD "Agents" panel only lights up tool categories) | 20 | — | — |
 | 40 | Knowledge graph and memory dashboard | PARTIALLY IMPLEMENTED | Memory page in `jarvis/hud.html`, `jarvis/memory.py` | 9 | none | List/edit/merge/forget. No graph |
-| 41 | Complete UI customization | PARTIALLY IMPLEMENTED | `jarvis/hud.html` | — | none | Theme, face, focus mode. Missing: colours, layout, panel choice |
+| 41 | Complete UI customization | PARTIALLY IMPLEMENTED | `jarvis/hud.html` | — | test_pages; running-app checks | Theme, face, focus mode, settings in tabs, animated icons (1.12–1.13). Missing: colours, layout, panel choice |
 | 42 | Multi-user voice profiles | NOT IMPLEMENTED | — | 7 | — | — |
 | 43 | Windows software manager | NOT IMPLEMENTED | — | 26 | — | `winget` is free and built in |
 | 44 | Advanced Windows administration | PARTIALLY IMPLEMENTED | tools `run_powershell`, `power_action`, `wireless`, `set_brightness`, `lock_computer`; `jarvis/guard.py` | 26 | test_guard_audit (24 refused, 8 allowed) | PowerShell asks first; destructive commands refused outright (1.9.0). Missing: services, scheduled tasks, event log tools |
@@ -142,7 +142,7 @@ audio, installer, uninstaller, packaged-exe smoke test). They are being moved in
 | 94 | No live-streaming studio | NOT APPLICABLE | — | — | — | Excluded |
 | 95 | System restore and troubleshooting | PARTIALLY IMPLEMENTED | `jarvis.log`, mic diagnostics, Unmute/Boost | 99 | none | No "repair" actions |
 | 96 | No household management | NOT APPLICABLE | — | — | — | Excluded |
-| 97 | AI avatar and character studio | PARTIALLY IMPLEMENTED | faces Globe/Mask/Rings/Photo in `jarvis/hud.html` | — | manual checks | No character editor, no lip sync |
+| 97 | AI avatar and character studio | PARTIALLY IMPLEMENTED | faces Globe/Mask/Rings in `jarvis/hud.html` (Photo removed in 1.13.0 at the owner's request) | — | manual checks | No character editor, no lip sync |
 | 98 | Privacy and permission dashboard | PARTIALLY IMPLEMENTED | Settings › Privacy in `jarvis/hud.html` | 6, 26 | test_permissions, test_storage, test_guard_audit | Keep/clear history, audit record, per-action permissions (1.9.0–1.9.2). Missing: data-sent-to-cloud overview, mic/camera usage log |
 | 99 | Self-diagnostics and health monitoring | PARTIALLY IMPLEMENTED | AI Models status, mic probing, echo-canceller log | — | none | No diagnostics page |
 | 100 | Personal user understanding engine | PARTIALLY IMPLEMENTED | `jarvis/memory.py` (profile + facts in every prompt) | 9 | none | Shared Personal Intelligence Engine with 9, 29, 40, 103, 104 |

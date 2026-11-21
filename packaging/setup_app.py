@@ -241,7 +241,7 @@ class Api:
             put("reading_voice", str(c["reading_voice"])[:60])
         put("voice_engine", "classic" if c.get("engine") == "classic" else "live")
         put("theme", c.get("theme") if c.get("theme") in schedule.THEMES else "dark")
-        put("face", c.get("face") if c.get("face") in ("globe", "mask", "rings", "photo") else "globe")
+        put("face", c.get("face") if c.get("face") in ("globe", "mask", "rings") else "globe")
         put("chat_script", "urdu" if c.get("chat_script") == "urdu" else "roman")
         for k in ("hands_free", "wake_word", "start_with_windows", "live_on_open"):
             put(k, bool(c.get(k, True)))
