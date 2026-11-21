@@ -26,7 +26,7 @@ from urllib.parse import parse_qs
 
 from . import __version__
 from . import live as live_mod
-from . import alerts, approvals, audit, denoise, gpu, languages, local_ai, local_stt, local_tts, memory, schedule, skills, stt, storage, tools, tts, urdu, wake
+from . import alerts, approvals, audit, denoise, gpu, languages, local_ai, local_stt, local_tts, memory, schedule, skills, stt, storage, tools, tts, urdu, wake, winmgr
 from .brain import make_brain
 from .config import NOTES_DIR
 from .providers import provider_status
@@ -91,6 +91,7 @@ class Hub:
         self.trusted: set[str] = set()      # approval kinds you already allowed this session
         self._ids, self._open_tools = 0, {} # Activity: tool id -> waiting for its result
         tools.RESULT_HOOK = self._tool_result
+        tools.WORKSPACES_CHANGED = lambda: self.emit("workspaces_changed")
         self.voice_mode = schedule.get_setting("hands_free", True) is not False   # hands-free from the moment the app opens
         self.brain.set_voice_mode(self.voice_mode)
         self._standby: threading.Thread | None = None   # hands-free (Live): waits locally for your voice
@@ -1104,6 +1105,14 @@ class Hub:
 HUB: Hub | None = None
 
 
+def _workspaces() -> list[dict]:
+    try:
+        return winmgr.list_workspaces()
+    except Exception as e:                 # never let a bad row break the Tools page
+        print(f"[workspaces] {e}")
+        return []
+
+
 class Handler(BaseHTTPRequestHandler):
     server_version = "Jarvis"
 
@@ -1173,6 +1182,7 @@ class Handler(BaseHTTPRequestHandler):
                 "memories": memory.all_facts(),
                 "graph": memory.graph(),
                 "skills": skills.all_skills(),
+                "workspaces": _workspaces(),
                 "notes": sorted((n.name for n in NOTES_DIR.glob("*.md")), reverse=True)})
         if path == "/api/tts_stream":
             return self._tts_stream(query)
@@ -1441,6 +1451,26 @@ class Handler(BaseHTTPRequestHandler):
             audit.record("skill_saved", name=s["name"], mode=s["mode"], by="you")
             HUB.skills_changed()
             return self._json({"ok": True, "skill": s})
+        elif self.path in ("/api/workspaces/save", "/api/workspaces/delete"):
+            try:
+                if self.path.endswith("save"):
+                    msg = winmgr.save_workspace(str(data.get("name", "")))
+                else:
+                    msg = winmgr.delete_workspace(int(data.get("id", -1)))
+            except (ValueError, RuntimeError) as e:
+                return self._json({"error": str(e)}, 400)
+            HUB.emit("tool", keep=True, name="workspace", id=HUB._next_id(), args=msg[:120])
+            HUB.emit("workspaces_changed")
+            return self._json({"ok": True, "message": msg})
+        elif self.path == "/api/workspaces/open":     # opening apps can take a few seconds
+            def _open(wid=int(data.get("id", -1))):
+                try:
+                    msg = winmgr.restore_workspace(wid)
+                except Exception as e:
+                    msg = f"Couldn't open the workspace: {e}"
+                HUB.emit("tool", keep=True, name="workspace", id=HUB._next_id(), args=msg[:160])
+                HUB.emit("workspaces_changed")
+            threading.Thread(target=_open, daemon=True).start()
         elif self.path == "/api/skills/enable":
             skills.set_enabled(int(data.get("id", -1)), bool(data.get("on")))
             HUB.skills_changed()

@@ -2,6 +2,15 @@
 
 Each version is also a git tag (`git tag -n20 vX.Y.Z` shows its notes). Newest first.
 
+## 1.16.0 — 2026-11-21
+- Windows on command: "show my open windows", "bring Chrome to the front", "put VS Code on the right",
+  "maximise Word", "minimise everything", "put Chrome and VS Code side by side" (2-6 windows: halves, one big +
+  two stacked, quarters, grid). Works on every monitor and on scaled (125%/150%) displays.
+- Workspaces: "save this as my Study workspace" remembers which apps are open and where; "open Study workspace"
+  reopens the closed ones and puts every window back. Also on the Tools & Skills page (Save / Open / Delete).
+- Read text on the screen, in one window or in a picture with Windows' own OCR — offline, nothing uploaded.
+- Window titles and text read off the screen are marked as untrusted, like web pages.
+
 ## 1.15.0 — 2026-11-21
 - Skills (Tools & Skills page): write your own instructions once.
   - **Rules** are followed in every reply ("Keep answers short", "Use metric units").

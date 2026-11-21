@@ -42,7 +42,7 @@ audio, installer, uninstaller, packaged-exe smoke test). They are being moved in
 | # | Decision | Status | Source files | Depends on | Tests | Remaining / next action |
 |---|---|---|---|---|---|---|
 | 16 | Adaptive AI personality | NOT IMPLEMENTED | `jarvis/brain.py` (fixed prompt) | 100, 105 | — | Personality settings + learned style, shared with 105 |
-| 17 | Visual awareness (screenshots, OCR, images, documents) | PARTIALLY IMPLEMENTED | tools `look_at_screen`, `take_screenshot`; vision via Gemini/OpenRouter | 5 | none | No OCR, no offline vision, no image/PDF file analysis |
+| 17 | Visual awareness (screenshots, OCR, images, documents) | PARTIALLY IMPLEMENTED | tools `look_at_screen`, `take_screenshot`, `read_screen_text` (`jarvis/ocr.py`); vision via Gemini/OpenRouter | 5 | test_desktop (OCR on a generated picture) | 1.16.0: Windows' own OCR, offline — screen, one window or a picture file. Missing: offline image understanding, PDF reading |
 | 18 | Proactive intelligence and alerts | PARTIALLY IMPLEMENTED | `jarvis/schedule.py`, `jarvis/alerts.py`, `jarvis/hud.py` | 38 | regression (alerts parts) | Battery, prayers, alarms, briefing, overload alerts. Missing: user-configurable alert rules |
 | 19 | Multilingual (English, Urdu, Roman Urdu, Hindi, Arabic) | IMPLEMENTED BUT NEEDS TESTING | `jarvis/languages.py`, `jarvis/urdu.py`, `jarvis/stt.py`, `jarvis/tts.py` | — | Session checks for Urdu script / Roman Urdu rewrites | 19 languages + any typed language. Add unit tests (started in `tests/`) |
 | 20 | Controlled autonomous multi-step tasks | PARTIALLY IMPLEMENTED | agent loops in `jarvis/providers.py` / `jarvis/brain.py`, approvals, `tools.STOP` | 6, 101 | test_guard_audit (stop) | 1.9.0: Emergency Stop (button, Esc twice, tray). Missing: visible plan and step list |
@@ -111,7 +111,7 @@ audio, installer, uninstaller, packaged-exe smoke test). They are being moved in
 
 | # | Decision | Status | Source files | Depends on | Tests | Remaining / next action |
 |---|---|---|---|---|---|---|
-| 71 | Workspace manager | NOT IMPLEMENTED | — | 102 | — | — |
+| 71 | Workspace manager | IMPLEMENTED BUT NEEDS TESTING | `jarvis/winmgr.py` (workspaces), table `workspaces`, tool `workspace`, Tools & Skills › Workspaces | 102 | test_desktop (fake windows), real check on test windows | 1.16.0: save the open windows under a name; Open reopens closed apps and puts every window back (per monitor). Store apps can be placed but not reopened. Not yet tried by the owner on their own apps |
 | 72 | Data analytics and visualization | NOT IMPLEMENTED | — | 32 | — | — |
 | 73 | Communication and messaging center | NOT IMPLEMENTED | — | 46 | — | — |
 | 74 | Local-only memory sync | NOT IMPLEMENTED | — | 28 | — | — |
@@ -147,7 +147,7 @@ audio, installer, uninstaller, packaged-exe smoke test). They are being moved in
 | 99 | Self-diagnostics and health monitoring | PARTIALLY IMPLEMENTED | AI Models status, mic probing, echo-canceller log | — | none | No diagnostics page |
 | 100 | Personal user understanding engine | PARTIALLY IMPLEMENTED | `jarvis/memory.py` (profile + top memories in every prompt) | 9 | test_memory_engine | Shared Personal Intelligence Engine with 9, 29, 40, 103, 104. 1.14.0: categories, importance, search. Missing: skills/custom instructions [103] |
 | 101 | Multi-agent command center | NOT IMPLEMENTED | — | 20, 39 | — | — |
-| 102 | Desktop and window management | NOT IMPLEMENTED | — | — | — | — |
+| 102 | Desktop and window management | IMPLEMENTED BUT NEEDS TESTING | `jarvis/winmgr.py` (Win32 via ctypes), tools `manage_windows`, `arrange_windows` | — | test_desktop 29, real check on 2 test windows (9/9) | 1.16.0: list, focus, minimise/maximise/restore, snap to halves/quarters/centre, minimise all, 2-6 windows side by side; per-monitor DPI and Windows 11 invisible borders handled; window titles marked untrusted |
 | 103 | Knowledge and skill expansion | PARTIALLY IMPLEMENTED | `jarvis/skills.py`, `storage.py` (table `skills`), tools `use_skill` / `save_skill`, Tools & Skills page | 100 | test_skills_graph 11 | 1.15.0: your own skills — Rules (every reply) and Routines (run by name or the Run button), on/off, edit, delete; the AI can save one only after you approve. Missing: importing documents as knowledge, shareable skill packs |
 | 104 | User understanding for all user types | PARTIALLY IMPLEMENTED | same as 100 | 100 | none | Same engine as 100 |
 | 105 | Personality and emotional intelligence | NOT IMPLEMENTED | — | 16 | — | — |
@@ -157,13 +157,13 @@ audio, installer, uninstaller, packaged-exe smoke test). They are being moved in
 | 109 | Command history and activity timeline | PARTIALLY IMPLEMENTED | `jarvis/storage.py` (SQLite), `jarvis/audit.py`, Conversations page, Settings › Privacy | — | test_storage 4, test_guard_audit | 1.9.0: conversation + activity survive restarts; permanent audit record viewable in Settings. Missing: timeline page with search and dates |
 | 110 | Modular expansion and upgrade system | NOT IMPLEMENTED | — | 13 | — | — |
 
-## Totals (after v1.15.0, 21 Nov 2026)
+## Totals (after v1.16.0, 21 Nov 2026)
 
 | Status | Count |
 |---|---|
 | IMPLEMENTED AND VERIFIED | 1 |
-| IMPLEMENTED BUT NEEDS TESTING | 12 |
+| IMPLEMENTED BUT NEEDS TESTING | 14 |
 | PARTIALLY IMPLEMENTED | 41 |
-| NOT IMPLEMENTED | 46 |
+| NOT IMPLEMENTED | 44 |
 | BLOCKED BY EXTERNAL DEPENDENCY | 0 |
 | NOT APPLICABLE | 10 |

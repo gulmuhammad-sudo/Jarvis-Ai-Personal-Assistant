@@ -2,6 +2,18 @@
 
 Newest first. Each entry: what was done, how it was tested, what is open, the next task.
 
+## 2026-11-21 — Session 2, part 5: Phase 5 part 1 — windows, workspaces, OCR (v1.16.0)
+
+**Done** — `jarvis/winmgr.py` (Win32 through ctypes: enumerate, focus with AttachThreadInput, snap/arrange maths,
+per-monitor DPI, invisible-border correction, workspaces in table `workspaces`, migration 4), `jarvis/ocr.py`
+(Windows.Media.Ocr through Windows PowerShell 5.1, no package), tools `manage_windows`, `arrange_windows`,
+`workspace`, `read_screen_text`, `/api/workspaces/save|open|delete`, Workspaces card. Window titles and OCR text are
+untrusted (guard.py).
+
+**Tested** — pytest 177 passed, 2 skipped; real-window check 9/9 on the check's own windows; OCR on a generated picture.
+
+**Next** — ask the owner: Phase 5 part 2 (winget software manager, network center, developer tools), or build 1.16.0.
+
 ## 2026-11-21 — Session 2, part 4: skills and memory graph (v1.15.0) — Phase 4 done
 
 **Done** — `jarvis/skills.py` + migration 3 (table `skills`), skills in the system prompt (5000-char budget),

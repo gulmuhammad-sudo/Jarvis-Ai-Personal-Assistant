@@ -34,8 +34,8 @@ enough to finish, test and release on its own. Numbers in brackets are decisions
 - [x] Skills / custom instructions [103] (Rules + Routines)
 
 ## Phase 5 — Windows computer agent
-- [ ] Window management and desktop layouts [102, 71]
-- [ ] OCR on screenshots (Windows built-in OCR) [17]
+- [x] Window management and desktop layouts [102, 71]
+- [x] OCR on screenshots (Windows built-in OCR) [17]
 - [ ] Software manager via winget (with approval) [43]
 - [ ] Network diagnostics [78]; developer tools [50]
 

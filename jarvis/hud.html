@@ -833,6 +833,15 @@ svg.ic { transition: transform .28s cubic-bezier(.3, 1.5, .5, 1), color .2s, fil
 .skex { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; margin: 2px 0 8px; }
 .skex small { color: var(--dim); font-size: 12px; margin-right: 2px; }
 @media (max-width: 760px) { .skitem { flex-wrap: wrap; } .skacts { margin-left: 38px; } }
+/* workspaces */
+.wsave { display: flex; gap: 8px; flex-wrap: wrap; }
+.wsave input { height: 38px; width: 200px; border-radius: 10px; border: 1px solid var(--hair-2); background: var(--surface-2); color: var(--text); font: inherit; font-size: 13.5px; padding: 0 12px; }
+.wsave input:focus { outline: none; border-color: rgba(var(--c-accent), .6); }
+.skillbar .err { color: var(--red); }
+.wsapps { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 4px; }
+.wsapps span { font-size: 11.5px; padding: 1px 8px; border-radius: 999px; border: 1px solid var(--hair-2); color: var(--muted); }
+.wsitem.busy .ico svg { animation: spin 1s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
 /* respect "reduce animations" in Windows */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: .001ms !important; animation-iteration-count: 1 !important; transition-duration: .001ms !important; }
@@ -1032,6 +1041,11 @@ svg.ic { transition: transform .28s cubic-bezier(.3, 1.5, .5, 1), color .2s, fil
             <small><b>Rules</b> are followed in every reply. <b>Routines</b> run when you ask for them by name ("run my morning briefing") or press Run. Saved on this PC and sent to the AI with your messages.</small></div>
           <div class="skform" id="skForm" hidden></div>
           <div class="list skilllist" id="skillList"></div>
+          <h4 class="sec">WORKSPACES</h4>
+          <div class="skillbar"><div class="wsave"><input id="wsName" maxlength="40" placeholder="Name, e.g. Study" aria-label="Workspace name" autocomplete="off">
+              <button class="btn on" id="wsSave"><i data-ic="layers"></i>Save open windows</button></div>
+            <small>Saves which apps are open and where their windows are. <b>Open</b> reopens closed apps and puts every window back. Or say "save this as my Study workspace" / "open Study workspace". <span class="err" id="wsErr"></span></small></div>
+          <div class="list skilllist" id="wsList"></div>
           <h4 class="sec">BUILT-IN TOOLS</h4>
           <div class="list" id="toolList"></div>
         </div>
@@ -1447,6 +1461,8 @@ const FRIENDLY = {
   set_language: ["Changed language", "globe"], set_location: ["Saved your location", "pin"],
   close_app: ["Closed an app", "x"], power_action: ["Power control", "zap"], set_brightness: ["Changed brightness", "sun"],
   wireless: ["Wi-Fi / Bluetooth", "wifi"], take_screenshot: ["Saved a screenshot", "eye"],
+  manage_windows: ["Windows", "layers"], arrange_windows: ["Arranged windows", "layers"], workspace: ["Workspace", "layers"],
+  read_screen_text: ["Read text on screen", "eye"],
   find_old_files: ["Scanned for old files", "search"], clean_folder: ["Cleaned up a folder", "note"],
   renamed: ["Renamed the assistant", "user"], set_assistant_name: ["Renamed the assistant", "user"],
   set_theme: ["Changed the theme", "sun"], profile: ["Profile saved", "user"],
@@ -1522,8 +1538,8 @@ const AGENTS = [
   { id: "browser", name: "Browser Agent", ic: "globe", color: "var(--amber)", tools: ["open_website", "open_application", "open_path", "play_youtube"] },
   { id: "memory", name: "Memory Agent", ic: "db", color: "var(--violet)", tools: ["remember_fact", "recall_memories", "forget_memory", "use_skill", "save_skill", "save_note", "list_notes", "read_text_file", "find_files"] },
   { id: "task", name: "Task Agent", ic: "tasks", color: "var(--blue)", tools: ["set_timer", "list_timers", "cancel_timer", "get_datetime", "set_alarm", "list_alarms", "delete_alarm", "prayer_times", "prayer_reminders"] },
-  { id: "vision", name: "Vision Agent", ic: "eye", color: "var(--green)", tools: ["look_at_screen", "take_screenshot"] },
-  { id: "system", name: "System Agent", ic: "cpu", color: "var(--muted)", tools: ["system_status", "run_powershell", "lock_computer", "media_control", "clipboard", "set_language", "set_location",
+  { id: "vision", name: "Vision Agent", ic: "eye", color: "var(--green)", tools: ["look_at_screen", "take_screenshot", "read_screen_text"] },
+  { id: "system", name: "System Agent", ic: "cpu", color: "var(--muted)", tools: ["system_status", "manage_windows", "arrange_windows", "workspace", "run_powershell", "lock_computer", "media_control", "clipboard", "set_language", "set_location",
     "close_app", "power_action", "set_brightness", "wireless", "find_old_files", "clean_folder"] },
 ];
 const agentState = Object.fromEntries(AGENTS.map(a => [a.id, { until: 0, runs: 0 }]));
@@ -1663,6 +1679,7 @@ function handle(ev) {
       memSuggestions.length = 0; showMemSuggest();
       break;
     case "skills_changed":
+    case "workspaces_changed":
       loadInfo();
       break;
     case "memory_suggest":
@@ -2424,6 +2441,8 @@ async function loadInfo() {
     if (memViewMode === "graph") renderGraph();
     skAll = j.skills || [];
     renderSkills();
+    wsAll = j.workspaces || [];
+    renderWorkspaces();
     $("noteList").innerHTML = j.notes.length ? j.notes.map(n => `<div class="item"><span class="ico">${icon("note")}</span><div><b>${esc(n.replace(/\.md$/, ""))}</b><small>data/notes</small></div></div>`).join("")
       : '<div class="empty">No notes yet. Say "take a note: …".</div>';
   } catch (e) { console.warn(e); }
@@ -2665,6 +2684,44 @@ function skillForm(k) {
   f.scrollIntoView({ block: "nearest", behavior: "smooth" });
 }
 $("skNew").onclick = () => skillForm(null);
+
+// ---------- workspaces: saved window layouts ----------
+let wsAll = [], wsDelArmed = { id: 0, at: 0 };
+function renderWorkspaces() {
+  const box = $("wsList");
+  box.innerHTML = wsAll.length ? wsAll.map((w, i) => `
+      <div class="item skitem wsitem" data-ws="${w.id}" style="--i:${Math.min(i, 12)}"><span class="ico" style="color:var(--cyan)">${icon("layers")}</span>
+        <div style="min-width:0;flex:1"><b>${esc(w.name)}</b>
+          <div class="wsapps">${[...new Set(w.apps)].map(a => `<span>${esc(a)}</span>`).join("")}</div>
+          <small>${w.windows} window${w.windows === 1 ? "" : "s"} · saved ${esc((w.updated || "").replace("T", " "))}${w.uses ? ` · opened ${w.uses}×` : ""}</small></div>
+        <div class="skacts">
+          <button class="btn" data-wsopen="${w.id}" title="Open the apps and put the windows back">${icon("play")}Open</button>
+          <button class="btn danger" data-wsdel="${w.id}" title="Delete" aria-label="Delete ${esc(w.name)}">${icon("x")}</button>
+        </div></div>`).join("")
+    : '<div class="empty">No workspaces yet. Put your windows where you like them, type a name above and press <b>Save open windows</b>.</div>';
+  box.querySelectorAll("[data-wsopen]").forEach(b => b.onclick = async () => {
+    b.closest(".wsitem").classList.add("busy"); b.disabled = true;
+    await post("/api/workspaces/open", { id: +b.dataset.wsopen });
+  });
+  box.querySelectorAll("[data-wsdel]").forEach(b => b.onclick = async () => {
+    const id = +b.dataset.wsdel;
+    if (wsDelArmed.id !== id || Date.now() - wsDelArmed.at > 4000) {
+      wsDelArmed = { id, at: Date.now() }; b.innerHTML = `${icon("x")}Delete?`; setTimeout(() => { if (b.isConnected) b.innerHTML = icon("x"); }, 4000); return;
+    }
+    wsDelArmed = { id: 0, at: 0 };
+    await post("/api/workspaces/delete", { id }); loadInfo();
+  });
+}
+$("wsSave").onclick = async () => {
+  $("wsErr").textContent = "";
+  const name = $("wsName").value.trim();
+  if (!name) { $("wsErr").textContent = "Type a name first."; $("wsName").focus(); return; }
+  const r = await post("/api/workspaces/save", { name });
+  const j = r ? await r.json() : { error: "The app didn't answer." };
+  if (j.error) { $("wsErr").textContent = j.error; return; }
+  $("wsName").value = ""; loadInfo();
+};
+$("wsName").onkeydown = e => { if (e.key === "Enter") $("wsSave").click(); };
 
 let mergeArmed = 0;
 $("memMerge").onclick = async () => {

@@ -1161,3 +1161,106 @@ PC_TOOLS = [
 ]
 TOOL_DEFINITIONS += [d for d, _ in PC_TOOLS]
 _HANDLERS.update({d["name"]: fn for d, fn in PC_TOOLS})
+
+
+# ---------------- desktop: windows, workspaces, reading the screen (Phase 5) ----------------
+def manage_windows(inp: dict, ctx: ToolContext) -> str:
+    from . import winmgr
+    try:
+        return winmgr.act(str(inp.get("action") or "list"), str(inp.get("app") or ""), str(inp.get("position") or ""))
+    except ValueError as e:
+        return str(e)
+
+
+def arrange_windows(inp: dict, ctx: ToolContext) -> str:
+    from . import winmgr
+    apps = inp.get("apps") or []
+    if isinstance(apps, str):
+        apps = [a.strip() for a in _re.split(r",| and ", apps) if a.strip()]
+    try:
+        return winmgr.arrange([str(a) for a in apps][:winmgr.MAX_ARRANGE])
+    except ValueError as e:
+        return str(e)
+
+
+def workspace(inp: dict, ctx: ToolContext) -> str:
+    from . import winmgr
+    action, name = str(inp.get("action") or "list").lower(), str(inp.get("name") or "").strip()
+    if action == "list":
+        items = winmgr.list_workspaces()
+        return "\n".join(f"{w['name']}: {', '.join(dict.fromkeys(w['apps']))}" for w in items) or "No saved workspaces yet."
+    if not name:
+        return "Which workspace? Give it a name."
+    try:
+        if action == "save":
+            out = winmgr.save_workspace(name)
+        elif action in ("open", "restore"):
+            out = winmgr.restore_workspace(name)
+        elif action == "delete":
+            if not ctx.approve(f"Delete the workspace \"{name}\"? (Your apps and files aren't touched.)"):
+                return "Okay, I kept it."
+            out = winmgr.delete_workspace(name)
+        else:
+            return f"Unknown action {action!r}: use save, open, list or delete."
+    except ValueError as e:
+        return str(e)
+    if WORKSPACES_CHANGED:
+        WORKSPACES_CHANGED()
+    return out
+
+
+WORKSPACES_CHANGED: Callable[[], None] | None = None     # the HUD refreshes its Workspaces card
+
+
+def read_screen_text(inp: dict, ctx: ToolContext) -> str:
+    from . import ocr, winmgr
+    source, lang = str(inp.get("source") or "screen").lower(), str(inp.get("language") or "")
+    try:
+        if source == "file":
+            text = ocr.read_image(str(inp.get("path") or ""), lang)
+            where = Path(str(inp.get("path"))).name
+        elif source == "window":
+            w = winmgr.find(str(inp.get("app") or ""))
+            if not w:
+                return f"I can't find an open window for {inp.get('app')!r}."
+            winmgr.focus(w.hwnd)
+            time.sleep(0.5)
+            text = ocr.read_screen(winmgr.visible_rect(w.hwnd), lang)
+            where = f"the {w.app} window"
+        else:
+            text = ocr.read_screen(None, lang)
+            where = "the screen"
+    except ValueError as e:
+        return str(e)
+    return f"Text read from {where} (Windows OCR, on this PC):\n{text}" if text else f"I couldn't find any text in {where}."
+
+
+DESKTOP_TOOLS = [
+    ({"name": "manage_windows",
+      "description": "Work with the open app windows. action: list (numbered, with titles), focus (bring to front), "
+                     "minimize, maximize, restore, snap (position: left, right, top, bottom, top_left, top_right, "
+                     "bottom_left, bottom_right, center, full) or minimize_all. app: the app name ('chrome', 'vs code'), "
+                     "words from the window title, or its number from the list.",
+      "input_schema": _obj({"action": {"type": "string", "enum": ["list", "focus", "minimize", "maximize", "restore", "snap", "minimize_all"]},
+                            "app": {"type": "string"},
+                            "position": {"type": "string", "enum": ["left", "right", "top", "bottom", "top_left", "top_right",
+                                                                    "bottom_left", "bottom_right", "center", "full"]}},
+                           ["action"])}, manage_windows),
+    ({"name": "arrange_windows",
+      "description": "Put 2-6 open windows side by side (2 = halves, 3 = one big and two stacked, 4 = quarters), e.g. "
+                     "apps ['chrome', 'vs code']. With no apps, arranges the top windows.",
+      "input_schema": _obj({"apps": {"type": "array", "items": {"type": "string"}}})}, arrange_windows),
+    ({"name": "workspace",
+      "description": "Saved window layouts. save: remember the open windows and where they are under a name ('Study'); "
+                     "open: reopen closed apps and put every window back; list; delete.",
+      "input_schema": _obj({"action": {"type": "string", "enum": ["save", "open", "list", "delete"]}, "name": {"type": "string"}},
+                           ["action"])}, workspace),
+    ({"name": "read_screen_text",
+      "description": "Read the text on the screen, in one app's window, or in a picture file, with Windows' own OCR (offline, "
+                     "on this PC). Cheaper and more exact than look_at_screen for reading text. source: screen | window | file; "
+                     "app for window; path for file; language like 'en-US' or 'ar' (optional).",
+      "input_schema": _obj({"source": {"type": "string", "enum": ["screen", "window", "file"]}, "app": {"type": "string"},
+                            "path": {"type": "string"}, "language": {"type": "string"}})}, read_screen_text),
+]
+TOOL_DEFINITIONS += [d for d, _ in DESKTOP_TOOLS]
+_HANDLERS.update({d["name"]: fn for d, fn in DESKTOP_TOOLS})

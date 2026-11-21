@@ -48,6 +48,14 @@ MIGRATIONS: list[str] = [
            created TEXT NOT NULL,
            updated TEXT NOT NULL,
            uses INTEGER NOT NULL DEFAULT 0);""",
+    # 4: workspaces = saved window layouts ("Study": Chrome on the left, VS Code on the right)
+    """CREATE TABLE workspaces (
+           id INTEGER PRIMARY KEY AUTOINCREMENT,
+           name TEXT NOT NULL UNIQUE COLLATE NOCASE,
+           layout TEXT NOT NULL,                         -- JSON list of windows (app, exe, place on screen)
+           created TEXT NOT NULL,
+           updated TEXT NOT NULL,
+           uses INTEGER NOT NULL DEFAULT 0);""",
 ]
 
 # event types worth keeping across restarts (not live captions, levels, approval prompts...)

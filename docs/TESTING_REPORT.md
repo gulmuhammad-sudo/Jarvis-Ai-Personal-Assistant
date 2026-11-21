@@ -11,6 +11,15 @@ set PA_TEST_NETWORK=1 && .venv\Scripts\python -m pytest tests   # also the onlin
 .venv\Scripts\python packaging\build.py              # then smoke-test the packaged exe (see below)
 ```
 
+## 2026-11-21 — Windows, workspaces, OCR (v1.16.0)
+
+| Suite | Result | Notes |
+|---|---|---|
+| `pytest tests` | 177 passed, 2 skipped | new tests/test_desktop.py (29): snap/arrange maths for 1-6 windows (no overlap, fills the screen), fraction round trip, finding windows by app/alias/title/number, list text, tools with fake windows, window titles untrusted, workspace save/update/restore/reopen a closed app/Store apps not launched, delete needs OK, real Windows OCR on a generated picture |
+| Real windows (2 windows the check opened itself, never the owner's apps) | 9/9 | list, find, snap left lands exactly on the left half (1920x1020 real pixels at 125% scaling), minimise, maximise, side by side, save workspace → scramble → restore puts both back, focus |
+| Windows OCR | pass | generated picture "Invoice number 4821 / Total due: 3,500 rupees" read exactly in 0.8 s, offline |
+| Running app (test copy) | pass | 4 new tools listed, Workspaces card (empty state, "Type a name first", 2 sample workspaces with app chips, Open/Delete), save API refuses an empty name. Save/Open not pressed there: they would read and move the owner's real windows |
+
 ## 2026-11-21 — Skills and memory graph (v1.15.0)
 
 | Suite | Result | Notes |
