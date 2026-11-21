@@ -11,6 +11,14 @@ set PA_TEST_NETWORK=1 && .venv\Scripts\python -m pytest tests   # also the onlin
 .venv\Scripts\python packaging\build.py              # then smoke-test the packaged exe (see below)
 ```
 
+## 2026-11-21 — Saved permissions (v1.9.2)
+
+| Suite | Result | Notes |
+|---|---|---|
+| `pytest tests` | **101 passed** | + test_permissions (7): default ask, Never refuses without a question, Allow only for safe kinds (even if written by hand), rules survive a restart, Never/Ask ends a session "yes", unknown kinds ignored, tools obey it and it's audited |
+| Running app (test copy) | pass | Settings › Privacy lists 8 kinds; Allow disabled (faded) for 5; PowerShell = Never → "run Get-Date" refused with no question, note in Activity |
+| Fixed during this step | — | tests opened the microphone for 0.8 s (engine start-up mic check, and a voice approval prompt): now `JARVIS_NO_MIC=1` in tests and the test hub asks on screen only |
+
 ## 2026-11-21 — Task routing (v1.9.1)
 
 | Suite | Result | Notes |

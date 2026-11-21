@@ -13,7 +13,8 @@ import pytest
 # Must happen before anything imports jarvis: jarvis.config picks its data folder at import time.
 _DATA = Path(tempfile.mkdtemp(prefix="pa-tests-"))
 os.environ["JARVIS_DATA_DIR"] = str(_DATA)
-os.environ["JARVIS_HANDSFREE"] = "off"            # never open the microphone
+os.environ["JARVIS_HANDSFREE"] = "off"            # never open the microphone...
+os.environ["JARVIS_NO_MIC"] = "1"                 # ...not even the start-up check for a working mic
 os.environ.setdefault("JARVIS_HUD_PORT", "8779")
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))

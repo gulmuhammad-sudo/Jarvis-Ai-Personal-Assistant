@@ -2,6 +2,12 @@
 
 Each version is also a git tag (`git tag -n20 vX.Y.Z` shows its notes). Newest first.
 
+## 1.9.2 — 2026-11-21
+- Settings › Privacy › Permissions: for each kind of action (PowerShell, locking, Wi-Fi off, shutdown/restart,
+  cleaning folders, replacing files, closing apps with unsaved work, closing system programs) choose Ask,
+  Allow or Never. Kept after a restart. "Allow" exists only for PowerShell, locking and Wi-Fi off; the rest
+  always ask (or are never done). Changes are recorded in the audit log.
+
 ## 1.9.1 — 2026-11-21
 - Smarter choice of AI for each message: questions about the screen, a picture or a photo go to an AI that can
   see images (e.g. Gemini) even when another one is first; with no internet, only the AI on this PC is asked

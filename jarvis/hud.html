@@ -184,6 +184,11 @@ body[data-state="listening"] .mic::before { border-color: rgba(var(--c-green), .
 .iconbtn.stop { color: #ff6b6b; border-color: rgba(255, 107, 107, .45); }
 .iconbtn.stop:hover { background: rgba(255, 107, 107, .12); }
 body[data-state="thinking"] .iconbtn.stop { background: rgba(255, 107, 107, .16); }
+.permlist { display: grid; gap: 6px; margin: 0 0 12px; }
+.permrow { display: flex; align-items: center; gap: 8px; padding: 8px 12px; border: 1px solid var(--hair); border-radius: 10px; }
+.permrow span { flex: 1; min-width: 0; }
+.permrow .btn { min-width: 64px; }
+.permrow .btn:disabled { opacity: .3; cursor: not-allowed; }
 .auditlist { max-height: 260px; overflow: auto; font: 12px/1.5 ui-monospace, Consolas, monospace; color: var(--muted);
   border: 1px solid var(--hair-2); border-radius: 10px; padding: 8px 10px; margin-top: 8px; white-space: pre-wrap; }
 .iconbtn { width: 36px; height: 36px; border-radius: 10px; border: 1px solid var(--hair-2); background: var(--surface); color: var(--muted); display: grid; place-items: center; transition: color .15s, border-color .15s; }
@@ -940,6 +945,8 @@ body[data-state="listening"] .talk { border-color: var(--green); background: lin
           <div class="setrow"><div class="lbl"><b>What it did on this PC</b><small>A permanent record of every action and every approval (keys, passwords and file contents are never written to it).</small></div>
             <button class="btn" id="auditBtn">Show</button></div>
           <div class="auditlist" id="auditList" hidden></div>
+          <div class="setrow"><div class="lbl"><b>Permissions</b><small>For each kind of action: ask you every time, never do it, or (only for the safer ones) do it without asking. Shutting down, deleting and replacing files always ask.</small></div></div>
+          <div class="permlist" id="permList"></div>
 
           <h4 class="sec">ALERTS</h4>
           <div class="setrow"><div class="lbl"><b>Loud alerts</b><small>Alarms, timers, low battery and errors pop up and play at full volume, then your volume goes back to normal.</small></div>
@@ -1585,6 +1592,7 @@ function applySettings(s) {
     paintLangSel();
   }
   if ("speak" in s) { settings.speak = s.speak; if (!s.speak) stopSpeaking(); }
+  if ("permissions" in s && lastStats) { lastStats.permissions = s.permissions; paintPermissions(lastStats); }
   if ("chat_script" in s || "start_with_windows" in s) { if (lastStats) Object.assign(lastStats, s); paintStartup(lastStats || s); }
   if (!useLive()) $("voiceBtn").classList.toggle("on", settings.voice_mode);
   $("voiceBtn2").classList.toggle("on", settings.voice_mode); $("voiceBtn2").textContent = settings.voice_mode ? "On" : "Off";
@@ -2742,6 +2750,24 @@ $("stopBtn").onclick = emergencyStop;
 function paintPrivacy(s) {
   const on = s.keep_history !== false;
   $("keepHistBtn").textContent = on ? "On" : "Off"; $("keepHistBtn").classList.toggle("on", on);
+  paintPermissions(s);
+}
+function paintPermissions(s) {
+  const kinds = s.permission_kinds || (lastStats && lastStats.permission_kinds) || [];
+  const rules = s.permissions || (lastStats && lastStats.permissions) || {};
+  const sig = JSON.stringify([kinds, rules]);
+  if ($("permList")._sig === sig) return;                   // (the stats poll repaints every few seconds)
+  $("permList")._sig = sig;
+  $("permList").innerHTML = kinds.map(k => {
+    const r = rules[k.kind] || "ask";
+    const b = (v, label, ok = true) => `<button class="btn${r === v ? " on" : ""}" data-perm="${k.kind}" data-rule="${v}"${ok ? "" : " disabled title=\"Always asked, for safety\""}>${label}</button>`;
+    return `<div class="permrow"><span>${esc(k.label)}</span>${b("ask", "Ask")}${b("allow", "Allow", k.can_allow)}${b("never", "Never")}</div>`;
+  }).join("");
+  $("permList").querySelectorAll("[data-perm]").forEach(x => x.onclick = async () => {
+    const r = await post("/api/settings", { permissions: { [x.dataset.perm]: x.dataset.rule } });
+    if (lastStats) lastStats.permissions = { ...(lastStats.permissions || {}), [x.dataset.perm]: x.dataset.rule };
+    paintPermissions(lastStats || {});
+  });
 }
 $("keepHistBtn").onclick = () => toggleSetting("keep_history");
 $("clearHistBtn").onclick = async () => {

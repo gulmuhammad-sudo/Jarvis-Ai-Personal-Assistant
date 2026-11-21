@@ -134,7 +134,7 @@ class Hub:
                 pass
         self._confirm_rec = None            # the recording listening for a spoken yes/no
         tts.warm_up()                       # first reply shouldn't pay the voice service's start-up cost
-        if recorder:
+        if recorder and os.environ.get("JARVIS_NO_MIC") != "1":     # (automated tests never open the mic)
             threading.Thread(target=recorder.choose_mic, daemon=True).start()   # pick a working mic early
         self.scheduler = schedule.Scheduler(notify=self.notify,
                                             run_prompt=lambda text: self.submit(text, source="scheduled"))
@@ -617,9 +617,58 @@ class Hub:
     CONFIRM_TIMEOUT = 180
     # once allowed, these aren't asked again until the app restarts; shutdown, deleting files etc. always ask
     TRUSTABLE = {"powershell": "PowerShell commands", "lock": "locking the PC", "wifi_off": "turning Wi-Fi off"}
+    # Every kind of approval the tools ask for. Settings > Privacy keeps a rule per kind: "ask" (default),
+    # "never" (refused without asking) or "allow" (only for the TRUSTABLE kinds: shutting down, deleting,
+    # replacing files and closing apps with unsaved work are always asked).
+    PERMISSION_KINDS = {
+        "powershell": "Running PowerShell commands",
+        "lock": "Locking the PC",
+        "wifi_off": "Turning Wi-Fi off",
+        "power": "Shutting down, restarting or sleeping the PC",
+        "clean": "Moving old files to the Recycle Bin",
+        "overwrite": "Replacing a file that already exists",
+        "force_close": "Closing an app that has unsaved work",
+        "close_system": "Closing a Windows system program",
+    }
+
+    def permission(self, kind: str | None) -> str:
+        if not kind:
+            return "ask"
+        rule = (schedule.get_setting("permissions") or {}).get(kind, "ask")
+        if rule == "allow" and kind not in self.TRUSTABLE:
+            return "ask"
+        return rule if rule in ("ask", "allow", "never") else "ask"
+
+    def set_permissions(self, changes: dict) -> dict:
+        rules = dict(schedule.get_setting("permissions") or {})
+        for kind, rule in (changes or {}).items():
+            if kind not in self.PERMISSION_KINDS or rule not in ("ask", "allow", "never"):
+                continue
+            if rule == "allow" and kind not in self.TRUSTABLE:
+                continue                       # never "allow" for shutdown, deleting, replacing files...
+            if rule == "ask":
+                rules.pop(kind, None)
+            else:
+                rules[kind] = rule
+            if rule != "allow":
+                self.trusted.discard(kind)     # "ask" / "never" also ends a yes given earlier in this session
+            audit.record("permission_changed", kind=kind, rule=rule)
+        schedule.set_setting("permissions", rules)
+        self.emit("settings", permissions=self.permissions())
+        return self.permissions()
+
+    def permissions(self) -> dict:
+        return {k: self.permission(k) for k in self.PERMISSION_KINDS}
 
     def confirm(self, question: str, kind: str | None = None) -> bool:
         """Ask before something risky. Answered by the Allow / Deny buttons, or by voice ("yes" / "nahi")."""
+        rule = self.permission(kind)
+        if rule in ("never", "allow"):
+            label = self.PERMISSION_KINDS.get(kind or "", kind)
+            self.emit("tool", keep=True, name="approval", id=self._next_id(), detail=question,
+                      args=f"{'denied' if rule == 'never' else 'allowed'} automatically: {label} is set to "
+                           f"{'Never' if rule == 'never' else 'Allow'} (Settings › Privacy)")
+            return rule == "allow"
         if kind and kind in self.trusted:
             self.emit("tool", keep=True, name="approval", args=f"allowed automatically: you already said yes to {self.TRUSTABLE.get(kind, kind)}",
                       id=self._next_id(), detail=question)
@@ -970,6 +1019,9 @@ class Hub:
                "start_with_windows": schedule.get_setting("start_with_windows", True) is not False,
                "assistant_name": schedule.agent_name(), "theme": schedule.theme(),
                "version": __version__, "trusted": sorted(self.trusted), "languages": languages.choices(),
+               "permissions": self.permissions(),
+               "permission_kinds": [{"kind": k, "label": v, "can_allow": k in self.TRUSTABLE}
+                                    for k, v in self.PERMISSION_KINDS.items()],
                "language_name": languages.name(self.language), "setup_done": bool(schedule.get_setting("setup_done")),
                "reading_voice": schedule.get_setting("reading_voice"),
                "hands_free": self.voice_mode, "standby": self.standby_on, "mic_prompt": self.mic_prompt,
@@ -1229,6 +1281,8 @@ class Handler(BaseHTTPRequestHandler):
                 schedule.set_setting("loud_alerts", bool(data["loud_alerts"]))
             if data.get("chat_script") in ("roman", "urdu"):
                 HUB.set_chat_script(data["chat_script"])
+            if isinstance(data.get("permissions"), dict):
+                HUB.set_permissions(data["permissions"])
             if "keep_history" in data:
                 schedule.set_setting("keep_history", bool(data["keep_history"]))
             if "live_on_open" in data:

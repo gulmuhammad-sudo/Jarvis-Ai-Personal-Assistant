@@ -26,7 +26,7 @@ audio, installer, uninstaller, packaged-exe smoke test). They are being moved in
 | 3 | Zero-budget development | PARTIALLY IMPLEMENTED | `jarvis/providers.py`, `jarvis/tts.py`, `jarvis/stt.py` | 5, 12 | none | Everything used is free, but the assistant needs free-tier cloud keys to think or transcribe. Local AI removes that need |
 | 4 | Live voice and normal chat | IMPLEMENTED BUT NEEDS TESTING | `jarvis/live.py`, `jarvis/hud.py`, `jarvis/providers.py`, `jarvis/hud.html` | — | Session check: live call with simulated audio 11/11 (dev build). Not yet run inside the packaged exe | Live call inside the installed exe; repeatable live test in `tests/` (needs a Gemini key: marked optional) |
 | 5 | Local AI as the default | IMPLEMENTED BUT NEEDS TESTING | `jarvis/providers.py` (`prefer_local`, default on), AI Models page | Ollama | test_local_ai: local goes first / last | Default is local-first whenever Ollama has a tool-capable model. Needs a real-model run |
-| 6 | Customizable PC-control permissions | PARTIALLY IMPLEMENTED | `jarvis/tools.py` (`ctx.approve`), `jarvis/hud.py` (`TRUSTABLE`, `confirm`), `jarvis/approvals.py` | 26, 98 | Session approval test 12/12 | Approvals per action kind, "allow this kind until restart". Missing: saved per-kind permission settings and a UI to edit them |
+| 6 | Customizable PC-control permissions | IMPLEMENTED BUT NEEDS TESTING | `jarvis/hud.py` (`PERMISSION_KINDS`, `permission`, `set_permissions`, `confirm`), `jarvis/tools.py` (`ctx.approve`), Settings › Privacy › Permissions | 26, 98 | tests/test_permissions.py 7/7; running app: PowerShell = Never refused `Get-Date` with no question | 1.9.2: Ask / Allow / Never per kind (8 kinds), saved across restarts; Allow only for PowerShell, lock, Wi-Fi off. Needs a real-PC run with the installed exe |
 | 7 | Google sign-in, email/password, local accounts | NOT IMPLEMENTED | — | 28, 42 | — | Single local user only. Local accounts first; Google sign-in needs an OAuth client registration (free, but the user must create it) |
 | 8 | Full assistant personalization | PARTIALLY IMPLEMENTED | `jarvis/schedule.py`, `jarvis/memory.py`, `jarvis/hud.html`, `packaging/setup.html` | — | rename test 11/11 | Name, call-name, language, voices, theme, face, chat text. Missing: personality style, speech speed/pitch in the UI |
 | 9 | Advanced long-term memory | PARTIALLY IMPLEMENTED | `jarvis/memory.py`, tools `remember_fact` / `recall_memories` / `edit_memory` / `merge_memories` / `forget_memory` | 40, 100 | regression (memory parts) | Flat JSON list of facts. Missing: categories, search ranking, importance, SQLite storage, encryption |
@@ -143,7 +143,7 @@ audio, installer, uninstaller, packaged-exe smoke test). They are being moved in
 | 95 | System restore and troubleshooting | PARTIALLY IMPLEMENTED | `jarvis.log`, mic diagnostics, Unmute/Boost | 99 | none | No "repair" actions |
 | 96 | No household management | NOT APPLICABLE | — | — | — | Excluded |
 | 97 | AI avatar and character studio | PARTIALLY IMPLEMENTED | faces Globe/Mask/Rings/Photo in `jarvis/hud.html` | — | manual checks | No character editor, no lip sync |
-| 98 | Privacy and permission dashboard | NOT IMPLEMENTED | — | 6, 26 | — | — |
+| 98 | Privacy and permission dashboard | PARTIALLY IMPLEMENTED | Settings › Privacy in `jarvis/hud.html` | 6, 26 | test_permissions, test_storage, test_guard_audit | Keep/clear history, audit record, per-action permissions (1.9.0–1.9.2). Missing: data-sent-to-cloud overview, mic/camera usage log |
 | 99 | Self-diagnostics and health monitoring | PARTIALLY IMPLEMENTED | AI Models status, mic probing, echo-canceller log | — | none | No diagnostics page |
 | 100 | Personal user understanding engine | PARTIALLY IMPLEMENTED | `jarvis/memory.py` (profile + facts in every prompt) | 9 | none | Shared Personal Intelligence Engine with 9, 29, 40, 103, 104 |
 | 101 | Multi-agent command center | NOT IMPLEMENTED | — | 20, 39 | — | — |
@@ -157,13 +157,13 @@ audio, installer, uninstaller, packaged-exe smoke test). They are being moved in
 | 109 | Command history and activity timeline | PARTIALLY IMPLEMENTED | `jarvis/storage.py` (SQLite), `jarvis/audit.py`, Conversations page, Settings › Privacy | — | test_storage 4, test_guard_audit | 1.9.0: conversation + activity survive restarts; permanent audit record viewable in Settings. Missing: timeline page with search and dates |
 | 110 | Modular expansion and upgrade system | NOT IMPLEMENTED | — | 13 | — | — |
 
-## Totals (after v1.9.1, 21 Nov 2026)
+## Totals (after v1.9.2, 21 Nov 2026)
 
 | Status | Count |
 |---|---|
 | IMPLEMENTED AND VERIFIED | 1 |
-| IMPLEMENTED BUT NEEDS TESTING | 9 |
+| IMPLEMENTED BUT NEEDS TESTING | 10 |
 | PARTIALLY IMPLEMENTED | 41 |
-| NOT IMPLEMENTED | 49 |
+| NOT IMPLEMENTED | 48 |
 | BLOCKED BY EXTERNAL DEPENDENCY | 0 |
 | NOT APPLICABLE | 10 |

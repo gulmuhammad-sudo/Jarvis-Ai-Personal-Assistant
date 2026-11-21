@@ -2,6 +2,15 @@
 
 Newest first. Each entry: what was done, how it was tested, what is open, the next task.
 
+## 2026-11-21 — Session 1, part 4: saved permissions (v1.9.2)
+
+**Done** — Ask/Allow/Never per action kind in Settings › Privacy (hud.py `PERMISSION_KINDS`, `permission`,
+`set_permissions`; checked first in `confirm`). Tests no longer touch the microphone (`JARVIS_NO_MIC`).
+
+**Tested** — pytest 101/101; running app check (TESTING_REPORT.md).
+
+**Next** — NEXT_STEPS.md: local speech-to-text (after the owner's go-ahead).
+
 ## 2026-11-21 — Session 1, part 3: task routing (v1.9.1)
 
 **Done** — `providers.route()`: seeing questions → an AI that can see; offline → local only (or a plain
