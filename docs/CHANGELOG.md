@@ -2,6 +2,9 @@
 
 Each version is also a git tag (`git tag -n20 vX.Y.Z` shows its notes). Newest first.
 
+## 1.13.1 — 2026-11-21
+- Settings are centred in one column (tabs and rows), instead of hugging the left side.
+
 ## 1.13.0 — 2026-11-21
 - New look for icons everywhere: menu icons sit in small tiles (the open page glows), every icon has its own
   hover animation (gear turns, mic pulses, bell rings, refresh spins…), buttons give a press effect.
