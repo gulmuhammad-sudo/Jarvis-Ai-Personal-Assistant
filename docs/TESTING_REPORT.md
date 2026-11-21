@@ -11,6 +11,13 @@ set PA_TEST_NETWORK=1 && .venv\Scripts\python -m pytest tests   # also the onlin
 .venv\Scripts\python packaging\build.py              # then smoke-test the packaged exe (see below)
 ```
 
+## 2026-11-21 — Task routing (v1.9.1)
+
+| Suite | Result | Notes |
+|---|---|---|
+| `pytest tests` | **94 passed** | + test_routing (14): seeing questions in English / Roman Urdu / Urdu go to the AI that can see, other questions keep the order ("pick a song" isn't a picture), offline → local only, offline without local → plain message, fallback inside the routed order, online check cached |
+| Running app (test copy) | pass | Groq chosen, asked "what is a photo album?": Activity showed "Asked Gemini — needs to see", Gemini answered. Not tried: a real screen question (would send a real screenshot of the owner's screen to the cloud) |
+
 ## 2026-11-21 — Phase 1 rest + local AI (v1.9.0)
 
 | Suite | Result | Notes |

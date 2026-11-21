@@ -13,6 +13,7 @@ from __future__ import annotations
 import json
 import os
 import re
+import socket
 import time
 from typing import Callable
 
@@ -297,6 +298,49 @@ class OllamaBrain:
                 self.messages = self.messages[cut:]
 
 
+# ---------------- routing: which AI gets this message ----------------
+# Words that mean "look at something" (English, Roman Urdu, Urdu script): send it to an AI that can see images.
+_VISION = re.compile(r"\b(?:(?:screen|image|picture|photo|dekh|tasveer|tasvir|tasweer)\w*|pics?\b|look at|see this|"
+                     r"what'?s on)|"
+                     r"اسکرین|سکرین|تصویر|دیکھو|دیکھیں|دیکھ", re.I)
+_net = {"at": 0.0, "up": True}
+
+
+def needs_vision(text: str) -> bool:
+    return bool(_VISION.search(text or ""))
+
+
+def online(timeout: float = 1.5) -> bool:
+    """Is there an internet connection? (One quick TCP connect, remembered for 20 s.)"""
+    if time.time() - _net["at"] < 20:
+        return _net["up"]
+    up = False
+    for host in (("1.1.1.1", 53), ("8.8.8.8", 53)):
+        try:
+            socket.create_connection(host, timeout=timeout).close()
+            up = True
+            break
+        except OSError:
+            pass
+    _net.update(at=time.time(), up=up)
+    return up
+
+
+def route(backends: list[tuple[str, object]], text: str) -> tuple[list[tuple[str, object]], str]:
+    """The AIs to try for this message, in order, and why (\"\" = the normal order)."""
+    order, why = list(backends), ""
+    has_cloud = any(label != "Local AI" for label, _ in order)
+    if has_cloud and not online():
+        local = [(l, b) for l, b in order if l == "Local AI"]
+        return local, "no internet: using the AI on this PC"
+    if order and needs_vision(text) and not getattr(order[0][1], "vision", False):
+        seeing = [(l, b) for l, b in order if getattr(b, "vision", False)]
+        if seeing:
+            order = seeing + [(l, b) for l, b in order if not getattr(b, "vision", False)]
+            why = f"needs to see: {seeing[0][0]} can look at images"
+    return order, why
+
+
 def chain() -> list[str]:
     """Providers to try, in order: JARVIS_PROVIDERS, with local AI first (or last) unless it's listed there."""
     names = provider_order()
@@ -428,7 +472,15 @@ class MultiBrain:
             return msg
         failures: list[str] = []
         failed: set[str] = set()
-        for label, backend in list(self.backends):
+        order, why = route(self.backends, user_text)
+        if not order:
+            msg = ("There's no internet connection, and there's no AI on this PC yet. Install Ollama and download a "
+                   "model on the AI Models page to use me offline.")
+            self.on_text(msg)
+            return msg
+        if why:
+            self.on_tool("routing", {"to": order[0][0], "why": why})
+        for label, backend in order:
             missed = self.turns[self.seen[label]:]
             prompt = user_text
             if missed:  # turns this provider didn't see because another one answered them
@@ -454,7 +506,7 @@ class MultiBrain:
                     msg = f"{label} stopped partway through ({e}). Please check what was done and ask again."
                     self.on_text(msg)
                     return msg
-                nxt = next((name for name, _ in self.backends if name not in failed), None)
+                nxt = next((name for name, _ in order if name not in failed), None)
                 if nxt:
                     self.on_tool("switching_model", {"from": label, "to": nxt, "reason": str(e)})
                 continue

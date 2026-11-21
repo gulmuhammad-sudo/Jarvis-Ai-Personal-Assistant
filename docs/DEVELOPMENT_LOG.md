@@ -2,6 +2,15 @@
 
 Newest first. Each entry: what was done, how it was tested, what is open, the next task.
 
+## 2026-11-21 — Session 1, part 3: task routing (v1.9.1)
+
+**Done** — `providers.route()`: seeing questions → an AI that can see; offline → local only (or a plain
+message); a routing note in Activity (not counted as an action). The owner now approves each next step.
+
+**Tested** — pytest 94/94; running app check (see TESTING_REPORT.md).
+
+**Next** — NEXT_STEPS.md: saved permissions (after the owner's go-ahead).
+
 ## 2026-11-21 — Session 1, part 2: rest of Phase 1 + local AI (v1.9.0)
 
 **Done**

@@ -2,6 +2,12 @@
 
 Each version is also a git tag (`git tag -n20 vX.Y.Z` shows its notes). Newest first.
 
+## 1.9.1 — 2026-11-21
+- Smarter choice of AI for each message: questions about the screen, a picture or a photo go to an AI that can
+  see images (e.g. Gemini) even when another one is first; with no internet, only the AI on this PC is asked
+  (no waiting for cloud AIs that can't answer), or you're told plainly that there's no AI to use offline.
+  Activity shows which AI was asked and why.
+
 ## 1.9.0 — 2026-11-21
 - Local AI: works with Ollama (free) on this PC — offline, private, no limits. AI Models page: Get Ollama,
   Check again / Start, download a recommended model (with your OK and progress), choose the model,

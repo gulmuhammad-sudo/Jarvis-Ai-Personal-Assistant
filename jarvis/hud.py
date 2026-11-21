@@ -194,7 +194,7 @@ class Hub:
         self.emit("history_cleared")
 
     def on_tool(self, name: str, args: dict) -> None:
-        if name not in ("switching_model", "live_reconnecting", "microphone"):   # (notices, not actions)
+        if name not in ("switching_model", "live_reconnecting", "microphone", "routing"):   # (notices, not actions)
             self.tool_calls += 1
         short = ", ".join(f"{k}={str(v)[:50]}" for k, v in args.items())
         tid = self._next_id()

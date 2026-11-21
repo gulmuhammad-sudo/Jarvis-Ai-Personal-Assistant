@@ -34,7 +34,7 @@ audio, installer, uninstaller, packaged-exe smoke test). They are being moved in
 | 11 | Futuristic JARVIS HUD | IMPLEMENTED BUT NEEDS TESTING | `jarvis/hud.html`, `jarvis/hud.py` | — | Manual browser checks only | Automated UI smoke test (page loads, no console errors) |
 | 12 | Full offline support | PARTIALLY IMPLEMENTED | `jarvis/local_ai.py`, `jarvis/voice.py`, page `speechSynthesis` fallback, local tools | 5 | test_local_ai | 1.9.0: the brain can run offline (Ollama). Still online: speech-to-text (Whisper), neural voices, Live calls. Next: local STT/TTS (Phase 3) |
 | 13 | Automatic updates with consent | NOT IMPLEMENTED | — | GitHub Releases | — | Check GitHub Releases API for a newer `Personal.Assistant.Setup.exe`, ask, download, run Setup (it already upgrades in place) |
-| 14 | Multi-model support and routing | PARTIALLY IMPLEMENTED | `jarvis/providers.py` (`MultiBrain`, `chain`), `jarvis/hud.py` (`set_brain`), AI Models page | 5 | test_local_ai | Local/cloud order, fallback, manual choice, local model picker. Missing: routing by task (vision → a vision model, long documents → large context) |
+| 14 | Multi-model support and routing | IMPLEMENTED BUT NEEDS TESTING | `jarvis/providers.py` (`MultiBrain`, `chain`, `route`, `needs_vision`, `online`), AI Models page | 5 | test_local_ai 7, test_routing 14; running app: "photo" question with Groq chosen went to Gemini | 1.9.1: screen/picture questions go to an AI that can see; offline → local only; fallback inside the routed order. Missing: long-document routing (comes with document reading, 25/32) |
 | 15 | Unlimited local usage | IMPLEMENTED BUT NEEDS TESTING | `jarvis/local_ai.py` | 5 | test_local_ai | No limits on local models (only the PC's speed/memory) |
 
 ## B. Intelligence, security and system management (16–30)
@@ -157,13 +157,13 @@ audio, installer, uninstaller, packaged-exe smoke test). They are being moved in
 | 109 | Command history and activity timeline | PARTIALLY IMPLEMENTED | `jarvis/storage.py` (SQLite), `jarvis/audit.py`, Conversations page, Settings › Privacy | — | test_storage 4, test_guard_audit | 1.9.0: conversation + activity survive restarts; permanent audit record viewable in Settings. Missing: timeline page with search and dates |
 | 110 | Modular expansion and upgrade system | NOT IMPLEMENTED | — | 13 | — | — |
 
-## Totals (after v1.9.0, 21 Nov 2026)
+## Totals (after v1.9.1, 21 Nov 2026)
 
 | Status | Count |
 |---|---|
 | IMPLEMENTED AND VERIFIED | 1 |
-| IMPLEMENTED BUT NEEDS TESTING | 8 |
-| PARTIALLY IMPLEMENTED | 42 |
+| IMPLEMENTED BUT NEEDS TESTING | 9 |
+| PARTIALLY IMPLEMENTED | 41 |
 | NOT IMPLEMENTED | 49 |
 | BLOCKED BY EXTERNAL DEPENDENCY | 0 |
 | NOT APPLICABLE | 10 |

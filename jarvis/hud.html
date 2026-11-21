@@ -1366,6 +1366,12 @@ function handle(ev) {
         addFeed({ title: "Ignored my own voice", sub: ev.args, tag: "TIP", ic: "speaker", time: ev.time });
         break;
       }
+      if (ev.name === "routing") {
+        const why = (ev.args.match(/why=(.*)$/) || [])[1] || "";
+        const to = (ev.args.match(/to=([^,]+)/) || [])[1] || "";
+        addFeed({ title: `Asked ${to}`, sub: why, tag: "INFO", ic: "swap", time: ev.time, quiet: true });
+        break;
+      }
       if (ev.name === "switching_model") {
         const to = (ev.args.match(/to=([^,]+)/) || [])[1] || "next model";
         addFeed({ title: `Switched AI to ${to}`, sub: (ev.args.match(/reason=(.*)$/) || [])[1] || "", tag: "WARN", ic: "swap", time: ev.time, quiet: true });

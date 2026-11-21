@@ -16,7 +16,7 @@ enough to finish, test and release on its own. Numbers in brackets are decisions
 ## Phase 2 — AI brain and models
 - [x] Ollama backend (native /api/chat so the context size can be set) [2, 5] (v1.9.0)
 - [x] Model discovery, "is Ollama running", pull a recommended model with consent [90] (v1.9.0)
-- [~] Routing: local first (setting), cloud fallback (v1.9.0); still to do: route by task (vision, long context) [14, 12]
+- [x] Routing: local first (setting), cloud fallback (v1.9.0); screen/picture → an AI that can see, offline → local only (v1.9.1); long-context routing waits for document reading [14, 12]
 - [ ] API keys fully optional; first-run works with local AI only [3, 15]
 - [ ] Model diagnostics on the AI Models page [99]
 
