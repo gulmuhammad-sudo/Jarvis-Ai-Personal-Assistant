@@ -913,6 +913,13 @@ body[data-state="listening"] .talk { border-color: var(--green); background: lin
             <select id="liveVoiceSel" aria-label="Call voice"></select></div>
           <div class="setrow"><div class="lbl"><b>Reading voice <span class="tagx">CLASSIC &amp; TYPED</span></b><small>How Jarvis sounds in Classic style and when reading typed answers aloud.</small></div>
             <select id="voiceSel" aria-label="Reading voice"></select><button class="btn" id="voiceTest"><i data-ic="play"></i>Test</button></div>
+          <div class="setrow"><div class="lbl"><b>Voice source <span class="tagx">CLASSIC &amp; TYPED</span></b><small>Online: Microsoft's natural voices (needs internet). This PC: voices that run on your computer — offline and private. Auto: online when there's internet, this PC when not (or if the online voices fail).</small></div>
+            <button class="btn" data-tts="auto">Auto</button><button class="btn" data-tts="online">Online</button><button class="btn" data-tts="local">This PC</button></div>
+          <div class="permlist" id="ttsVoices"></div>
+          <div class="setrow"><div class="lbl"><b>Speaking speed</b><small id="speedInfo">Normal is 0%.</small></div>
+            <input type="range" id="speedRange" min="-50" max="50" step="5" aria-label="Speaking speed" style="width:200px"></div>
+          <div class="setrow"><div class="lbl"><b>Pitch</b><small id="pitchInfo">Lower or higher voice (online voices only; the voices on this PC keep their own pitch).</small></div>
+            <input type="range" id="pitchRange" min="-20" max="20" step="1" aria-label="Pitch" style="width:200px"></div>
 
           <h4 class="sec">AI MODEL</h4>
           <div class="setrow"><div class="lbl"><b>Who answers</b><small id="brainInfo">Automatic tries Gemini first and moves to the next one if it's busy. Pick one to talk to it first (the others stay as backup), or say "Groq pe chalo". Live calls always use Gemini Live.</small></div>
@@ -1455,6 +1462,14 @@ function handle(ev) {
       break;
     case "history_cleared":
       chat.innerHTML = ""; msgCount = 0; $("bConv").textContent = 0; lastUser = lastJarvis = ""; renderSubs();
+      break;
+    case "tts_download":
+      ttsDl = ev.done ? null : { voice: ev.voice, frac: ev.frac };
+      if (ev.done && !replaying) {
+        addFeed({ title: ev.error ? "Couldn't download the voice" : "Voice ready on this PC", sub: ev.error || "It can speak even without internet", tag: ev.error ? "WARN" : "INFO", ic: "speaker" });
+        if (lastStats && lastStats.local_tts && !ev.error && !lastStats.local_tts.installed.includes(ev.voice)) lastStats.local_tts.installed.push(ev.voice);
+      }
+      if (lastStats) paintTts(lastStats);
       break;
     case "stt_download":
       sttDl = ev.done ? null : { model: ev.model, frac: ev.frac };
@@ -2112,7 +2127,7 @@ async function poll() {
     hotFor.ram = s.ram > 92 ? hotFor.ram + 1 : 0; hotFor.cpu = s.cpu > 90 ? hotFor.cpu + 1 : 0;
     if (hotFor.ram >= 10) alertOnce("ram", { title: `Memory almost full (${Math.round(s.ram)}%)`, sub: "Close a few apps or browser tabs", tag: "WARN", ic: "warn" });
     if (hotFor.cpu >= 20) alertOnce("cpu", { title: `CPU running hot (${Math.round(s.cpu)}%) for 30 seconds`, sub: "Something is working hard. Ask me \"how's my PC doing?\" to see what", tag: "WARN", ic: "warn" });
-    paintAlertSettings(s); paintStartup(s); paintPrivacy(s); paintStt(s);
+    paintAlertSettings(s); paintStartup(s); paintPrivacy(s); paintStt(s); paintTts(s);
     renderTimeline(s.timers || []);
     renderLlms(s.llms || []);
     if (constelN !== Math.min(s.memories, 24)) { constelN = Math.min(s.memories, 24); drawConstel(); }
@@ -2754,6 +2769,54 @@ $("followBtn").onclick = () => { convo.on = !convo.on; storeSet("jarvis.followup
 paintFollow();
 $("micSel").onchange = async () => { await post("/api/mic", { name: $("micSel").value || null }); loadMics(); };
 loadMics();
+
+// ---------- voices on this PC, speed and pitch ----------
+let ttsDl = null;
+function paintTts(s) {
+  s = s || {};
+  const L = s.local_tts || (lastStats && lastStats.local_tts), mode = s.tts_mode || (lastStats && lastStats.tts_mode) || "auto";
+  document.querySelectorAll("[data-tts]").forEach(b => b.classList.toggle("on", b.dataset.tts === mode));
+  const sp = s.voice_speed ?? (lastStats && lastStats.voice_speed), pi = s.voice_pitch ?? (lastStats && lastStats.voice_pitch);
+  if (sp != null && document.activeElement !== $("speedRange")) { $("speedRange").value = sp; $("speedInfo").textContent = `${sp > 0 ? "+" : ""}${sp}% (normal is 0%)`; }
+  if (pi != null && document.activeElement !== $("pitchRange")) { $("pitchRange").value = pi; $("pitchInfo").textContent = `${pi > 0 ? "+" : ""}${pi} Hz · online voices only (the voices on this PC keep their own pitch)`; }
+  if (!L) return;
+  const dl = ttsDl || (L.downloading ? { voice: L.downloading, frac: null } : null);
+  const sig = JSON.stringify([L.installed, L.available, dl]);
+  if ($("ttsVoices")._sig === sig) return;
+  $("ttsVoices")._sig = sig;
+  if (!L.available) { $("ttsVoices").innerHTML = '<div class="permrow"><span>This version can\'t speak with voices on this PC.</span></div>'; return; }
+  $("ttsVoices").innerHTML = L.voices.map(v => {
+    const have = L.installed.includes(v.id), busy = dl && dl.voice === v.id;
+    const btn = have ? `<button class="btn" data-tts-try="${v.id}"><i data-ic="play"></i>Test</button>`
+      : `<button class="btn" data-tts-get="${v.id}"${dl ? " disabled" : ""}>${busy ? `Downloading${dl.frac != null ? " " + Math.round(dl.frac * 100) + "%" : "…"}` : `Download ${v.size_mb} MB`}</button>`;
+    return `<div class="permrow"><span>${esc(v.label)}${have ? ' <small class="s-active">· on this PC</small>' : ""}</span>${btn}</div>`;
+  }).join("");
+  paintIcons($("ttsVoices"));
+  $("ttsVoices").querySelectorAll("[data-tts-get]").forEach(b => b.onclick = () => {
+    const v = L.voices.find(x => x.id === b.dataset.ttsGet);
+    if (!confirm(`Download the voice ${v.label} (${v.size_mb} MB)? It stays on this PC.`)) return;
+    ttsDl = { voice: v.id, frac: 0 }; paintTts(lastStats || s);
+    post("/api/settings", { tts_download: v.id });
+  });
+  $("ttsVoices").querySelectorAll("[data-tts-try]").forEach(b => b.onclick = async () => {
+    const v = L.voices.find(x => x.id === b.dataset.ttsTry);
+    await post("/api/settings", { local_voice: v.id });
+    const sample = v.lang === "ur" ? "جی، میں آپ کی کیا مدد کر سکتا ہوں؟" : v.lang === "hi" ? "नमस्ते, मैं आपकी क्या मदद कर सकता हूँ?" : `Hello, I'm ${AGENT}. This voice runs on your PC.`;
+    const prev = (lastStats && lastStats.tts_mode) || "auto";
+    await post("/api/settings", { tts_engine: "local" });
+    speak(sample, true);
+    setTimeout(() => post("/api/settings", { tts_engine: prev }), 1500);
+  });
+}
+document.querySelectorAll("[data-tts]").forEach(b => b.onclick = async () => {
+  await post("/api/settings", { tts_engine: b.dataset.tts });
+  if (lastStats) lastStats.tts_mode = b.dataset.tts;
+  paintTts(lastStats || { tts_mode: b.dataset.tts });
+});
+for (const [id, key] of [["speedRange", "voice_speed"], ["pitchRange", "voice_pitch"]]) {
+  $(id).oninput = () => { if (lastStats) lastStats[key] = +$(id).value; paintTts({ ...(lastStats || {}), [key]: +$(id).value }); };
+  $(id).onchange = () => post("/api/settings", { [key]: +$(id).value });
+}
 
 // ---------- local speech-to-text ----------
 let sttDl = null;                      // {model, frac} while downloading

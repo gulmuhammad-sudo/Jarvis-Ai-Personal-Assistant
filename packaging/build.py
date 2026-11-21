@@ -63,6 +63,7 @@ def main() -> None:
                 f"--add-data={ROOT / 'jarvis' / 'hud.html'}{SEP}jarvis", f"--add-data={ROOT / 'assets'}{SEP}assets",
                 "--collect-submodules=jarvis", "--collect-data=edge_tts", "--collect-data=certifi",
                 "--collect-all=pywhispercpp",          # local speech-to-text: native whisper.cpp library
+                "--collect-all=sherpa_onnx", "--collect-all=espeakng_loader",   # voices on this PC + espeak data
                 str(PKG / "app.py"))
 
     # 2) the app folder, zipped, goes inside the installer

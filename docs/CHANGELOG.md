@@ -2,6 +2,13 @@
 
 Each version is also a git tag (`git tag -n20 vX.Y.Z` shows its notes). Newest first.
 
+## 1.11.0 — 2026-11-21
+- Voices that speak on this PC (Settings › Voices › Voice source: Auto / Online / This PC): Alan and Jenny
+  (British), Fasih (Urdu), Rohan and Priyamvada (Hindi), ~20 MB each, downloaded when you press Download.
+  Offline and private; Auto uses them when there's no internet or the online voices fail.
+- Speaking speed and pitch sliders (pitch applies to the online voices).
+- Tests: 116 + a real voice and a real transcription (local voice -> local speech-to-text round trip).
+
 ## 1.10.0 — 2026-11-21 (not pushed: GitHub login removed by the owner)
 - Speech to text on this PC (Settings › Microphone): Auto (online when there's internet, this PC when not),
   Online, or This PC. Download a speech model once: Base (60 MB, fast) or Small (190 MB, better for Urdu).

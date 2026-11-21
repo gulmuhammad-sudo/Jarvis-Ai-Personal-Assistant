@@ -2,6 +2,18 @@
 
 Newest first. Each entry: what was done, how it was tested, what is open, the next task.
 
+## 2026-11-21 — Session 2: voices on this PC (v1.11.0)
+
+**Done** — `jarvis/local_tts.py` (sherpa-onnx 2.x runs Piper voices; its built-in phonemizer is gone, so
+espeak-ng from `espeakng-loader` is called through ctypes to make the IPA), voice source Auto/Online/This PC,
+speed/pitch sliders, voice downloads in Settings › Voices. GitHub: pushes now via the zuha-aziz account.
+
+**Tested** — pytest 116 passed + real voice; round trip local voice → local speech-to-text gave back the English
+sentence and nearly the Urdu one; running app returned audio/wav for English and Urdu (1.09 s / 4.56 s).
+Not done: packaged exe build with the new native libraries (sherpa_onnx, espeakng_loader, pywhispercpp).
+
+**Next** — build and smoke-test the exe; then NEXT_STEPS.md (universal command bar, Personal Intelligence Engine).
+
 ## 2026-11-21 — Session 1, part 5: speech to text on this PC (v1.10.0, committed locally)
 
 **Done** — `jarvis/local_stt.py` (whisper.cpp via pywhispercpp: faster-whisper isn't installable on Python 3.15

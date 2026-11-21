@@ -26,7 +26,7 @@ from urllib.parse import parse_qs
 
 from . import __version__
 from . import live as live_mod
-from . import alerts, approvals, audit, denoise, gpu, languages, local_ai, local_stt, memory, schedule, stt, storage, tools, tts, urdu, wake
+from . import alerts, approvals, audit, denoise, gpu, languages, local_ai, local_stt, local_tts, memory, schedule, stt, storage, tools, tts, urdu, wake
 from .brain import make_brain
 from .config import NOTES_DIR
 from .providers import provider_status
@@ -134,6 +134,7 @@ class Hub:
                 pass
         self._confirm_rec = None            # the recording listening for a spoken yes/no
         self._stt_downloading: str | None = None   # local speech model being downloaded
+        self._tts_downloading: str | None = None   # voice on this PC being downloaded
         tts.warm_up()                       # first reply shouldn't pay the voice service's start-up cost
         if recorder and os.environ.get("JARVIS_NO_MIC") != "1":     # (automated tests never open the mic)
             threading.Thread(target=recorder.choose_mic, daemon=True).start()   # pick a working mic early
@@ -600,6 +601,20 @@ class Hub:
             self._stt_downloading = None
             self.emit("settings", stt_mode=stt.mode())
 
+    def tts_download(self, voice: str) -> None:
+        """Download a voice that speaks on this PC (you pressed Download after seeing its size)."""
+        if self._tts_downloading:
+            return
+        self._tts_downloading = voice
+        audit.record("voice_download", voice=voice)
+        try:
+            local_tts.download(voice, lambda f: self.emit("tts_download", voice=voice, frac=round(f, 3)))
+            self.emit("tts_download", voice=voice, frac=1.0, done=True)
+        except Exception as e:
+            self.emit("tts_download", voice=voice, done=True, error=f"{type(e).__name__}: {str(e)[:120]}")
+        finally:
+            self._tts_downloading = None
+
     # ---------- local AI (Ollama) ----------
     def local_info(self) -> dict:
         from .providers import prefer_local
@@ -1044,6 +1059,8 @@ class Hub:
                "version": __version__, "trusted": sorted(self.trusted), "languages": languages.choices(),
                "permissions": self.permissions(),
                "stt_mode": stt.mode(), "local_stt": {**local_stt.status(), "downloading": self._stt_downloading},
+               "tts_mode": tts.mode(), "voice_speed": tts.speed_pct(), "voice_pitch": tts.pitch_hz(),
+               "local_tts": {**local_tts.status(), "downloading": self._tts_downloading},
                "permission_kinds": [{"kind": k, "label": v, "can_allow": k in self.TRUSTABLE}
                                     for k, v in self.PERMISSION_KINDS.items()],
                "language_name": languages.name(self.language), "setup_done": bool(schedule.get_setting("setup_done")),
@@ -1305,6 +1322,19 @@ class Handler(BaseHTTPRequestHandler):
                 schedule.set_setting("loud_alerts", bool(data["loud_alerts"]))
             if data.get("chat_script") in ("roman", "urdu"):
                 HUB.set_chat_script(data["chat_script"])
+            if data.get("tts_engine") in ("auto", "online", "local"):
+                schedule.set_setting("tts_engine", data["tts_engine"])
+            for key, low, high in (("voice_speed", -50, 50), ("voice_pitch", -20, 20)):
+                if key in data:
+                    try:
+                        schedule.set_setting(key, max(low, min(high, int(data[key]))))
+                    except (TypeError, ValueError):
+                        pass
+            if data.get("tts_download") in local_tts.VOICES:
+                threading.Thread(target=HUB.tts_download, args=(data["tts_download"],), daemon=True).start()
+            if data.get("local_voice") in local_tts.installed():
+                v = data["local_voice"]
+                schedule.set_setting(f"local_voice_{local_tts.VOICES[v][1]}", v)
             if data.get("stt_engine") in ("auto", "cloud", "local"):
                 schedule.set_setting("stt_engine", data["stt_engine"])
             if data.get("local_stt_model") in local_stt.installed():
@@ -1412,11 +1442,18 @@ class Handler(BaseHTTPRequestHandler):
         text = (q.get("text") or [""])[0][:1200]
         voice = (q.get("voice") or [None])[0]
         t0 = time.time()
+        local = tts.local_voice(text, HUB.language)
+        if local:                              # Settings › Voices: this PC (or offline in Auto)
+            return self._send_local_voice(text, local)
         try:
             gen = tts.stream(text, voice, HUB.language)
             first = next(gen)                  # fail before sending headers if the service is down
         except Exception as e:
             print(f"[speech] stream failed for {text[:50]!r} ({voice}): {type(e).__name__}: {e}")
+            local = tts.local_voice(text, HUB.language, after_failure=True)
+            if local:
+                print(f"[speech] using the voice on this PC ({local}) instead")
+                return self._send_local_voice(text, local)
             return self._json({"error": f"{type(e).__name__}: {e}"}, 502)
         print(f"[speech] streaming, first audio after {time.time() - t0:.2f}s: {text[:50]!r}")
         self.send_response(200)
@@ -1436,12 +1473,39 @@ class Handler(BaseHTTPRequestHandler):
             print(f"[speech] stream broke off: {type(e).__name__}: {e}")
         self.close_connection = True
 
+    def _send_local_voice(self, text: str, voice: str) -> None:
+        t0 = time.time()
+        try:
+            audio = tts.speak_local(text, voice)
+        except Exception as e:                 # page falls back to the browser's own voice
+            print(f"[speech] voice on this PC failed ({voice}): {type(e).__name__}: {e}")
+            return self._json({"error": f"{type(e).__name__}: {e}"}, 502)
+        print(f"[speech] this PC ({voice}), {time.time() - t0:.2f}s: {text[:50]!r}")
+        self.send_response(200)
+        self.send_header("Content-Type", "audio/wav")
+        self.send_header("Content-Length", str(len(audio)))
+        self.send_header("Cache-Control", "no-store")
+        self.end_headers()
+        try:
+            self.wfile.write(audio)
+        except (BrokenPipeError, ConnectionResetError, ConnectionAbortedError, OSError):
+            pass
+
     def _tts(self) -> None:
         try:
             data = json.loads(self.rfile.read(int(self.headers.get("Content-Length", "0"))) or b"{}")
             text = str(data.get("text", ""))[:3000]
+        except (ValueError, json.JSONDecodeError):
+            return self._json({"error": "bad json"}, 400)
+        local = tts.local_voice(text, HUB.language)
+        if local:
+            return self._send_local_voice(text, local)
+        try:
             audio = tts.synthesize(text, data.get("voice"), HUB.language)
         except Exception as e:  # page falls back to the browser's own voice
+            local = tts.local_voice(text, HUB.language, after_failure=True)
+            if local:
+                return self._send_local_voice(text, local)
             return self._json({"error": f"{type(e).__name__}: {e}"}, 502)
         self.send_response(200)
         self.send_header("Content-Type", "audio/mpeg")

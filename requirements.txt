@@ -11,3 +11,5 @@ google-genai>=1.0
 scipy>=1.11
 pywin32>=306; sys_platform == "win32"
 pywhispercpp>=1.5    # speech-to-text on this PC (optional model download)
+sherpa-onnx>=2.0      # voices that speak on this PC (optional voice download)
+espeakng-loader>=0.2  # text -> sounds for those voices

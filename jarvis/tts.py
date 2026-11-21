@@ -52,7 +52,66 @@ def _resolve(text: str, voice: str | None, lang: str | None = None) -> tuple[str
         voice = _languages.voice(lang, female=any(f in voice for f in _FEMALE))
     elif voice.startswith("en-") and any("؀" <= ch <= "ۿ" for ch in text) and lang in ("en", "ur"):
         voice = _languages.voice("ur", female=any(f in voice for f in _FEMALE))
-    return (voice, "+0%", "+0Hz") if voice.startswith("ur-") else (voice, RATE, PITCH)
+    speed = f"{speed_pct():+d}%"
+    return (voice, speed, "+0Hz") if voice.startswith("ur-") else (voice, speed, f"{pitch_hz():+d}Hz")
+
+
+# ---------------- Settings › Voices: speed, pitch, and online voices vs voices on this PC ----------------
+def _setting_int(key: str, default: int, low: int, high: int) -> int:
+    from . import schedule
+    try:
+        return max(low, min(high, int(schedule.get_setting(key, default))))
+    except (TypeError, ValueError):
+        return default
+
+
+def _num(text: str) -> int:
+    """'+5%' -> 5, '-2Hz' -> -2."""
+    try:
+        return int(str(text).lower().replace("%", "").replace("hz", "").strip() or 0)
+    except ValueError:
+        return 0
+
+
+def speed_pct() -> int:
+    """Speaking speed in % (0 = normal). Both online voices and voices on this PC."""
+    return _setting_int("voice_speed", _num(RATE), -50, 50)
+
+
+def pitch_hz() -> int:
+    """Pitch change in Hz (online voices only: the voices on this PC can't change pitch)."""
+    return _setting_int("voice_pitch", _num(PITCH), -20, 20)
+
+
+def mode() -> str:
+    """'auto' (online voices when there's internet, this PC when not or if they fail), 'online' or 'local'."""
+    from . import schedule
+    m = schedule.get_setting("tts_engine") or "auto"
+    return m if m in ("auto", "online", "local") else "auto"
+
+
+def local_voice(text: str, lang: str | None = None, after_failure: bool = False) -> str | None:
+    """The voice on this PC to use for this text right now, or None to use the online voices."""
+    from . import local_tts
+    if not local_tts.available():
+        return None
+    v = local_tts.pick(text, lang)
+    if not v:
+        return None
+    m = mode()
+    if m == "local" or after_failure:
+        return v
+    if m == "auto":
+        from .providers import online
+        if not online():
+            return v
+    return None
+
+
+def speak_local(text: str, voice: str) -> bytes:
+    """WAV from a voice on this PC, at the chosen speed."""
+    from . import local_tts
+    return local_tts.synthesize(text, voice, 1 + speed_pct() / 100)
 
 
 def _communicate(text: str, voice: str | None, lang: str | None = None):
