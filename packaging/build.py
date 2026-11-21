@@ -47,7 +47,8 @@ def version_file(desc: str, exe: str) -> Path:
 
 
 def pyinstaller(*args: str) -> None:
-    cmd = [sys.executable, "-m", "PyInstaller", "--noconfirm", "--windowed", f"--icon={ICON}",
+    # --clean: never reuse PyInstaller's cache (a cached build once shipped the previous version number)
+    cmd = [sys.executable, "-m", "PyInstaller", "--noconfirm", "--clean", "--windowed", f"--icon={ICON}",
            f"--workpath={BUILD / 'work'}", f"--specpath={BUILD}", *[f"--exclude-module={m}" for m in EXCLUDE], *args]
     print(">", " ".join(cmd[3:]), flush=True)
     subprocess.run(cmd, check=True, cwd=ROOT)
