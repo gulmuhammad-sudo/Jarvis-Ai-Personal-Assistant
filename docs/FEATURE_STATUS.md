@@ -29,7 +29,7 @@ audio, installer, uninstaller, packaged-exe smoke test). They are being moved in
 | 6 | Customizable PC-control permissions | IMPLEMENTED BUT NEEDS TESTING | `jarvis/hud.py` (`PERMISSION_KINDS`, `permission`, `set_permissions`, `confirm`), `jarvis/tools.py` (`ctx.approve`), Settings › Privacy › Permissions | 26, 98 | tests/test_permissions.py 7/7; running app: PowerShell = Never refused `Get-Date` with no question | 1.9.2: Ask / Allow / Never per kind (8 kinds), saved across restarts; Allow only for PowerShell, lock, Wi-Fi off. Needs a real-PC run with the installed exe |
 | 7 | Google sign-in, email/password, local accounts | NOT IMPLEMENTED | — | 28, 42 | — | Single local user only. Local accounts first; Google sign-in needs an OAuth client registration (free, but the user must create it) |
 | 8 | Full assistant personalization | PARTIALLY IMPLEMENTED | `jarvis/schedule.py`, `jarvis/memory.py`, `jarvis/hud.html`, `packaging/setup.html` | — | rename test 11/11 | Name, call-name, language, voices, theme, face, chat text. Missing: personality style, speech speed/pitch in the UI |
-| 9 | Advanced long-term memory | PARTIALLY IMPLEMENTED | `jarvis/memory.py`, tools `remember_fact` / `recall_memories` / `edit_memory` / `merge_memories` / `forget_memory` | 40, 100 | regression (memory parts) | Flat JSON list of facts. Missing: categories, search ranking, importance, SQLite storage, encryption |
+| 9 | Advanced long-term memory | PARTIALLY IMPLEMENTED | `jarvis/memory.py`, `jarvis/storage.py` (table `memories`), tools `remember_fact` / `recall_memories` / `edit_memory` / `merge_memories` / `forget_memory` | 40, 100 | test_memory_engine 20 | 1.14.0: SQLite, 9 categories, importance 1-3, word search, only the top 60 go to the AI, old memory.json imported once (kept as a backup). Missing: encryption at rest, semantic (meaning) search |
 | 10 | Plugin marketplace | NOT IMPLEMENTED | — | 110, 26 | — | Needs a module system first (Phase 10) |
 | 11 | Futuristic JARVIS HUD | IMPLEMENTED BUT NEEDS TESTING | `jarvis/hud.html`, `jarvis/hud.py` | — | Manual browser checks only | Automated UI smoke test (page loads, no console errors) |
 | 12 | Full offline support | PARTIALLY IMPLEMENTED | `jarvis/local_ai.py`, `jarvis/local_stt.py`, `jarvis/stt.py`, page `speechSynthesis` fallback, local tools | 5 | test_local_ai, test_local_stt | Offline brain (Ollama, 1.9.0) and offline speech-to-text (whisper.cpp, 1.10.0). Still online: neural voices (offline falls back to the page's Windows voice), Live calls. Next: local TTS |
@@ -54,7 +54,7 @@ audio, installer, uninstaller, packaged-exe smoke test). They are being moved in
 | 26 | Application security and permissions | PARTIALLY IMPLEMENTED | `jarvis/hud.py` (token, host check), `jarvis/tools.py`, `jarvis/keystore.py`, `jarvis/audit.py`, `jarvis/guard.py` | — | test_keystore 8, test_safety 6, test_guard_audit 38 | 1.8.0: keys encrypted (DPAPI). 1.9.0: audit log, prompt-injection marking, PowerShell deny-list, Emergency Stop. Missing: saved per-kind permissions, privacy dashboard |
 | 27 | System monitoring dashboard | IMPLEMENTED BUT NEEDS TESTING | `jarvis/hud.py` (stats), `jarvis/gpu.py`, `jarvis/hud.html` | — | none | CPU, RAM, GPU, disk, battery, network |
 | 28 | Multiple Windows PC support | NOT IMPLEMENTED | — | 21, 74 | — | — |
-| 29 | Adaptive personal learning | NOT IMPLEMENTED | — | 100 | — | Only facts you ask it to remember |
+| 29 | Adaptive personal learning | PARTIALLY IMPLEMENTED | `memory.suggest_from`, `hud.py` `_suggest_memory`, Memory page card | 100 | test_memory_engine (suggest / no-suggest cases) | 1.14.0: when you say something lasting about yourself it asks "Remember this?"; nothing is saved without your OK; switch in Settings › Privacy. Missing: learning habits/patterns |
 | 30 | Hybrid background / interactive tasks | PARTIALLY IMPLEMENTED | `jarvis/live.py` (tools in a pool), `jarvis/schedule.py` scheduler | — | live test | Timers, alarms and tools run in the background. Missing: a task list you can see and cancel |
 
 ## C. Productivity, creativity and automation (31–50)
@@ -70,7 +70,7 @@ audio, installer, uninstaller, packaged-exe smoke test). They are being moved in
 | 37 | Fully customizable voice | PARTIALLY IMPLEMENTED | `jarvis/tts.py`, `jarvis/live.py`, `jarvis/languages.py` | — | none | 12 Live + 10 reading voices. Speed/pitch only via `.env`; no local TTS |
 | 38 | Smart notification center | PARTIALLY IMPLEMENTED | `jarvis/alerts.py`, Activity feed in `jarvis/hud.html` | — | none | Pop-ups + feed (not kept after restart). Missing: history, filters, do-not-disturb |
 | 39 | AI agent ecosystem | NOT IMPLEMENTED | (the HUD "Agents" panel only lights up tool categories) | 20 | — | — |
-| 40 | Knowledge graph and memory dashboard | PARTIALLY IMPLEMENTED | Memory page in `jarvis/hud.html`, `jarvis/memory.py` | 9 | none | List/edit/merge/forget. No graph |
+| 40 | Knowledge graph and memory dashboard | PARTIALLY IMPLEMENTED | Memory page in `jarvis/hud.html`, `jarvis/memory.py` | 9 | test_memory_engine, running app | 1.14.0: search box, category chips with counts, category and importance (stars) per memory, edit/merge/forget. No graph view yet |
 | 41 | Complete UI customization | PARTIALLY IMPLEMENTED | `jarvis/hud.html` | — | test_pages; running-app checks | Theme, face, focus mode, settings in tabs, animated icons (1.12–1.13). Missing: colours, layout, panel choice |
 | 42 | Multi-user voice profiles | NOT IMPLEMENTED | — | 7 | — | — |
 | 43 | Windows software manager | NOT IMPLEMENTED | — | 26 | — | `winget` is free and built in |
@@ -145,7 +145,7 @@ audio, installer, uninstaller, packaged-exe smoke test). They are being moved in
 | 97 | AI avatar and character studio | PARTIALLY IMPLEMENTED | faces Globe/Mask/Rings in `jarvis/hud.html` (Photo removed in 1.13.0 at the owner's request) | — | manual checks | No character editor, no lip sync |
 | 98 | Privacy and permission dashboard | PARTIALLY IMPLEMENTED | Settings › Privacy in `jarvis/hud.html` | 6, 26 | test_permissions, test_storage, test_guard_audit | Keep/clear history, audit record, per-action permissions (1.9.0–1.9.2). Missing: data-sent-to-cloud overview, mic/camera usage log |
 | 99 | Self-diagnostics and health monitoring | PARTIALLY IMPLEMENTED | AI Models status, mic probing, echo-canceller log | — | none | No diagnostics page |
-| 100 | Personal user understanding engine | PARTIALLY IMPLEMENTED | `jarvis/memory.py` (profile + facts in every prompt) | 9 | none | Shared Personal Intelligence Engine with 9, 29, 40, 103, 104 |
+| 100 | Personal user understanding engine | PARTIALLY IMPLEMENTED | `jarvis/memory.py` (profile + top memories in every prompt) | 9 | test_memory_engine | Shared Personal Intelligence Engine with 9, 29, 40, 103, 104. 1.14.0: categories, importance, search. Missing: skills/custom instructions [103] |
 | 101 | Multi-agent command center | NOT IMPLEMENTED | — | 20, 39 | — | — |
 | 102 | Desktop and window management | NOT IMPLEMENTED | — | — | — | — |
 | 103 | Knowledge and skill expansion | NOT IMPLEMENTED | — | 100 | — | — |
@@ -157,13 +157,13 @@ audio, installer, uninstaller, packaged-exe smoke test). They are being moved in
 | 109 | Command history and activity timeline | PARTIALLY IMPLEMENTED | `jarvis/storage.py` (SQLite), `jarvis/audit.py`, Conversations page, Settings › Privacy | — | test_storage 4, test_guard_audit | 1.9.0: conversation + activity survive restarts; permanent audit record viewable in Settings. Missing: timeline page with search and dates |
 | 110 | Modular expansion and upgrade system | NOT IMPLEMENTED | — | 13 | — | — |
 
-## Totals (after v1.10.0, 21 Nov 2026)
+## Totals (after v1.14.0, 21 Nov 2026)
 
 | Status | Count |
 |---|---|
 | IMPLEMENTED AND VERIFIED | 1 |
 | IMPLEMENTED BUT NEEDS TESTING | 11 |
-| PARTIALLY IMPLEMENTED | 40 |
-| NOT IMPLEMENTED | 48 |
+| PARTIALLY IMPLEMENTED | 41 |
+| NOT IMPLEMENTED | 47 |
 | BLOCKED BY EXTERNAL DEPENDENCY | 0 |
 | NOT APPLICABLE | 10 |

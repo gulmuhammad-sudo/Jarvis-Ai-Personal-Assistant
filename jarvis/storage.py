@@ -27,6 +27,17 @@ MIGRATIONS: list[str] = [
            type TEXT NOT NULL,
            data TEXT NOT NULL);
        CREATE INDEX events_type ON events(type);""",
+    # 2: long-term memories (moved here from memory.json, which is kept as memory.json.imported)
+    """CREATE TABLE memories (
+           id INTEGER PRIMARY KEY AUTOINCREMENT,
+           fact TEXT NOT NULL,
+           category TEXT NOT NULL DEFAULT 'other',
+           importance INTEGER NOT NULL DEFAULT 1,        -- 1 normal, 2 important, 3 key
+           source TEXT NOT NULL DEFAULT 'assistant',     -- you | assistant | suggested | imported
+           created TEXT NOT NULL,
+           updated TEXT NOT NULL,
+           uses INTEGER NOT NULL DEFAULT 0);
+       CREATE INDEX memories_category ON memories(category);""",
 ]
 
 # event types worth keeping across restarts (not live captions, levels, approval prompts...)

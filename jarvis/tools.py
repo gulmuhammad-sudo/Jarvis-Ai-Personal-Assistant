@@ -233,11 +233,17 @@ def list_notes(_: dict, ctx: ToolContext) -> str:
 
 
 def remember_fact(inp: dict, ctx: ToolContext) -> str:
-    return memory.remember(inp["fact"])
+    return memory.remember(inp["fact"], inp.get("category"), inp.get("importance"))
 
 
-def recall_memories(_: dict, ctx: ToolContext) -> str:
-    return memory.as_text()
+def recall_memories(inp: dict, ctx: ToolContext) -> str:
+    query, cat = str(inp.get("query") or ""), inp.get("category")
+    if not query and not cat:
+        return memory.as_text(limit=500)
+    found = memory.search(query, cat, limit=40)
+    if not found:
+        return f"No memories match {query or cat!r}."
+    return "\n".join(f"#{m['id']} [{m['category']}, importance {m['importance']}]: {m['fact']}" for m in found)
 
 
 def forget_memory(inp: dict, ctx: ToolContext) -> str:
@@ -282,7 +288,7 @@ def make_folder(inp: dict, ctx: ToolContext) -> str:
 
 
 def edit_memory(inp: dict, ctx: ToolContext) -> str:
-    return memory.edit(int(inp["id"]), inp["fact"])
+    return memory.update(int(inp["id"]), inp.get("fact"), inp.get("category"), inp.get("importance"))
 
 
 def merge_memories(inp: dict, ctx: ToolContext) -> str:
@@ -447,9 +453,16 @@ TOOLS: list[tuple[dict, Callable[[dict, ToolContext], Any]]] = [
     ({"name": "list_notes", "description": "List the notes Jarvis has saved.", "input_schema": _obj({})}, list_notes),
     ({"name": "remember_fact",
       "description": "Store a durable fact about the user in long-term memory (name, preferences, people, routines, ongoing projects). "
-                     "Use this proactively when the user tells you something worth remembering across sessions.",
-      "input_schema": _obj({"fact": {"type": "string"}}, ["fact"])}, remember_fact),
-    ({"name": "recall_memories", "description": "List everything in long-term memory with ids.", "input_schema": _obj({})}, recall_memories),
+                     "Use this proactively when the user tells you something worth remembering across sessions. "
+                     "category and importance (1 normal, 2 important, 3 key) are optional; they're guessed if left out.",
+      "input_schema": _obj({"fact": {"type": "string"},
+                            "category": {"type": "string", "enum": list(memory.CATEGORIES)},
+                            "importance": {"type": "integer", "enum": [1, 2, 3]}}, ["fact"])}, remember_fact),
+    ({"name": "recall_memories",
+      "description": "Look up long-term memories (with ids). query: words to search for, e.g. 'wife birthday'; category: "
+                     "only that kind. Both empty = everything.",
+      "input_schema": _obj({"query": {"type": "string"}, "category": {"type": "string", "enum": list(memory.CATEGORIES)}})},
+     recall_memories),
     ({"name": "forget_memory", "description": "Delete a long-term memory by id.",
       "input_schema": _obj({"id": {"type": "integer"}}, ["id"])}, forget_memory),
     ({"name": "write_file",
@@ -460,8 +473,12 @@ TOOLS: list[tuple[dict, Callable[[dict, ToolContext], Any]]] = [
                             "append": {"type": "boolean"}}, ["path", "content"])}, write_file),
     ({"name": "make_folder", "description": "Create a folder inside Desktop, Documents or Downloads (no approval needed).",
       "input_schema": _obj({"path": {"type": "string"}}, ["path"])}, make_folder),
-    ({"name": "edit_memory", "description": "Change the text of a long-term memory by id (call recall_memories first for the ids).",
-      "input_schema": _obj({"id": {"type": "integer"}, "fact": {"type": "string"}}, ["id", "fact"])}, edit_memory),
+    ({"name": "edit_memory",
+      "description": "Change a long-term memory by id (call recall_memories first for the ids): its text, category and/or "
+                     "importance (1 normal, 2 important, 3 key).",
+      "input_schema": _obj({"id": {"type": "integer"}, "fact": {"type": "string"},
+                            "category": {"type": "string", "enum": list(memory.CATEGORIES)},
+                            "importance": {"type": "integer", "enum": [1, 2, 3]}}, ["id"])}, edit_memory),
     ({"name": "merge_memories",
       "description": "Combine memories into ONE memory, e.g. 'put all my memories into one'. ids: which ones (empty = all). "
                      "fact: optional tidy combined text you wrote; if empty they are joined as they are.",

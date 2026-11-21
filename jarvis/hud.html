@@ -748,6 +748,32 @@ svg.ic { transition: transform .28s cubic-bezier(.3, 1.5, .5, 1), color .2s, fil
 .btn.switch:focus-visible { outline: 2px solid var(--cyan); outline-offset: 2px; }
 /* range sliders in the accent colour */
 .setrow input[type=range] { accent-color: var(--cyan); cursor: pointer; }
+/* memory page */
+.memtools { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.memsearch { flex: 1; min-width: 220px; display: flex; align-items: center; gap: 8px; height: 38px; padding: 0 12px; border-radius: 10px;
+  border: 1px solid var(--hair-2); background: var(--surface-2); color: var(--muted); }
+.memsearch:focus-within { border-color: rgba(var(--c-accent), .5); }
+.memsearch input { flex: 1; border: 0; background: none; color: var(--text); font: inherit; outline: none; }
+.memcats { display: flex; flex-wrap: wrap; gap: 6px; margin: 10px 0; }
+.chip2 { display: inline-flex; align-items: center; gap: 6px; padding: 5px 11px; border-radius: 999px; border: 1px solid var(--hair-2);
+  background: none; color: var(--muted); font: inherit; font-size: 12.5px; cursor: pointer; transition: all .15s; }
+.chip2 svg.ic { width: 13px; height: 13px; }
+.chip2 em { font-style: normal; font-family: var(--mono); font-size: 11px; color: var(--dim); }
+.chip2:hover { color: var(--text); border-color: rgba(var(--c-accent), .35); }
+.chip2.on { color: var(--cyan); border-color: rgba(var(--c-accent), .6); background: rgba(var(--c-accent), .08); }
+.list.memlist { grid-template-columns: 1fr; }
+.memlist .memitem { animation: rowIn .35s cubic-bezier(.2, .8, .2, 1) both; animation-delay: calc(var(--i, 0) * 25ms); }
+.memmeta { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-top: 4px; }
+.memmeta select { height: 24px; padding: 0 6px; border-radius: 6px; border: 1px solid var(--hair-2); background: var(--surface-2); color: var(--muted); font-size: 11.5px; }
+.stars { display: inline-flex; gap: 1px; }
+.star { border: 0; background: none; padding: 0 1px; font-size: 14px; line-height: 1; color: var(--dim); cursor: pointer; transition: color .15s, transform .15s; }
+.star.on { color: var(--amber); } .star:hover { transform: scale(1.25); }
+.memsuggest { border: 1px solid rgba(var(--c-accent), .45); background: rgba(var(--c-accent), .06); border-radius: 12px; padding: 12px; margin-bottom: 12px;
+  animation: rowIn .4s cubic-bezier(.2, .8, .2, 1) both; }
+.memsuggest .msq { display: flex; gap: 10px; align-items: flex-start; }
+.memsuggest textarea { width: 100%; margin-top: 6px; min-height: 44px; }
+.memsuggest .acts { display: flex; align-items: center; gap: 8px; margin-top: 8px; flex-wrap: wrap; }
+.memsuggest .acts small { color: var(--dim); }
 /* respect "reduce animations" in Windows */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: .001ms !important; animation-iteration-count: 1 !important; transition-duration: .001ms !important; }
@@ -904,9 +930,11 @@ svg.ic { transition: transform .28s cubic-bezier(.3, 1.5, .5, 1), color .2s, fil
       <section class="card page">
         <h3>Memory <span class="more" style="cursor:default">Things Jarvis remembers about you</span></h3>
         <div class="body">
-          <div class="memtools"><button class="btn" id="memMerge"><i data-ic="db"></i>Combine all into one</button>
-            <small>Click ✎ to edit a memory, × to forget it. You can also say "put all my memories into one".</small></div>
-          <div class="list" id="memList"></div>
+          <div id="memSuggest" class="memsuggest" hidden></div>
+          <div class="memtools"><div class="memsearch"><i data-ic="search"></i><input id="memQ" placeholder="Search memories…" aria-label="Search memories" autocomplete="off"></div>
+            <button class="btn" id="memMerge"><i data-ic="db"></i>Combine all into one</button></div>
+          <div class="memcats" id="memCats"></div>
+          <div class="list memlist" id="memList"></div>
           <h4 class="sec">NOTES</h4>
           <div class="list" id="noteList"></div>
         </div>
@@ -1044,6 +1072,8 @@ svg.ic { transition: transform .28s cubic-bezier(.3, 1.5, .5, 1), color .2s, fil
           <h4 class="sec">PRIVACY</h4>
           <div class="setrow"><div class="lbl"><b>Keep conversation history</b><small>Your chat and the Activity list are saved on this PC (never uploaded), so they are still there after a restart.</small></div>
             <button class="btn" id="keepHistBtn">On</button><button class="btn" id="clearHistBtn">Clear saved history</button></div>
+          <div class="setrow"><div class="lbl"><b>Suggest memories</b><small>When you tell it something about yourself ("mera naam…", "I work at…"), it asks "Remember this?" on the Memory page. Nothing is saved unless you press Save.</small></div>
+            <button class="btn" id="suggestMemBtn">On</button></div>
           <div class="setrow"><div class="lbl"><b>What it did on this PC</b><small>A permanent record of every action and every approval (keys, passwords and file contents are never written to it).</small></div>
             <button class="btn" id="auditBtn">Show</button></div>
           <div class="auditlist" id="auditList" hidden></div>
@@ -1553,6 +1583,15 @@ function handle(ev) {
       break;
     case "history_cleared":
       chat.innerHTML = ""; msgCount = 0; $("bConv").textContent = 0; lastUser = lastJarvis = ""; renderSubs();
+      break;
+    case "memory_suggest_clear":
+      memSuggestions.length = 0; showMemSuggest();
+      break;
+    case "memory_suggest":
+      if (!replaying && !memSuggestions.some(x => x.fact === ev.fact)) {
+        memSuggestions.push(ev); showMemSuggest();
+        addFeed({ title: "Remember this?", sub: `${ev.fact.slice(0, 70)} — open Memory to save it`, tag: "TIP", ic: "db", time: ev.time });
+      }
       break;
     case "tts_download":
       ttsDl = ev.done ? null : { voice: ev.voice, frac: ev.frac };
@@ -2301,23 +2340,66 @@ async function loadInfo() {
         <div><b>${esc(t.name.replace(/_/g, " "))}</b><small>${esc(t.description)}</small></div></div>`;
     }).join("");
     $("memMerge").disabled = j.memories.length < 2;
-    $("memList").innerHTML = j.memories.length ? j.memories.map(m => `
-      <div class="item" data-mem="${m.id}"><span class="ico">${icon("db")}</span><div style="min-width:0;flex:1"><b>${esc(m.fact)}</b><small>Saved ${esc(m.saved || "")}</small></div>
-        <button class="x" data-edit="${m.id}" title="Edit" aria-label="Edit this memory">${icon("edit")}</button>
-        <button class="x" data-forget="${m.id}" title="Forget this" aria-label="Forget this memory">${icon("x")}</button></div>`).join("")
-      : '<div class="empty">Nothing yet. Tell ' + esc(AGENT) + ' something about yourself, e.g. "remember that my favourite colour is blue".</div>';
+    memAll = j.memories;
+    renderMemories();
     $("noteList").innerHTML = j.notes.length ? j.notes.map(n => `<div class="item"><span class="ico">${icon("note")}</span><div><b>${esc(n.replace(/\.md$/, ""))}</b><small>data/notes</small></div></div>`).join("")
       : '<div class="empty">No notes yet. Say "take a note: …".</div>';
-    document.querySelectorAll("[data-forget]").forEach(b => b.onclick = async () => { await post("/api/memory/forget", { id: +b.dataset.forget }); loadInfo(); poll(); });
-    document.querySelectorAll("[data-edit]").forEach(b => b.onclick = () => {
-      const m = j.memories.find(x => x.id === +b.dataset.edit), box = b.parentElement.querySelector("div");
+  } catch (e) { console.warn(e); }
+}
+
+// ---------- memories: search, categories, importance ----------
+const MEM_CATS = { personal: ["Personal", "user"], family: ["Family", "user"], people: ["People", "chat"], work: ["Work", "briefcase"],
+  study: ["Study", "note"], health: ["Health", "shield"], preferences: ["Likes", "check"], routine: ["Routine", "clock"], other: ["Other", "db"] };
+let memAll = [], memCat = "";
+function renderMemories() {
+  const q = ($("memQ").value || "").trim().toLowerCase(), words = q.split(/\s+/).filter(Boolean);
+  const counts = {}; memAll.forEach(m => counts[m.category] = (counts[m.category] || 0) + 1);
+  $("memCats").innerHTML = `<button class="chip2${memCat ? "" : " on"}" data-cat="">All <em>${memAll.length}</em></button>` +
+    Object.entries(MEM_CATS).filter(([k]) => counts[k]).map(([k, [label, ic]]) =>
+      `<button class="chip2${memCat === k ? " on" : ""}" data-cat="${k}">${icon(ic)}${label} <em>${counts[k]}</em></button>`).join("");
+  $("memCats").querySelectorAll("[data-cat]").forEach(b => b.onclick = () => { memCat = b.dataset.cat; renderMemories(); });
+  const shown = memAll.filter(m => (!memCat || m.category === memCat) && words.every(w => (m.fact + " " + m.category).toLowerCase().includes(w)));
+  $("memList").innerHTML = shown.length ? shown.map((m, i) => `
+      <div class="item memitem" data-mem="${m.id}" style="--i:${Math.min(i, 14)}"><span class="ico">${icon((MEM_CATS[m.category] || MEM_CATS.other)[1])}</span>
+        <div style="min-width:0;flex:1"><b>${esc(m.fact)}</b>
+          <small class="memmeta"><select data-mcat="${m.id}" aria-label="Category">${Object.entries(MEM_CATS).map(([k, [l]]) => `<option value="${k}"${k === m.category ? " selected" : ""}>${l}</option>`).join("")}</select>
+            <span class="stars" role="radiogroup" aria-label="Importance">${[1, 2, 3].map(n => `<button class="star${n <= m.importance ? " on" : ""}" data-mimp="${m.id}" data-n="${n}" title="${["Normal", "Important", "Key"][n - 1]}" aria-label="${["Normal", "Important", "Key"][n - 1]}">★</button>`).join("")}</span>
+            · ${esc((m.saved || "").replace("T", " "))}${m.source === "suggested" ? " · you said yes" : ""}</small></div>
+        <button class="x" data-edit="${m.id}" title="Edit" aria-label="Edit this memory">${icon("edit")}</button>
+        <button class="x" data-forget="${m.id}" title="Forget this" aria-label="Forget this memory">${icon("x")}</button></div>`).join("")
+    : memAll.length ? '<div class="empty">No memory matches that.</div>'
+      : '<div class="empty">Nothing yet. Tell ' + esc(AGENT) + ' something about yourself, e.g. "remember that my favourite colour is blue".</div>';
+  $("memList").querySelectorAll("[data-mcat]").forEach(sel => sel.onchange = async () => { await post("/api/memory/update", { id: +sel.dataset.mcat, category: sel.value }); loadInfo(); });
+  $("memList").querySelectorAll("[data-mimp]").forEach(b => b.onclick = async () => { await post("/api/memory/update", { id: +b.dataset.mimp, importance: +b.dataset.n }); loadInfo(); });
+  $("memList").querySelectorAll("[data-forget]").forEach(b => b.onclick = async () => { await post("/api/memory/forget", { id: +b.dataset.forget }); loadInfo(); poll(); });
+  $("memList").querySelectorAll("[data-edit]").forEach(b => b.onclick = () => {
+      const m = memAll.find(x => x.id === +b.dataset.edit), box = b.parentElement.querySelector("div");
       box.innerHTML = `<textarea class="edit">${esc(m.fact)}</textarea><div class="acts"><button class="btn on" data-save>Save</button><button class="btn" data-cancel>Cancel</button></div>`;
       const ta = box.querySelector("textarea"); ta.focus(); ta.setSelectionRange(ta.value.length, ta.value.length);
       box.querySelector("[data-cancel]").onclick = loadInfo;
       box.querySelector("[data-save]").onclick = async () => { await post("/api/memory/edit", { id: m.id, fact: ta.value }); loadInfo(); };
       ta.onkeydown = e => { if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) box.querySelector("[data-save]").click(); if (e.key === "Escape") loadInfo(); };
-    });
-  } catch (e) { console.warn(e); }
+  });
+}
+$("memQ").oninput = renderMemories;
+
+// "Shall I remember that?" (nothing is saved unless you press Save)
+const memSuggestions = [];
+function showMemSuggest() {
+  const box = $("memSuggest"), s = memSuggestions[0];
+  box.hidden = !s;
+  if (!s) return;
+  box.innerHTML = `<div class="msq"><span class="ico">${icon("db")}</span><div style="flex:1;min-width:0"><b>Remember this?</b>
+      <textarea class="edit" aria-label="What to remember">${esc(s.fact)}</textarea></div></div>
+    <div class="acts"><button class="btn on" data-ms="save">${icon("check")}Save</button><button class="btn" data-ms="no">${icon("x")}No thanks</button>
+      <small>${memSuggestions.length > 1 ? `${memSuggestions.length - 1} more waiting · ` : ""}Turn these off in Settings › Privacy.</small></div>`;
+  box.querySelector('[data-ms="save"]').onclick = async () => {
+    const fact = box.querySelector("textarea").value.trim();
+    memSuggestions.shift();
+    if (fact) await post("/api/memory/add", { fact, category: s.category });
+    showMemSuggest(); loadInfo(); poll();
+  };
+  box.querySelector('[data-ms="no"]').onclick = () => { memSuggestions.shift(); showMemSuggest(); };
 }
 
 let mergeArmed = 0;
@@ -2804,7 +2886,7 @@ loadMics();
     row.appendChild(ctrl);
     if (ctrl.querySelector(".themecards")) row.classList.add("wide");
   });
-  for (const id of ["voiceBtn2", "wakeBtn", "speakBtn2", "followBtn", "bootBtn", "autoLiveBtn", "keepHistBtn", "loudBtn"]) {
+  for (const id of ["voiceBtn2", "wakeBtn", "speakBtn2", "followBtn", "bootBtn", "autoLiveBtn", "keepHistBtn", "loudBtn", "suggestMemBtn"]) {
     const b = $(id); if (!b) continue;
     b.classList.add("switch"); b.setAttribute("role", "switch");
     const sync = () => b.setAttribute("aria-checked", b.classList.contains("on"));
@@ -2917,6 +2999,8 @@ $("stopBtn").onclick = emergencyStop;
 function paintPrivacy(s) {
   const on = s.keep_history !== false;
   $("keepHistBtn").textContent = on ? "On" : "Off"; $("keepHistBtn").classList.toggle("on", on);
+  const sm = s.suggest_memories !== false;
+  $("suggestMemBtn").textContent = sm ? "On" : "Off"; $("suggestMemBtn").classList.toggle("on", sm);
   paintPermissions(s);
 }
 function paintPermissions(s) {
@@ -2937,6 +3021,7 @@ function paintPermissions(s) {
   });
 }
 $("keepHistBtn").onclick = () => toggleSetting("keep_history");
+$("suggestMemBtn").onclick = () => { const on = !(lastStats && lastStats.suggest_memories !== false); if (lastStats) lastStats.suggest_memories = on; paintPrivacy(lastStats || { suggest_memories: on }); post("/api/settings", { suggest_memories: on }); };
 $("clearHistBtn").onclick = async () => {
   if (!confirm("Delete the saved conversation and activity history from this PC? This can't be undone.")) return;
   await post("/api/history/clear", {});

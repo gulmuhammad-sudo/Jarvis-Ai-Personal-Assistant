@@ -11,6 +11,14 @@ set PA_TEST_NETWORK=1 && .venv\Scripts\python -m pytest tests   # also the onlin
 .venv\Scripts\python packaging\build.py              # then smoke-test the packaged exe (see below)
 ```
 
+## 2026-11-21 — Personal Intelligence Engine (v1.14.0)
+
+| Suite | Result | Notes |
+|---|---|---|
+| `pytest tests` | 137 passed, 2 skipped | new tests/test_memory_engine.py (20): one-time import of memory.json with ids/dates kept and a backup, duplicate check, category/importance updates and bad values, search ranking and filters, top-60 limit for the AI, merge, 6 sentences that should be suggested and 6 questions/commands that shouldn't, tool schemas |
+| Running app (test copy) | pass | old test memories imported with categories; "Remember this?" card shows editable text, Save stores it with source "suggested", "No thanks" hides it; card disappears when the AI saves the fact itself; search "cat mano" → 1 hit; stars and category select saved (checked via /api/info); no console errors |
+| Packaged exe | not run yet | next build |
+
 ## 2026-11-21 — UI polish, Photo face removed (v1.13.0)
 
 | Suite | Result | Notes |

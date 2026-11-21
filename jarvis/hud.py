@@ -174,6 +174,8 @@ class Hub:
     def on_tool(self, name: str, args: dict) -> None:
         if name not in ("switching_model", "live_reconnecting", "microphone", "routing"):   # (notices, not actions)
             self.tool_calls += 1
+        if name == "remember_fact":            # the assistant saved it itself: don't also ask "Remember this?"
+            self.emit("memory_suggest_clear")
         short = ", ".join(f"{k}={str(v)[:50]}" for k, v in args.items())
         tid = self._next_id()
         if name in tools._HANDLERS:
@@ -234,6 +236,21 @@ class Hub:
 
     # ---------- wake word: only respond after you call its name ----------
     WAKE_FOLLOW_UP = 15                     # seconds it keeps listening for a follow-up before waiting for the name again
+
+    def suggest_memories(self) -> bool:
+        return schedule.get_setting("suggest_memories", True) is not False
+
+    def _suggest_memory(self, text: str) -> None:
+        """You said something lasting about yourself: offer to remember it (never saved without your OK)."""
+        if not self.suggest_memories():
+            return
+        try:
+            s = memory.suggest_from(text)
+        except Exception as e:
+            print(f"[memory] suggestion check failed: {e}")
+            return
+        if s:
+            self.emit("memory_suggest", id=self._next_id(), **s)
 
     def chat_script(self) -> str:
         """'roman' (default): the chat is typed in English letters; 'urdu': in Urdu script (only when you ask)."""
@@ -800,6 +817,8 @@ class Hub:
             tools.STOP.clear()                 # a new instruction: Stop is over
         rid = self._next_id()
         self.emit("user", keep=True, text=text, source=source, id=rid)
+        if source != "scheduled":
+            self._suggest_memory(text)
         if source not in ("typed", "scheduled"):             # what you typed stays exactly as you typed it
             self._chat_script_later(rid, text)
         if source != "scheduled":
@@ -918,6 +937,7 @@ class Hub:
         self._live_user = text
         rid = self._next_id()
         self.emit("user", keep=True, text=text, source="live", id=rid)
+        self._suggest_memory(text)
         self._chat_script_later(rid, text)
 
     def _live_reply(self, text: str, interrupted: bool) -> None:
@@ -1029,7 +1049,8 @@ class Hub:
                "turns": len(getattr(self.brain, "turns", [])), "tool_calls": self.tool_calls,
                "computer": platform.node(), "user": memory.call_name(), "loud_alerts": alerts.loud(),
                "live_on_open": self.live_on_open(), "tray": WINDOW_HOOK is not None, "chat_script": self.chat_script(),
-               "keep_history": self.keep_history(),
+               "keep_history": self.keep_history(), "suggest_memories": self.suggest_memories(),
+               "memory_counts": memory.counts(),
                "start_with_windows": schedule.get_setting("start_with_windows", True) is not False,
                "assistant_name": schedule.agent_name(), "theme": schedule.theme(),
                "version": __version__, "trusted": sorted(self.trusted), "languages": languages.choices(),
@@ -1307,6 +1328,8 @@ class Handler(BaseHTTPRequestHandler):
                 threading.Thread(target=HUB.stt_download, args=(data["stt_download"],), daemon=True).start()
             if isinstance(data.get("permissions"), dict):
                 HUB.set_permissions(data["permissions"])
+            if "suggest_memories" in data:
+                schedule.set_setting("suggest_memories", bool(data["suggest_memories"]))
             if "keep_history" in data:
                 schedule.set_setting("keep_history", bool(data["keep_history"]))
             if "live_on_open" in data:
@@ -1389,6 +1412,14 @@ class Handler(BaseHTTPRequestHandler):
             memory.forget(int(data.get("id", -1)))
         elif self.path == "/api/memory/edit":
             return self._json({"message": memory.edit(int(data.get("id", -1)), str(data.get("fact", "")))})
+        elif self.path == "/api/memory/update":          # Memory page: category / importance / text
+            imp = data.get("importance")
+            return self._json({"message": memory.update(int(data.get("id", -1)), data.get("fact"), data.get("category"),
+                                                        int(imp) if imp is not None else None)})
+        elif self.path == "/api/memory/add":             # "Remember this?" -> Save
+            msg = memory.remember(str(data.get("fact", "")), data.get("category"), None, source="suggested")
+            HUB.emit("tool", keep=True, name="remember_fact", id=HUB._next_id(), args=f"saved because you said yes: {str(data.get('fact', ''))[:60]}")
+            return self._json({"message": msg})
         elif self.path == "/api/memory/merge":
             return self._json({"message": memory.merge([int(i) for i in data.get("ids") or []] or None)})
         elif self.path == "/api/reset":

@@ -28,9 +28,9 @@ enough to finish, test and release on its own. Numbers in brackets are decisions
 - [ ] HUD customization (colours, panels) and avatar reactions [41, 97]
 
 ## Phase 4 — Memory and personal intelligence
-- [ ] Personal Intelligence Engine on SQLite: profile, memories with categories/importance, search [9, 100, 104]
-- [ ] Memory dashboard with search and a simple knowledge graph view [40]
-- [ ] User-controlled learning (suggested memories you approve) [29]
+- [x] Personal Intelligence Engine on SQLite: profile, memories with categories/importance, search [9, 100, 104]
+- [~] Memory dashboard with search and a simple knowledge graph view [40] (search done, graph not yet)
+- [x] User-controlled learning (suggested memories you approve) [29]
 - [ ] Skills / custom instructions [103]
 
 ## Phase 5 — Windows computer agent

@@ -2,6 +2,17 @@
 
 Each version is also a git tag (`git tag -n20 vX.Y.Z` shows its notes). Newest first.
 
+## 1.14.0 — 2026-11-21
+- Personal Intelligence Engine: memories now live in the app database with a category (personal, family,
+  people, work, study, health, likes, routine, other) and an importance (1-3 stars). Your old memories are
+  moved over automatically; the old file is kept as `memory.json.imported`.
+- Memory page: search box, category chips with counts, change a memory's category or stars in place.
+- "Remember this?": when you tell the assistant something lasting about yourself (name, job, likes, family,
+  allergies — English or Roman Urdu), a card offers to save it. Nothing is saved unless you press Save.
+  Turn it off in Settings › Privacy › Suggest memories.
+- The AI gets the most important 60 memories in every chat and can search the rest (`recall_memories` with
+  words or a category).
+
 ## 1.13.1 — 2026-11-21
 - Settings are centred in one column (tabs and rows), instead of hugging the left side.
 

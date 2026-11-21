@@ -2,6 +2,17 @@
 
 Newest first. Each entry: what was done, how it was tested, what is open, the next task.
 
+## 2026-11-21 — Session 2, part 3: Personal Intelligence Engine (v1.14.0)
+
+**Done** — database migration 2 (`memories` table), `memory.py` rewritten (categories, importance, dedupe, search,
+safe one-time import of memory.json, suggestions from what you say), memory tools take query/category/importance,
+`/api/memory/update` and `/api/memory/add`, Memory page search/chips/stars, "Remember this?" card, Privacy switch.
+
+**Tested** — pytest 137 passed, 2 skipped; running test copy (see TESTING_REPORT).
+
+**Next** — ask the owner: build 1.14.0 and update the installed app, or carry on with Phase 4 (knowledge graph
+view, skills / custom instructions).
+
 ## 2026-11-21 — Session 2: voices on this PC (v1.11.0)
 
 **Done** — `jarvis/local_tts.py` (sherpa-onnx 2.x runs Piper voices; its built-in phonemizer is gone, so
