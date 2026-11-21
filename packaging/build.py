@@ -62,6 +62,7 @@ def main() -> None:
     pyinstaller(f"--name={NAME}", f"--distpath={DIST}", f"--version-file={version_file('Personal Assistant', NAME)}",
                 f"--add-data={ROOT / 'jarvis' / 'hud.html'}{SEP}jarvis", f"--add-data={ROOT / 'assets'}{SEP}assets",
                 "--collect-submodules=jarvis", "--collect-data=edge_tts", "--collect-data=certifi",
+                "--collect-all=pywhispercpp",          # local speech-to-text: native whisper.cpp library
                 str(PKG / "app.py"))
 
     # 2) the app folder, zipped, goes inside the installer

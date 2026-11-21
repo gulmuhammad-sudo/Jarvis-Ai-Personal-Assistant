@@ -21,9 +21,9 @@ enough to finish, test and release on its own. Numbers in brackets are decisions
 - [ ] Model diagnostics on the AI Models page [99]
 
 ## Phase 3 — Voice, HUD, avatar
-- [ ] Local speech-to-text (faster-whisper, optional download) [12, 23]
+- [x] Local speech-to-text (whisper.cpp via pywhispercpp — faster-whisper's onnxruntime has no Python 3.15 build; optional model download) [12, 23] (v1.10.0)
 - [ ] Local voice (Piper, optional download); speed and pitch in Settings [37]
-- [ ] Local wake-word check [23]
+- [x] Local wake-word check (uses the local speech model when selected / offline) [23] (v1.10.0)
 - [ ] Universal command bar: search settings, memories, history, run commands [107]
 - [ ] HUD customization (colours, panels) and avatar reactions [41, 97]
 

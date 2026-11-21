@@ -11,6 +11,16 @@ set PA_TEST_NETWORK=1 && .venv\Scripts\python -m pytest tests   # also the onlin
 .venv\Scripts\python packaging\build.py              # then smoke-test the packaged exe (see below)
 ```
 
+## 2026-11-21 — Speech to text on this PC (v1.10.0)
+
+| Suite | Result | Notes |
+|---|---|---|
+| `pytest tests` | **108 passed, 1 skipped** | + test_local_stt (8): WAV → 16 kHz mono, download with progress (fake server), cut-off download leaves nothing, only known models, engine order by setting / offline, "This PC" without a model keeps cloud, cloud failure → this PC. The skipped one runs a real transcription when PA_TEST_STT_DIR points at a model: **passed** when run that way |
+| Real model (base-q5_1, 60 MB, this PC) | pass | Windows-voice sentence "Please set a timer for ten minutes and open the calculator." → exact text; 4 s of audio in 1.3 s (2.7 s with model loading) |
+| Running app (test copy) | pass after a fix | Settings › Microphone shows Auto / Online / This PC and the models; WAV sent to /api/transcribe → engine "local". First try with the language set to Urdu gave garbled Urdu for English speech (Urdu was forced) → now English/Urdu are auto-detected on this PC; retried: exact text |
+| Real voice / Urdu speech | not tested | needs the owner speaking on the laptop |
+| Packaged exe | not built | `--collect-all=pywhispercpp` added to build.py; next build must check the native library is included |
+
 ## 2026-11-21 — Saved permissions (v1.9.2)
 
 | Suite | Result | Notes |

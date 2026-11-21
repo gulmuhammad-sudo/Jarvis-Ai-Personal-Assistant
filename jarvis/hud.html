@@ -919,6 +919,9 @@ body[data-state="listening"] .talk { border-color: var(--green); background: lin
             <select id="brainSel" aria-label="AI provider"></select><select id="brainModelSel" aria-label="Model"></select></div>
 
           <h4 class="sec">MICROPHONE</h4>
+          <div class="setrow"><div class="lbl"><b>Speech to text</b><small id="sttInfo">How your voice becomes text. Auto: online services when there's internet (fastest), this PC when there isn't. This PC: always on your computer — works offline and nothing you say leaves it.</small></div>
+            <button class="btn" data-stt="auto">Auto</button><button class="btn" data-stt="cloud">Online</button><button class="btn" data-stt="local">This PC</button></div>
+          <div class="permlist" id="sttModels"></div>
           <div class="setrow"><div class="lbl"><b>Microphone</b><small id="micInfo">Jarvis picks a microphone that actually hears you, and asks you when you plug in a new one (earbuds, headset).</small></div>
             <select id="micSel" aria-label="Microphone"></select>
             <button class="btn" id="micBoost" title="Set the microphone's Windows input level to 100%">Boost level</button></div>
@@ -1452,6 +1455,14 @@ function handle(ev) {
       break;
     case "history_cleared":
       chat.innerHTML = ""; msgCount = 0; $("bConv").textContent = 0; lastUser = lastJarvis = ""; renderSubs();
+      break;
+    case "stt_download":
+      sttDl = ev.done ? null : { model: ev.model, frac: ev.frac };
+      if (ev.done && !replaying) {
+        addFeed({ title: ev.error ? `Couldn't download the speech model` : `Speech model ready`, sub: ev.error || "Your voice can now be understood on this PC, even offline", tag: ev.error ? "WARN" : "INFO", ic: "mic" });
+        if (lastStats && lastStats.local_stt && !ev.error && !lastStats.local_stt.installed.includes(ev.model)) lastStats.local_stt.installed.push(ev.model);
+      }
+      if (lastStats) paintStt(lastStats);
       break;
     case "local_pull":
       if (localInfo) { localInfo.pulling = ev.done ? null : ev.model; renderLocal(ev); }
@@ -2101,7 +2112,7 @@ async function poll() {
     hotFor.ram = s.ram > 92 ? hotFor.ram + 1 : 0; hotFor.cpu = s.cpu > 90 ? hotFor.cpu + 1 : 0;
     if (hotFor.ram >= 10) alertOnce("ram", { title: `Memory almost full (${Math.round(s.ram)}%)`, sub: "Close a few apps or browser tabs", tag: "WARN", ic: "warn" });
     if (hotFor.cpu >= 20) alertOnce("cpu", { title: `CPU running hot (${Math.round(s.cpu)}%) for 30 seconds`, sub: "Something is working hard. Ask me \"how's my PC doing?\" to see what", tag: "WARN", ic: "warn" });
-    paintAlertSettings(s); paintStartup(s); paintPrivacy(s);
+    paintAlertSettings(s); paintStartup(s); paintPrivacy(s); paintStt(s);
     renderTimeline(s.timers || []);
     renderLlms(s.llms || []);
     if (constelN !== Math.min(s.memories, 24)) { constelN = Math.min(s.memories, 24); drawConstel(); }
@@ -2743,6 +2754,42 @@ $("followBtn").onclick = () => { convo.on = !convo.on; storeSet("jarvis.followup
 paintFollow();
 $("micSel").onchange = async () => { await post("/api/mic", { name: $("micSel").value || null }); loadMics(); };
 loadMics();
+
+// ---------- local speech-to-text ----------
+let sttDl = null;                      // {model, frac} while downloading
+function paintStt(s) {
+  const L = s.local_stt || (lastStats && lastStats.local_stt), mode = s.stt_mode || (lastStats && lastStats.stt_mode) || "auto";
+  document.querySelectorAll("[data-stt]").forEach(b => b.classList.toggle("on", b.dataset.stt === mode));
+  if (!L) return;
+  const dl = sttDl || (L.downloading ? { model: L.downloading, frac: null } : null);
+  const sig = JSON.stringify([L.installed, L.model, L.available, dl]);
+  if ($("sttModels")._sig === sig) return;
+  $("sttModels")._sig = sig;
+  if (!L.available) { $("sttModels").innerHTML = '<div class="permrow"><span>This version can\'t run speech-to-text on this PC.</span></div>'; return; }
+  $("sttModels").innerHTML = L.models.map(m => {
+    const have = L.installed.includes(m.name), busy = dl && dl.model === m.name;
+    const label = m.name.startsWith("small") ? "Small" : "Base";
+    const btn = have ? `<button class="btn${L.model === m.name ? " on" : ""}" data-stt-use="${m.name}">${L.model === m.name ? "In use" : "Use"}</button>`
+      : `<button class="btn" data-stt-get="${m.name}"${dl ? " disabled" : ""}>${busy ? `Downloading${dl.frac != null ? " " + Math.round(dl.frac * 100) + "%" : "…"}` : `Download ${m.size_mb} MB`}</button>`;
+    return `<div class="permrow"><span><b>${label}</b> · ${esc(m.about)}</span>${btn}</div>`;
+  }).join("");
+  $("sttModels").querySelectorAll("[data-stt-get]").forEach(b => b.onclick = () => {
+    const m = L.models.find(x => x.name === b.dataset.sttGet);
+    if (!confirm(`Download the ${m.name.startsWith("small") ? "Small" : "Base"} speech model (${m.size_mb} MB) from Hugging Face? It stays on this PC.`)) return;
+    sttDl = { model: m.name, frac: 0 }; paintStt(lastStats || s);
+    post("/api/settings", { stt_download: m.name });
+  });
+  $("sttModels").querySelectorAll("[data-stt-use]").forEach(b => b.onclick = async () => {
+    await post("/api/settings", { local_stt_model: b.dataset.sttUse });
+    if (lastStats && lastStats.local_stt) lastStats.local_stt.model = b.dataset.sttUse;
+    paintStt(lastStats);
+  });
+}
+document.querySelectorAll("[data-stt]").forEach(b => b.onclick = async () => {
+  await post("/api/settings", { stt_engine: b.dataset.stt });
+  if (lastStats) lastStats.stt_mode = b.dataset.stt;
+  paintStt(lastStats || { stt_mode: b.dataset.stt });
+});
 
 // ---------- emergency stop + privacy ----------
 function emergencyStop() { stopSpeaking(); convo.armed = false; post("/api/stop", {}); }

@@ -32,7 +32,7 @@ audio, installer, uninstaller, packaged-exe smoke test). They are being moved in
 | 9 | Advanced long-term memory | PARTIALLY IMPLEMENTED | `jarvis/memory.py`, tools `remember_fact` / `recall_memories` / `edit_memory` / `merge_memories` / `forget_memory` | 40, 100 | regression (memory parts) | Flat JSON list of facts. Missing: categories, search ranking, importance, SQLite storage, encryption |
 | 10 | Plugin marketplace | NOT IMPLEMENTED | — | 110, 26 | — | Needs a module system first (Phase 10) |
 | 11 | Futuristic JARVIS HUD | IMPLEMENTED BUT NEEDS TESTING | `jarvis/hud.html`, `jarvis/hud.py` | — | Manual browser checks only | Automated UI smoke test (page loads, no console errors) |
-| 12 | Full offline support | PARTIALLY IMPLEMENTED | `jarvis/local_ai.py`, `jarvis/voice.py`, page `speechSynthesis` fallback, local tools | 5 | test_local_ai | 1.9.0: the brain can run offline (Ollama). Still online: speech-to-text (Whisper), neural voices, Live calls. Next: local STT/TTS (Phase 3) |
+| 12 | Full offline support | PARTIALLY IMPLEMENTED | `jarvis/local_ai.py`, `jarvis/local_stt.py`, `jarvis/stt.py`, page `speechSynthesis` fallback, local tools | 5 | test_local_ai, test_local_stt | Offline brain (Ollama, 1.9.0) and offline speech-to-text (whisper.cpp, 1.10.0). Still online: neural voices (offline falls back to the page's Windows voice), Live calls. Next: local TTS |
 | 13 | Automatic updates with consent | NOT IMPLEMENTED | — | GitHub Releases | — | Check GitHub Releases API for a newer `Personal.Assistant.Setup.exe`, ask, download, run Setup (it already upgrades in place) |
 | 14 | Multi-model support and routing | IMPLEMENTED BUT NEEDS TESTING | `jarvis/providers.py` (`MultiBrain`, `chain`, `route`, `needs_vision`, `online`), AI Models page | 5 | test_local_ai 7, test_routing 14; running app: "photo" question with Groq chosen went to Gemini | 1.9.1: screen/picture questions go to an AI that can see; offline → local only; fallback inside the routed order. Missing: long-document routing (comes with document reading, 25/32) |
 | 15 | Unlimited local usage | IMPLEMENTED BUT NEEDS TESTING | `jarvis/local_ai.py` | 5 | test_local_ai | No limits on local models (only the PC's speed/memory) |
@@ -48,7 +48,7 @@ audio, installer, uninstaller, packaged-exe smoke test). They are being moved in
 | 20 | Controlled autonomous multi-step tasks | PARTIALLY IMPLEMENTED | agent loops in `jarvis/providers.py` / `jarvis/brain.py`, approvals, `tools.STOP` | 6, 101 | test_guard_audit (stop) | 1.9.0: Emergency Stop (button, Esc twice, tray). Missing: visible plan and step list |
 | 21 | Secure remote access / web interface | NOT IMPLEMENTED | `jarvis/hud.py` binds 127.0.0.1 only (deliberately) | 26, 28 | — | Needs device pairing + TLS before exposing anything beyond this PC |
 | 22 | Local-first privacy | PARTIALLY IMPLEMENTED | `jarvis/config.py`, `jarvis/keystore.py`, `jarvis/local_ai.py`, Settings › Privacy | 5, 98 | test_keystore, test_storage | Keys encrypted; local AI keeps conversations on the PC; history can be switched off/cleared. Cloud AIs still receive messages when used |
-| 23 | Custom wake word, local detection | PARTIALLY IMPLEMENTED | `jarvis/wake.py`, `jarvis/hud.py` (standby) | — | Session wake-word test passed (once flaky on network) | Any name works; the name check uses cloud Whisper. Next: local check (openWakeWord / faster-whisper) |
+| 23 | Custom wake word, local detection | IMPLEMENTED BUT NEEDS TESTING | `jarvis/wake.py`, `jarvis/hud.py` (standby, `_check_wake`), `jarvis/local_stt.py` | — | Session wake-word test passed (cloud); local path not yet tried with a real voice | Any name works. 1.10.0: with Speech to text = This PC (or offline) the name check runs locally. Needs a real-voice run on the laptop |
 | 24 | Advanced developer mode | NOT IMPLEMENTED | — | 50, 91 | — | — |
 | 25 | Knowledge and document understanding | PARTIALLY IMPLEMENTED | tools `read_text_file`, `find_files` | 5 | none | Plain text only. Missing: PDF/DOCX/XLSX reading, local index (RAG) |
 | 26 | Application security and permissions | PARTIALLY IMPLEMENTED | `jarvis/hud.py` (token, host check), `jarvis/tools.py`, `jarvis/keystore.py`, `jarvis/audit.py`, `jarvis/guard.py` | — | test_keystore 8, test_safety 6, test_guard_audit 38 | 1.8.0: keys encrypted (DPAPI). 1.9.0: audit log, prompt-injection marking, PowerShell deny-list, Emergency Stop. Missing: saved per-kind permissions, privacy dashboard |
@@ -87,7 +87,7 @@ audio, installer, uninstaller, packaged-exe smoke test). They are being moved in
 | # | Decision | Status | Source files | Depends on | Tests | Remaining / next action |
 |---|---|---|---|---|---|---|
 | 51 | Personal finance manager | NOT IMPLEMENTED | — | storage layer | — | — |
-| 52 | Language assistant | PARTIALLY IMPLEMENTED | `jarvis/languages.py`, `jarvis/urdu.py` | — | none | Talks in many languages; no translation/learning tools |
+| 52 | Language assistant | PARTIALLY IMPLEMENTED | `jarvis/languages.py`, `jarvis/urdu.py`, `jarvis/local_stt.py` | — | test_core (Urdu text) | Talks in many languages (speech recognised online or on this PC); no translation/learning tools |
 | 53 | Personal knowledge manager and notes | PARTIALLY IMPLEMENTED | tools `save_note`, `list_notes` (`data/notes/`) | 25 | none | Text notes only, no search UI |
 | 54 | Screen recording | NOT IMPLEMENTED | — | 26 (no silent recording) | — | — |
 | 55 | AI image generation and editing | NOT IMPLEMENTED | — | 5 | — | — |
@@ -157,13 +157,13 @@ audio, installer, uninstaller, packaged-exe smoke test). They are being moved in
 | 109 | Command history and activity timeline | PARTIALLY IMPLEMENTED | `jarvis/storage.py` (SQLite), `jarvis/audit.py`, Conversations page, Settings › Privacy | — | test_storage 4, test_guard_audit | 1.9.0: conversation + activity survive restarts; permanent audit record viewable in Settings. Missing: timeline page with search and dates |
 | 110 | Modular expansion and upgrade system | NOT IMPLEMENTED | — | 13 | — | — |
 
-## Totals (after v1.9.2, 21 Nov 2026)
+## Totals (after v1.10.0, 21 Nov 2026)
 
 | Status | Count |
 |---|---|
 | IMPLEMENTED AND VERIFIED | 1 |
-| IMPLEMENTED BUT NEEDS TESTING | 10 |
-| PARTIALLY IMPLEMENTED | 41 |
+| IMPLEMENTED BUT NEEDS TESTING | 11 |
+| PARTIALLY IMPLEMENTED | 40 |
 | NOT IMPLEMENTED | 48 |
 | BLOCKED BY EXTERNAL DEPENDENCY | 0 |
 | NOT APPLICABLE | 10 |

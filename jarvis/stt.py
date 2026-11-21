@@ -5,7 +5,10 @@
             Whisper "guesses" whole sentences when the audio is unclear (e.g. fan noise),
             so low-confidence results are rejected instead of being sent to Jarvis.
 2nd choice: Gemini (free key) listening to the audio.
-If neither key is set, the HUD falls back to the built-in Windows recognizer.
+On this PC: Whisper running locally (local_stt.py, a one-time model download) — offline and private.
+Settings › Microphone › Speech to text: "auto" (cloud when online, this PC when offline or if the cloud
+fails), "cloud" (cloud first, this PC only as backup) or "local" (always this PC).
+If nothing is available, the HUD falls back to the built-in Windows recognizer.
 """
 from __future__ import annotations
 
@@ -27,13 +30,43 @@ _PLAUSIBLE = _SOUTH_ASIAN | {"english", "en"}
 LAST: dict = {}                      # details of the last transcription, for the log
 
 
+def mode() -> str:
+    from . import schedule
+    m = schedule.get_setting("stt_engine") or "auto"
+    return m if m in ("auto", "cloud", "local") else "auto"
+
+
 def engines() -> list[str]:
-    out = []
+    """Speech-to-text engines to try, in order (see mode())."""
+    from . import local_stt
+    cloud = []
     if os.environ.get("GROQ_API_KEY"):
-        out.append("whisper")
+        cloud.append("whisper")
     if os.environ.get("GEMINI_API_KEY"):
-        out.append("gemini")
-    return out
+        cloud.append("gemini")
+    local = ["local"] if local_stt.ready() else []
+    m = mode()
+    if m == "local":
+        return local or cloud                      # (no model yet: cloud keeps working)
+    if m == "auto" and local and cloud:
+        from .providers import online
+        if not online():
+            return local                           # offline: don't wait for cloud services that can't answer
+    return cloud + local
+
+
+def _local(wav: bytes, mode_: str) -> str:
+    from . import languages, local_stt, urdu
+    # English / Urdu: let Whisper detect it (forcing "ur" makes the small local models garble English words,
+    # and Hindi-letter output is turned into Urdu script below); other chosen languages are passed on.
+    lang = None if mode_ in ("auto", "en", "ur") else languages.stt_code(mode_)
+    text = local_stt.transcribe(local_stt.wav_to_pcm(wav), lang)
+    LAST.clear()
+    LAST.update({"engine": "local", "model": local_stt.chosen(), "text": text})
+    if _repetitive(text):
+        LAST["rejected"] = True
+        return ""
+    return text if mode_ == "hi" else urdu.from_devanagari(text)
 
 
 def _clean(text: str) -> str:
@@ -137,9 +170,9 @@ def transcribe(wav: bytes, language: str | None = None) -> tuple[str, str]:
     Empty text means nothing clear was said. Raises RuntimeError if every engine failed."""
     mode = (language or os.environ.get("JARVIS_STT_LANGUAGE", "auto")).lower()
     errors = []
-    for name, fn in (("whisper", _whisper), ("gemini", _gemini)):
-        if name not in engines():
-            continue
+    fns = {"whisper": _whisper, "gemini": _gemini, "local": _local}
+    for name in engines():
+        fn = fns[name]
         try:
             return _clean(fn(wav, mode)), name
         except Exception as e:  # try the next engine

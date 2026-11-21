@@ -2,6 +2,18 @@
 
 Newest first. Each entry: what was done, how it was tested, what is open, the next task.
 
+## 2026-11-21 — Session 1, part 5: speech to text on this PC (v1.10.0, committed locally)
+
+**Done** — `jarvis/local_stt.py` (whisper.cpp via pywhispercpp: faster-whisper isn't installable on Python 3.15
+because onnxruntime has no build), Auto / Online / This PC in `stt.py`, local wake-word name check, Settings ›
+Microphone row with model downloads. At the owner's request: removed the saved GitHub login (Windows Credential
+Manager `git:https://github.com`), installed GitHub CLI (their command); pushing paused until they say.
+
+**Tested** — pytest 108 + 1 real transcription; running app (see TESTING_REPORT.md). A bug found in the app check
+(forced Urdu garbling English) was fixed.
+
+**Next** — owner's go-ahead for: local voice (Piper) or the next item in NEXT_STEPS.md; a new exe build.
+
 ## 2026-11-21 — Session 1, part 4: saved permissions (v1.9.2)
 
 **Done** — Ask/Allow/Never per action kind in Settings › Privacy (hud.py `PERMISSION_KINDS`, `permission`,

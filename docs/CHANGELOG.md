@@ -2,6 +2,12 @@
 
 Each version is also a git tag (`git tag -n20 vX.Y.Z` shows its notes). Newest first.
 
+## 1.10.0 — 2026-11-21 (not pushed: GitHub login removed by the owner)
+- Speech to text on this PC (Settings › Microphone): Auto (online when there's internet, this PC when not),
+  Online, or This PC. Download a speech model once: Base (60 MB, fast) or Small (190 MB, better for Urdu).
+  Works offline; nothing you say leaves the computer. If the online service fails, this PC takes over.
+- The wake-word name check also runs on this PC when "This PC" is chosen or there's no internet.
+
 ## 1.9.2 — 2026-11-21
 - Settings › Privacy › Permissions: for each kind of action (PowerShell, locking, Wi-Fi off, shutdown/restart,
   cleaning folders, replacing files, closing apps with unsaved work, closing system programs) choose Ask,

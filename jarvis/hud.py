@@ -26,7 +26,7 @@ from urllib.parse import parse_qs
 
 from . import __version__
 from . import live as live_mod
-from . import alerts, approvals, audit, denoise, gpu, languages, local_ai, memory, schedule, stt, storage, tools, tts, urdu, wake
+from . import alerts, approvals, audit, denoise, gpu, languages, local_ai, local_stt, memory, schedule, stt, storage, tools, tts, urdu, wake
 from .brain import make_brain
 from .config import NOTES_DIR
 from .providers import provider_status
@@ -133,6 +133,7 @@ class Hub:
             except ValueError:
                 pass
         self._confirm_rec = None            # the recording listening for a spoken yes/no
+        self._stt_downloading: str | None = None   # local speech model being downloaded
         tts.warm_up()                       # first reply shouldn't pay the voice service's start-up cost
         if recorder and os.environ.get("JARVIS_NO_MIC") != "1":     # (automated tests never open the mic)
             threading.Thread(target=recorder.choose_mic, daemon=True).start()   # pick a working mic early
@@ -326,7 +327,11 @@ class Hub:
         try:
             wav = recorder._to_wav(audio, rate)
             # tell Whisper your language: on a 1-second clip its own guess is often wrong (Icelandic, ...)
-            r = stt._whisper_once(wav, languages.stt_code(self.language))
+            if (stt.engines() or ["?"])[0] == "local":     # Settings say "this PC", or there's no internet
+                from . import local_stt
+                r = {"text": local_stt.transcribe(local_stt.wav_to_pcm(wav), languages.stt_code(self.language))}
+            else:
+                r = stt._whisper_once(wav, languages.stt_code(self.language))
             text = urdu.from_devanagari(r.get("text", ""))
             if not stt._clean(text) or r.get("no_speech", 0) > 0.6:
                 print(f"[wake] just noise ({text[:30]!r})")   # Whisper's "Thank you." on noise
@@ -578,6 +583,22 @@ class Hub:
         if self.language != "en":
             self.brain.set_language(self.language)
         self.emit("settings", brain_changed=True)
+
+    # ---------- local speech-to-text ----------
+    def stt_download(self, name: str) -> None:
+        """Download a local speech model in the background (you pressed Download after seeing its size)."""
+        if self._stt_downloading:
+            return
+        self._stt_downloading = name
+        audit.record("speech_model_download", model=name)
+        try:
+            local_stt.download(name, lambda f: self.emit("stt_download", model=name, frac=round(f, 3)))
+            self.emit("stt_download", model=name, frac=1.0, done=True)
+        except Exception as e:
+            self.emit("stt_download", model=name, done=True, error=f"{type(e).__name__}: {str(e)[:120]}")
+        finally:
+            self._stt_downloading = None
+            self.emit("settings", stt_mode=stt.mode())
 
     # ---------- local AI (Ollama) ----------
     def local_info(self) -> dict:
@@ -1009,7 +1030,9 @@ class Hub:
                "providers": getattr(self.brain, "names", []),
                "llms": provider_status(self.brain) + [
                    {"label": "Whisper", "status": "connected" if stt.engines() else "offline",
-                    "detail": "speech-to-text via " + (stt.engines() or ["Windows"])[0]},
+                    "detail": "speech-to-text via " + {"whisper": "Whisper (Groq)", "gemini": "Gemini",
+                                                        "local": "this PC (offline)"}.get(
+                        (stt.engines() or ["windows"])[0], "Windows")},
                    {"label": "Neural voice", "status": "connected" if tts.available() else "offline",
                     "detail": tts.DEFAULT_VOICE}],
                "turns": len(getattr(self.brain, "turns", [])), "tool_calls": self.tool_calls,
@@ -1020,6 +1043,7 @@ class Hub:
                "assistant_name": schedule.agent_name(), "theme": schedule.theme(),
                "version": __version__, "trusted": sorted(self.trusted), "languages": languages.choices(),
                "permissions": self.permissions(),
+               "stt_mode": stt.mode(), "local_stt": {**local_stt.status(), "downloading": self._stt_downloading},
                "permission_kinds": [{"kind": k, "label": v, "can_allow": k in self.TRUSTABLE}
                                     for k, v in self.PERMISSION_KINDS.items()],
                "language_name": languages.name(self.language), "setup_done": bool(schedule.get_setting("setup_done")),
@@ -1281,6 +1305,12 @@ class Handler(BaseHTTPRequestHandler):
                 schedule.set_setting("loud_alerts", bool(data["loud_alerts"]))
             if data.get("chat_script") in ("roman", "urdu"):
                 HUB.set_chat_script(data["chat_script"])
+            if data.get("stt_engine") in ("auto", "cloud", "local"):
+                schedule.set_setting("stt_engine", data["stt_engine"])
+            if data.get("local_stt_model") in local_stt.installed():
+                schedule.set_setting("local_stt_model", data["local_stt_model"])
+            if data.get("stt_download") in local_stt.MODELS:
+                threading.Thread(target=HUB.stt_download, args=(data["stt_download"],), daemon=True).start()
             if isinstance(data.get("permissions"), dict):
                 HUB.set_permissions(data["permissions"])
             if "keep_history" in data:
