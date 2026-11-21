@@ -1,5 +1,14 @@
 # Security review
 
+## 2026-11-22 — v1.17.0 additions
+
+| Area | How | Where |
+|---|---|---|
+| Installing / updating / removing programs | Every change asks (permission kind `software`: Ask or Never, never Allow); package id checked against a strict pattern and must exist in winget (install) or in the update / installed list (update / uninstall); arguments passed as a list, no shell; one change at a time | `jarvis/software.py`, `tools.software` |
+| Text from other people | winget package names and git commit messages are wrapped as untrusted, like web pages and window titles | `jarvis/guard.py` |
+| Network check | Read-only; the speed test downloads from Cloudflare and sends nothing about the user; Windows' own connectivity page is used for the web test | `jarvis/netcheck.py` |
+| Test/demo copies | JARVIS_NO_MIC=1 disables the microphone completely (found when an approval in the test copy tried to listen for a spoken yes/no) | `jarvis/hud.py` |
+
 ## 2026-11-21 — audit of v1.7.2
 
 ### What is already in place

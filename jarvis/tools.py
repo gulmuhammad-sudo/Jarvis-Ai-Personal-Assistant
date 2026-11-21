@@ -1264,3 +1264,116 @@ DESKTOP_TOOLS = [
 ]
 TOOL_DEFINITIONS += [d for d, _ in DESKTOP_TOOLS]
 _HANDLERS.update({d["name"]: fn for d, fn in DESKTOP_TOOLS})
+
+
+# ---------------- software (winget), network center, developer tools (Phase 5, part 2) ----------------
+def software(inp: dict, ctx: ToolContext) -> str:
+    """Looking is free; install / update / uninstall always ask first and run in the background."""
+    from . import software as sw
+    action = str(inp.get("action") or "search").lower()
+    query, pkg = str(inp.get("query") or "").strip(), str(inp.get("id") or "").strip()
+    done = lambda msg: (ctx.notify(msg, "info"), SOFTWARE_CHANGED and SOFTWARE_CHANGED())  # noqa: E731
+    try:
+        if action == "search":
+            return sw.describe(sw.search(query or pkg), "search")
+        if action == "installed":
+            return sw.describe(sw.installed(query), "installed")
+        if action == "updates":
+            return sw.describe(sw.upgrades(), "upgrades")
+        if action == "update_all":
+            ups = sw.upgrades()
+            if not ups:
+                return "Everything is already up to date."
+            names = "\n".join(f"- {u['name']} {u['version']} → {u['available']}" for u in ups[:15]) + (
+                f"\n…and {len(ups) - 15} more" if len(ups) > 15 else "")
+            if not ctx.approve(f"Update {len(ups)} app(s) with winget? Installers may ask for admin rights; their licenses "
+                               f"are accepted for you.\n\n{names}", kind="software"):
+                return "Okay, nothing was updated."
+            return sw.change("upgrade_all", on_done=done)
+        if action == "install":
+            pkg = sw.check_id(pkg or query)
+            found = next((r for r in sw.search(pkg, 5) if r["id"].lower() == pkg.lower()), None)
+            if not found:
+                return f"There's no winget package with the id {pkg!r}. Search for it first."
+            if not ctx.approve(f"Install {found['name']} {found['version']} ({found['id']}) with winget? It downloads and installs "
+                               "the program and accepts its license for you.", kind="software"):
+                return "Okay, nothing was installed."
+            return sw.change("install", found["id"], done, found["name"])
+        if action == "update":
+            pkg = sw.check_id(pkg or query)
+            up = next((u for u in sw.upgrades() if u["id"].lower() == pkg.lower()), None)
+            if not up:
+                return f"There's no update waiting for {pkg} (or it isn't installed through winget)."
+            if not ctx.approve(f"Update {up['name']} from {up['version']} to {up['available']} with winget?", kind="software"):
+                return "Okay, I didn't update it."
+            return sw.change("upgrade", up["id"], done, up["name"])
+        if action == "uninstall":
+            want = (pkg or query).lower()
+            rows = sw.installed(pkg or query)
+            hit = next((r for r in rows if r["id"].lower() == want), None) or (rows[0] if len(rows) == 1 else None)
+            if not hit:
+                return ("Which one? " + sw.describe(rows, "installed")) if rows else f"No installed app matches {pkg or query!r}."
+            if not ctx.approve(f"Uninstall {hit['name']} {hit['version']}? Its settings may be removed too.", kind="software"):
+                return "Okay, I left it installed."
+            return sw.change("uninstall", hit["id"], done, hit["name"])
+    except (ValueError, RuntimeError) as e:
+        return str(e)
+    except subprocess.TimeoutExpired:
+        return "winget took too long to answer. Try again in a minute."
+    return f"Unknown action {action!r}."
+
+
+SOFTWARE_CHANGED: Callable[[], None] | None = None      # the HUD refreshes its Software card
+
+
+def network(inp: dict, ctx: ToolContext) -> str:
+    from . import netcheck
+    action = str(inp.get("action") or "check").lower()
+    try:
+        if action == "speed":
+            s = netcheck.speed()
+            return f"Download speed: about {s['mbps']} Mbps ({s['megabytes']} MB in {s['seconds']} s, from Cloudflare)."
+        if action == "flush_dns":
+            return netcheck.flush_dns()
+        return netcheck.describe(netcheck.check())
+    except Exception as e:
+        return f"The network check failed: {e}"
+
+
+def dev_tools(inp: dict, ctx: ToolContext) -> str:
+    from . import devtools
+    action = str(inp.get("action") or "versions").lower()
+    if action == "git_status":
+        try:
+            return devtools.git_status(str(inp.get("path") or "."))
+        except ValueError as e:
+            return f"git: {e}"
+    if action == "ports":
+        port = inp.get("port")
+        return devtools.ports(int(port) if str(port or "").isdigit() else None)
+    return devtools.describe_tools(devtools.tools_installed())
+
+
+PC_CARE_TOOLS = [
+    ({"name": "software",
+      "description": "Windows software manager (winget). search: find apps to install (query); installed: what's installed "
+                     "(optional query); updates: apps with updates waiting; install / update / uninstall one app by its "
+                     "winget id (e.g. VideoLAN.VLC; search first); update_all. Changes always ask the user first and run "
+                     "in the background; the user is told when they finish.",
+      "input_schema": _obj({"action": {"type": "string", "enum": ["search", "installed", "updates", "install", "update",
+                                                                  "uninstall", "update_all"]},
+                            "query": {"type": "string"}, "id": {"type": "string"}}, ["action"])}, software),
+    ({"name": "network",
+      "description": "Internet and network help. check: Wi-Fi signal, router, internet, DNS and a real web page test with a "
+                     "plain verdict (use this for 'internet not working' / 'why is it slow'); speed: download speed test "
+                     "(~10 MB); flush_dns: clear the DNS cache (a common fix).",
+      "input_schema": _obj({"action": {"type": "string", "enum": ["check", "speed", "flush_dns"]}}, ["action"])}, network),
+    ({"name": "dev_tools",
+      "description": "Read-only developer helpers. versions: which dev tools are installed (git, Python, Node, VS Code, Docker…); "
+                     "git_status: branch, unpushed commits, changed files and last commits of the project at path; "
+                     "ports: programs listening on ports (optional port, e.g. 3000).",
+      "input_schema": _obj({"action": {"type": "string", "enum": ["versions", "git_status", "ports"]},
+                            "path": {"type": "string"}, "port": {"type": "integer"}}, ["action"])}, dev_tools),
+]
+TOOL_DEFINITIONS += [d for d, _ in PC_CARE_TOOLS]
+_HANDLERS.update({d["name"]: fn for d, fn in PC_CARE_TOOLS})

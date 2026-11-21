@@ -2,6 +2,21 @@
 
 Newest first. Each entry: what was done, how it was tested, what is open, the next task.
 
+## 2026-11-22 — Session 2, part 6: Phase 5 part 2 — software, network, dev tools (v1.17.0) — Phase 5 done
+
+**Done** — `jarvis/software.py` (winget tables, id check, background changes with one-at-a-time lock),
+`jarvis/netcheck.py` (netsh Wi-Fi, PowerShell Test-Connection for router/internet, DNS, Windows' connectivity test
+page, verdicts, Cloudflare speed test, flush DNS), `jarvis/devtools.py` (versions, git status, ports), tools
+`software`, `network`, `dev_tools`, permission kind `software`, `/api/software/updates|update`, `/api/network/check`,
+PC Care cards. JARVIS_NO_MIC=1 now disables the microphone entirely.
+
+**Tested** — pytest 217 passed, 3 skipped; real read-only checks; test copy (approval checked with Deny only).
+
+**Push cadence from now on (owner, 21 Nov)** — commit + tag every release, push to GitHub every 2-3 releases.
+
+**Next** — ask the owner: build 1.17.0 / update the installed app, Phase 6 (multi-agent and automation), or the
+universal command bar.
+
 ## 2026-11-21 — Session 2, part 5: Phase 5 part 1 — windows, workspaces, OCR (v1.16.0)
 
 **Done** — `jarvis/winmgr.py` (Win32 through ctypes: enumerate, focus with AttachThreadInput, snap/arrange maths,

@@ -872,6 +872,23 @@ body[data-state="thinking"] .fdock .fdmic { color: var(--amber); border-color: v
 body.focus .subs { bottom: 104px; }
 body.focus[data-face="mask"] .heroText { bottom: 98px; }
 @media (max-width: 560px) { body.focus .fdock { gap: 6px; padding: 6px 8px; bottom: 14px; } .fdock button { width: 36px; height: 36px; } .fdock .fdmic { width: 50px; height: 50px; } }
+/* PC care */
+.pccare { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 8px; margin-bottom: 4px; }
+.pcbox { animation: rowIn .35s cubic-bezier(.2, .8, .2, 1) both; }
+.pcacts { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px; }
+.pcacts .btn { height: 32px; padding: 0 12px; font-size: 12.5px; }
+.pcacts .btn.busy svg.ic { animation: spin 1s linear infinite; }
+.pcout { margin-top: 8px; font-size: 12.5px; color: var(--muted); line-height: 1.5; }
+.pcout:empty { display: none; }
+.pcout .verdict { color: var(--text); font-size: 13.5px; font-weight: 500; margin-bottom: 4px; }
+.pcout .verdict.ok { color: var(--green); } .pcout .verdict.bad { color: var(--amber); }
+.pcout .err { color: var(--red); }
+.swrow { display: flex; align-items: center; gap: 8px; padding: 5px 0; border-top: 1px solid var(--hair); }
+.swrow:first-child { border-top: 0; }
+.swrow > span { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--text); }
+.swrow em { font-style: normal; font-family: var(--mono); font-size: 11px; color: var(--dim); white-space: nowrap; }
+.swrow .btn { height: 26px; padding: 0 9px; font-size: 12px; }
+.swlist { max-height: 260px; overflow: auto; padding-right: 4px; }
 /* workspaces */
 .wsave { display: flex; gap: 8px; flex-wrap: wrap; }
 .wsave input { height: 38px; width: 200px; border-radius: 10px; border: 1px solid var(--hair-2); background: var(--surface-2); color: var(--text); font: inherit; font-size: 13.5px; padding: 0 12px; }
@@ -1085,6 +1102,21 @@ body.focus[data-face="mask"] .heroText { bottom: 98px; }
               <button class="btn on" id="wsSave"><i data-ic="layers"></i>Save open windows</button></div>
             <small>Saves which apps are open and where their windows are. <b>Open</b> reopens closed apps and puts every window back. Or say "save this as my Study workspace" / "open Study workspace". <span class="err" id="wsErr"></span></small></div>
           <div class="list skilllist" id="wsList"></div>
+          <h4 class="sec">PC CARE</h4>
+          <div class="pccare">
+            <div class="item pcbox"><span class="ico" style="color:var(--cyan)"><i data-ic="download"></i></span>
+              <div style="min-width:0;flex:1"><b>Software updates</b>
+                <small>Through winget (built into Windows). Every install or update asks you first and runs in the background.</small>
+                <div class="pcacts"><button class="btn" id="swCheck"><i data-ic="refresh"></i>Check for updates</button>
+                  <button class="btn on" id="swAll" hidden><i data-ic="download"></i>Update all</button></div>
+                <div class="pcout" id="swOut"></div></div></div>
+            <div class="item pcbox"><span class="ico" style="color:var(--green)"><i data-ic="wifi"></i></span>
+              <div style="min-width:0;flex:1"><b>Network</b>
+                <small>Wi-Fi, router, internet, DNS and a real web page, with a plain answer. The speed test downloads about 10 MB from Cloudflare.</small>
+                <div class="pcacts"><button class="btn" id="netCheck"><i data-ic="wifi"></i>Run check</button>
+                  <button class="btn" id="netSpeed"><i data-ic="zap"></i>Speed test</button></div>
+                <div class="pcout" id="netOut"></div></div></div>
+          </div>
           <h4 class="sec">BUILT-IN TOOLS</h4>
           <div class="list" id="toolList"></div>
         </div>
@@ -1510,6 +1542,7 @@ const FRIENDLY = {
   wireless: ["Wi-Fi / Bluetooth", "wifi"], take_screenshot: ["Saved a screenshot", "eye"],
   manage_windows: ["Windows", "layers"], arrange_windows: ["Arranged windows", "layers"], workspace: ["Workspace", "layers"],
   read_screen_text: ["Read text on screen", "eye"],
+  software: ["Software (winget)", "download"], network: ["Network check", "wifi"], dev_tools: ["Developer tools", "cpu"],
   find_old_files: ["Scanned for old files", "search"], clean_folder: ["Cleaned up a folder", "note"],
   renamed: ["Renamed the assistant", "user"], set_assistant_name: ["Renamed the assistant", "user"],
   set_theme: ["Changed the theme", "sun"], profile: ["Profile saved", "user"],
@@ -1586,7 +1619,7 @@ const AGENTS = [
   { id: "memory", name: "Memory Agent", ic: "db", color: "var(--violet)", tools: ["remember_fact", "recall_memories", "forget_memory", "use_skill", "save_skill", "save_note", "list_notes", "read_text_file", "find_files"] },
   { id: "task", name: "Task Agent", ic: "tasks", color: "var(--blue)", tools: ["set_timer", "list_timers", "cancel_timer", "get_datetime", "set_alarm", "list_alarms", "delete_alarm", "prayer_times", "prayer_reminders"] },
   { id: "vision", name: "Vision Agent", ic: "eye", color: "var(--green)", tools: ["look_at_screen", "take_screenshot", "read_screen_text"] },
-  { id: "system", name: "System Agent", ic: "cpu", color: "var(--muted)", tools: ["system_status", "manage_windows", "arrange_windows", "workspace", "run_powershell", "lock_computer", "media_control", "clipboard", "set_language", "set_location",
+  { id: "system", name: "System Agent", ic: "cpu", color: "var(--muted)", tools: ["system_status", "software", "network", "dev_tools", "manage_windows", "arrange_windows", "workspace", "run_powershell", "lock_computer", "media_control", "clipboard", "set_language", "set_location",
     "close_app", "power_action", "set_brightness", "wireless", "find_old_files", "clean_folder"] },
 ];
 const agentState = Object.fromEntries(AGENTS.map(a => [a.id, { until: 0, runs: 0 }]));
@@ -1729,6 +1762,14 @@ function handle(ev) {
     case "workspaces_changed":
       loadInfo();
       break;
+    case "software_changed":
+      if (swLoaded) checkSoftware();
+      break;
+    case "software_status": {                  // the answer to Update / Update all: running, or no (and why)
+      const btns = ev.id === "*" ? [$("swAll")] : [...$("swOut").querySelectorAll("[data-swup]")].filter(b => b.dataset.swup === ev.id);
+      btns.forEach(b => { b.disabled = ev.running; b.innerHTML = ev.running ? "Updating…" : ev.id === "*" ? `${icon("download")}Update all` : "Update"; b.title = ev.text || ""; });
+      break;
+    }
     case "memory_suggest":
       if (!replaying && !memSuggestions.some(x => x.fact === ev.fact)) {
         memSuggestions.push(ev); showMemSuggest();
@@ -1915,7 +1956,7 @@ function showConfirm() {
   $("mWho").textContent = `${m ? m[1] : AGENT} is asking for your permission`;
   $("mSummary").textContent = m ? m[2].replace(/:\s*$/, "").replace(/^./, ch => ch.toUpperCase()) : head;
   $("mText").textContent = detail; $("mText").hidden = !detail;
-  $("approveCard").classList.toggle("risky", /delete|recycle|shut ?down|restart|format|remove|uninstall|clean|close|power|wi-?fi|powershell/i.test(q));
+  $("approveCard").classList.toggle("risky", /delete|recycle|shut ?down|restart|format|remove|uninstall|install|winget|clean|close|power|wi-?fi|powershell/i.test(q));
   $("mQueue").textContent = confirmQueue.length > 1 ? `1 of ${confirmQueue.length}` : "";
   paintConfirmVoice(c);
   $("mRemember").hidden = $("allowOnce").hidden = !c.remember;
@@ -2773,6 +2814,50 @@ $("wsSave").onclick = async () => {
   $("wsName").value = ""; loadInfo();
 };
 $("wsName").onkeydown = e => { if (e.key === "Enter") $("wsSave").click(); };
+
+// ---------- PC care: software updates (winget) and the network check ----------
+let swLoaded = false;
+function busy(btn, on) { btn.disabled = on; btn.classList.toggle("busy", on); }
+async function checkSoftware() {
+  busy($("swCheck"), true); $("swAll").hidden = true;
+  $("swOut").innerHTML = "Asking winget which apps have updates… (this can take 10-30 seconds)";
+  try {
+    const r = await post("/api/software/updates", {}); const j = r ? await r.json() : { error: "The app didn't answer." };
+    if (j.error) { $("swOut").innerHTML = `<span class="err">${esc(j.error)}</span>`; return; }
+    swLoaded = true;
+    const ups = j.updates || [];
+    $("swAll").hidden = ups.length < 2;
+    $("swOut").innerHTML = ups.length ? `<div class="verdict">${ups.length} update${ups.length === 1 ? "" : "s"} available</div><div class="swlist">` +
+      ups.map(u => `<div class="swrow"><span title="${esc(u.id)}">${esc(u.name)}</span><em>${esc(u.version)} → ${esc(u.available)}</em>
+        <button class="btn" data-swup="${esc(u.id)}">Update</button></div>`).join("") + "</div>"
+      : '<div class="verdict ok">Everything is up to date.</div>';
+    $("swOut").querySelectorAll("[data-swup]").forEach(b => b.onclick = () => {
+      b.disabled = true; b.textContent = "Asking…";
+      post("/api/software/update", { id: b.dataset.swup });
+    });
+  } finally { busy($("swCheck"), false); }
+}
+$("swCheck").onclick = checkSoftware;
+$("swAll").onclick = () => { $("swAll").disabled = true; post("/api/software/update", { all: true }); setTimeout(() => $("swAll").disabled = false, 4000); };
+
+async function checkNetwork(speed) {
+  const btn = speed ? $("netSpeed") : $("netCheck");
+  busy(btn, true);
+  if (!speed) $("netOut").innerHTML = "Checking Wi-Fi, router, internet, DNS and a web page… (about 10 seconds)";
+  try {
+    const r = await post("/api/network/check", { speed: !!speed }); const j = r ? await r.json() : { error: "The app didn't answer." };
+    if (j.error) { $("netOut").innerHTML = `<span class="err">${esc(j.error)}</span>`; return; }
+    if (speed) {
+      const old = $("netOut").querySelector(".speed"); if (old) old.remove();
+      $("netOut").insertAdjacentHTML("afterbegin", `<div class="verdict ok speed">Download speed: ${j.mbps} Mbps <small>(${j.megabytes} MB in ${j.seconds} s)</small></div>`);
+      return;
+    }
+    const [first, ...rest] = (j.text || "").split("\n");
+    $("netOut").innerHTML = `<div class="verdict ${j.web === "ok" && j.dns_ms != null ? "ok" : "bad"}">${esc(first)}</div>` + rest.map(l => `<div>${esc(l)}</div>`).join("");
+  } finally { busy(btn, false); }
+}
+$("netCheck").onclick = () => checkNetwork(false);
+$("netSpeed").onclick = () => checkNetwork(true);
 
 let mergeArmed = 0;
 $("memMerge").onclick = async () => {

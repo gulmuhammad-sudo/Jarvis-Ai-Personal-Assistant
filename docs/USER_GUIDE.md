@@ -120,6 +120,9 @@ and its keys in `.env` next to the code).
 | "Read the text in this window" / "read the text in Desktop/receipt.png" | Windows' own OCR, offline |
 | "Put Chrome on the left and VS Code on the right" / "minimise everything" | Moves, snaps, minimises and maximises windows |
 | "Save this as my Study workspace" / "open Study workspace" | Saves the window layout; reopens the apps and puts them back |
+| "Which apps have updates?" / "install VLC" / "update everything" | winget; every install, update or uninstall asks you first |
+| "Why is the internet not working?" / "speed test" / "flush DNS" | Checks Wi-Fi, router, internet, DNS and a web page; plain answer |
+| "Which dev tools do I have?" / "git status of Desktop/Jarvis" / "what's using port 3000?" | Read-only developer helpers |
 | "Remind me in 20 minutes to drink water" | A timer that's spoken out loud when it's due |
 | "Set an alarm for 7 am every day" / "Weekdays 6:30 alarm, label gym" | Saved alarms with a chime (once, daily, weekdays, weekends or chosen days). They survive restarts, and if the PC was asleep they still ring within 5 minutes. |
 | "Namaz ka waqt kya hai?" | Prayer times for your city (Karachi method, Hanafi Asr) with reminders 10 minutes before and at each prayer. "Prayer reminders off" stops them. |

@@ -73,14 +73,14 @@ audio, installer, uninstaller, packaged-exe smoke test). They are being moved in
 | 40 | Knowledge graph and memory dashboard | IMPLEMENTED BUT NEEDS TESTING | Memory page in `jarvis/hud.html` (List / Graph), `memory.graph()` | 9 | test_skills_graph (graph, names), running app | 1.15.0: graph view — you in the middle, categories, memories (size = stars), names/places found in 2+ memories link them; hover shows the text, click opens it in the list. Not yet tried by the owner |
 | 41 | Complete UI customization | PARTIALLY IMPLEMENTED | `jarvis/hud.html` | — | test_pages; running-app checks | Theme, face, focus mode, settings in tabs, animated icons (1.12–1.13). Missing: colours, layout, panel choice |
 | 42 | Multi-user voice profiles | NOT IMPLEMENTED | — | 7 | — | — |
-| 43 | Windows software manager | NOT IMPLEMENTED | — | 26 | — | `winget` is free and built in |
+| 43 | Windows software manager | IMPLEMENTED BUT NEEDS TESTING | `jarvis/software.py` (winget), tool `software`, Tools & Skills › PC Care › Software updates, permission kind `software` (Ask/Never, never Allow) | 26 | test_pccare (parsing, approvals, one change at a time), real read-only search/list/updates | 1.17.0: search, installed, updates; install/update/uninstall/update all after approval, in the background, reported when done. A real install was not run in testing (approval box checked with Deny) |
 | 44 | Advanced Windows administration | PARTIALLY IMPLEMENTED | tools `run_powershell`, `power_action`, `wireless`, `set_brightness`, `lock_computer`; `jarvis/guard.py` | 26 | test_guard_audit (24 refused, 8 allowed) | PowerShell asks first; destructive commands refused outright (1.9.0). Missing: services, scheduled tasks, event log tools |
 | 45 | Calendar and planner | PARTIALLY IMPLEMENTED | tools `set_alarm`, `set_timer`, `jarvis/schedule.py` | — | regression (alarm parts) | Alarms and timers only |
 | 46 | Email assistant | NOT IMPLEMENTED | — | 77 | — | — |
 | 47 | File intelligence | PARTIALLY IMPLEMENTED | tools `find_files`, `find_old_files`, `clean_folder`, `read_text_file`, `write_file`, `make_folder` | 25 | none | Search, clean-up to Recycle Bin, text files |
 | 48 | Media center | PARTIALLY IMPLEMENTED | tools `media_control`, `play_youtube` | — | none | Media keys, volume, YouTube |
 | 49 | Gaming assistant | NOT IMPLEMENTED | — | — | — | — |
-| 50 | Developer studio | NOT IMPLEMENTED | — | 24 | — | — |
+| 50 | Developer studio | PARTIALLY IMPLEMENTED | `jarvis/devtools.py`, tool `dev_tools` | 24 | test_pccare | 1.17.0: installed dev tools and versions, git status of a project, programs listening on ports (read-only). Missing: running builds/tests, editing code |
 
 ## D. Personal services and specialized tools (51–70)
 
@@ -118,7 +118,7 @@ audio, installer, uninstaller, packaged-exe smoke test). They are being moved in
 | 75 | Performance optimization center | PARTIALLY IMPLEMENTED | tools `system_status`, `clean_folder` | 27 | none | Shows heavy apps; clean-up to Recycle Bin |
 | 76 | Smart clipboard | PARTIALLY IMPLEMENTED | tool `clipboard` (read/write) | — | none | No history |
 | 77 | Encrypted password and identity manager | NOT IMPLEMENTED | — | secure storage | — | Must stay outside the AI's reach |
-| 78 | Network and internet center | PARTIALLY IMPLEMENTED | tool `wireless`, `run_powershell` | — | none | Wi-Fi/Bluetooth status and toggles |
+| 78 | Network and internet center | IMPLEMENTED BUT NEEDS TESTING | `jarvis/netcheck.py`, tools `network`, `wireless`, Tools & Skills › PC Care › Network | — | test_pccare (10 verdict cases), real check on this PC | 1.17.0: Wi-Fi signal, router, internet, DNS and a real web page (spots Wi-Fi sign-in pages) with a plain verdict; speed test (~10 MB, Cloudflare); flush DNS |
 | 79 | No separate background scheduling engine | NOT APPLICABLE | (`jarvis/schedule.py` stays the small built-in scheduler) | — | — | Excluded |
 | 80 | No separate hardware manager | NOT APPLICABLE | (hardware stats live in the dashboard, 27) | — | — | Excluded |
 | 81 | Document and identity vault | NOT IMPLEMENTED | — | secure storage | — | — |
@@ -157,13 +157,13 @@ audio, installer, uninstaller, packaged-exe smoke test). They are being moved in
 | 109 | Command history and activity timeline | PARTIALLY IMPLEMENTED | `jarvis/storage.py` (SQLite), `jarvis/audit.py`, Conversations page, Settings › Privacy | — | test_storage 4, test_guard_audit | 1.9.0: conversation + activity survive restarts; permanent audit record viewable in Settings. Missing: timeline page with search and dates |
 | 110 | Modular expansion and upgrade system | NOT IMPLEMENTED | — | 13 | — | — |
 
-## Totals (after v1.16.0, 21 Nov 2026)
+## Totals (after v1.17.0, 22 Nov 2026)
 
 | Status | Count |
 |---|---|
 | IMPLEMENTED AND VERIFIED | 1 |
-| IMPLEMENTED BUT NEEDS TESTING | 14 |
+| IMPLEMENTED BUT NEEDS TESTING | 16 |
 | PARTIALLY IMPLEMENTED | 41 |
-| NOT IMPLEMENTED | 44 |
+| NOT IMPLEMENTED | 42 |
 | BLOCKED BY EXTERNAL DEPENDENCY | 0 |
 | NOT APPLICABLE | 10 |

@@ -36,8 +36,8 @@ enough to finish, test and release on its own. Numbers in brackets are decisions
 ## Phase 5 — Windows computer agent
 - [x] Window management and desktop layouts [102, 71]
 - [x] OCR on screenshots (Windows built-in OCR) [17]
-- [ ] Software manager via winget (with approval) [43]
-- [ ] Network diagnostics [78]; developer tools [50]
+- [x] Software manager via winget (with approval) [43]
+- [x] Network diagnostics [78]; developer tools [50] (read-only helpers)
 
 ## Phase 6 — Multi-agent and automation
 - [ ] Visible multi-step plans with step approval [20]

@@ -2,6 +2,18 @@
 
 Each version is also a git tag (`git tag -n20 vX.Y.Z` shows its notes). Newest first.
 
+## 1.17.0 — 2026-11-22
+- Software manager (winget, built into Windows): "find VLC", "what's installed", "which apps have updates",
+  "install / update / uninstall …", "update everything". Changes always ask first (Settings › Permissions ›
+  Software: Ask or Never), run in the background and tell you when they finish. Tools & Skills › PC Care ›
+  Software updates lists waiting updates with Update / Update all buttons.
+- Network center: "why is the internet not working?" checks Wi-Fi signal, the router, the internet, DNS and a
+  real web page, and answers in plain words (also spots "sign in to this Wi-Fi" pages); "speed test"; "flush DNS".
+  Also on Tools & Skills › PC Care › Network.
+- Developer helpers (read-only): installed dev tools and versions, a project's git status, "what's using port 3000?".
+- Safety: package names and git commit messages are marked untrusted; a demo/test copy with JARVIS_NO_MIC=1 never
+  opens the microphone, not even for a spoken yes/no.
+
 ## 1.16.1 — 2026-11-21
 - Hide details now really shows just the face: the side menu, Voice status, top bar and footer go away and the
   globe / rings / mask fills the window. A light dock at the bottom keeps Hands-free, the Mic, Spoken replies,

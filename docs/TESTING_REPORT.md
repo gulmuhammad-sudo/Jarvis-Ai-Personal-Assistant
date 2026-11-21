@@ -11,6 +11,16 @@ set PA_TEST_NETWORK=1 && .venv\Scripts\python -m pytest tests   # also the onlin
 .venv\Scripts\python packaging\build.py              # then smoke-test the packaged exe (see below)
 ```
 
+## 2026-11-22 — Software manager, network center, developer tools (v1.17.0)
+
+| Suite | Result | Notes |
+|---|---|---|
+| `pytest tests` | 217 passed, 3 skipped | new tests/test_pccare.py (40): winget tables (search, updates, list, truncation note), good/bad package ids, looking needs no OK, install/update/uninstall/update-all ask first (kind `software`) and do nothing on No, unknown ids refused, one change at a time, report when done, 10 network verdicts, netsh parsing, git status of a temporary repo, ports, untrusted marking, JARVIS_NO_MIC keeps the mic closed |
+| Real, read-only (PA_TEST_NETWORK=1) | pass | winget search "vlc", 17 waiting updates listed, installed list; network check "Internet is working (45 ms)" in 8.6 s; speed test 57 Mbps (5 MB); dev tool versions in 1.8 s |
+| Running app (test copy) | pass after 3 fixes | PC Care cards: 17 updates with Update buttons, network verdict + details; Update → approval box "Update Bonjour from 3.0.0.10 to 3.1.0.1 with winget?" → Deny → nothing changed (audit: granted false ×3; Bonjour still 3.0.0.10). Fixed: raw `<untrusted>` tags in the Activity feed, the button stuck on "Asking…" after Deny, software approvals now use the warning style |
+| Found | fixed | the test copy tried to open the mic to hear a spoken yes/no for the approval (JARVIS_NO_MIC only skipped the start-up check); now JARVIS_NO_MIC=1 turns the microphone off completely |
+| Not tested | — | a real install/update/uninstall (would change the owner's PC) |
+
 ## 2026-11-21 — Focus mode: just the face (v1.16.1)
 
 | Suite | Result | Notes |

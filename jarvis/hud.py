@@ -26,7 +26,7 @@ from urllib.parse import parse_qs
 
 from . import __version__
 from . import live as live_mod
-from . import alerts, approvals, audit, denoise, gpu, languages, local_ai, local_stt, local_tts, memory, schedule, skills, stt, storage, tools, tts, urdu, wake, winmgr
+from . import alerts, approvals, audit, denoise, gpu, languages, local_ai, local_stt, local_tts, memory, schedule, netcheck, skills, software, stt, storage, tools, tts, urdu, wake, winmgr
 from .brain import make_brain
 from .config import NOTES_DIR
 from .providers import provider_status
@@ -35,6 +35,8 @@ from .voice import listen as windows_listen
 try:
     from . import recorder          # native microphone (sounddevice)
 except Exception:                   # missing package or no audio stack: the page records instead
+    recorder = None
+if os.environ.get("JARVIS_NO_MIC") == "1":   # tests and demo copies: never open the microphone, not even for a spoken yes/no
     recorder = None
 
 try:
@@ -92,6 +94,7 @@ class Hub:
         self._ids, self._open_tools = 0, {} # Activity: tool id -> waiting for its result
         tools.RESULT_HOOK = self._tool_result
         tools.WORKSPACES_CHANGED = lambda: self.emit("workspaces_changed")
+        tools.SOFTWARE_CHANGED = lambda: self.emit("software_changed")
         self.voice_mode = schedule.get_setting("hands_free", True) is not False   # hands-free from the moment the app opens
         self.brain.set_voice_mode(self.voice_mode)
         self._standby: threading.Thread | None = None   # hands-free (Live): waits locally for your voice
@@ -667,6 +670,7 @@ class Hub:
         "overwrite": "Replacing a file that already exists",
         "force_close": "Closing an app that has unsaved work",
         "close_system": "Closing a Windows system program",
+        "software": "Installing, updating or removing programs (winget)",
     }
 
     def permission(self, kind: str | None) -> str:
@@ -1471,6 +1475,27 @@ class Handler(BaseHTTPRequestHandler):
                 HUB.emit("tool", keep=True, name="workspace", id=HUB._next_id(), args=msg[:160])
                 HUB.emit("workspaces_changed")
             threading.Thread(target=_open, daemon=True).start()
+        elif self.path == "/api/software/updates":    # PC Care card: list (slow: winget asks the internet)
+            try:
+                return self._json({"updates": software.upgrades()})
+            except (RuntimeError, subprocess.TimeoutExpired) as e:
+                return self._json({"error": str(e) or "winget took too long."}, 503)
+        elif self.path == "/api/software/update":     # PC Care card: Update / Update all -> the usual approval box
+            args = {"action": "update_all"} if data.get("all") else {"action": "update", "id": str(data.get("id", ""))}
+
+            def _update(args=args):
+                out = re.sub(r"</?untrusted[^>]*>", "", str(tools.execute("software", args, HUB.ctx)[0])).strip()
+                HUB.emit("tool", keep=True, name="software", id=HUB._next_id(), args=out[:200])
+                HUB.emit("software_status", id=args.get("id", "*"), running=out.startswith("Updating"), text=out[:200])
+            threading.Thread(target=_update, daemon=True).start()
+        elif self.path == "/api/network/check":
+            try:
+                r = netcheck.speed() if data.get("speed") else netcheck.check()
+            except Exception as e:
+                return self._json({"error": f"The check failed: {e}"}, 503)
+            if not data.get("speed"):
+                r["text"] = netcheck.describe(r)
+            return self._json(r)
         elif self.path == "/api/skills/enable":
             skills.set_enabled(int(data.get("id", -1)), bool(data.get("on")))
             HUB.skills_changed()
