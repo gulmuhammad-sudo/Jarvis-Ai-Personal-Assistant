@@ -2,6 +2,12 @@
 
 Each version is also a git tag (`git tag -n20 vX.Y.Z` shows its notes). Newest first.
 
+## 1.16.1 — 2026-11-21
+- Hide details now really shows just the face: the side menu, Voice status, top bar and footer go away and the
+  globe / rings / mask fills the window. A light dock at the bottom keeps Hands-free, the Mic, Spoken replies,
+  Stop and Show details; it stays faint until you point at it and the mic glows green while listening.
+  Approval boxes, alerts and the short captions still appear. Ctrl+K shows the details and the typing box.
+
 ## 1.16.0 — 2026-11-21
 - Windows on command: "show my open windows", "bring Chrome to the front", "put VS Code on the right",
   "maximise Word", "minimise everything", "put Chrome and VS Code side by side" (2-6 windows: halves, one big +

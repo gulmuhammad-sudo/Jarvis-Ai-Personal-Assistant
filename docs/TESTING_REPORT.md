@@ -11,6 +11,14 @@ set PA_TEST_NETWORK=1 && .venv\Scripts\python -m pytest tests   # also the onlin
 .venv\Scripts\python packaging\build.py              # then smoke-test the packaged exe (see below)
 ```
 
+## 2026-11-21 — Focus mode: just the face (v1.16.1)
+
+| Suite | Result | Notes |
+|---|---|---|
+| `pytest tests` | 178 passed, 2 skipped | new page test: focus mode hides menu/top bar/footer, dock has its 5 buttons wired |
+| Running app (test copy) | pass after 1 fix | side/top/foot hidden, face 1008x756 in a 1024x768 window, dock visible; globe, rings (green pulsing mic while listening), mask, light theme, phone width 375 px (no sideways scroll); Show details brings everything back, Ctrl+K shows the typing box, dock mic starts listening, dock buttons follow Hands-free and Spoken replies. Fixed: the assistant's name under the mask sat behind the dock |
+| Note | — | one check turned Hands-free on in the test copy (it could open the microphone); it was switched off within a minute and the test copy now starts with JARVIS_NO_MIC=1 |
+
 ## 2026-11-21 — Windows, workspaces, OCR (v1.16.0)
 
 | Suite | Result | Notes |
