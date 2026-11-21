@@ -17,6 +17,8 @@ set PA_TEST_NETWORK=1 && .venv\Scripts\python -m pytest tests   # also the onlin
 |---|---|---|
 | `pytest tests` | 178 passed, 2 skipped | new page test: focus mode hides menu/top bar/footer, dock has its 5 buttons wired |
 | Running app (test copy) | pass after 1 fix | side/top/foot hidden, face 1008x756 in a 1024x768 window, dock visible; globe, rings (green pulsing mic while listening), mask, light theme, phone width 375 px (no sideways scroll); Show details brings everything back, Ctrl+K shows the typing box, dock mic starts listening, dock buttons follow Hands-free and Spoken replies. Fixed: the assistant's name under the mask sat behind the dock |
+| Packaged exe 1.16.1 (isolated data, real local voice + speech model, fake Ollama) | 23/23 | the 19 checks of 1.15.0 plus: window/workspace/OCR tools inside the exe, empty workspaces list, workspace needs a name, focus-mode dock in the page (the owner's windows were not read or moved) |
+| Setup.exe size | 142 MB | |
 | Note | — | one check turned Hands-free on in the test copy (it could open the microphone); it was switched off within a minute and the test copy now starts with JARVIS_NO_MIC=1 |
 
 ## 2026-11-21 — Windows, workspaces, OCR (v1.16.0)
