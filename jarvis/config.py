@@ -42,13 +42,31 @@ def _load_dotenv(path: Path) -> None:
         os.environ.setdefault(key.strip(), value.strip().strip('"').strip("'"))
 
 
-# API keys: data folder's .env for the installed app (a checkout keeps using the .env next to the code)
+# Settings in .env: the data folder's for the installed app (a checkout keeps using the .env next to the code).
+# API keys don't stay there: they are moved into keys.dat, encrypted for your Windows account (keystore.py).
 ENV_FILE = DATA_DIR / ".env" if FROZEN else ROOT / ".env"
+ISOLATED = bool(os.environ.get("JARVIS_DATA_DIR"))   # a test / test copy: never touch the real .env or keys
+from . import keystore  # noqa: E402  (needs DATA_DIR above)
+
+if not ISOLATED:
+    keystore.migrate_env_file(ENV_FILE)
 _load_dotenv(ENV_FILE)
+keystore.load_into_env()
+if os.environ.get("JARVIS_KEYS_FROM"):          # tests that call real AI services read real keys (read-only)
+    keystore.load_into_env(Path(os.environ["JARVIS_KEYS_FROM"]))
 
 
 def save_env_keys(new: dict[str, str]) -> None:
-    """Add or replace KEY=value lines in the .env file (your PC only) and use them right away."""
+    """Save settings: API keys encrypted (keys.dat), anything else as KEY=value in .env. Used right away."""
+    secret = {k: v for k, v in new.items() if keystore.is_secret(k)}
+    if secret:
+        try:
+            keystore.save(secret)
+            new = {k: v for k, v in new.items() if k not in secret}
+        except Exception as e:                        # no DPAPI (shouldn't happen on Windows): plain .env as before
+            print(f"[keys] couldn't encrypt the keys ({type(e).__name__}); saved them in {ENV_FILE.name}")
+    if not new:
+        return
     lines = ENV_FILE.read_text(encoding="utf-8").splitlines() if ENV_FILE.exists() else []
     for key, value in new.items():
         hit = next((i for i, line in enumerate(lines) if line.split("=", 1)[0].strip() == key), None)

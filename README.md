@@ -26,7 +26,8 @@ If Windows says "Windows protected your PC", press **More info → Run anyway** 
      waits for you (or its name) again. Settings → Startup → *Live call when it opens*.
 3. Click the mic (or press **Ctrl+Space**) and talk, or type in the box at the top (**Ctrl+K**).
 
-- **Your data** (settings, memories, notes, keys, the log) is in `%APPDATA%\Personal Assistant`.
+- **Your data** (settings, memories, notes, the log) is in `%APPDATA%\Personal Assistant`. API keys are in
+  `keys.dat` there, encrypted for your Windows account (only you, on this PC, can read them).
   If something goes wrong, `jarvis.log` there says what happened.
 - **Uninstall:** Windows Settings → Apps → Installed apps → Personal Assistant → Uninstall. It asks whether to
   keep your data for next time.

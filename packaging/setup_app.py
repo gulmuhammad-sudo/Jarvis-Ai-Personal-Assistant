@@ -29,7 +29,7 @@ os.environ["JARVIS_DATA_DIR"] = str(DATA)          # jarvis.schedule / memory be
 if not getattr(sys, "frozen", False):
     sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from jarvis import __version__, install, languages, memory, schedule, tts  # noqa: E402
+from jarvis import __version__, install, keystore, languages, memory, schedule, tts  # noqa: E402
 
 KEYS = {"gemini": "GEMINI_API_KEY", "groq": "GROQ_API_KEY", "openrouter": "OPENROUTER_API_KEY"}
 NO_WINDOW = 0x08000000
@@ -89,7 +89,8 @@ class Api:
         src = self._old / "data" if self._old and not (DATA / "settings.json").exists() else DATA
         settings = json.loads((src / "settings.json").read_text(encoding="utf-8")) if (src / "settings.json").exists() else {}
         prof = json.loads((src / "profile.json").read_text(encoding="utf-8")) if (src / "profile.json").exists() else {}
-        env = {**_read_env(self._old / ".env" if self._old else Path("-")), **_read_env(DATA / ".env")}
+        env = {**_read_env(self._old / ".env" if self._old else Path("-")), **_read_env(DATA / ".env"),
+               **(keystore.load(self._old / "data" / "keys.dat") if self._old else {}), **keystore.load(DATA / "keys.dat")}
         return {
             "version": __version__, "default_dir": str(self._existing["dir"] if self._existing else DEFAULT_DIR),
             "existing": {"dir": str(self._existing["dir"]), "version": self._existing["version"]} if self._existing else None,
@@ -216,8 +217,9 @@ class Api:
                         shutil.copy2(f, dest)
                     except OSError:
                         pass
-        have = _read_env(DATA / ".env")
-        add = {k: v for k, v in _read_env(old / ".env").items() if k not in have}
+        have = {**_read_env(DATA / ".env"), **keystore.load(DATA / "keys.dat")}
+        old_keys = {**_read_env(old / ".env"), **keystore.load(old / "data" / "keys.dat")}
+        add = {k: v for k, v in old_keys.items() if k not in have}
         if add:
             _save_env(add)
 
@@ -262,6 +264,13 @@ class Api:
 
 
 def _save_env(new: dict[str, str]) -> None:
+    """API keys go into keys.dat, encrypted for this Windows account; other settings into .env."""
+    secret = {k: v for k, v in new.items() if keystore.is_secret(k)}
+    if secret:
+        keystore.save(secret, DATA / "keys.dat")
+        new = {k: v for k, v in new.items() if k not in secret}
+    if not new:
+        return
     path = DATA / ".env"
     lines = path.read_text(encoding="utf-8").splitlines() if path.exists() else []
     for key, value in new.items():
