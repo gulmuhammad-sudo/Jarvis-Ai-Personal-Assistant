@@ -52,3 +52,12 @@ def test_nothing_is_defined_twice(page):
     assert not [n for n, c in Counter(names).items() if c > 1]
     ids = re.findall(r'\bid="([A-Za-z][\w-]*)"', re.sub(r"<script>.*?</script>", "", html, flags=re.S))
     assert not [i for i, c in Counter(ids).items() if c > 1]
+
+
+def test_voice_panel_fits_itself_to_its_room():
+    """Two more menu items once squeezed it until its text lay over the mic. The compact rules need the .vbody prefix:
+    without it the plain #wave / #vLabel rules further down win."""
+    html = (ROOT / "jarvis/hud.html").read_text(encoding="utf-8")
+    assert "container: voice / size" in html and ".side > nav { flex: 0 1 auto; min-height: 90px; overflow-y: auto;" in html
+    rules = re.findall(r"@container voice .*?\n(?=@container|\.unmute)", html, re.S)
+    assert len(rules) == 3 and not re.search(r"(?<!vbody )#(wave|vLabel)\b", "".join(r.replace(":not([hidden])) #vLabel", "") for r in rules))

@@ -11,6 +11,21 @@ set PA_TEST_NETWORK=1 && .venv\Scripts\python -m pytest tests   # also the onlin
 .venv\Scripts\python packaging\build.py              # then smoke-test the packaged exe (see below)
 ```
 
+## 2026-11-23 — Voice panel on the left (v1.19.1, reported by the owner with a picture)
+
+| Suite | Result | Notes |
+|---|---|---|
+| Left side measured at 7 window sizes x 4 voice states (speaking, listening, ready with a long name, muted) | before: heading on two lines and mic text cut at 1534x787 (the owner's window); after: nothing overlaps, sticks out or is cut | the first version of the check missed text running out of its own box (the fault the owner saw), and the first fix had compact rules that lost to older ones; a screenshot showed it. 1.18.0 and 1.19.0 were checked at other sizes only |
+| Not checked | — | the rest of the dashboard at the lowest window (601 px): panels there are cramped as before |
+
+## 2026-11-23 — Setup window (v1.19.1, reported by the owner)
+
+| Suite | Result | Notes |
+|---|---|---|
+| Real Setup window, hidden, on this PC (886x603 inside, 125 %) | 1.19.0: Look page fails (Next ends at 620); 1.19.1: all 10 pages fit | measured from inside with the same script, so it finds the known fault. Earlier releases were never looked at in the real window: the exe checks only started the app |
+| Setup pages in 6 sizes (464x341 to 1400x900) with the longest texts | pass | buttons visible and pages scroll everywhere; nothing needs scrolling at the normal size |
+| Welcome setup inside the app at the smallest window | pass | buttons visible, pages scroll |
+
 ## 2026-11-23 — Agents and safety fixes (v1.19.0)
 
 | Suite | Result | Notes |

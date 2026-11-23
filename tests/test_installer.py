@@ -4,6 +4,7 @@ import os
 import shutil
 import time
 import winreg
+from pathlib import Path
 
 import pytest
 
@@ -84,3 +85,16 @@ def test_uninstall_removes_everything_it_made(tmp_path, monkeypatch):
 
 def test_uninstall_never_runs_from_source():
     assert install.uninstall() is None                         # not frozen: refuses, deletes nothing
+
+
+@pytest.mark.parametrize("area,size", [((1536, 816), (900, 640)), ((2560, 1400), (900, 640)), ((1092, 574), (900, 566)),
+                                       ((853, 440), (845, 432)), ((300, 200), (480, 380))])
+def test_setup_window_is_never_bigger_than_the_screen(area, size):
+    assert setup_app.window_size(area=area) == size
+
+
+def test_setup_pages_scroll_and_keep_their_buttons():
+    """1.19.0 and before: the row grew with a long page and pushed Back / Next out of the window (the Look page)."""
+    html = (Path(setup_app.__file__).parent / "setup.html").read_text(encoding="utf-8")
+    assert "grid-template-rows: minmax(0, 1fr)" in html and "nav { flex: none;" in html
+    assert ".page { flex: 1 1 0; min-height: 0;" in html and "Photo face" not in html

@@ -61,7 +61,7 @@ class Hub:
         self.inbox: queue.Queue[str] = queue.Queue()
         self.pending: dict[str, dict] = {}  # confirm id -> {"event", "allow"}
         self.state = "idle"  # idle | listening | thinking
-        self.speak = True
+        self.speak = os.environ.get("JARVIS_NO_SPEAK") != "1"      # demo copies stay quiet
         self.voice_mode = False
         self.busy = False
         self.history: list[dict] = self._restore_history()  # replayed to a page that (re)connects

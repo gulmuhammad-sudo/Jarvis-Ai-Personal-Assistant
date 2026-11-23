@@ -102,7 +102,7 @@ class Api:
                   "language": settings.get("language") or "en", "live_voice": settings.get("live_voice") or "Charon",
                   "reading_voice": settings.get("reading_voice") or "en-GB-RyanNeural",
                   "engine": settings.get("voice_engine") or "live", "theme": settings.get("theme") or "dark",
-                  "face": settings.get("face") or "globe", "hands_free": settings.get("hands_free", True) is not False,
+                  "face": settings.get("face") if settings.get("face") in ("globe", "mask", "rings") else "globe", "hands_free": settings.get("hands_free", True) is not False,
                   "wake_word": settings.get("wake_word", True) is not False,
                   "start_with_windows": settings.get("start_with_windows", True) is not False,
                   "live_on_open": settings.get("live_on_open", True) is not False,
@@ -283,6 +283,21 @@ def _save_env(new: dict[str, str]) -> None:
     path.write_text("\n".join(lines) + "\n", encoding="utf-8")
 
 
+def window_size(want: tuple[int, int] = (900, 640), area: tuple[int, int] | None = None) -> tuple[int, int]:
+    """The Setup window, never bigger than the screen without its taskbar (a small or strongly scaled screen)."""
+    if area is None:
+        try:
+            import ctypes
+            from ctypes import wintypes
+            r = wintypes.RECT()
+            ctypes.windll.user32.SystemParametersInfoW(0x30, 0, ctypes.byref(r), 0)          # work area, in real pixels
+            scale = ctypes.windll.user32.GetDpiForSystem() / 96 or 1
+            area = (int((r.right - r.left) / scale), int((r.bottom - r.top) / scale))
+        except Exception:
+            return want
+    return max(480, min(want[0], area[0] - 8)), max(380, min(want[1], area[1] - 8))
+
+
 def main() -> None:
     import webview
     try:
@@ -291,9 +306,10 @@ def main() -> None:
     except Exception:
         pass
     api = Api()
+    width, height = window_size()
     html = (HERE / "setup.html").read_text(encoding="utf-8")
-    api._window = webview.create_window(f"{APP_NAME} Setup", html=html, js_api=api, width=900, height=640,
-                                       resizable=False, background_color="#05080C")
+    api._window = webview.create_window(f"{APP_NAME} Setup", html=html, js_api=api, width=width, height=height,
+                                       min_size=(480, 380), resizable=True, background_color="#05080C")
     webview.start(gui="edgechromium", private_mode=True)
 
 

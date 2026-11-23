@@ -2,6 +2,13 @@
 
 Each version is also a git tag (`git tag -n20 vX.Y.Z` shows its notes). Newest first.
 
+## 1.19.1 — 2026-11-23
+- The Voice panel on the left: with two more menu items since 1.18 it was squeezed, so its text lay over the mic and its
+  heading broke in two. The menu is more compact on lower windows and the panel rearranges itself to the room it has.
+- Setup: the Look page was taller than the window, so Back / Next were cut off and it couldn't scroll. It now fits,
+  longer pages scroll inside, the buttons always stay visible, the window is never bigger than the screen and can be
+  resized. The line about a Photo face (removed in 1.13) is gone.
+
 ## 1.19.0 — 2026-11-23
 - Agents page: specialists with their own tools — Researcher, Organiser, PC Helper, Writer, and your own. Give one a
   task there, or ask the assistant ("ask the Researcher to…"). Results go on a shared board the agents read.
