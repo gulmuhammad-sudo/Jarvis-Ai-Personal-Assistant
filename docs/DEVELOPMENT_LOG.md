@@ -2,6 +2,15 @@
 
 Newest first. Each entry: what was done, how it was tested, what is open, the next task.
 
+## 2026-11-23 — Session 2, part 11: Phase 7 part 2 — documents (v1.22.0)
+
+**Done** — `jarvis/documents.py`, `jarvis/docindex.py`, migration 8, tool `documents`, `/api/docs/*`, Documents section on
+Tools & Skills, automatic update of the index (3 minutes after the start, then every 6 hours).
+
+**Learned** — Edge's helper processes hold their profile a moment after Edge ends, so one clean-up isn't enough.
+
+**Next** — ask the owner: build 1.22.0; Phase 7 part 3 (email, finance, journal, goals).
+
 ## 2026-11-23 — Session 2, part 10: Phase 7 part 1 — planner (v1.21.0)
 
 **Done** — `jarvis/planner.py`, `jarvis/notes.py`, migration 7, tools `tasks`, `calendar`, `notes`, `/api/planner/*`,

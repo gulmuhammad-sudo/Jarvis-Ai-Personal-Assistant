@@ -34,7 +34,7 @@ OUTBOUND = {"web_search", "fetch_webpage", "open_website", "search_web_in_browse
 # shows the agent something private
 PRIVATE = {"recall_memories", "list_notes", "read_text_file", "find_files", "read_screen_text", "manage_windows", "workspace",
            "list_alarms", "list_timers", "dev_tools", "find_old_files", "remember_fact", "edit_memory", "system_status", "network",
-           "write_file", "make_folder", "save_note", "tasks", "calendar", "notes", "arrange_windows", "cancel_timer"}
+           "write_file", "make_folder", "save_note", "tasks", "calendar", "notes", "documents", "arrange_windows", "cancel_timer"}
 # neither
 PLAIN = {"get_datetime", "set_timer", "set_alarm", "media_control", "set_brightness", "set_theme", "open_application"}
 AGENT_TOOLS = OUTBOUND | PRIVATE | PLAIN
@@ -54,7 +54,7 @@ BUILT_IN = [
      "tools": ["system_status", "network", "manage_windows", "arrange_windows", "workspace", "open_application", "media_control",
                "set_brightness", "set_theme", "get_datetime"],
      "role": "Look after the PC: health, internet, windows and workspaces. Say plainly what you found and what you did."},
-    {"key": "writer", "name": "Writer", "memory": True, "tools": ["read_text_file", "find_files", "list_notes", "save_note", "write_file"],
+    {"key": "writer", "name": "Writer", "memory": True, "tools": ["documents", "read_text_file", "find_files", "list_notes", "save_note", "write_file"],
      "role": "Write and improve texts for the user from what they give you and their files. Save to a file only when asked."},
 ]
 

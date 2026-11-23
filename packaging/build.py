@@ -69,6 +69,7 @@ def main() -> None:
                 f"--add-data={ROOT / 'jarvis' / 'hud.html'}{SEP}jarvis", f"--add-data={ROOT / 'assets'}{SEP}assets",
                 "--collect-submodules=jarvis", "--collect-data=edge_tts", "--collect-data=certifi",
                 "--collect-all=pywhispercpp",          # local speech-to-text: native whisper.cpp library
+                "--collect-data=docx", "--collect-data=pptx",             # Word / PowerPoint templates
                 "--collect-all=sherpa_onnx", "--collect-all=espeakng_loader",   # voices on this PC + espeak data
                 str(PKG / "app.py"))
 

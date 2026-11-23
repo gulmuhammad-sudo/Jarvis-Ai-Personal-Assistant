@@ -1,5 +1,18 @@
 # Security review
 
+## 2026-11-23 — v1.22.0
+
+| Area | How | Where |
+|---|---|---|
+| Files from others | size, unpacked-size and time limits; XML with DOCTYPE or ENTITY refused; nothing in a file is run, macros included | `jarvis/documents.py` |
+| Text in documents | marked untrusted when read or found | `guard.READ_BACK` |
+| Reading | files with passwords or keys and files on other computers ask first | `tools.documents` |
+| Making | only in the user's folders; replacing asks; unknown Excel functions are written as text | `tools.documents`, `safe_formula` |
+| PDF | Edge with an empty profile, no internet; the page holds only our own tags; the temporary folder is removed | `_make_pdf` |
+| Index | only folders the user adds on the page (the AI can't add any); not drives, Windows, programs, AppData, .ssh; on this PC only, in the unencrypted `assistant.db` | `jarvis/docindex.py` |
+| Opening a result | by its number in the index, document kinds only | `/api/docs/open` |
+| Agents | documents are private: no web agent gets them | `jarvis/agents.py` |
+
 ## 2026-11-23 — v1.21.0
 
 | Area | How | Where |

@@ -2,6 +2,15 @@
 
 Each version is also a git tag (`git tag -n20 vX.Y.Z` shows its notes). Newest first.
 
+## 1.22.0 — 2026-11-23 (not pushed yet)
+- Documents: reads PDF, Word, Excel, PowerPoint and text files ("summarise Desktop/report.pdf", "what's on sheet Budget?")
+  and makes Word, Excel, PowerPoint and PDF files ("make a PowerPoint about… on my Desktop"). Replacing a file asks first.
+- PDFs are made with Windows' own Edge, hidden, with an empty profile and no internet; its temporary folder is removed.
+- Tools & Skills › Documents: choose folders, search inside every document in them, click a result to open it. The index
+  stays on this PC; password and key files are skipped. What you ask about goes to the AI with your message.
+- The Writer agent can use documents; web agents can't.
+- Four free packages came in: pypdf, python-docx, openpyxl, python-pptx.
+
 ## 1.21.0 — 2026-11-23 (not pushed yet)
 - Planner page. Calendar: month and week with events, tasks, alarms and prayers; repeating events, reminders, a warning
   when two overlap. Tasks: due day or time, importance, projects. Notes: search, read, change, rename, delete (Recycle Bin).

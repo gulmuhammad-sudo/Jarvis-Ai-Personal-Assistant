@@ -26,7 +26,7 @@ from urllib.parse import parse_qs
 
 from . import __version__
 from . import live as live_mod
-from . import agents, alerts, approvals, audit, automations, denoise, gpu, languages, local_ai, local_stt, local_tts, memory, notes, planner, plans, schedule, netcheck, skills, software, stt, storage, tools, tts, urdu, wake, winmgr
+from . import agents, alerts, approvals, audit, automations, denoise, docindex, gpu, guard, languages, local_ai, local_stt, local_tts, memory, notes, planner, plans, schedule, netcheck, skills, software, stt, storage, tools, tts, urdu, wake, winmgr
 from .brain import make_brain
 from .config import NOTES_DIR
 from .providers import provider_status
@@ -129,6 +129,8 @@ class Hub:
                                             run_prompt=lambda text: self.submit(text, source="scheduled"))
         self.scheduler.on_tick = self._tick
         tools.PLANNER_CHANGED = lambda: self.emit("planner_changed")
+        docindex.CHANGED = lambda: self.emit("docs_changed")
+        self._docs_next = time.time() + 180           # look for new documents a few minutes after the start, then every 6 hours
 
     # ---------- events to the page ----------
     def emit(self, event_type: str, keep: bool = False, **data) -> None:
@@ -264,6 +266,13 @@ class Hub:
             planner.tick(now, self.notify)
         except Exception as e:
             print(f"[planner] {type(e).__name__}: {e}")
+        try:
+            if time.time() >= self._docs_next:
+                self._docs_next = time.time() + 6 * 3600
+                if not tools.STOP.is_set() and docindex.folders():
+                    docindex.start()
+        except Exception as e:
+            print(f"[documents] {type(e).__name__}: {e}")
         self.runner.tick(now)
 
     def _upcoming(self) -> list[dict]:
@@ -1282,6 +1291,39 @@ class Handler(BaseHTTPRequestHandler):
                 HUB.set_speaker(remaining)
             HUB.last_client_seen = time.time()
 
+    def _docs(self, action: str, data: dict) -> None:
+        """Document search: the folders you chose, updating, searching, opening a result."""
+        try:
+            if action == "status":
+                return self._json(docindex.status())
+            if action == "search":
+                return self._json({"hits": docindex.search(str(data.get("query") or ""), limit=20)})
+            if action == "add":
+                f = docindex.add_folder(str(data.get("path") or ""))
+                audit.record("documents_folder_added", path=f["path"])
+            elif action == "remove":
+                docindex.remove_folder(int(data.get("id", -1)))
+                audit.record("documents_folder_removed", id=data.get("id"))
+            elif action == "open":
+                p = docindex.path_of(int(data.get("id", -1)))
+                if not p or not p.is_file():
+                    return self._json({"error": "That file isn't there any more."}, 404)
+                if p.suffix.lower() not in docindex.KINDS or guard.runs_code(str(p)):
+                    return self._json({"error": "I don't open that kind of file."}, 400)
+                os.startfile(str(p))
+                return self._json({"ok": True})
+            elif action != "update":
+                return self._json({"error": "unknown action"}, 404)
+            if action in ("add", "update"):
+                tools.STOP.clear()                     # your click is a new instruction: Stop is over
+                docindex.start()
+        except (ValueError, TypeError) as e:
+            return self._json({"error": str(e)}, 400)
+        except OSError as e:
+            return self._json({"error": f"Windows said: {e.strerror or e}"}, 500)
+        HUB.emit("docs_changed")
+        return self._json({"ok": True, **docindex.status()})
+
     def _planner(self, action: str, data: dict) -> None:
         """The Planner page (agenda, tasks, notes). Your click is the approval here; notes go to the Recycle Bin."""
         out: dict = {"ok": True}
@@ -1640,6 +1682,8 @@ class Handler(BaseHTTPRequestHandler):
             threading.Thread(target=_open, daemon=True).start()
         elif self.path.startswith("/api/auto/"):       # Automations page
             return self._automations(self.path.rsplit("/", 1)[1], data)
+        elif self.path.startswith("/api/docs/"):       # Tools & Skills page: Documents
+            return self._docs(self.path.rsplit("/", 1)[1], data)
         elif self.path.startswith("/api/planner/"):    # Planner page
             return self._planner(self.path.rsplit("/", 1)[1], data)
         elif self.path.startswith("/api/agents/"):     # Agents page

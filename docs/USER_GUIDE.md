@@ -120,6 +120,7 @@ and its keys in `.env` next to the code).
 | "Read the text in this window" / "read the text in Desktop/receipt.png" | Windows' own OCR, offline |
 | "Put Chrome on the left and VS Code on the right" / "minimise everything" | Moves, snaps, minimises and maximises windows |
 | "Save this as my Study workspace" / "open Study workspace" | Saves the window layout; reopens the apps and puts them back |
+| "Summarise Desktop/report.pdf" / "make a PowerPoint about solar power on my Desktop" / "find the warranty in my documents" | Reads, makes and searches documents (folders: Tools & Skills › Documents) |
 | "Send the report tomorrow at 5" / "what's planned on Friday?" / "read my shopping note" | Planner: tasks, calendar, notes (Planner page) |
 | "Ask the Researcher to compare these two phones" | A specialist agent does it (Agents page) |
 | "Run my Focus time automation" / "make an automation that tells me the weather at 8" | Automations page; creating one asks you first |

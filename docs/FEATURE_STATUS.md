@@ -50,7 +50,7 @@ audio, installer, uninstaller, packaged-exe smoke test). They are being moved in
 | 22 | Local-first privacy | PARTIALLY IMPLEMENTED | `jarvis/config.py`, `jarvis/keystore.py`, `jarvis/local_ai.py`, Settings › Privacy | 5, 98 | test_keystore, test_storage | Keys encrypted; local AI keeps conversations on the PC; history can be switched off/cleared. Cloud AIs still receive messages when used |
 | 23 | Custom wake word, local detection | IMPLEMENTED BUT NEEDS TESTING | `jarvis/wake.py`, `jarvis/hud.py` (standby, `_check_wake`), `jarvis/local_stt.py` | — | Session wake-word test passed (cloud); local path not yet tried with a real voice | Any name works. 1.10.0: with Speech to text = This PC (or offline) the name check runs locally. Needs a real-voice run on the laptop |
 | 24 | Advanced developer mode | NOT IMPLEMENTED | — | 50, 91 | — | — |
-| 25 | Knowledge and document understanding | PARTIALLY IMPLEMENTED | tools `read_text_file`, `find_files` | 5 | none | Plain text only. Missing: PDF/DOCX/XLSX reading, local index (RAG) |
+| 25 | Knowledge and document understanding | PARTIALLY IMPLEMENTED | `jarvis/documents.py`, `jarvis/docindex.py`, tables `doc_folders`, `docs`, `doc_text`, tool `documents`, Tools & Skills › Documents | — | test_documents, running app | 1.22.0: PDF, Word, Excel, PowerPoint, text; local index of chosen folders (word search). Missing: meaning search, scanned PDFs (pictures of text) |
 | 26 | Application security and permissions | PARTIALLY IMPLEMENTED | `jarvis/hud.py` (token, host check), `jarvis/tools.py`, `jarvis/keystore.py`, `jarvis/audit.py`, `jarvis/guard.py` | — | test_keystore 8, test_safety 6, test_guard_audit 38 | 1.8.0: keys encrypted (DPAPI). 1.9.0: audit log, prompt-injection marking, PowerShell deny-list, Emergency Stop. Missing: saved per-kind permissions, privacy dashboard |
 | 27 | System monitoring dashboard | IMPLEMENTED BUT NEEDS TESTING | `jarvis/hud.py` (stats), `jarvis/gpu.py`, `jarvis/hud.html` | — | none | CPU, RAM, GPU, disk, battery, network |
 | 28 | Multiple Windows PC support | NOT IMPLEMENTED | — | 21, 74 | — | — |
@@ -62,7 +62,7 @@ audio, installer, uninstaller, packaged-exe smoke test). They are being moved in
 | # | Decision | Status | Source files | Depends on | Tests | Remaining / next action |
 |---|---|---|---|---|---|---|
 | 31 | Web intelligence and browser assistance | PARTIALLY IMPLEMENTED | tools `web_search`, `fetch_webpage`, `open_website`, `search_web_in_browser`, `play_youtube`; `jarvis/guard.py` | 26 | test_guard_audit | Search with fallbacks, page reading, web text marked untrusted (1.9.0). Missing: browser automation (Playwright) |
-| 32 | Word, Excel, PowerPoint, PDF suite | NOT IMPLEMENTED | — | 25 | — | python-docx / openpyxl / python-pptx / pypdf are free |
+| 32 | Word, Excel, PowerPoint, PDF suite | PARTIALLY IMPLEMENTED | `jarvis/documents.py`, tool `documents` | 25 | test_documents | 1.22.0: reads and makes .docx .xlsx .pptx .pdf (PDF through hidden Edge). Missing: changing an existing file, pictures, charts |
 | 33 | No smart-home / IoT | NOT APPLICABLE | — | — | — | Excluded |
 | 34 | Cybersecurity scope = privacy protection | PARTIALLY IMPLEMENTED | see 26 | 26, 98 | — | Baseline security partly there; privacy-protection tools not yet |
 | 35 | Automation Studio | IMPLEMENTED BUT NEEDS TESTING | `jarvis/automations.py`, table `automations`, tool `automation`, Automations page | 20, 26 | test_automations, running app | 1.18.0: safe steps, by hand / at a time / when the app opens, results kept. No conditions or loops; only runs while the app runs |
@@ -127,7 +127,7 @@ audio, installer, uninstaller, packaged-exe smoke test). They are being moved in
 | 84 | Goals and habit tracker | NOT IMPLEMENTED | — | storage layer | — | — |
 | 85 | Task and project management | IMPLEMENTED BUT NEEDS TESTING | `jarvis/planner.py`, table `tasks`, tool `tasks`, Planner page | storage layer | test_planner, running app | 1.21.0: due day or time (reminds), importance, projects, done. No sub-tasks |
 | 86 | Reflection and mood journal | NOT IMPLEMENTED | — | storage layer | — | — |
-| 87 | Presentation design studio | NOT IMPLEMENTED | — | 32 | — | — |
+| 87 | Presentation design studio | PARTIALLY IMPLEMENTED | `jarvis/documents.py` (`_make_pptx`) | 32 | test_documents | 1.22.0: slides from text, 4 themes, speaker notes. Missing: pictures, charts, preview |
 | 88 | Audio and voice studio | NOT IMPLEMENTED | — | — | — | — |
 | 89 | Database and information studio | NOT IMPLEMENTED | — | storage layer | — | — |
 | 90 | AI model and local AI management | PARTIALLY IMPLEMENTED | AI Models page (Local AI card), `jarvis/local_ai.py`, `jarvis/providers.py` | 5 | test_local_ai | 1.9.0: detect/start Ollama, list models with capabilities, download recommended models with progress, choose model, prefer local. Missing: delete models, disk usage |
@@ -157,13 +157,13 @@ audio, installer, uninstaller, packaged-exe smoke test). They are being moved in
 | 109 | Command history and activity timeline | PARTIALLY IMPLEMENTED | `jarvis/storage.py` (SQLite), `jarvis/audit.py`, Conversations page, Settings › Privacy | — | test_storage 4, test_guard_audit | 1.9.0: conversation + activity survive restarts; permanent audit record viewable in Settings. Missing: timeline page with search and dates |
 | 110 | Modular expansion and upgrade system | NOT IMPLEMENTED | — | 13 | — | — |
 
-## Totals (after v1.21.0, 23 Nov 2026)
+## Totals (after v1.22.0, 23 Nov 2026)
 
 | Status | Count |
 |---|---|
 | IMPLEMENTED AND VERIFIED | 1 |
 | IMPLEMENTED BUT NEEDS TESTING | 21 |
-| PARTIALLY IMPLEMENTED | 41 |
-| NOT IMPLEMENTED | 37 |
+| PARTIALLY IMPLEMENTED | 43 |
+| NOT IMPLEMENTED | 35 |
 | BLOCKED BY EXTERNAL DEPENDENCY | 0 |
 | NOT APPLICABLE | 10 |

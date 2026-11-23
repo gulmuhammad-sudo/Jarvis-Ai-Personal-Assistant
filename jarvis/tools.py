@@ -1674,6 +1674,45 @@ def notes(inp: dict, ctx: ToolContext) -> str:
     return out
 
 
+def documents(inp: dict, ctx: ToolContext) -> str:
+    from . import docindex, documents as dc
+    action = str(inp.get("action") or "read").lower()
+    try:
+        if action == "search":
+            if not docindex.folders():
+                return "No folders are indexed yet. The user can add some on the Tools & Skills page (Documents)."
+            hits = docindex.search(str(inp.get("query") or ""))
+            return "\n".join(f"- {h['path']}" + (f" ({h['part']})" if h["part"] else "") + f": {h['text']}" for h in hits) or "Nothing found in the indexed documents."
+        raw = str(inp.get("path") or "").strip().strip('"')
+        if not raw:
+            return "Which file?"
+        if action == "read":
+            p = Path(os.path.expandvars(os.path.expanduser(raw)))
+            if not p.is_absolute():               # "Desktop/report.pdf", or just a name in the usual places
+                home = Path(os.environ.get("USERPROFILE", str(Path.home())))
+                p = next((q for q in (home / p, *(home / d / p for d in _USER_DIRS)) if q.is_file()), home / p)
+            if guard.elsewhere(str(p)) and not ctx.approve(f"Read a file on another computer?\n\n{p}"):
+                return "Okay, I didn't read it."
+            if (guard.secret_file(str(p)) or guard.secret_file(str(p.resolve()))) and not ctx.approve(
+                    f"Read a file that may hold passwords or keys, and send its text to the AI?\n\n{p}"):
+                return "Okay, I didn't read it."
+            return dc.read(p, inp.get("part") or "")
+        if action == "make":
+            p = _user_path(raw if Path(raw).suffix else raw + ".docx")
+            if p.suffix.lower() not in dc.MAKES:
+                return f"I can make {', '.join(sorted(dc.MAKES))}."
+            if p.is_dir():
+                return f"{p} is a folder."
+            if p.exists() and not ctx.approve(f"{p.name} already exists in {p.parent}. Replace it?", kind="overwrite"):
+                return "Okay, I left the existing file alone."
+            return dc.make(p, inp.get("content") or "", str(inp.get("title") or ""), str(inp.get("theme") or "light"))
+    except ValueError as e:
+        return str(e)
+    except OSError as e:
+        return f"Windows said: {e.strerror or e}" + (" (is it open in another program?)" if getattr(e, "winerror", 0) in (5, 32) else "")
+    return f"Unknown action {action!r}."
+
+
 _STR, _INT = {"type": "string"}, {"type": "integer"}
 PLANNER_TOOLS = [
     ({"name": "tasks",
@@ -1693,6 +1732,14 @@ PLANNER_TOOLS = [
       "description": "The user's notes (save_note makes new ones). search (query), read / rename (to) / replace (text) / delete (name).",
       "input_schema": _obj({"action": {"type": "string", "enum": ["search", "read", "replace", "rename", "delete"]}, "name": _STR, "query": _STR,
                             "text": _STR, "to": _STR}, ["action"])}, notes),
+    ({"name": "documents",
+      "description": "read: the text of a PDF, Word, Excel, PowerPoint or CSV file (path; part like 2-5 or a sheet's name). make: write one "
+                     "(path ending .docx .xlsx .pptx .pdf, title, content). content is Markdown; for .pptx each # heading starts a slide, "
+                     "> lines are speaker notes, theme light/dark/green/warm; for .xlsx JSON rows {\"Sheet\": [[...]]} or CSV. "
+                     "search: words in the user's indexed documents (query).",
+      "input_schema": _obj({"action": {"type": "string", "enum": ["read", "make", "search"]}, "path": _STR, "part": _STR, "title": _STR,
+                            "content": _STR, "theme": {"type": "string", "enum": ["light", "dark", "green", "warm"]}, "query": _STR},
+                           ["action"])}, documents),
 ]
 TOOL_DEFINITIONS += [d for d, _ in PLANNER_TOOLS]
 _HANDLERS.update({d["name"]: fn for d, fn in PLANNER_TOOLS})

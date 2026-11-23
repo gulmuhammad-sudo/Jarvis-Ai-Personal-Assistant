@@ -107,6 +107,20 @@ MIGRATIONS: list[str] = [
            reminded TEXT,                                -- the start it was last reminded of
            created TEXT NOT NULL,
            updated TEXT NOT NULL);""",
+    # 8: word index of the documents in the folders you chose (see docindex.py)
+    """CREATE TABLE doc_folders (
+           id INTEGER PRIMARY KEY AUTOINCREMENT,
+           path TEXT NOT NULL UNIQUE COLLATE NOCASE,
+           added TEXT NOT NULL);
+       CREATE TABLE docs (
+           id INTEGER PRIMARY KEY AUTOINCREMENT,
+           path TEXT NOT NULL UNIQUE COLLATE NOCASE,
+           folder INTEGER NOT NULL,
+           mtime INTEGER NOT NULL,
+           size INTEGER NOT NULL,
+           read_at TEXT NOT NULL,
+           error TEXT NOT NULL DEFAULT '');
+       CREATE VIRTUAL TABLE doc_text USING fts5(text, doc UNINDEXED, part UNINDEXED, tokenize = 'unicode61 remove_diacritics 2');""",
 ]
 
 # event types worth keeping across restarts (not live captions, levels, approval prompts...)
