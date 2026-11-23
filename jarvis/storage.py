@@ -121,6 +121,62 @@ MIGRATIONS: list[str] = [
            read_at TEXT NOT NULL,
            error TEXT NOT NULL DEFAULT '');
        CREATE VIRTUAL TABLE doc_text USING fts5(text, doc UNINDEXED, part UNINDEXED, tokenize = 'unicode61 remove_diacritics 2');""",
+    # 9: goals, habits, journal, money (see life.py); amounts are hundredths
+    """CREATE TABLE goals (
+           id INTEGER PRIMARY KEY AUTOINCREMENT,
+           title TEXT NOT NULL,
+           why TEXT NOT NULL DEFAULT '',
+           area TEXT NOT NULL DEFAULT '',
+           target REAL,
+           progress REAL NOT NULL DEFAULT 0,
+           unit TEXT NOT NULL DEFAULT '',
+           due TEXT,
+           steps TEXT NOT NULL DEFAULT '[]',
+           done INTEGER NOT NULL DEFAULT 0,
+           done_at TEXT,
+           created TEXT NOT NULL);
+       CREATE TABLE habits (
+           id INTEGER PRIMARY KEY AUTOINCREMENT,
+           name TEXT NOT NULL,
+           per_week INTEGER NOT NULL DEFAULT 7,
+           remind TEXT NOT NULL DEFAULT '',
+           reminded TEXT,
+           created TEXT NOT NULL);
+       CREATE TABLE habit_log (
+           habit INTEGER NOT NULL,
+           day TEXT NOT NULL,
+           PRIMARY KEY (habit, day)) WITHOUT ROWID;
+       CREATE TABLE journal (
+           id INTEGER PRIMARY KEY AUTOINCREMENT,
+           day TEXT NOT NULL,
+           mood INTEGER,
+           text TEXT NOT NULL DEFAULT '',
+           created TEXT NOT NULL);
+       CREATE INDEX journal_day ON journal(day);
+       CREATE TABLE money (
+           id INTEGER PRIMARY KEY AUTOINCREMENT,
+           day TEXT NOT NULL,
+           kind TEXT NOT NULL CHECK (kind IN ('in', 'out')),
+           amount INTEGER NOT NULL CHECK (amount > 0),
+           category TEXT NOT NULL,
+           note TEXT NOT NULL DEFAULT '',
+           bill INTEGER,
+           bill_month TEXT,
+           created TEXT NOT NULL);
+       CREATE INDEX money_day ON money(day);
+       CREATE TABLE budgets (
+           category TEXT PRIMARY KEY COLLATE NOCASE,
+           amount INTEGER NOT NULL);
+       CREATE TABLE bills (
+           id INTEGER PRIMARY KEY AUTOINCREMENT,
+           name TEXT NOT NULL,
+           amount INTEGER NOT NULL,
+           category TEXT NOT NULL,
+           due INTEGER NOT NULL,
+           remind INTEGER NOT NULL DEFAULT 2,
+           start TEXT NOT NULL,                           -- the first month to pay
+           reminded TEXT,
+           created TEXT NOT NULL);""",
 ]
 
 # event types worth keeping across restarts (not live captions, levels, approval prompts...)

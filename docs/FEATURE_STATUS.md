@@ -86,7 +86,7 @@ audio, installer, uninstaller, packaged-exe smoke test). They are being moved in
 
 | # | Decision | Status | Source files | Depends on | Tests | Remaining / next action |
 |---|---|---|---|---|---|---|
-| 51 | Personal finance manager | NOT IMPLEMENTED | — | storage layer | — | — |
+| 51 | Personal finance manager | IMPLEMENTED BUT NEEDS TESTING | `jarvis/life.py`, tables `money`, `budgets`, `bills`, tool `money`, Planner › Money | — | test_life, running app | 1.24.0: spending, income, budgets, bills with reminders, trend, CSV copy. One currency; no bank, no import |
 | 52 | Language assistant | PARTIALLY IMPLEMENTED | `jarvis/languages.py`, `jarvis/urdu.py`, `jarvis/local_stt.py` | — | test_core (Urdu text) | Talks in many languages (speech recognised online or on this PC); no translation/learning tools |
 | 53 | Personal knowledge manager and notes | PARTIALLY IMPLEMENTED | `jarvis/notes.py`, tools `notes`, `save_note`, Planner page › Notes | 25 | test_planner, running app | 1.21.0: search, read, change, rename, delete (Recycle Bin). Missing: links between notes, meaning search |
 | 54 | Screen recording | NOT IMPLEMENTED | — | 26 (no silent recording) | — | — |
@@ -124,9 +124,9 @@ audio, installer, uninstaller, packaged-exe smoke test). They are being moved in
 | 81 | Document and identity vault | NOT IMPLEMENTED | — | secure storage | — | — |
 | 82 | Weather intelligence | IMPLEMENTED BUT NEEDS TESTING | tool `get_weather`, `jarvis/schedule.py` | — | live test used it once | Unit test with a stubbed response |
 | 83 | Clock, stopwatch, countdown, alarms | PARTIALLY IMPLEMENTED | HUD clock, `set_timer`, `set_alarm` | — | regression (alarm parts) | No stopwatch |
-| 84 | Goals and habit tracker | NOT IMPLEMENTED | — | storage layer | — | — |
+| 84 | Goals and habit tracker | IMPLEMENTED BUT NEEDS TESTING | `jarvis/life.py`, tables `goals`, `habits`, `habit_log`, tool `goals`, Planner › Goals | — | test_life, running app | 1.24.0: targets, steps, streaks, reminders |
 | 85 | Task and project management | IMPLEMENTED BUT NEEDS TESTING | `jarvis/planner.py`, table `tasks`, tool `tasks`, Planner page | storage layer | test_planner, running app | 1.21.0: due day or time (reminds), importance, projects, done. No sub-tasks |
-| 86 | Reflection and mood journal | NOT IMPLEMENTED | — | storage layer | — | — |
+| 86 | Reflection and mood journal | IMPLEMENTED BUT NEEDS TESTING | `jarvis/life.py`, table `journal`, tool `journal`, Planner › Journal | — | test_life, running app | 1.24.0: entries, mood of 30 days, search, reminder; closed to the AI until allowed. Not encrypted (see 77, 81) |
 | 87 | Presentation design studio | PARTIALLY IMPLEMENTED | `jarvis/documents.py` (`_make_pptx`) | 32 | test_documents | 1.22.0: slides from text, 4 themes, speaker notes. Missing: pictures, charts, preview |
 | 88 | Audio and voice studio | NOT IMPLEMENTED | — | — | — | — |
 | 89 | Database and information studio | NOT IMPLEMENTED | — | storage layer | — | — |
@@ -157,13 +157,13 @@ audio, installer, uninstaller, packaged-exe smoke test). They are being moved in
 | 109 | Command history and activity timeline | PARTIALLY IMPLEMENTED | `jarvis/storage.py` (SQLite), `jarvis/audit.py`, Conversations page, Settings › Privacy | — | test_storage 4, test_guard_audit | 1.9.0: conversation + activity survive restarts; permanent audit record viewable in Settings. Missing: timeline page with search and dates |
 | 110 | Modular expansion and upgrade system | NOT IMPLEMENTED | — | 13 | — | — |
 
-## Totals (after v1.23.0, 23 Nov 2026)
+## Totals (after v1.24.0, 23 Nov 2026)
 
 | Status | Count |
 |---|---|
 | IMPLEMENTED AND VERIFIED | 1 |
-| IMPLEMENTED BUT NEEDS TESTING | 21 |
+| IMPLEMENTED BUT NEEDS TESTING | 24 |
 | PARTIALLY IMPLEMENTED | 43 |
-| NOT IMPLEMENTED | 35 |
+| NOT IMPLEMENTED | 32 |
 | BLOCKED BY EXTERNAL DEPENDENCY | 0 |
 | NOT APPLICABLE | 10 |

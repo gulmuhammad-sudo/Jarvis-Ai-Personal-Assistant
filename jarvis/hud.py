@@ -26,7 +26,7 @@ from urllib.parse import parse_qs
 
 from . import __version__
 from . import live as live_mod
-from . import agents, alerts, approvals, audit, automations, denoise, docindex, gpu, guard, languages, local_ai, local_stt, local_tts, memory, notes, planner, plans, schedule, netcheck, skills, software, stt, storage, tools, tts, urdu, wake, winmgr
+from . import agents, alerts, approvals, audit, automations, denoise, docindex, gpu, guard, languages, life, local_ai, local_stt, local_tts, memory, notes, planner, plans, schedule, netcheck, skills, software, stt, storage, tools, tts, urdu, wake, winmgr
 from .brain import make_brain
 from .config import NOTES_DIR
 from .providers import provider_status
@@ -191,6 +191,7 @@ class Hub:
             self.tool_calls += 1
         if name == "remember_fact":            # the assistant saved it itself: don't also ask "Remember this?"
             self.emit("memory_suggest_clear")
+        args = guard.for_logs(name, args)
         short = ", ".join(f"{k}={str(v)[:50]}" for k, v in args.items())
         tid = self._next_id()
         if name in tools._HANDLERS:
@@ -266,6 +267,10 @@ class Hub:
             planner.tick(now, self.notify)
         except Exception as e:
             print(f"[planner] {type(e).__name__}: {e}")
+        try:
+            life.tick(now, self.notify)
+        except Exception as e:
+            print(f"[life] {type(e).__name__}: {e}")
         try:
             if time.time() >= self._docs_next:
                 self._docs_next = time.time() + 6 * 3600
@@ -1376,6 +1381,74 @@ class Handler(BaseHTTPRequestHandler):
             HUB.emit("planner_changed")
         return self._json(out)
 
+    def _life(self, action: str, data: dict) -> None:
+        """The Planner page's Goals, Journal and Money. Your click is the approval here."""
+        out: dict = {"ok": True}
+        num = lambda k="id": int(data[k]) if data.get(k) else None  # noqa: E731
+        pick = lambda *keys: {k: data.get(k) for k in keys}  # noqa: E731
+        try:
+            if action == "load":
+                what = data.get("what")
+                if what == "goals":
+                    out = {"goals": life.goals(False), "reached": life.goals(True)[:60], "habits": life.habits()}
+                elif what == "journal":
+                    out = {"entries": life.entries(str(data.get("query") or "")), "moods": life.moods()}
+                elif what == "money":
+                    month = life.month_of(data.get("month"))
+                    out = {"summary": life.summary(month), "rows": life.list_money(month, str(data.get("query") or "")), "bills": life.bills()}
+                else:
+                    return self._json({"error": "unknown action"}, 404)
+                return self._json({**out, "settings": life.settings(), "today": datetime.now().date().isoformat()})
+            if action == "goal":
+                out["goal"] = life.save_goal(**pick("title", "why", "area", "target", "unit", "due", "steps", "progress"), goal_id=num())
+            elif action == "goal_step":
+                life.goal_step(num(), data.get("n"), bool(data.get("on")))
+            elif action == "goal_done":
+                life.goal_done(num(), bool(data.get("on")))
+            elif action == "goal_delete":
+                life.goal_delete(num())
+            elif action == "habit":
+                out["habit"] = life.save_habit(**pick("name", "per_week", "remind"), habit_id=num())
+            elif action == "habit_mark":
+                life.habit_mark(num(), data.get("day"), bool(data.get("on")))
+            elif action == "habit_delete":
+                life.habit_delete(num())
+            elif action == "entry":
+                out["entry"] = life.save_entry(data.get("text"), data.get("mood"), data.get("day"), num())
+            elif action == "entry_delete":
+                life.entry_delete(num())
+            elif action == "money":
+                out["row"] = life.save_money(data.get("amount"), data.get("kind"), data.get("category"), data.get("note"), data.get("day"), num())
+            elif action == "money_delete":
+                life.money_delete(num())
+            elif action == "budget":
+                life.set_budget(data.get("category"), data.get("amount"))
+            elif action == "bill":
+                out["bill"] = life.save_bill(data.get("name"), data.get("amount"), data.get("category"), data.get("day"), data.get("remind"), num())
+            elif action == "bill_paid":
+                life.bill_paid(num(), data.get("amount"), data.get("day"))
+            elif action == "bill_skip":
+                life.bill_skip(num())
+            elif action == "bill_delete":
+                life.bill_delete(num())
+            elif action == "settings":
+                before = life.settings()["journal_ai"]
+                life.save_settings(data)
+                if life.settings()["journal_ai"] != before:
+                    audit.record("journal_ai", allowed=not before)
+            elif action == "export":
+                out["path"] = str(life.export(str(data.get("what"))))
+                audit.record("life_export", what=str(data.get("what")))
+                return self._json(out)
+            else:
+                return self._json({"error": "unknown action"}, 404)
+        except (ValueError, TypeError, KeyError, AttributeError) as e:
+            return self._json({"error": str(e) if isinstance(e, ValueError) and str(e)[:1].isupper() else "Something is missing or wrong."}, 400)
+        except OSError as e:
+            return self._json({"error": f"Windows said: {e.strerror or e}"}, 500)
+        HUB.emit("planner_changed")
+        return self._json(out)
+
     def _agents(self, action: str, data: dict) -> None:
         """The Agents page: everything is checked again in agents.py."""
         try:
@@ -1687,6 +1760,8 @@ class Handler(BaseHTTPRequestHandler):
             return self._docs(self.path.rsplit("/", 1)[1], data)
         elif self.path.startswith("/api/planner/"):    # Planner page
             return self._planner(self.path.rsplit("/", 1)[1], data)
+        elif self.path.startswith("/api/life/"):       # Planner page: Goals, Journal, Money
+            return self._life(self.path.rsplit("/", 1)[1], data)
         elif self.path.startswith("/api/agents/"):     # Agents page
             return self._agents(self.path.rsplit("/", 1)[1], data)
         elif self.path == "/api/plan/dismiss":

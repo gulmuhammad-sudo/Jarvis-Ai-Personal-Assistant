@@ -1,5 +1,14 @@
 # Security review
 
+## 2026-11-23 — v1.24.0
+
+| Area | How | Where |
+|---|---|---|
+| Journal | the AI can read it only after you tick it (audited); no agent ever; its text isn't logged. It is in the unencrypted `assistant.db`, and what you say to the assistant about it is in the conversation as always | `life.settings`, `tools.journal`, `guard.for_logs` |
+| Money | nothing connects to a bank or pays; amounts are whole hundredths; deleting asks; the same entry within 90 seconds is refused | `jarvis/life.py`, `tools.money` |
+| Agents and automations | goals and money are private (never with web tools); agents can't add or delete money; automations only look | `agents.LIMITS`, `automations.STEP_TOOLS` |
+| Exports | only to Documents, never over a file; cells that start like a formula are made text | `life.export` |
+
 ## 2026-11-23 — v1.23.0
 
 | Area | How | Where |

@@ -2,6 +2,13 @@
 
 Newest first. Each entry: what was done, how it was tested, what is open, the next task.
 
+## 2026-11-23 — Session 2, part 13: Phase 7 part 3 — goals, journal, money (v1.24.0)
+
+**Done** — `jarvis/life.py`, migration 9, tools `goals`, `journal`, `money`, `/api/life/*`, three Planner tabs, reminders in
+the tick, `guard.for_logs`.
+
+**Next** — ask the owner: build 1.24.0; email [46] (which account, read only or also sending).
+
 ## 2026-11-23 — Session 2, part 12: Pakistani women's voices (v1.23.0)
 
 **Done** — Uzma with styles (`tts.STYLES`, ids like `ur-PK-UzmaNeural@soft`), Aegis (`local_tts.PIPER`: Piper's own files,

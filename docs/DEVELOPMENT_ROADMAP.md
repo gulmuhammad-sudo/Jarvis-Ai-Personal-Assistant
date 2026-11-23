@@ -48,7 +48,8 @@ enough to finish, test and release on its own. Numbers in brackets are decisions
 - [x] Read/create DOCX, XLSX, PPTX, PDF [32, 25, 87]
 - [x] Local document index (word search) [25]
 - [x] Tasks/projects, calendar/planner, notes manager [85, 45, 53]
-- [ ] Email (IMAP/SMTP, user's own account) [46]; finance, journal, goals [51, 86, 84]
+- [x] Finance, journal, goals [51, 86, 84]
+- [ ] Email (IMAP/SMTP, user's own account) [46]
 
 ## Phase 8 — Personal, creative, entertainment
 - [ ] Stopwatch and time tools [83]; media, news, learning, fitness, travel, meetings, companion [48, 65, 61, 62, 63, 68, 60]

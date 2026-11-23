@@ -583,7 +583,7 @@ RESULT_HOOK: Callable[[str, dict, Any, bool], None] | None = None   # the HUD sh
 def execute(name: str, tool_input: dict, ctx: ToolContext, from_ai: bool = False) -> tuple[Any, bool]:
     """Run a tool. Returns (content, is_error). Every call goes into the audit log; text from web pages, files
     and the clipboard comes back marked as untrusted (see guard.py)."""
-    args = tool_input if isinstance(tool_input, dict) else {}
+    args = guard.for_logs(name, tool_input if isinstance(tool_input, dict) else {})
     if STOP.is_set():
         audit.record("tool", tool=name, args=args, ok=False, result="stopped by the user")
         return "Stopped: the user pressed Stop. Don't continue this task; say it was stopped.", True
@@ -599,11 +599,12 @@ def execute(name: str, tool_input: dict, ctx: ToolContext, from_ai: bool = False
                     pass
             return why, True
     out, err = _execute(name, tool_input, ctx)
+    shown = "(read)" if name == "journal" and str(args.get("action")).lower() == "read" and not err else out
     audit.record("tool", tool=name, args=args, ok=not err,
-                 result=(out if isinstance(out, str) else "[image]")[:120])
+                 result=(shown if isinstance(shown, str) else "[image]")[:120])
     if RESULT_HOOK:
         try:
-            RESULT_HOOK(name, args, out, err)
+            RESULT_HOOK(name, args, shown, err)
         except Exception:
             pass
     if not err and isinstance(out, str) and guard.is_untrusted(name, args):
@@ -1674,6 +1675,130 @@ def notes(inp: dict, ctx: ToolContext) -> str:
     return out
 
 
+def goals(inp: dict, ctx: ToolContext) -> str:
+    from . import life
+    action, ref = str(inp.get("action") or "list").lower(), inp.get("name")
+    try:
+        if action == "list":
+            g, h = life.goals(False), life.habits()
+            return ("Goals:\n" + "\n".join(life.describe_goal(x) for x in g) if g else "No goals yet.") + "\n" + \
+                   ("Habits:\n" + "\n".join(life.describe_habit(x) for x in h) if h else "No habits yet.")
+        if action == "add_goal":
+            g = life.save_goal(ref, inp.get("note"), None, inp.get("target"), inp.get("unit"), inp.get("due"), inp.get("steps"))
+            out = "Added the goal " + life.describe_goal(g)
+        elif action == "add_habit":
+            h = life.save_habit(ref, inp.get("per_week"), inp.get("remind"))
+            out = "Added the habit " + life.describe_habit(h)
+        elif action in ("habit_done", "habit_undo"):
+            h = life.find_habit(ref)
+            if not h:
+                return f"I can't tell which habit {ref!r} is. " + goals({"action": "list"}, ctx)
+            out = life.describe_habit(life.habit_mark(h["id"], inp.get("day"), action == "habit_done"))
+        elif action in ("progress", "step", "reached", "delete_goal"):
+            g = life.find_goal(ref, None if action == "delete_goal" else False)
+            if not g:
+                return f"I can't tell which goal {ref!r} is. " + goals({"action": "list"}, ctx)
+            if action == "progress":
+                if inp.get("add") in (None, "") and inp.get("value") in (None, ""):
+                    return "Say how far it is (value) or how much more (add)."
+                more = life._number(inp.get("add"), "The progress")
+                out = life.describe_goal(life.save_goal(progress=g["progress"] + more if more is not None else inp["value"], goal_id=g["id"]))
+            elif action == "step":
+                out = life.describe_goal(life.goal_step(g["id"], inp.get("value")))
+            elif action == "reached":
+                life.goal_done(g["id"])
+                out = f"Reached: {g['title']}."
+            else:
+                if not ctx.approve(f"Delete the goal \"{g['title']}\"?"):
+                    return "Okay, I kept it."
+                life.goal_delete(g["id"])
+                out = f"Deleted the goal {g['title']}."
+        elif action == "delete_habit":
+            h = life.find_habit(ref)
+            if not h:
+                return f"I can't tell which habit {ref!r} is."
+            if not ctx.approve(f"Delete the habit \"{h['name']}\" and its {h['total']} ticked days?"):
+                return "Okay, I kept it."
+            life.habit_delete(h["id"])
+            out = f"Deleted the habit {h['name']}."
+        else:
+            return f"Unknown action {action!r}."
+    except ValueError as e:
+        return str(e)
+    _planner_changed()
+    return out
+
+
+def journal(inp: dict, ctx: ToolContext) -> str:
+    from . import life
+    action = str(inp.get("action") or "add").lower()
+    try:
+        if action == "add":
+            e = life.save_entry(inp.get("text"), inp.get("mood"), inp.get("day"))
+            _planner_changed()
+            return f"Written in the journal of {e['day']}" + (f", mood {life.MOODS[e['mood']]}" if e["mood"] else "") + "."
+        if action == "read":
+            if not life.settings()["journal_ai"]:
+                return "The journal is closed to you: the user reads it on the Planner page (Journal), and can allow you to read it there. Don't ask again in this conversation."
+            first = life._past_day(inp.get("day"), "The day") if inp.get("day") else ""
+            items = life.entries(str(inp.get("query") or ""), first, limit=30)
+            m = life.moods()
+            head = f"Average mood of the last 30 days: {m['average']} of 5 ({m['written']} days).\n" if m["average"] else ""
+            return head + ("\n".join(f"- {e['day']}" + (f" (mood {life.MOODS[e['mood']]})" if e["mood"] else "") + f": {e['text'][:1500]}" for e in items) or "Nothing written.")
+    except ValueError as e:
+        return str(e)
+    return f"Unknown action {action!r}."
+
+
+def money(inp: dict, ctx: ToolContext) -> str:
+    from . import life
+    action, ref = str(inp.get("action") or "summary").lower(), inp.get("name")
+    try:
+        if action == "summary":
+            return life.describe_summary(life.summary(life.month_of(inp.get("month"))))
+        if action == "list":
+            rows = life.list_money(life.month_of(inp["month"]) if inp.get("month") else "", str(inp.get("query") or ""), 40)
+            return "\n".join(life.describe_money(r) for r in rows) or "Nothing written."
+        if action == "bills":
+            return "\n".join(life.describe_bill(b) for b in life.bills()) or "No bills."
+        if action in ("spent", "got"):
+            kind, cat, note = "out" if action == "spent" else "in", inp.get("category"), inp.get("note")
+            twin = life.just_added(inp.get("amount"), kind, cat, note, inp.get("day"))
+            if twin:
+                return "That was written a moment ago: " + life.describe_money(twin) + ". If the user means a second one, ask them to add it on the Planner page (Money)."
+            r = life.save_money(inp.get("amount"), kind, cat, note, inp.get("day"))
+            out = "Written: " + life.describe_money(r) + "."
+            b = next((x for x in life.summary(r["day"][:7])["categories"] if x["category"].casefold() == r["category"].casefold() and x["budget"]), None)
+            if kind == "out" and b and b["spent"] > b["budget"]:
+                out += f" That's over the {b['category']} budget by {life.show(b['spent'] - b['budget'])}. Tell the user."
+        elif action == "budget":
+            life.set_budget(inp.get("category"), inp.get("amount"))
+            out = f"Budget for {inp.get('category')}: " + (f"{life.show(life.amount(inp['amount']))} a month." if inp.get("amount") not in (None, "", 0, "0") else "none.")
+        elif action == "add_bill":
+            out = "Added the bill " + life.describe_bill(life.save_bill(ref, inp.get("amount"), inp.get("category"), inp.get("due_day"))) + "."
+        elif action == "bill_paid":
+            b = life.find_bill(ref)
+            if not b:
+                return f"I can't tell which bill {ref!r} is. " + money({"action": "bills"}, ctx)
+            if any(r["bill"] == b["id"] and r["day"] == datetime.now().date().isoformat() for r in life.list_money(limit=200)):
+                return f"{b['name']} was already written as paid today. If the user means one more month, they can do it on the Planner page (Money)."
+            out = "Written as paid: " + life.describe_money(life.bill_paid(b["id"], inp.get("amount"), inp.get("day"))) + ". (Nothing was paid by the app.)"
+        elif action == "delete":
+            r = life.get_money(int(str(ref or "0").lstrip("#"))) if str(ref or "").lstrip("#").isdigit() else None
+            if not r:
+                return "Say the entry's number. " + money({"action": "list"}, ctx)
+            if not ctx.approve(f"Delete this entry?\n\n{life.describe_money(r)}"):
+                return "Okay, I kept it."
+            life.money_delete(r["id"])
+            out = "Deleted: " + life.describe_money(r) + "."
+        else:
+            return f"Unknown action {action!r}."
+    except ValueError as e:
+        return str(e)
+    _planner_changed()
+    return out
+
+
 def documents(inp: dict, ctx: ToolContext) -> str:
     from . import docindex, documents as dc
     action = str(inp.get("action") or "read").lower()
@@ -1732,6 +1857,23 @@ PLANNER_TOOLS = [
       "description": "The user's notes (save_note makes new ones). search (query), read / rename (to) / replace (text) / delete (name).",
       "input_schema": _obj({"action": {"type": "string", "enum": ["search", "read", "replace", "rename", "delete"]}, "name": _STR, "query": _STR,
                             "text": _STR, "to": _STR}, ["action"])}, notes),
+    ({"name": "goals",
+      "description": "The user's goals and habits. list, add_goal (name, target, unit, due, steps), progress (name, value or add), step (value = its "
+                     "number, now done), reached, add_habit (name, per_week, remind HH:MM), habit_done / habit_undo (name, day), delete_goal, delete_habit.",
+      "input_schema": _obj({"action": {"type": "string", "enum": ["list", "add_goal", "progress", "step", "reached", "add_habit", "habit_done", "habit_undo",
+                                                                  "delete_goal", "delete_habit"]},
+                            "name": _STR, "target": {"type": "number"}, "unit": _STR, "due": _STR, "steps": {"type": "array", "items": _STR},
+                            "value": {"type": "number"}, "add": {"type": "number"}, "per_week": _INT, "remind": _STR, "day": _STR, "note": _STR}, ["action"])}, goals),
+    ({"name": "journal",
+      "description": "The user's private journal. add (their own words as text, mood 1-5, day) only when they ask you to write in it; read (query, day = from).",
+      "input_schema": _obj({"action": {"type": "string", "enum": ["add", "read"]}, "text": _STR, "mood": _INT, "day": _STR, "query": _STR}, ["action"])}, journal),
+    ({"name": "money",
+      "description": "The user's own record of spending (no bank, nothing is paid; give no investment advice). spent / got (amount, category, note, day), "
+                     "summary (month), list (month, query), budget (category, amount a month; 0 = none), bills, add_bill (name, amount, due_day), "
+                     "bill_paid (name), delete (name = number).",
+      "input_schema": _obj({"action": {"type": "string", "enum": ["spent", "got", "summary", "list", "budget", "bills", "add_bill", "bill_paid", "delete"]},
+                            "amount": {"type": "number"}, "category": _STR, "note": _STR, "day": _STR, "month": _STR, "query": _STR, "name": _STR, "due_day": _INT},
+                           ["action"])}, money),
     ({"name": "documents",
       "description": "read: the text of a PDF, Word, Excel, PowerPoint or CSV file (path; part like 2-5 or a sheet's name). make: write one "
                      "(path ending .docx .xlsx .pptx .pdf, title, content). content is Markdown; for .pptx each # heading starts a slide, "

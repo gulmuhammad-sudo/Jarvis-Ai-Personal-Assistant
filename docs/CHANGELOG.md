@@ -2,6 +2,19 @@
 
 Each version is also a git tag (`git tag -n20 vX.Y.Z` shows its notes). Newest first.
 
+## 1.24.0 — 2026-11-23 (not pushed yet)
+Planner page, three new tabs, all on this PC:
+- Goals: goals with a target or steps, a day and a progress bar; habits (every day or some days a week) to tick, streaks,
+  a reminder at your time.
+- Journal: a few lines and a mood, the mood of the last 30 days, search, a reminder, a copy in Documents. Closed to the
+  AI until you allow it; until then it can only write what you tell it to. Its text stays out of the activity list, the
+  saved history's tool entries and the audit log.
+- Money: what you spend and get, by category, with budgets, bills (reminder before their day), six months side by side,
+  a CSV copy. Your own record: no bank, nothing is paid. "1.5k", "2 lakh" and Urdu digits are understood.
+- By voice or chat: "I spent 1500 on groceries", "how much did I spend this month?", "mark walk as done", "write in my
+  journal…". Deleting asks first; the same entry twice in a row is noticed.
+- Automations can tell you your goals and habits, this month's money, or your bills.
+
 ## 1.23.0 — 2026-11-23
 Pakistani women's voices:
 - Reading voice: Uzma (Microsoft's Pakistani voice) can be chosen now, in four ways of speaking: normal, soft, lively,

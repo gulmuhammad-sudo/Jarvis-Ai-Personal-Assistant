@@ -11,6 +11,16 @@ set PA_TEST_NETWORK=1 && .venv\Scripts\python -m pytest tests   # also the onlin
 .venv\Scripts\python packaging\build.py              # then smoke-test the packaged exe (see below)
 ```
 
+## 2026-11-23 — Goals, journal, money (v1.24.0)
+
+| Suite | Result | Notes |
+|---|---|---|
+| `pytest tests` | 702 passed, 3 skipped | new tests/test_life.py (118): amounts, exact sums, months, budgets, bills month by month, streaks (weeks, new year), reminders once, the journal closed to the AI and absent from the logs, CSV that Excel can't run, the AI's tools, held plans, agents, automations, an old database upgraded |
+| Found by those tests | fixed | "tomorrow" was quietly taken as a day last week |
+| Running app (test copy, quiet, no mic) | pass after 4 fixes | every new button except the two exports; no sideways scroll at 1534x787, 1100x601, 620x760. Fixed: an entry for another month didn't move the view and left its day in the form; Cancel stayed visible; ticking flashed the list; the budget tile compared all spending with some budgets |
+| Request size | +7.5% tools | 68 tools; about 500 tokens more per request |
+| Not tested | — | the packaged exe; these tools with a real AI; real reminders at their time (a fake clock was used); the exports' buttons (the files were tested in a temporary folder) |
+
 ## 2026-11-23 — Pakistani women's voices (v1.23.0)
 
 | Suite | Result | Notes |

@@ -34,14 +34,15 @@ OUTBOUND = {"web_search", "fetch_webpage", "open_website", "search_web_in_browse
 # shows the agent something private
 PRIVATE = {"recall_memories", "list_notes", "read_text_file", "find_files", "read_screen_text", "manage_windows", "workspace",
            "list_alarms", "list_timers", "dev_tools", "find_old_files", "remember_fact", "edit_memory", "system_status", "network",
-           "write_file", "make_folder", "save_note", "tasks", "calendar", "notes", "documents", "arrange_windows", "cancel_timer"}
+           "write_file", "make_folder", "save_note", "tasks", "calendar", "notes", "documents", "goals", "money", "arrange_windows", "cancel_timer"}
 # neither
 PLAIN = {"get_datetime", "set_timer", "set_alarm", "media_control", "set_brightness", "set_theme", "open_application"}
 AGENT_TOOLS = OUTBOUND | PRIVATE | PLAIN
 # tools with a wider reach than an agent should have: only these actions
 LIMITS: dict[str, tuple[str, ...]] = {"workspace": ("open", "list"), "network": ("check",), "dev_tools": ("versions", "ports"),
                                      "tasks": ("list", "add", "update", "done", "undone"), "calendar": ("agenda", "find", "add", "update"),
-                                     "notes": ("search", "read")}
+                                     "notes": ("search", "read"), "money": ("summary", "list", "bills"),       # (never the journal)
+                                     "goals": ("list", "progress", "step", "habit_done", "habit_undo")}
 
 BUILT_IN = [
     {"key": "researcher", "name": "Researcher", "memory": False, "tools": ["web_search", "fetch_webpage", "get_datetime"],
