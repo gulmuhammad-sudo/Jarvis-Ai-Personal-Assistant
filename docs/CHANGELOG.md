@@ -2,6 +2,21 @@
 
 Each version is also a git tag (`git tag -n20 vX.Y.Z` shows its notes). Newest first.
 
+## 1.26.0 — 2026-11-23 (not pushed yet)
+Email (Gmail), look only: Planner page › Email.
+- Connect with an app password that you make at Google; kept encrypted for your Windows account. Inbox, unread, search in
+  Gmail's own words, reading as plain text (no pictures load, nothing is marked as read), drafts and draft replies.
+- The app can't send, delete, move or mark anything: every other mail command is refused in its code, and there is no
+  sending in the app at all.
+- Warnings: Google couldn't confirm the sender, a name that shows another address, answers that go elsewhere, links that
+  show one site and go to another, attached programs. Hidden text is left out.
+- By voice or chat: "summarise my unread emails", "find the email from Ali about the meeting", "draft a reply: yes, ten is
+  fine". It asks before the AI sees email (Settings › Permissions can allow or forbid it) and always shows a draft first.
+- After the AI has seen an email it asks before it goes online, runs something or makes automations, for 30 minutes or until
+  a new conversation, so an email can't talk it into carrying things out. Email stays out of the activity list and audit log.
+- When a service finds a request too large (413), the smaller one brings documents, goals, journal, money and email only if
+  you spoke of them; with the new tools it had grown too big again.
+
 ## 1.25.0 — 2026-11-23
 - The glass look of Settings everywhere: see-through panels over soft light, the same rows, tabs, buttons, fields and
   headings with icons on every page, frosted popups; dark and light theme; the Setup window too. Profile sits in the middle

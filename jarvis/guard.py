@@ -13,14 +13,33 @@ import re
 # ---------------- 1. untrusted text ----------------
 # window titles and text read off the screen come from other programs and web pages too
 UNTRUSTED_TOOLS = {"fetch_webpage", "web_search", "read_text_file", "clipboard", "daily_briefing", "manage_windows",
-                   "read_screen_text", "software", "dev_tools", "delegate"}
+                   "read_screen_text", "software", "dev_tools", "delegate", "email"}
 
 READ_BACK = {"tasks": ("list", ""), "calendar": ("agenda", "find", ""), "notes": ("search", "read", ""),
              "documents": ("read", "search", ""), "goals": ("list", ""), "journal": ("read",), "money": ("list", "summary", "bills", "")}
 
+# what these say stays out of the activity list, the saved history and the audit log
+PRIVATE_TEXT = {"journal": ("text", "query"), "email": ("body", "subject", "query")}
+PRIVATE_KINDS = {"email", "email_draft", "after_email"}          # approvals: only their first line is kept
+
+
 def for_logs(tool: str, args: dict) -> dict:
-    """The journal's text stays out of the activity list, the saved history and the audit log."""
-    return {k: "…" if k in ("text", "query") and v else v for k, v in args.items()} if tool == "journal" else args
+    hide = PRIVATE_TEXT.get(tool, ())
+    return {k: "…" if k in hide and v else v for k, v in args.items()} if hide else args
+
+
+def question_for_logs(question: str, kind: str | None) -> str:
+    return question.split("\n", 1)[0] if kind in PRIVATE_KINDS else question
+
+
+# after the AI has seen an email, these ask first: each could carry what it read out of this PC, or keep an order from the email
+AFTER_EMAIL = {"fetch_webpage", "web_search", "open_website", "search_web_in_browser", "play_youtube", "open_path", "delegate", "automation", "run_powershell",
+               "software", "save_skill"}
+AFTER_EMAIL_FINE = {"automation:list", "software:installed", "software:updates"}
+
+
+def held_after_email(tool: str, args: dict) -> bool:
+    return tool in AFTER_EMAIL and f"{tool}:{str(args.get('action') or '').lower()}" not in AFTER_EMAIL_FINE
 
 
 SYSTEM_RULE = """
@@ -58,7 +77,7 @@ def runs_code(path: str) -> bool:
     return bool(_RUNS_CODE.search(p)) or bool(_RUNS_CODE.search(p[2:].split(":", 1)[0].rstrip(". "))) and ":" in p[2:]
 
 
-_SECRET = re.compile(r"(^|[\\/])(\.env[^\\/]*|keys\.dat|id_(rsa|dsa|ecdsa|ed25519)[^\\/]*|\.netrc|\.pgpass|\.git-credentials|credentials(\.json)?|"
+_SECRET = re.compile(r"(^|[\\/])(\.env[^\\/]*|keys\.dat|mail\.dat|id_(rsa|dsa|ecdsa|ed25519)[^\\/]*|\.netrc|\.pgpass|\.git-credentials|credentials(\.json)?|"
                      r"login data|cookies|key4\.db|logins\.json|[^\\/]*\.(pem|key|pfx|p12|kdbx|ppk|ovpn|rdp))$|[\\/]\.(ssh|aws|gnupg|azure)[\\/]", re.I)
 
 # documents people keep them in, by name ("My Passwords 2024.xlsx", Windows' own "BitLocker Recovery Key ….txt", "backup-codes.txt")

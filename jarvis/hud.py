@@ -22,11 +22,11 @@ import webbrowser
 from datetime import datetime, timedelta
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
-from urllib.parse import parse_qs
+from urllib.parse import parse_qs, quote
 
 from . import __version__
 from . import live as live_mod
-from . import agents, alerts, approvals, audit, automations, denoise, docindex, gpu, guard, languages, life, local_ai, local_stt, local_tts, memory, notes, planner, plans, schedule, netcheck, skills, software, stt, storage, tools, tts, urdu, wake, winmgr
+from . import agents, alerts, approvals, audit, automations, denoise, docindex, gpu, guard, languages, life, local_ai, mail, local_stt, local_tts, memory, notes, planner, plans, schedule, netcheck, skills, software, stt, storage, tools, tts, urdu, wake, winmgr
 from .brain import make_brain
 from .config import NOTES_DIR
 from .providers import provider_status
@@ -694,7 +694,7 @@ class Hub:
 
     CONFIRM_TIMEOUT = 180
     # once allowed, these aren't asked again until the app restarts; shutdown, deleting files etc. always ask
-    TRUSTABLE = {"powershell": "PowerShell commands", "lock": "locking the PC", "wifi_off": "turning Wi-Fi off"}
+    TRUSTABLE = {"powershell": "PowerShell commands", "lock": "locking the PC", "wifi_off": "turning Wi-Fi off", "email": "reading your email"}
     # Every kind of approval the tools ask for. Settings > Privacy keeps a rule per kind: "ask" (default),
     # "never" (refused without asking) or "allow" (only for the TRUSTABLE kinds: shutting down, deleting,
     # replacing files and closing apps with unsaved work are always asked).
@@ -708,6 +708,9 @@ class Hub:
         "force_close": "Closing an app that has unsaved work",
         "close_system": "Closing a Windows system program",
         "software": "Installing, updating or removing programs (winget)",
+        "email": "Reading your email (Gmail) for an answer",
+        "email_draft": "Saving a draft in Gmail (never sent)",
+        "after_email": "Going online after an email was read",
     }
 
     def permission(self, kind: str | None) -> str:
@@ -742,15 +745,16 @@ class Hub:
     def confirm(self, question: str, kind: str | None = None) -> bool:
         """Ask before something risky. Answered by the Allow / Deny buttons, or by voice ("yes" / "nahi")."""
         rule = self.permission(kind)
+        kept = guard.question_for_logs(question, kind)          # what goes into the saved history
         if rule in ("never", "allow"):
             label = self.PERMISSION_KINDS.get(kind or "", kind)
-            self.emit("tool", keep=True, name="approval", id=self._next_id(), detail=question,
+            self.emit("tool", keep=True, name="approval", id=self._next_id(), detail=kept,
                       args=f"{'denied' if rule == 'never' else 'allowed'} automatically: {label} is set to "
                            f"{'Never' if rule == 'never' else 'Allow'} (Settings › Privacy)")
             return rule == "allow"
         if kind and kind in self.trusted:
             self.emit("tool", keep=True, name="approval", args=f"allowed automatically: you already said yes to {self.TRUSTABLE.get(kind, kind)}",
-                      id=self._next_id(), detail=question)
+                      id=self._next_id(), detail=kept)
             return True
         cid = secrets.token_hex(6)
         slot = {"event": threading.Event(), "allow": False, "question": question, "asked": time.time(), "kind": kind}
@@ -782,7 +786,7 @@ class Hub:
         if remembered:
             self.trusted.add(kind)            # don't ask again for this kind (until the app restarts)
         slot["event"].set()
-        self.emit("tool", keep=True, name="approval", id=self._next_id(), detail=slot["question"],
+        self.emit("tool", keep=True, name="approval", id=self._next_id(), detail=guard.question_for_logs(slot["question"], kind),
                   args=f"{'allowed' if allow else 'denied'} by {how}"
                        + (f"; won't ask again for {self.TRUSTABLE[kind]} until the app restarts" if remembered else ""))
         return True
@@ -1449,6 +1453,37 @@ class Handler(BaseHTTPRequestHandler):
         HUB.emit("planner_changed")
         return self._json(out)
 
+    def _mail(self, action: str, data: dict) -> None:
+        """The Planner page's Email: your own clicks. Nothing here goes to the AI."""
+        try:
+            if action == "status":
+                return self._json(mail.account())
+            if action == "connect":
+                out = mail.connect(data.get("address"), data.get("password"))
+                audit.record("mail_connected")
+                return self._json(out)
+            if action == "disconnect":
+                mail.disconnect()
+                audit.record("mail_disconnected")
+                return self._json(mail.account())
+            if action == "list":
+                return self._json({"rows": mail.listing(str(data.get("query") or ""), bool(data.get("unread")), 30), **mail.account()})
+            if action == "read":
+                return self._json(mail.read(data.get("id")))
+            if action == "draft":
+                return self._json({"ok": True, **mail.save_draft(data.get("to"), data.get("subject"), data.get("body"), data.get("cc"), data.get("reply_to"))})
+            if action == "open":                          # Gmail in your own browser
+                os.startfile("https://mail.google.com/mail/u/?authuser=" + quote(mail.account()["address"]))
+                return self._json({"ok": True})
+            if action == "app_password":
+                os.startfile("https://myaccount.google.com/apppasswords")
+                return self._json({"ok": True})
+        except (ValueError, TypeError, KeyError) as e:
+            return self._json({"error": str(e) if isinstance(e, ValueError) else "Something is missing."}, 400)
+        except OSError as e:
+            return self._json({"error": f"Windows said: {e.strerror or e}"}, 500)
+        return self._json({"error": "unknown action"}, 404)
+
     def _agents(self, action: str, data: dict) -> None:
         """The Agents page: everything is checked again in agents.py."""
         try:
@@ -1762,6 +1797,8 @@ class Handler(BaseHTTPRequestHandler):
             return self._planner(self.path.rsplit("/", 1)[1], data)
         elif self.path.startswith("/api/life/"):       # Planner page: Goals, Journal, Money
             return self._life(self.path.rsplit("/", 1)[1], data)
+        elif self.path.startswith("/api/mail/"):       # Planner page: Email
+            return self._mail(self.path.rsplit("/", 1)[1], data)
         elif self.path.startswith("/api/agents/"):     # Agents page
             return self._agents(self.path.rsplit("/", 1)[1], data)
         elif self.path == "/api/plan/dismiss":
@@ -1808,6 +1845,7 @@ class Handler(BaseHTTPRequestHandler):
             HUB.brain.reset()
             HUB.history.clear()
             agents.clear_board()
+            mail.clear_seen()
             HUB.emit("reset")
         else:
             return self._json({"error": "not found"}, 404)

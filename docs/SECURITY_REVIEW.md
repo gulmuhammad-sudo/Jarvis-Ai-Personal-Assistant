@@ -1,5 +1,18 @@
 # Security review
 
+## 2026-11-23 — v1.26.0 (email)
+
+| Area | How | Where |
+|---|---|---|
+| Sign-in | an app password only (16 letters; anything else is refused before it goes anywhere), DPAPI in `mail.dat`, never in the environment, logs or the page; TLS with certificate check to imap.gmail.com only | `mail.connect`, `_login` |
+| Look only | mailboxes opened with EXAMINE, BODY.PEEK; the connection refuses every command but looking, and APPEND to Drafts while a draft is saved; no SMTP in the app (tested) | `mail._Guarded` |
+| What emails say | untrusted; plain text only, nothing loads; hidden and invisible text removed; size limits; warnings | `mail.read`, `warnings` |
+| Commands through a search | sent as a counted literal, one line | `mail.listing` |
+| The AI | asks before it sees email; drafts always shown and asked; no agent or automation has email | `tools.email` |
+| Carrying things out | after an email, web, opening, agents, automations, PowerShell, software and new skills ask, showing what would go out, for 30 minutes or until a new conversation. Not covered: weather and prayer city names, and things kept on this PC | `guard.AFTER_EMAIL` |
+| Logs | subjects, searches, text and results left out; approvals keep only their first line. What the assistant answers about an email is in the conversation, as always | `guard.PRIVATE_TEXT`, `PRIVATE_KINDS` |
+| Test switch | `JARVIS_MAIL_TEST` works only with `JARVIS_DATA_DIR` set and only for 127.0.0.1 | `mail._test_server` |
+
 ## 2026-11-23 — v1.24.0
 
 | Area | How | Where |

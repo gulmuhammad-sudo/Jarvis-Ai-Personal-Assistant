@@ -76,7 +76,7 @@ audio, installer, uninstaller, packaged-exe smoke test). They are being moved in
 | 43 | Windows software manager | IMPLEMENTED BUT NEEDS TESTING | `jarvis/software.py` (winget), tool `software`, Tools & Skills › PC Care › Software updates, permission kind `software` (Ask/Never, never Allow) | 26 | test_pccare (parsing, approvals, one change at a time), real read-only search/list/updates | 1.17.0: search, installed, updates; install/update/uninstall/update all after approval, in the background, reported when done. A real install was not run in testing (approval box checked with Deny) |
 | 44 | Advanced Windows administration | PARTIALLY IMPLEMENTED | tools `run_powershell`, `power_action`, `wireless`, `set_brightness`, `lock_computer`; `jarvis/guard.py` | 26 | test_guard_audit (24 refused, 8 allowed) | PowerShell asks first; destructive commands refused outright (1.9.0). Missing: services, scheduled tasks, event log tools |
 | 45 | Calendar and planner | IMPLEMENTED BUT NEEDS TESTING | `jarvis/planner.py`, table `calendar`, tool `calendar`, Planner page | — | test_planner, running app | 1.21.0: events (repeat, all day, over midnight), overlap warning, reminders, month and week view with tasks, alarms, prayers. No sync with online calendars, no .ics |
-| 46 | Email assistant | NOT IMPLEMENTED | — | 77 | — | — |
+| 46 | Email assistant | IMPLEMENTED BUT NEEDS TESTING | `jarvis/mail.py`, tool `email`, Planner › Email | 77 | test_mail (pretend Gmail), running app | 1.26.0: Gmail, reading, search, warnings, drafts. Never sends. Not tried with a real account; no other providers, no attachments |
 | 47 | File intelligence | PARTIALLY IMPLEMENTED | tools `find_files`, `find_old_files`, `clean_folder`, `read_text_file`, `write_file`, `make_folder` | 25 | none | Search, clean-up to Recycle Bin, text files |
 | 48 | Media center | PARTIALLY IMPLEMENTED | tools `media_control`, `play_youtube` | — | none | Media keys, volume, YouTube |
 | 49 | Gaming assistant | NOT IMPLEMENTED | — | — | — | — |
@@ -157,13 +157,13 @@ audio, installer, uninstaller, packaged-exe smoke test). They are being moved in
 | 109 | Command history and activity timeline | PARTIALLY IMPLEMENTED | `jarvis/storage.py` (SQLite), `jarvis/audit.py`, Conversations page, Settings › Privacy | — | test_storage 4, test_guard_audit | 1.9.0: conversation + activity survive restarts; permanent audit record viewable in Settings. Missing: timeline page with search and dates |
 | 110 | Modular expansion and upgrade system | NOT IMPLEMENTED | — | 13 | — | — |
 
-## Totals (after v1.24.0, 23 Nov 2026)
+## Totals (after v1.26.0, 23 Nov 2026)
 
 | Status | Count |
 |---|---|
 | IMPLEMENTED AND VERIFIED | 1 |
-| IMPLEMENTED BUT NEEDS TESTING | 24 |
+| IMPLEMENTED BUT NEEDS TESTING | 25 |
 | PARTIALLY IMPLEMENTED | 43 |
-| NOT IMPLEMENTED | 32 |
+| NOT IMPLEMENTED | 31 |
 | BLOCKED BY EXTERNAL DEPENDENCY | 0 |
 | NOT APPLICABLE | 10 |

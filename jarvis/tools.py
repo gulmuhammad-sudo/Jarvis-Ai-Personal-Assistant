@@ -64,7 +64,7 @@ class ToolContext:
                 granted = bool(self.confirm(question, kind=kind))
             except TypeError:                 # a confirm() that doesn't know about kinds (console)
                 granted = bool(self.confirm(question))
-        audit.record("approval", kind=kind or "", question=question, granted=granted)
+        audit.record("approval", kind=kind or "", question=guard.question_for_logs(question, kind), granted=granted)
         return granted
 
 
@@ -598,8 +598,15 @@ def execute(name: str, tool_input: dict, ctx: ToolContext, from_ai: bool = False
                 except Exception:
                     pass
             return why, True
+        from . import mail
+        real = tool_input if isinstance(tool_input, dict) else {}
+        # what an email said may be steering the AI: it doesn't go online, or leave orders behind, without you (an agent can't have email at all)
+        if mail.recently_seen() and guard.held_after_email(name, real) and getattr(ctx, "allowed_tools", None) is None and not ctx.approve(
+                f"An email was read in this conversation. Let the assistant use {name.replace('_', ' ')} now?\n\n{json.dumps(real, ensure_ascii=False)[:700]}", kind="after_email"):
+            audit.record("tool", tool=name, args=args, ok=False, result="held: after an email")
+            return "Not done: the user was asked, because an email was read in this conversation, and didn't allow it. Don't try it another way.", True
     out, err = _execute(name, tool_input, ctx)
-    shown = "(read)" if name == "journal" and str(args.get("action")).lower() == "read" and not err else out
+    shown = "(read)" if name in guard.PRIVATE_TEXT and str(args.get("action")).lower() in ("read", "list", "search") and not err else out
     audit.record("tool", tool=name, args=args, ok=not err,
                  result=(shown if isinstance(shown, str) else "[image]")[:120])
     if RESULT_HOOK:
@@ -1799,6 +1806,43 @@ def money(inp: dict, ctx: ToolContext) -> str:
     return out
 
 
+def email(inp: dict, ctx: ToolContext) -> str:
+    from . import mail
+    action = str(inp.get("action") or "list").lower()
+    try:
+        if action in ("list", "search"):
+            query = str(inp.get("query") or "").strip()
+            if action == "search" and not query:
+                return "Search for what?"
+            what = f"Search: {query}" if query else "The inbox: senders and subjects" + (" of unread emails" if inp.get("unread") else "")
+            if not mail.account()["connected"]:
+                return "Gmail isn't connected. The user can do that on the Planner page (Email)."
+            if not ctx.approve(f"Let the assistant see your email?\n\n{what}", kind="email"):
+                return "Okay, I didn't look."
+            rows = mail.listing(query, bool(inp.get("unread")), int(inp.get("limit") or 15))
+            mail.seen_by_ai()
+            return "\n".join(f"- {r['id']}{' (unread)' if r['unread'] else ''} {r['at'].replace('T', ' ')} {r['name']} <{r['address']}>: {r['subject']}" for r in rows) or "No emails found."
+        if action == "read":
+            m = mail.read(inp.get("id"))
+            if not ctx.approve(f"Let the assistant read this email?\n\nFrom: {m['name']} <{m['address']}>\nSubject: {m['subject']}", kind="email"):
+                return "Okay, I didn't read it."
+            mail.seen_by_ai()
+            return mail.for_ai(m)
+        if action == "draft":
+            if not mail.account()["connected"]:
+                return "Gmail isn't connected. The user can do that on the Planner page (Email)."
+            reply = mail.read(inp["reply_to"]) if str(inp.get("reply_to") or "").strip() else None
+            d = mail.compose(mail.account()["address"], inp.get("to"), inp.get("subject"), inp.get("body"), inp.get("cc"), reply)
+            if not ctx.approve(f"Save this draft in Gmail? (It isn't sent.)\n\nTo: {d['To'] or '(nobody yet)'}" + (f"\nCc: {d['Cc']}" if d["Cc"] else "")
+                               + f"\nSubject: {d['Subject']}\n\n{mail.clean(inp.get('body'))[:3000]}", kind="email_draft"):
+                return "Okay, I didn't save it."
+            got = mail.save_draft(inp.get("to"), inp.get("subject"), inp.get("body"), inp.get("cc"), inp.get("reply_to"))
+            return f"The draft is in Gmail's Drafts (to {got['to'] or 'nobody yet'}). It isn't sent: the user reads it there and sends it. This app can't send email."
+    except (ValueError, TypeError) as e:
+        return str(e) if isinstance(e, ValueError) else "Something is missing."
+    return f"Unknown action {action!r}. This app can only list, search and read email and save drafts."
+
+
 def documents(inp: dict, ctx: ToolContext) -> str:
     from . import docindex, documents as dc
     action = str(inp.get("action") or "read").lower()
@@ -1874,6 +1918,11 @@ PLANNER_TOOLS = [
       "input_schema": _obj({"action": {"type": "string", "enum": ["spent", "got", "summary", "list", "budget", "bills", "add_bill", "bill_paid", "delete"]},
                             "amount": {"type": "number"}, "category": _STR, "note": _STR, "day": _STR, "month": _STR, "query": _STR, "name": _STR, "due_day": _INT},
                            ["action"])}, money),
+    ({"name": "email",
+      "description": "The user's Gmail, look only. list (unread, limit), search (query in Gmail's words, e.g. from:ali newer_than:7d), read (id), draft (to, subject, body, "
+                     "or reply_to = id) saves a draft. Never sends, deletes or marks anything.",
+      "input_schema": _obj({"action": {"type": "string", "enum": ["list", "search", "read", "draft"]}, "query": _STR, "unread": {"type": "boolean"}, "limit": _INT,
+                            "id": _STR, "to": _STR, "cc": _STR, "subject": _STR, "body": _STR, "reply_to": _STR}, ["action"])}, email),
     ({"name": "documents",
       "description": "read: the text of a PDF, Word, Excel, PowerPoint or CSV file (path; part like 2-5 or a sheet's name). make: write one "
                      "(path ending .docx .xlsx .pptx .pdf, title, content). content is Markdown; for .pptx each # heading starts a slide, "

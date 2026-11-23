@@ -108,6 +108,12 @@ def test_request_too_large_is_tried_again_with_fewer_tools():
     b.client = type("C", (), {"chat": type("H", (), {"completions": type("M", (), {"create": staticmethod(make(1))})})})
     assert b._create() == "answer"
     assert len(sent[0]) == len(b.tool_defs) and len(sent[1]) < 40 and {"software", "get_datetime", "make_plan"} <= set(sent[1])
+    assert not {"email", "money", "journal", "goals", "documents"} & set(sent[1])
+    for text, tool in (("summarise my unread emails", "email"), ("I spent 500 on tea", "money"), ("make a PowerPoint", "documents"), ("write in my diary", "journal"), ("meri aadat", "goals")):
+        b.messages = [{"role": "user", "content": "hello"}, {"role": "user", "content": text}]
+        names = {d["function"]["name"] for d in b._everyday_tools()}
+        assert tool in names and len(names & {"email", "money", "journal", "goals", "documents"}) == 1, text
+    b.messages = [{"role": "user", "content": "hi"}]
     sent.clear()
     b.client = type("C", (), {"chat": type("H", (), {"completions": type("M", (), {"create": staticmethod(make(9))})})})
     with pytest.raises(openai.APIStatusError):

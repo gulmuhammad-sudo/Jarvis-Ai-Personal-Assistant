@@ -24,7 +24,7 @@ LOOKING = {"get_datetime", "system_status", "find_files", "read_text_file", "lis
            "find_old_files", "dev_tools", "make_plan", "plan_step", "manage_windows:list", "workspace:list", "automation:list",
            "software:search", "software:installed", "software:updates", "network:check", "network:speed", "clipboard:read",
            "wireless:status", "end_conversation", "tasks:list", "calendar:agenda", "calendar:find", "notes:search",
-           "notes:read", "documents:read", "documents:search", "goals:list", "journal:read",
+           "notes:read", "documents:read", "documents:search", "goals:list", "journal:read", "email:list", "email:search", "email:read",
            "money:summary", "money:list", "money:bills"}
 
 _LOCK = threading.RLock()

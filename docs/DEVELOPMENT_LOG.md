@@ -2,6 +2,15 @@
 
 Newest first. Each entry: what was done, how it was tested, what is open, the next task.
 
+## 2026-11-23 — Session 2, part 15: Phase 7 part 4 — email, look only (v1.26.0)
+
+**Decided by the owner** — Gmail; read and drafts, no sending.
+
+**Done** — `jarvis/mail.py`, tool `email`, `/api/mail/*`, Email tab, permission kinds email / email_draft / after_email,
+`guard.AFTER_EMAIL`, `guard.PRIVATE_TEXT`, `tests/fake_imap.py` (pretend Gmail; `JARVIS_MAIL_TEST`, only with `JARVIS_DATA_DIR` and 127.0.0.1).
+
+**Next** — ask the owner: build 1.26.0 and connect Gmail; then Phase 8.
+
 ## 2026-11-23 — Session 2, part 14: glass everywhere (v1.25.0)
 
 **Done** — one block of CSS at the end of `jarvis/hud.html` (tokens `--surface`, `--row`, `--field`, `--pane`, `--sheen`), headings

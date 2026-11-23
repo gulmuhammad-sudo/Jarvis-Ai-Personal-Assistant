@@ -36,6 +36,7 @@ Open **Personal Assistant** from the Start Menu or the Desktop.
 - Timers, alarms, notes and long-term memory you can search, edit and see as a graph
 - Your own skills: rules it always follows and routines you run by name
 - Windows on command (snap, side by side, minimise all) and saved workspaces; reads text on screen (offline OCR)
+- Email: reads your Gmail, warns of tricks, saves drafts; it can't send or delete
 - Goals and habits, a private journal, and your own record of money, on your PC
 - Documents: reads and makes Word, Excel, PowerPoint and PDF files, and searches inside the folders you choose
 - Planner: calendar, tasks and notes on your PC, with reminders
