@@ -2,6 +2,16 @@
 
 Newest first. Each entry: what was done, how it was tested, what is open, the next task.
 
+## 2026-11-23 — Session 2, part 7: Phase 6 part 1 — automations and plans (v1.18.0)
+
+**Done** — `jarvis/automations.py` (step allow-list checked on save and on run, triggers, Runner, templates, export /
+import), migration 5, `jarvis/plans.py`, tools `automation`, `make_plan`, `plan_step`, `Scheduler.on_tick`,
+`/api/auto/*`, Automations page, plan card, plan setting. 1.17.1: network check retries.
+
+**Open** — 16 unexplained Emergency Stops in the test copy (TESTING_REPORT).
+
+**Next** — ask the owner: build 1.18.0, or Phase 6 part 2 (agent profiles sharing context [39, 101]).
+
 ## 2026-11-22 — Session 2, part 6: Phase 5 part 2 — software, network, dev tools (v1.17.0) — Phase 5 done
 
 **Done** — `jarvis/software.py` (winget tables, id check, background changes with one-at-a-time lock),

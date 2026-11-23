@@ -56,6 +56,20 @@ MIGRATIONS: list[str] = [
            created TEXT NOT NULL,
            updated TEXT NOT NULL,
            uses INTEGER NOT NULL DEFAULT 0);""",
+    # 5: automations = several safe steps under one name, run by hand, at a time, or when the app opens
+    """CREATE TABLE automations (
+           id INTEGER PRIMARY KEY AUTOINCREMENT,
+           name TEXT NOT NULL UNIQUE COLLATE NOCASE,
+           steps TEXT NOT NULL,                          -- JSON list of steps (see automations.py)
+           trigger TEXT NOT NULL,                        -- JSON: manual | time | startup
+           enabled INTEGER NOT NULL DEFAULT 0,
+           created TEXT NOT NULL,
+           updated TEXT NOT NULL,
+           last_run TEXT,
+           last_ok INTEGER,
+           last_result TEXT,
+           last_day TEXT,                                -- the day its timed run last started (once a day)
+           runs INTEGER NOT NULL DEFAULT 0);""",
 ]
 
 # event types worth keeping across restarts (not live captions, levels, approval prompts...)

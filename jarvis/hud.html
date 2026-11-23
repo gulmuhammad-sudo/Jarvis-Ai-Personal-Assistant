@@ -872,6 +872,29 @@ body[data-state="thinking"] .fdock .fdmic { color: var(--amber); border-color: v
 body.focus .subs { bottom: 104px; }
 body.focus[data-face="mask"] .heroText { bottom: 98px; }
 @media (max-width: 560px) { body.focus .fdock { gap: 6px; padding: 6px 8px; bottom: 14px; } .fdock button { width: 36px; height: 36px; } .fdock .fdmic { width: 50px; height: 50px; } }
+/* automations and the plan card */
+.austep { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; padding: 6px 8px; border: 1px solid var(--hair); border-radius: 9px; }
+.austep > b { font: 500 11px var(--mono); color: var(--dim); width: 18px; }
+.austep label { display: inline-flex; gap: 5px; align-items: center; font-size: 12px; color: var(--muted); }
+.skform .austep input, .skform .austep select { flex: 0 1 auto; min-width: 0; width: auto; height: 30px; font-size: 12.5px; }
+.skform .austep input.wide { flex: 1 1 200px; }
+.austep .btn { height: 28px; padding: 0 8px; font-size: 12px; }
+.austep .grow { flex: 1; }
+.audays { display: inline-flex; gap: 3px; } .audays button { height: 28px; padding: 0 7px; border-radius: 7px; border: 1px solid var(--hair-2); background: none; color: var(--muted); font: inherit; font-size: 11.5px; cursor: pointer; }
+.audays button.on { color: var(--cyan); border-color: rgba(var(--c-accent), .55); background: rgba(var(--c-accent), .1); }
+.austeps { margin: 4px 0 0; padding-left: 18px; color: var(--muted); font-size: 12.5px; line-height: 1.5; }
+.auresult { white-space: pre-wrap; color: var(--muted); font-size: 12px; line-height: 1.5; margin-top: 6px; padding: 8px; border-radius: 8px; background: rgba(var(--c-fill), .03); max-height: 180px; overflow: auto; }
+.austate.ok { color: var(--green); } .austate.bad { color: var(--amber); } .austate.run { color: var(--cyan); }
+#auForm[hidden], #auImport[hidden], .plancard[hidden] { display: none !important; }
+.plancard { position: fixed; right: 18px; bottom: 84px; width: min(330px, calc(100vw - 36px)); z-index: 44; padding: 12px 14px; border-radius: 14px; border: 1px solid rgba(var(--c-accent), .4);
+  background: var(--surface); box-shadow: 0 14px 44px var(--shadow); animation: rowIn .35s cubic-bezier(.2, .8, .2, 1) both; max-height: 46vh; overflow: auto; }
+.plancard h4 { margin: 0 0 8px; font-size: 13.5px; display: flex; gap: 8px; align-items: center; }
+.plancard h4 span { flex: 1; min-width: 0; } .plancard h4 em { font: 500 10px var(--mono); letter-spacing: .08em; color: var(--muted); text-transform: uppercase; }
+.plancard h4 button { border: 0; background: none; color: var(--dim); cursor: pointer; padding: 0; }
+.plancard li { list-style: none; display: flex; gap: 8px; font-size: 12.5px; line-height: 1.45; padding: 2px 0; color: var(--muted); }
+.plancard ul { margin: 0; padding: 0; } .plancard li i { font-style: normal; width: 14px; text-align: center; }
+.plancard li.doing { color: var(--cyan); } .plancard li.done { color: var(--green); } .plancard li.failed { color: var(--red); } .plancard li.skipped { color: var(--dim); text-decoration: line-through; }
+body.focus .plancard { display: none !important; }
 /* PC care */
 .pccare { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 8px; margin-bottom: 4px; }
 .pcbox { animation: rowIn .35s cubic-bezier(.2, .8, .2, 1) both; }
@@ -924,6 +947,7 @@ body.focus[data-face="mask"] .heroText { bottom: 98px; }
       <button class="navi" data-view="memory"><i data-ic="db"></i><span>Memory</span><em class="badge" id="bMem">0</em></button>
       <button class="navi" data-view="profile"><i data-ic="user"></i><span>Profile</span></button>
       <button class="navi" data-view="tools"><i data-ic="wrench"></i><span>Tools &amp; Skills</span><em class="badge" id="bTools">0</em></button>
+      <button class="navi" data-view="auto"><i data-ic="tasks"></i><span>Automations</span><em class="badge" id="bAuto">0</em></button>
       <button class="navi" data-view="models"><i data-ic="layers"></i><span>AI Models</span><em class="badge" id="bModels">0</em></button>
       <button class="navi" data-view="settings"><i data-ic="gear"></i><span>Settings</span></button>
     </nav>
@@ -1124,6 +1148,23 @@ body.focus[data-face="mask"] .heroText { bottom: 98px; }
     </section>
 
     <!-- Models -->
+    <section class="view" data-view="auto">
+      <section class="card page">
+        <h3>Automations <span class="more" style="cursor:default">Several steps under one name</span></h3>
+        <div class="body">
+          <div class="skillbar"><button class="btn on" id="auNew"><i data-ic="tasks"></i>New automation</button>
+            <button class="btn" id="auImportBtn"><i data-ic="download"></i>Import</button>
+            <small>Runs by hand, at a time, or when the app opens (only while the app is running). Steps come from a safe list: no PowerShell, shutdown, deleting or uninstalling. Anything that needs your permission still asks, and Stop stops it.</small></div>
+          <div class="skform" id="auImport" hidden><textarea id="auImportText" aria-label="Shared automation text" placeholder="Paste a shared automation (the exported text). It is checked and arrives switched off."></textarea>
+            <div class="row"><button class="btn on" id="auImportGo"><i data-ic="check"></i>Import</button><button class="btn" id="auImportCancel">Cancel</button><span class="err" id="auImportErr"></span></div></div>
+          <div class="skform" id="auForm" hidden></div>
+          <div class="list skilllist" id="auList"></div>
+          <h4 class="sec">TEMPLATES</h4>
+          <div class="skex" id="auTpl"></div>
+        </div>
+      </section>
+    </section>
+
     <section class="view" data-view="models">
       <section class="card page">
         <h3>AI Models <span class="more" style="cursor:default">Tried in order; the next one takes over if one fails</span></h3>
@@ -1243,6 +1284,8 @@ body.focus[data-face="mask"] .heroText { bottom: 98px; }
           <h4 class="sec">PERMISSIONS</h4>
           <div class="setrow"><div class="lbl"><b>Each kind of action</b><small>Ask: you approve every time. Allow: done without asking (only for the safer ones). Never: refused without asking. Shutting down, deleting and replacing files always ask.</small></div></div>
           <div class="permlist" id="permList"></div>
+          <div class="setrow"><div class="lbl"><b>Plans for longer tasks</b><small>Before several actions in a row, the assistant shows its steps. Risky actions still ask on their own.</small></div>
+            <select id="planMode" aria-label="Plans for longer tasks"><option value="ask">Show and ask first</option><option value="each">Ask before every step</option><option value="show">Only show</option></select></div>
           <div class="setrow"><div class="lbl"><b>Allowed until restart</b><small id="trustInfo">Jarvis asks before risky actions. Once you allow a kind (like PowerShell commands) it stops asking until the app restarts. Shutdown, restart and deleting files are always asked.</small></div>
             <button class="btn" id="trustReset">Ask every time again</button></div>
 
@@ -1294,6 +1337,7 @@ body.focus[data-face="mask"] .heroText { bottom: 98px; }
   </div>
 </div>
 
+<aside class="plancard" id="planCard" aria-live="polite" hidden></aside>
 <div class="fdock" id="fdock" role="toolbar" aria-label="Voice controls">
   <button id="fdHf" title="Hands-free" aria-label="Hands-free on or off" aria-pressed="false"><i data-ic="zap"></i></button>
   <button id="fdMic" class="fdmic" title="Talk (Ctrl+Space)" aria-label="Talk"><i data-ic="mic"></i></button>
@@ -1542,6 +1586,7 @@ const FRIENDLY = {
   wireless: ["Wi-Fi / Bluetooth", "wifi"], take_screenshot: ["Saved a screenshot", "eye"],
   manage_windows: ["Windows", "layers"], arrange_windows: ["Arranged windows", "layers"], workspace: ["Workspace", "layers"],
   read_screen_text: ["Read text on screen", "eye"],
+  automation: ["Automation", "tasks"], make_plan: ["Made a plan", "tasks"], plan_step: ["Plan step", "tasks"],
   software: ["Software (winget)", "download"], network: ["Network check", "wifi"], dev_tools: ["Developer tools", "cpu"],
   find_old_files: ["Scanned for old files", "search"], clean_folder: ["Cleaned up a folder", "note"],
   renamed: ["Renamed the assistant", "user"], set_assistant_name: ["Renamed the assistant", "user"],
@@ -1617,7 +1662,7 @@ const AGENTS = [
   { id: "research", name: "Research Agent", ic: "search", color: "var(--cyan)", tools: ["web_search", "fetch_webpage", "search_web_in_browser", "daily_briefing", "get_weather"] },
   { id: "browser", name: "Browser Agent", ic: "globe", color: "var(--amber)", tools: ["open_website", "open_application", "open_path", "play_youtube"] },
   { id: "memory", name: "Memory Agent", ic: "db", color: "var(--violet)", tools: ["remember_fact", "recall_memories", "forget_memory", "use_skill", "save_skill", "save_note", "list_notes", "read_text_file", "find_files"] },
-  { id: "task", name: "Task Agent", ic: "tasks", color: "var(--blue)", tools: ["set_timer", "list_timers", "cancel_timer", "get_datetime", "set_alarm", "list_alarms", "delete_alarm", "prayer_times", "prayer_reminders"] },
+  { id: "task", name: "Task Agent", ic: "tasks", color: "var(--blue)", tools: ["automation", "make_plan", "plan_step", "set_timer", "list_timers", "cancel_timer", "get_datetime", "set_alarm", "list_alarms", "delete_alarm", "prayer_times", "prayer_reminders"] },
   { id: "vision", name: "Vision Agent", ic: "eye", color: "var(--green)", tools: ["look_at_screen", "take_screenshot", "read_screen_text"] },
   { id: "system", name: "System Agent", ic: "cpu", color: "var(--muted)", tools: ["system_status", "software", "network", "dev_tools", "manage_windows", "arrange_windows", "workspace", "run_powershell", "lock_computer", "media_control", "clipboard", "set_language", "set_location",
     "close_app", "power_action", "set_brightness", "wireless", "find_old_files", "clean_folder"] },
@@ -1761,6 +1806,17 @@ function handle(ev) {
     case "skills_changed":
     case "workspaces_changed":
       loadInfo();
+      break;
+    case "automations_changed":
+      loadInfo();
+      break;
+    case "auto_run":
+      auRun[ev.id] = ev;
+      if (ev.state === "running" && ev.step) addFeed({ id: `auto${ev.id}`, title: `Automation: ${ev.name}`, sub: `${ev.step}/${ev.total} ${ev.text}`, tag: "LIVE", ic: "tasks" });
+      if (ev.state !== "running") { addFeed({ id: `auto${ev.id}`, title: `Automation: ${ev.name}`, sub: ev.state === "ok" ? "ran every step" : "stopped early", tag: "INFO", ic: "tasks" }); loadInfo(); } else renderAutomations();
+      break;
+    case "plan":
+      drawPlan(ev.plan);
       break;
     case "software_changed":
       if (swLoaded) checkSoftware();
@@ -2535,6 +2591,8 @@ async function loadInfo() {
     renderSkills();
     wsAll = j.workspaces || [];
     renderWorkspaces();
+    auAll = j.automations || []; auSteps = j.automation_steps || []; auTpls = j.automation_templates || [];
+    renderAutomations(); drawPlan(j.plan);
     $("noteList").innerHTML = j.notes.length ? j.notes.map(n => `<div class="item"><span class="ico">${icon("note")}</span><div><b>${esc(n.replace(/\.md$/, ""))}</b><small>data/notes</small></div></div>`).join("")
       : '<div class="empty">No notes yet. Say "take a note: …".</div>';
   } catch (e) { console.warn(e); }
@@ -2814,6 +2872,124 @@ $("wsSave").onclick = async () => {
   $("wsName").value = ""; loadInfo();
 };
 $("wsName").onkeydown = e => { if (e.key === "Enter") $("wsSave").click(); };
+
+// ---------- automations ----------
+let auAll = [], auSteps = [], auTpls = [], auEdit = null, auDelArmed = { id: 0, at: 0 };
+const auRun = {}, DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+function renderAutomations() {
+  $("bAuto").textContent = auAll.length;
+  $("auTpl").innerHTML = auTpls.map((t, i) => `<button class="chip2" data-autpl="${i}" title="${esc(t.steps_text.join(" · "))}">${icon("tasks")}${esc(t.name)}</button>`).join("");
+  $("auTpl").querySelectorAll("[data-autpl]").forEach(b => b.onclick = () => autoForm({ ...auTpls[+b.dataset.autpl], id: null, enabled: false }));
+  const box = $("auList");
+  box.innerHTML = auAll.length ? auAll.map((a, i) => {
+    const r = auRun[a.id], state = r && r.state === "running" ? `<span class="austate run">step ${r.step} of ${r.total}…</span>`
+      : a.last_run ? `<span class="austate ${a.last_ok ? "ok" : "bad"}">${a.last_ok ? "ran every step" : "stopped early"}</span> · ${esc(a.last_run.replace("T", " "))}` : "not run yet";
+    return `<div class="item skitem${a.enabled || a.trigger.type === "manual" ? "" : " off"}" data-au="${a.id}" style="--i:${Math.min(i, 12)};align-items:flex-start"><span class="ico" style="color:var(--cyan)">${icon("tasks")}</span>
+      <div style="min-width:0;flex:1"><b>${esc(a.name)}</b><small>Runs ${esc(a.trigger_text)} · ${state}</small>
+        <ol class="austeps">${a.steps_text.map(t => `<li>${esc(t)}</li>`).join("")}</ol>
+        ${a.last_result ? `<details><summary><small style="display:inline">Last result</small></summary><div class="auresult">${esc(a.last_result)}</div></details>` : ""}</div>
+      <div class="skacts"><button class="btn" data-aurun="${a.id}"${r && r.state === "running" ? " disabled" : ""}>${icon("play")}Run</button>
+        <button class="btn" data-auedit="${a.id}" title="Edit" aria-label="Edit ${esc(a.name)}">${icon("edit")}</button>
+        <button class="btn" data-auexp="${a.id}" title="Copy as text to share" aria-label="Export ${esc(a.name)}">${icon("note")}</button>
+        <button class="btn danger" data-audel="${a.id}" title="Delete" aria-label="Delete ${esc(a.name)}">${icon("x")}</button>
+        ${a.trigger.type === "manual" ? "" : `<button class="btn switch${a.enabled ? " on" : ""}" role="switch" aria-checked="${a.enabled}" data-auon="${a.id}" aria-label="${esc(a.name)} on or off">${a.enabled ? "On" : "Off"}</button>`}</div></div>`;
+  }).join("") : '<div class="empty">No automations yet. Make one with <b>New automation</b>, or start from a template below.</div>';
+  const on = (sel, fn) => box.querySelectorAll(`[data-${sel}]`).forEach(b => b.onclick = () => fn(+b.dataset[sel], b));
+  on("aurun", async id => { const r = await post("/api/auto/run", { id }); const j = r ? await r.json() : {}; if (j.error) addFeed({ title: "Automation", sub: j.error, tag: "INFO", ic: "info" }); });
+  on("auedit", id => autoForm(auAll.find(a => a.id === id)));
+  on("auon", async (id, b) => { await post("/api/auto/enable", { id, on: !b.classList.contains("on") }); loadInfo(); });
+  on("auexp", async (id, b) => {
+    const r = await post("/api/auto/export", { id }); const j = r ? await r.json() : {};
+    let ok = false; try { await navigator.clipboard.writeText(j.text || ""); ok = true; } catch (e) { /* no clipboard: show it */ }
+    if (!ok) { $("auImport").hidden = false; $("auImportText").value = j.text || ""; $("auImportErr").textContent = "Copy this text to share it."; }
+    b.innerHTML = icon(ok ? "check" : "note"); setTimeout(() => { if (b.isConnected) b.innerHTML = icon("note"); }, 1800);
+  });
+  on("audel", async (id, b) => {
+    if (auDelArmed.id !== id || Date.now() - auDelArmed.at > 4000) { auDelArmed = { id, at: Date.now() }; b.innerHTML = `${icon("x")}Delete?`; setTimeout(() => { if (b.isConnected) b.innerHTML = icon("x"); }, 4000); return; }
+    auDelArmed = { id: 0, at: 0 }; await post("/api/auto/delete", { id }); loadInfo();
+  });
+}
+function autoForm(a) {
+  auEdit = a ? JSON.parse(JSON.stringify(a)) : { id: null, name: "", steps: [{ say: "Hello" }], trigger: { type: "manual" }, enabled: false };
+  $("auForm").hidden = false; drawAutoForm(); $("auForm").scrollIntoView({ block: "nearest", behavior: "smooth" });
+}
+function stepKind(s) { return s.tool ? s.tool : "say" in s ? "say" : "wait" in s ? "wait" : "ask"; }
+function newStep(kind) { return kind === "say" ? { say: "" } : kind === "wait" ? { wait: 5 } : kind === "ask" ? { ask: "" } : { tool: kind, args: autoDefaults(kind) }; }
+function autoDefaults(tool) {
+  const args = {}; (auSteps.find(t => t.tool === tool) || { props: [] }).props.forEach(p => { if (p.required && p.choices) args[p.key] = p.choices[0]; });
+  return args;
+}
+function drawAutoForm() {
+  const f = $("auForm"), e = auEdit, t = e.trigger;
+  const opt = (v, l, cur) => `<option value="${esc(v)}"${v === cur ? " selected" : ""}>${esc(l)}</option>`;
+  const field = (p, v, i) => {
+    const label = `${esc(p.key.replace(/_/g, " "))}${p.required ? " *" : ""}`;
+    if (p.choices) return `<label>${label}<select data-k="${p.key}" data-i="${i}" data-t="${p.type}">${p.required ? "" : opt("", "—", "")}${p.choices.map(c => opt(String(c), String(c).replace(/_/g, " "), String(v ?? ""))).join("")}</select></label>`;
+    if (p.type === "boolean") return `<label>${label}<select data-k="${p.key}" data-i="${i}" data-t="boolean">${opt("", "—", String(v ?? ""))}${opt("true", "yes", String(v ?? ""))}${opt("false", "no", String(v ?? ""))}</select></label>`;
+    return `<label>${label}<input class="${p.type === "string" || p.type === "array" ? "wide" : ""}" data-k="${p.key}" data-i="${i}" data-t="${p.type}" ${p.type === "integer" || p.type === "number" ? 'type="number" style="width:90px"' : ""}
+      placeholder="${p.type === "array" ? "comma between names" : ""}" value="${esc(Array.isArray(v) ? v.join(", ") : v ?? "")}"></label>`;
+  };
+  f.innerHTML = `<div class="row"><input id="auName" maxlength="40" placeholder="Name, e.g. Morning start" aria-label="Automation name" value="${esc(e.name)}">
+      <select id="auTrig" aria-label="When it runs">${opt("manual", "Run by hand", t.type)}${opt("time", "At a time", t.type)}${opt("startup", "When the app opens", t.type)}</select>
+      ${t.type === "time" ? `<input id="auAt" type="time" aria-label="Time" style="flex:0 0 110px;min-width:0" value="${esc(t.at || "08:00")}"><span class="audays">${DAYS.map((d, i) => `<button type="button" data-day="${i}" class="${(t.days || []).includes(i) ? "on" : ""}" aria-pressed="${(t.days || []).includes(i)}">${d}</button>`).join("")}</span>` : ""}</div>
+    ${e.steps.map((s, i) => { const k = stepKind(s), spec = auSteps.find(x => x.tool === k);
+      return `<div class="austep"><b>${i + 1}</b><select data-kind="${i}" aria-label="What step ${i + 1} does">${opt("say", "Show a message", k)}${opt("wait", "Wait", k)}${opt("ask", "Ask the AI (last step only)", k)}${auSteps.map(x => opt(x.tool, x.label, k)).join("")}</select>
+        ${k === "say" || k === "ask" ? `<input class="wide" maxlength="500" data-txt="${i}" aria-label="Text" value="${esc(s[k])}">` : k === "wait" ? `<label>seconds<input type="number" min="1" max="300" style="width:90px" data-txt="${i}" value="${esc(s.wait)}"></label>`
+          : (spec ? spec.props : []).map(p => field(p, (s.args || {})[p.key], i)).join("")}
+        <span class="grow"></span><button class="btn" data-up="${i}" aria-label="Move step ${i + 1} up"${i ? "" : " disabled"}>↑</button><button class="btn" data-down="${i}" aria-label="Move step ${i + 1} down"${i < e.steps.length - 1 ? "" : " disabled"}>↓</button>
+        <button class="btn" data-rm="${i}" aria-label="Remove step ${i + 1}">${icon("x")}</button></div>`; }).join("")}
+    <div class="row"><button class="btn" id="auAdd"${e.steps.length >= 12 ? " disabled" : ""}>+ Add step</button><span style="flex:1"></span>
+      <button class="btn on" id="auSave">${icon("check")}Save</button><button class="btn" id="auCancel">Cancel</button></div>
+    <div class="row"><small>${t.type === "manual" ? "" : "Saving switches it on if you leave the box ticked."}</small>${t.type === "manual" ? "" : `<label style="display:flex;gap:6px;align-items:center;font-size:12.5px"><input type="checkbox" id="auOn" style="flex:0 0 16px;width:16px;min-width:16px;height:16px;accent-color:var(--cyan)"${e.enabled || !e.id ? " checked" : ""}>On</label>`}<span class="err" id="auErr"></span></div>`;
+  const redraw = () => { e.name = $("auName").value; drawAutoForm(); };
+  $("auTrig").onchange = () => { const ty = $("auTrig").value; e.trigger = ty === "time" ? { type: ty, at: "08:00", days: [0, 1, 2, 3, 4, 5, 6] } : { type: ty }; redraw(); };
+  if (t.type === "time") {
+    $("auAt").onchange = () => { t.at = $("auAt").value; };
+    f.querySelectorAll("[data-day]").forEach(b => b.onclick = () => { const d = +b.dataset.day; t.days = (t.days || []).includes(d) ? t.days.filter(x => x !== d) : [...(t.days || []), d]; redraw(); });
+  }
+  f.querySelectorAll("[data-kind]").forEach(sel => sel.onchange = () => { e.steps[+sel.dataset.kind] = newStep(sel.value); redraw(); });
+  f.querySelectorAll("[data-txt]").forEach(inp => inp.oninput = () => { const s = e.steps[+inp.dataset.txt], k = stepKind(s); s[k] = k === "wait" ? +inp.value : inp.value; });
+  f.querySelectorAll("[data-k]").forEach(inp => inp.oninput = inp.onchange = () => {
+    const args = e.steps[+inp.dataset.i].args = e.steps[+inp.dataset.i].args || {}, v = inp.value, ty = inp.dataset.t;
+    if (v === "") delete args[inp.dataset.k];
+    else args[inp.dataset.k] = ty === "integer" || ty === "number" ? +v : ty === "boolean" ? v === "true" : ty === "array" ? v.split(",").map(x => x.trim()).filter(Boolean) : v;
+  });
+  const move = (i, d) => { const s = e.steps.splice(i, 1)[0]; e.steps.splice(i + d, 0, s); redraw(); };
+  f.querySelectorAll("[data-up]").forEach(b => b.onclick = () => move(+b.dataset.up, -1));
+  f.querySelectorAll("[data-down]").forEach(b => b.onclick = () => move(+b.dataset.down, 1));
+  f.querySelectorAll("[data-rm]").forEach(b => b.onclick = () => { e.steps.splice(+b.dataset.rm, 1); redraw(); });
+  $("auAdd").onclick = () => { e.steps.push({ say: "" }); redraw(); };
+  $("auCancel").onclick = () => { f.hidden = true; f.innerHTML = ""; };
+  $("auSave").onclick = async () => {
+    const r = await post("/api/auto/save", { id: e.id, name: $("auName").value, steps: e.steps, trigger: e.trigger, enabled: $("auOn") ? $("auOn").checked : true });
+    const j = r ? await r.json() : { error: "The app didn't answer." };
+    if (j.error) { if ($("auErr")) $("auErr").textContent = j.error; return; }
+    f.hidden = true; f.innerHTML = ""; loadInfo();
+  };
+}
+$("auNew").onclick = () => autoForm(null);
+$("auImportBtn").onclick = () => { $("auImport").hidden = !$("auImport").hidden; $("auImportErr").textContent = ""; };
+$("auImportCancel").onclick = () => { $("auImport").hidden = true; $("auImportText").value = ""; };
+$("auImportGo").onclick = async () => {
+  const r = await post("/api/auto/import", { text: $("auImportText").value }); const j = r ? await r.json() : { error: "The app didn't answer." };
+  if (j.error) { $("auImportErr").textContent = j.error; return; }
+  $("auImport").hidden = true; $("auImportText").value = ""; $("auImportErr").textContent = ""; loadInfo();
+};
+
+// ---------- the plan of the running task ----------
+const PLAN_MARK = { todo: "○", doing: "▸", done: "✓", failed: "✕", skipped: "–" };
+let planTimer = 0;
+function drawPlan(p) {
+  const box = $("planCard"); clearTimeout(planTimer);
+  box.hidden = !p;
+  if (!p) return;
+  box.innerHTML = `<h4>${icon("tasks")}<span>${esc(p.title)}</span><em>${esc({ waiting: "your OK?", running: "running", refused: "you said no", finished: "done", failed: "with problems", stopped: "stopped" }[p.state] || p.state)}</em>
+      <button id="planX" title="Hide" aria-label="Hide the plan">${icon("x")}</button></h4>
+    <ul>${p.steps.map(s => `<li class="${s.status}"><i>${PLAN_MARK[s.status] || "○"}</i><span>${esc(s.text)}${s.note ? ` <small>(${esc(s.note)})</small>` : ""}</span></li>`).join("")}</ul>`;
+  $("planX").onclick = () => { box.hidden = true; post("/api/plan/dismiss", {}); };
+  if (!["waiting", "running"].includes(p.state)) planTimer = setTimeout(() => { box.hidden = true; post("/api/plan/dismiss", {}); }, 20000);
+}
+$("planMode").onchange = () => { if (lastStats) lastStats.plan_mode = $("planMode").value; post("/api/settings", { plan_mode: $("planMode").value }); };
 
 // ---------- PC care: software updates (winget) and the network check ----------
 let swLoaded = false;
@@ -3477,6 +3653,7 @@ function paintPrivacy(s) {
   const sm = s.suggest_memories !== false;
   $("suggestMemBtn").textContent = sm ? "On" : "Off"; $("suggestMemBtn").classList.toggle("on", sm);
   paintPermissions(s);
+  if (s.plan_mode && document.activeElement !== $("planMode")) $("planMode").value = s.plan_mode;
 }
 function paintPermissions(s) {
   const kinds = s.permission_kinds || (lastStats && lastStats.permission_kinds) || [];

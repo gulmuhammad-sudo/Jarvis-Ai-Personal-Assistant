@@ -2,6 +2,17 @@
 
 Each version is also a git tag (`git tag -n20 vX.Y.Z` shows its notes). Newest first.
 
+## 1.18.0 — 2026-11-23 (not pushed yet)
+- Automations page: several steps under one name, run by hand, at a time on chosen days, or when the app opens.
+  Steps come from a safe list (no PowerShell, power actions, deleting, uninstalling, Wi-Fi off, nothing that runs a
+  script or program file). Steps that need permission still ask; Stop stops them; one runs at a time.
+- Templates (Morning start, Focus time, Evening wind-down, PC check-up), Export and Import as text. Imports are
+  checked, can't contain a prompt for the AI and arrive switched off.
+- By voice or chat: "run my Focus time automation"; creating, switching on or deleting one always asks you.
+- Plans for longer tasks: the assistant shows its steps and ticks them off. Settings › Permissions › Plans: show and
+  ask first (default), ask before every step, or only show.
+- After Emergency Stop no automation starts by itself until you give a new instruction.
+
 ## 1.17.1 — 2026-11-23 (not pushed yet)
 - Network check: one lost web request no longer leads to "a firewall, proxy or VPN may be blocking them". It
   tries twice, then a second site, and only then says web pages don't load (and suggests running it again).

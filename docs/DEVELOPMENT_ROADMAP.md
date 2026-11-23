@@ -40,8 +40,8 @@ enough to finish, test and release on its own. Numbers in brackets are decisions
 - [x] Network diagnostics [78]; developer tools [50] (read-only helpers)
 
 ## Phase 6 — Multi-agent and automation
-- [ ] Visible multi-step plans with step approval [20]
-- [ ] Workflow engine + templates; Automation Studio UI [35, 108]
+- [x] Visible multi-step plans with step approval [20]
+- [x] Workflow engine + templates; Automation Studio UI [35, 108] (no online marketplace)
 - [ ] Agent profiles sharing context [39, 101]
 
 ## Phase 7 — Productivity and knowledge

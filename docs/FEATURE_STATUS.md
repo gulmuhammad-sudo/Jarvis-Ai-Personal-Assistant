@@ -45,7 +45,7 @@ audio, installer, uninstaller, packaged-exe smoke test). They are being moved in
 | 17 | Visual awareness (screenshots, OCR, images, documents) | PARTIALLY IMPLEMENTED | tools `look_at_screen`, `take_screenshot`, `read_screen_text` (`jarvis/ocr.py`); vision via Gemini/OpenRouter | 5 | test_desktop (OCR on a generated picture) | 1.16.0: Windows' own OCR, offline — screen, one window or a picture file. Missing: offline image understanding, PDF reading |
 | 18 | Proactive intelligence and alerts | PARTIALLY IMPLEMENTED | `jarvis/schedule.py`, `jarvis/alerts.py`, `jarvis/hud.py` | 38 | regression (alerts parts) | Battery, prayers, alarms, briefing, overload alerts. Missing: user-configurable alert rules |
 | 19 | Multilingual (English, Urdu, Roman Urdu, Hindi, Arabic) | IMPLEMENTED BUT NEEDS TESTING | `jarvis/languages.py`, `jarvis/urdu.py`, `jarvis/stt.py`, `jarvis/tts.py` | — | Session checks for Urdu script / Roman Urdu rewrites | 19 languages + any typed language. Add unit tests (started in `tests/`) |
-| 20 | Controlled autonomous multi-step tasks | PARTIALLY IMPLEMENTED | agent loops in `jarvis/providers.py` / `jarvis/brain.py`, approvals, `tools.STOP` | 6, 101 | test_guard_audit (stop) | 1.9.0: Emergency Stop (button, Esc twice, tray). Missing: visible plan and step list |
+| 20 | Controlled autonomous multi-step tasks | IMPLEMENTED BUT NEEDS TESTING | `jarvis/plans.py`, tools `make_plan` / `plan_step`, plan card, Settings › Permissions › Plans; approvals, `tools.STOP` | 6, 101 | test_automations (plans), test_guard_audit (stop) | 1.18.0: the assistant shows its steps and asks first (or per step, or only shows). Whether a plan is made is up to the AI; risky tools ask on their own either way. Not yet tried with a real AI |
 | 21 | Secure remote access / web interface | NOT IMPLEMENTED | `jarvis/hud.py` binds 127.0.0.1 only (deliberately) | 26, 28 | — | Needs device pairing + TLS before exposing anything beyond this PC |
 | 22 | Local-first privacy | PARTIALLY IMPLEMENTED | `jarvis/config.py`, `jarvis/keystore.py`, `jarvis/local_ai.py`, Settings › Privacy | 5, 98 | test_keystore, test_storage | Keys encrypted; local AI keeps conversations on the PC; history can be switched off/cleared. Cloud AIs still receive messages when used |
 | 23 | Custom wake word, local detection | IMPLEMENTED BUT NEEDS TESTING | `jarvis/wake.py`, `jarvis/hud.py` (standby, `_check_wake`), `jarvis/local_stt.py` | — | Session wake-word test passed (cloud); local path not yet tried with a real voice | Any name works. 1.10.0: with Speech to text = This PC (or offline) the name check runs locally. Needs a real-voice run on the laptop |
@@ -65,7 +65,7 @@ audio, installer, uninstaller, packaged-exe smoke test). They are being moved in
 | 32 | Word, Excel, PowerPoint, PDF suite | NOT IMPLEMENTED | — | 25 | — | python-docx / openpyxl / python-pptx / pypdf are free |
 | 33 | No smart-home / IoT | NOT APPLICABLE | — | — | — | Excluded |
 | 34 | Cybersecurity scope = privacy protection | PARTIALLY IMPLEMENTED | see 26 | 26, 98 | — | Baseline security partly there; privacy-protection tools not yet |
-| 35 | Automation Studio | NOT IMPLEMENTED | — | 20, 26 | — | — |
+| 35 | Automation Studio | IMPLEMENTED BUT NEEDS TESTING | `jarvis/automations.py`, table `automations`, tool `automation`, Automations page | 20, 26 | test_automations, running app | 1.18.0: safe steps, by hand / at a time / when the app opens, results kept. No conditions or loops; only runs while the app runs |
 | 36 | No native mobile app | NOT APPLICABLE | — | — | — | Excluded |
 | 37 | Fully customizable voice | PARTIALLY IMPLEMENTED | `jarvis/tts.py`, `jarvis/live.py`, `jarvis/languages.py` | — | none | 12 Live + 10 reading voices. Speed/pitch only via `.env`; no local TTS |
 | 38 | Smart notification center | PARTIALLY IMPLEMENTED | `jarvis/alerts.py`, Activity feed in `jarvis/hud.html` | — | none | Pop-ups + feed (not kept after restart). Missing: history, filters, do-not-disturb |
@@ -153,17 +153,17 @@ audio, installer, uninstaller, packaged-exe smoke test). They are being moved in
 | 105 | Personality and emotional intelligence | NOT IMPLEMENTED | — | 16 | — | — |
 | 106 | Universal device and app integration | NOT IMPLEMENTED | — | 91 | — | — |
 | 107 | Universal command and search bar | PARTIALLY IMPLEMENTED | top input box (Ctrl+K) in `jarvis/hud.html` | 109 | none | Sends to the assistant; doesn't search settings, memories or history |
-| 108 | Workflow marketplace and templates | NOT IMPLEMENTED | — | 35 | — | — |
+| 108 | Workflow marketplace and templates | PARTIALLY IMPLEMENTED | templates, export / import in `jarvis/automations.py` | 35 | test_automations | 1.18.0: 4 templates, sharing as text (imports are checked and arrive off). No online marketplace |
 | 109 | Command history and activity timeline | PARTIALLY IMPLEMENTED | `jarvis/storage.py` (SQLite), `jarvis/audit.py`, Conversations page, Settings › Privacy | — | test_storage 4, test_guard_audit | 1.9.0: conversation + activity survive restarts; permanent audit record viewable in Settings. Missing: timeline page with search and dates |
 | 110 | Modular expansion and upgrade system | NOT IMPLEMENTED | — | 13 | — | — |
 
-## Totals (after v1.17.0, 22 Nov 2026)
+## Totals (after v1.18.0, 23 Nov 2026)
 
 | Status | Count |
 |---|---|
 | IMPLEMENTED AND VERIFIED | 1 |
-| IMPLEMENTED BUT NEEDS TESTING | 16 |
+| IMPLEMENTED BUT NEEDS TESTING | 18 |
 | PARTIALLY IMPLEMENTED | 41 |
-| NOT IMPLEMENTED | 42 |
+| NOT IMPLEMENTED | 40 |
 | BLOCKED BY EXTERNAL DEPENDENCY | 0 |
 | NOT APPLICABLE | 10 |

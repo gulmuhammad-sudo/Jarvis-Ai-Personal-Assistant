@@ -11,6 +11,16 @@ set PA_TEST_NETWORK=1 && .venv\Scripts\python -m pytest tests   # also the onlin
 .venv\Scripts\python packaging\build.py              # then smoke-test the packaged exe (see below)
 ```
 
+## 2026-11-23 — Automations and plans (v1.18.0)
+
+| Suite | Result | Notes |
+|---|---|---|
+| `pytest tests` | 301 passed, 3 skipped | new tests/test_automations.py (79): refused steps, paths, apps and sites; triggers; once a day, missed times skipped, both start-up runs when busy; stop between steps and while waiting; a changed database row; one at a time (20 repeats); approvals inside a run; import/export; the AI's tool; plans in all three modes; no tool schema with an empty object |
+| Running app (test copy, no mic) | pass after 1 fix | make / run / import / switch on / delete, template editor, unsafe imports refused, HTML in a name shown as text, plan card (hidden in focus mode), plan setting (bad value ignored), phone width. Fixed: the On checkbox was invisible |
+| Found while building | fixed | `open_path` with %COMSPEC% passed the first file check; a second start-up automation was dropped when the first was busy; an imported AI prompt would have reached the AI as the user's words; an object without properties in a tool schema (some AI services refuse the whole request) |
+| Unexplained | open | 16 Emergency Stops in the test copy at 10:16:19-24 (also 8 on 21 Nov 14:25-14:26 and 1 at 20:54). The code only stops on the button, Esc twice or the tray. Two instrumented repeats (desktop and phone size): none. Cause not established |
+| Not tested | — | with a real AI (plans, creating by voice); a real timed run overnight; the packaged exe |
+
 ## 2026-11-23 — Packaged exe 1.17.0 and 1.17.1
 
 | Suite | Result | Notes |

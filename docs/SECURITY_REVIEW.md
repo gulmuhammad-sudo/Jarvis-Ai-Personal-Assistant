@@ -1,5 +1,13 @@
 # Security review
 
+## 2026-11-23 — v1.18.0 additions
+
+| Area | How | Where |
+|---|---|---|
+| Automations | Allow-list of tools with narrowed settings, checked on save and again on every run; no programs, scripts, shortcuts, %names%, streams or network paths; http(s) sites only; run through `tools.execute` (approvals, audit, Stop) | `jarvis/automations.py` |
+| Lasting instructions | AI needs approval to create, switch on or delete; imports arrive off and can't contain AI prompts | `tools.automation`, `import_text` |
+| Plans | A plan is never a permission; refused or stopped plans can't continue | `jarvis/plans.py` |
+
 ## 2026-11-22 — v1.17.0 additions
 
 | Area | How | Where |

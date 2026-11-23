@@ -26,7 +26,7 @@ from urllib.parse import parse_qs
 
 from . import __version__
 from . import live as live_mod
-from . import alerts, approvals, audit, denoise, gpu, languages, local_ai, local_stt, local_tts, memory, schedule, netcheck, skills, software, stt, storage, tools, tts, urdu, wake, winmgr
+from . import alerts, approvals, audit, automations, denoise, gpu, languages, local_ai, local_stt, local_tts, memory, plans, schedule, netcheck, skills, software, stt, storage, tools, tts, urdu, wake, winmgr
 from .brain import make_brain
 from .config import NOTES_DIR
 from .providers import provider_status
@@ -95,6 +95,10 @@ class Hub:
         tools.RESULT_HOOK = self._tool_result
         tools.WORKSPACES_CHANGED = lambda: self.emit("workspaces_changed")
         tools.SOFTWARE_CHANGED = lambda: self.emit("software_changed")
+        self.runner = automations.Runner(self.ctx, emit=self.emit, ask=lambda t: self.submit(t, source="scheduled"))
+        tools.AUTOMATION_RUN = lambda a: self.runner.start(a, "you asked")
+        tools.AUTOMATIONS_CHANGED = lambda: self.emit("automations_changed")
+        plans.CHANGED = lambda plan: self.emit("plan", plan=plan)
         self.voice_mode = schedule.get_setting("hands_free", True) is not False   # hands-free from the moment the app opens
         self.brain.set_voice_mode(self.voice_mode)
         self._standby: threading.Thread | None = None   # hands-free (Live): waits locally for your voice
@@ -120,6 +124,7 @@ class Hub:
             threading.Thread(target=recorder.choose_mic, daemon=True).start()   # pick a working mic early
         self.scheduler = schedule.Scheduler(notify=self.notify,
                                             run_prompt=lambda text: self.submit(text, source="scheduled"))
+        self.scheduler.on_tick = self.runner.tick
 
     # ---------- events to the page ----------
     def emit(self, event_type: str, keep: bool = False, **data) -> None:
@@ -754,6 +759,7 @@ class Hub:
         """Stop everything now: the running task (no more tools or steps), waiting approvals (answered "no"),
         the Live call and anything being spoken. Cleared by your next instruction."""
         tools.STOP.set()
+        plans.stop()
         for cid in list(self.pending):
             self.answer_confirm(cid, False, how="Stop")
         if self.live and self.live.active:
@@ -1062,7 +1068,7 @@ class Hub:
                "turns": len(getattr(self.brain, "turns", [])), "tool_calls": self.tool_calls,
                "computer": platform.node(), "user": memory.call_name(), "loud_alerts": alerts.loud(),
                "live_on_open": self.live_on_open(), "tray": WINDOW_HOOK is not None, "chat_script": self.chat_script(),
-               "keep_history": self.keep_history(), "suggest_memories": self.suggest_memories(),
+               "plan_mode": plans.mode(), "keep_history": self.keep_history(), "suggest_memories": self.suggest_memories(),
                "memory_counts": memory.counts(),
                "start_with_windows": schedule.get_setting("start_with_windows", True) is not False,
                "assistant_name": schedule.agent_name(), "theme": schedule.theme(),
@@ -1187,6 +1193,11 @@ class Handler(BaseHTTPRequestHandler):
                 "graph": memory.graph(),
                 "skills": skills.all_skills(),
                 "workspaces": _workspaces(),
+                "automations": automations.all_automations(),
+                "automation_steps": automations.step_choices(),
+                "automation_templates": [{**t, "steps_text": [automations.describe_step(s) for s in t["steps"]],
+                                          "trigger_text": automations.describe_trigger(t["trigger"])} for t in automations.TEMPLATES],
+                "plan": plans.current(),
                 "notes": sorted((n.name for n in NOTES_DIR.glob("*.md")), reverse=True)})
         if path == "/api/tts_stream":
             return self._tts_stream(query)
@@ -1243,6 +1254,44 @@ class Handler(BaseHTTPRequestHandler):
             if HUB.speaker == cid:
                 HUB.set_speaker(remaining)
             HUB.last_client_seen = time.time()
+
+    def _automations(self, action: str, data: dict) -> None:
+        """The Automations page: everything is checked again in automations.py; your click is the approval here."""
+        try:
+            raw = data.get("id")
+            aid = int(raw) if raw not in (None, "") else None
+            if action == "save":
+                a = automations.save(data.get("name", ""), data.get("steps"), data.get("trigger"), bool(data.get("enabled")), aid)
+                audit.record("automation_saved", name=a["name"], by="you")
+                out = {"ok": True, "automation": a}
+            elif action == "import":
+                a = automations.import_text(data.get("text", ""))
+                audit.record("automation_imported", name=a["name"])
+                out = {"ok": True, "automation": a}
+            elif action == "export":
+                return self._json({"text": automations.export(aid or -1)})
+            else:
+                a = automations.get(aid or -1)
+                if not a:
+                    return self._json({"error": "That automation is gone."}, 404)
+                if action == "run":
+                    tools.STOP.clear()                 # your click is a new instruction: Stop is over
+                    if not HUB.runner.start(a, "you pressed Run"):
+                        return self._json({"error": "Another automation is still running."}, 409)
+                    return self._json({"ok": True})
+                if action == "enable":
+                    automations.set_enabled(a["id"], bool(data.get("on")))
+                    audit.record("automation_on" if data.get("on") else "automation_off", name=a["name"])
+                elif action == "delete":
+                    automations.delete(a["id"])
+                    audit.record("automation_deleted", name=a["name"])
+                else:
+                    return self._json({"error": "unknown action"}, 404)
+                out = {"ok": True}
+        except (ValueError, TypeError) as e:
+            return self._json({"error": str(e)}, 400)
+        HUB.emit("automations_changed")
+        return self._json(out)
 
     def do_POST(self) -> None:
         if not self._host_ok() or not self._token_ok(self.headers.get("X-Jarvis-Token")):
@@ -1352,6 +1401,8 @@ class Handler(BaseHTTPRequestHandler):
                 threading.Thread(target=HUB.stt_download, args=(data["stt_download"],), daemon=True).start()
             if isinstance(data.get("permissions"), dict):
                 HUB.set_permissions(data["permissions"])
+            if data.get("plan_mode") in plans.MODES:
+                schedule.set_setting("plan_mode", data["plan_mode"])
             if "suggest_memories" in data:
                 schedule.set_setting("suggest_memories", bool(data["suggest_memories"]))
             if "keep_history" in data:
@@ -1475,6 +1526,10 @@ class Handler(BaseHTTPRequestHandler):
                 HUB.emit("tool", keep=True, name="workspace", id=HUB._next_id(), args=msg[:160])
                 HUB.emit("workspaces_changed")
             threading.Thread(target=_open, daemon=True).start()
+        elif self.path.startswith("/api/auto/"):       # Automations page
+            return self._automations(self.path.rsplit("/", 1)[1], data)
+        elif self.path == "/api/plan/dismiss":
+            plans.dismiss()
         elif self.path == "/api/software/updates":    # PC Care card: list (slow: winget asks the internet)
             try:
                 return self._json({"updates": software.upgrades()})

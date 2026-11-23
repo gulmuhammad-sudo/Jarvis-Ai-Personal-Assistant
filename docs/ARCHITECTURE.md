@@ -19,6 +19,7 @@ One Python process (`Personal Assistant.exe`, or `pythonw -m jarvis` from source
      ├── memory.py, skills.py      Personal Intelligence Engine: profile, memories, graph; your rules/routines
      ├── storage.py, schedule.py   SQLite (history, memories, skills, workspaces); alarms, weather, prayers, news, settings
      ├── winmgr.py, ocr.py         windows (Win32 via ctypes), workspaces; Windows OCR (offline)
+     ├── automations.py, plans.py  safe step automations (manual / time / start-up); visible plans
      ├── software.py, netcheck.py, devtools.py   winget manager; network check/speed; read-only dev helpers
      ├── alerts.py, gpu.py         loud alerts; GPU counters
      └── install.py                shortcuts, start with Windows, Apps entry, uninstall

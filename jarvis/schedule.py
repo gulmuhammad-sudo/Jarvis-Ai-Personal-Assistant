@@ -352,6 +352,7 @@ class Scheduler:
         self.fired: set[str] = set()    # "<date>|<event>" keys already announced today
         self.battery_warned: set[int] = set()
         self.battery_full_said = False
+        self.on_tick: Callable[[datetime], object] | None = None     # automations (hud.py)
         if start:
             threading.Thread(target=self._loop, name="scheduler", daemon=True).start()
 
@@ -381,6 +382,11 @@ class Scheduler:
                 self.tick(datetime.now())
             except Exception as e:  # never let a bad network call kill the scheduler
                 print(f"[scheduler] {type(e).__name__}: {e}")
+            try:
+                if self.on_tick:
+                    self.on_tick(datetime.now())
+            except Exception as e:
+                print(f"[automations] {type(e).__name__}: {e}")
             time.sleep(15)
 
     def tick(self, now: datetime) -> None:
