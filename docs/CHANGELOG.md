@@ -2,7 +2,17 @@
 
 Each version is also a git tag (`git tag -n20 vX.Y.Z` shows its notes). Newest first.
 
-## 1.18.0 — 2026-11-23 (not pushed yet)
+## 1.19.0 — 2026-11-23
+- Agents page: specialists with their own tools — Researcher, Organiser, PC Helper, Writer, and your own. Give one a
+  task there, or ask the assistant ("ask the Researcher to…"). Results go on a shared board the agents read.
+- An agent gets the web or your private things, never both; its tool list is enforced in code, not just in its
+  instructions. One agent works at a time; risky actions still ask; Stop stops it.
+- Safety fixes, also for the assistant itself: opening or writing a file that can run (program, script, shortcut)
+  always asks; "open an app" takes app names only, not links or paths; reading files that usually hold passwords or
+  keys asks; paths on other computers ask; git status no longer starts programs set in a repository's own settings
+  (it refuses such repositories).
+
+## 1.18.0 — 2026-11-23
 - Automations page: several steps under one name, run by hand, at a time on chosen days, or when the app opens.
   Steps come from a safe list (no PowerShell, power actions, deleting, uninstalling, Wi-Fi off, nothing that runs a
   script or program file). Steps that need permission still ask; Stop stops them; one runs at a time.
@@ -13,7 +23,7 @@ Each version is also a git tag (`git tag -n20 vX.Y.Z` shows its notes). Newest f
   ask first (default), ask before every step, or only show.
 - After Emergency Stop no automation starts by itself until you give a new instruction.
 
-## 1.17.1 — 2026-11-23 (not pushed yet)
+## 1.17.1 — 2026-11-23
 - Network check: one lost web request no longer leads to "a firewall, proxy or VPN may be blocking them". It
   tries twice, then a second site, and only then says web pages don't load (and suggests running it again).
 

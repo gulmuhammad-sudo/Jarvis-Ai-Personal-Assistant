@@ -141,7 +141,7 @@ class OpenAICompatBrain:
         acted = False
         final = ""
         try:
-            for _ in range(MAX_STEPS):
+            for _ in range(getattr(self, "max_steps", MAX_STEPS)):
                 if tools.STOP.is_set():                  # you pressed Stop: no more steps
                     self._note = None
                     final = "Okay, I stopped."
@@ -249,7 +249,7 @@ class OllamaBrain:
         system = self.system + (URDU_NOTE if self.language == "ur" else languages.reply_note(self.language))
         acted, final = False, ""
         try:
-            for _ in range(MAX_STEPS):
+            for _ in range(getattr(self, "max_steps", MAX_STEPS)):
                 if tools.STOP.is_set():
                     final = "Okay, I stopped."
                     self.on_text(final)

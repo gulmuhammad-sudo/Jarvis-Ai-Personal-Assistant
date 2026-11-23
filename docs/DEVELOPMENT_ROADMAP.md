@@ -42,7 +42,7 @@ enough to finish, test and release on its own. Numbers in brackets are decisions
 ## Phase 6 — Multi-agent and automation
 - [x] Visible multi-step plans with step approval [20]
 - [x] Workflow engine + templates; Automation Studio UI [35, 108] (no online marketplace)
-- [ ] Agent profiles sharing context [39, 101]
+- [x] Agent profiles sharing context [39, 101] (one at a time)
 
 ## Phase 7 — Productivity and knowledge
 - [ ] Read/create DOCX, XLSX, PPTX, PDF [32, 25, 87]

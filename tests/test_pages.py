@@ -39,3 +39,16 @@ def test_focus_mode_shows_only_the_face_and_a_voice_dock():
     for wire in ('$("fdMic").onclick = () => listen()', '$("fdStop").onclick = () => $("stopBtn").click()',
                  '$("fdShow").onclick = () => $("detailsBtn").click()'):
         assert wire in html
+
+
+@pytest.mark.parametrize("page", ["jarvis/hud.html", "packaging/setup.html"])
+def test_nothing_is_defined_twice(page):
+    """A second function with the same name silently replaces the first: a new renderAgents() once stopped the whole
+    app at start-up, and the syntax check couldn't see it."""
+    from collections import Counter
+    html = (ROOT / page).read_text(encoding="utf-8")
+    js = "\n".join(re.findall(r"<script>(.*?)</script>", html, re.S))
+    names = re.findall(r"^(?:async )?function\*? (\w+)", js, re.M) + re.findall(r"^(?:const|let|var) (\w+)", js, re.M)
+    assert not [n for n, c in Counter(names).items() if c > 1]
+    ids = re.findall(r'\bid="([A-Za-z][\w-]*)"', re.sub(r"<script>.*?</script>", "", html, flags=re.S))
+    assert not [i for i, c in Counter(ids).items() if c > 1]

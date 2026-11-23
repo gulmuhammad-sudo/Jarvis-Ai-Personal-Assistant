@@ -167,6 +167,9 @@ def open_application(inp: dict, ctx: ToolContext) -> str:
     if not name or any(c in _SHELL_CHARS for c in name):
         return f"'{name}' doesn't look like an app name."
     target = _APP_ALIASES.get(name.lower(), name)
+    # a name, not a link, a file or a path: those can carry data out or run any program (the aliases above are ours)
+    if target == name and (any(c in name for c in "\\/:") or (guard.runs_code(name) and not name.lower().endswith(".exe"))):
+        return f"'{name}' isn't an app name. Use open_website for addresses and open_path for files and folders."
     try:
         # ShellExecute finds registered apps (chrome, winword...), URI apps (spotify:) and files;
         # shutil.which covers command-line launchers such as code.cmd. No shell is involved.
@@ -183,8 +186,13 @@ def open_application(inp: dict, ctx: ToolContext) -> str:
 
 def open_path(inp: dict, ctx: ToolContext) -> str:
     p = Path(os.path.expandvars(os.path.expanduser(inp["path"])))
+    if guard.elsewhere(str(p)) and not ctx.approve(f"Open something on another computer?\n\n{p}"):
+        return "Okay, I didn't open it."
     if not p.exists():
         return f"Path not found: {p}"
+    if guard.runs_code(str(p.resolve())) or guard.runs_code(str(p)):
+        if not ctx.approve(f"Run this program or script?\n\n{p}"):
+            return "Okay, I didn't run it."
     os.startfile(str(p))
     return f"Opened {p}."
 
@@ -192,6 +200,8 @@ def open_path(inp: dict, ctx: ToolContext) -> str:
 def find_files(inp: dict, ctx: ToolContext) -> str:
     pattern = inp["pattern"]
     folder = Path(os.path.expanduser(inp.get("folder") or "~"))
+    if guard.elsewhere(str(folder)) and not ctx.approve(f"Search a folder on another computer?\n\n{folder}"):
+        return "Okay, I didn't search there."
     limit = int(inp.get("max_results", 20))
     skip = {"AppData", "node_modules", ".git", ".venv", "$Recycle.Bin", "Windows"}
     hits: list[str] = []
@@ -211,8 +221,13 @@ def find_files(inp: dict, ctx: ToolContext) -> str:
 
 def read_text_file(inp: dict, ctx: ToolContext) -> str:
     p = Path(os.path.expanduser(inp["path"]))
+    if guard.elsewhere(str(p)) and not ctx.approve(f"Read a file on another computer?\n\n{p}"):
+        return "Okay, I didn't read it."
     if not p.is_file():
         return f"Not a file: {p}"
+    if (guard.secret_file(str(p)) or guard.secret_file(str(p.resolve()))) and not ctx.approve(
+            f"Read a file that may hold passwords or keys, and send its text to the AI?\n\n{p}"):
+        return "Okay, I didn't read it."
     data = p.read_text(encoding="utf-8", errors="replace")
     if len(data) > 60_000:
         return data[:60_000] + f"\n\n[... file is {len(data)} chars; showing the first 60,000]"
@@ -300,6 +315,9 @@ def write_file(inp: dict, ctx: ToolContext) -> str:
     if p.exists() and p.is_dir():
         return f"{p} is a folder."
     append = bool(inp.get("append"))
+    if (guard.runs_code(str(p)) or "windowspowershell" in str(p).lower() or "\\powershell\\" in str(p).lower()) and not ctx.approve(
+            f"{'Add to' if append else 'Make'} a file that can run on this PC?\n\n{p}\n\n{text[:800]}"):
+        return "Okay, I didn't write it."
     if p.exists() and not append and not ctx.approve(f"{p.name} already exists in {p.parent}. Replace it?", kind="overwrite"):
         return "Okay, I left the existing file alone."
     p.parent.mkdir(parents=True, exist_ok=True)
@@ -588,6 +606,15 @@ def _execute(name: str, tool_input: dict, ctx: ToolContext) -> tuple[Any, bool]:
         return f"Unknown tool: {name}", True
     if not isinstance(tool_input, dict):
         return "Tool input must be a JSON object.", True
+    allowed = getattr(ctx, "allowed_tools", None)          # an agent: only its own tools, whatever it asks for
+    if allowed is not None:
+        if name not in allowed:
+            return f"This agent may not use {name}.", True
+        if any(isinstance(v, str) and guard.elsewhere(v) for v in tool_input.values()):
+            return "This agent may not use paths on other computers.", True
+        only = ctx.limits.get(name)
+        if only and str(tool_input.get("action") or "").lower() not in only:
+            return f"This agent may only use {name} for: {', '.join(only)}.", True
     try:
         return fn(tool_input, ctx), False
     except KeyError as e:
@@ -1485,3 +1512,33 @@ AUTOMATION_TOOLS = [
 ]
 TOOL_DEFINITIONS += [d for d, _ in AUTOMATION_TOOLS]
 _HANDLERS.update({d["name"]: fn for d, fn in AUTOMATION_TOOLS})
+
+
+# ---------------- agents (Phase 6, part 2) ----------------
+AGENT_RUN: Callable[[dict, str], tuple[bool, str]] | None = None       # set by the HUD
+
+
+def delegate(inp: dict, ctx: ToolContext) -> str:
+    from . import agents
+    name, task = str(inp.get("agent") or ""), str(inp.get("task") or "").strip()
+    a = agents.find(name)
+    if not a:
+        return "Agents: " + "; ".join(f"{x['name']} ({x['role'][:80]})" for x in agents.all_agents())
+    if not task:
+        return f"What should {a['name']} do? Give a task."
+    if not AGENT_RUN:
+        return "Agents work in the app window only."
+    ok, answer = AGENT_RUN(a, task)
+    return f"{a['name']} {'answered' if ok else 'could not finish'}:\n{answer}"
+
+
+AGENT_TOOL = [
+    ({"name": "delegate",
+      "description": "Hand one self-contained task to a specialist agent and get its answer (it can take a minute). Ready-made: "
+                     "Researcher (web), Organiser (notes, timers, memories), PC Helper (health, internet, windows), Writer (texts "
+                     "and files); the user may have more (an unknown name lists them). Write everything the agent needs in the "
+                     "task, but put nothing private in a task for an agent that uses the web. For simple things do it yourself.",
+      "input_schema": _obj({"agent": {"type": "string"}, "task": {"type": "string"}}, ["agent", "task"])}, delegate),
+]
+TOOL_DEFINITIONS += [d for d, _ in AGENT_TOOL]
+_HANDLERS.update({d["name"]: fn for d, fn in AGENT_TOOL})

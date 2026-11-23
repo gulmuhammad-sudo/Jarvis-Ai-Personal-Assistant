@@ -1,5 +1,15 @@
 # Security review
 
+## 2026-11-23 — v1.19.0 additions and fixes
+
+| Area | How | Where |
+|---|---|---|
+| Agents | Tool list checked in `tools.execute`; web and private tools can't be combined; private results and memories never reach web agents; no PowerShell, installs, skills, automations or other agents. A task text is still seen by the agent it is given to | `jarvis/agents.py` |
+| Files that run code (was: no question) | Opening or writing programs, scripts, shortcuts and PowerShell profiles always asks | `guard.runs_code`, `tools.open_path`, `tools.write_file` |
+| "Open an app" (was: any address or path) | App names and the app's own aliases only | `tools.open_application` |
+| Secrets and network paths (was: no question) | Reading key / password files, and touching \\server paths, asks; agents may not use network paths | `guard.secret_file`, `guard.elsewhere` |
+| git status (was: ran programs from a repository's settings) | Such repositories are refused; monitor, hooks and signature checks off | `jarvis/devtools.py` |
+
 ## 2026-11-23 — v1.18.0 additions
 
 | Area | How | Where |

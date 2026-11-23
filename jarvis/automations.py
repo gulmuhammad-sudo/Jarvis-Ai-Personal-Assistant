@@ -19,6 +19,8 @@ import threading
 from datetime import datetime, timedelta
 from typing import Any, Callable
 
+from . import guard
+
 MAX_AUTOMATIONS = 40
 MAX_STEPS = 12
 MAX_NAME = 40
@@ -44,11 +46,6 @@ LABELS = {
     "manage_windows": "Move a window", "workspace": "Open a workspace", "network": "Check the internet",
     "software": "Look for app updates", "close_app": "Close an app",
 }
-# files that run code when opened
-_RUNS_CODE = re.compile(r"\.(exe|com|bat|cmd|ps1|psm1|vbs|vbe|js|jse|wsf|wsh|hta|msi|msp|scr|pif|cpl|reg|lnk|url|jar|py|pyw|"
-                        r"application|appref-ms|msc|inf|scf|gadget|chm|iso|img|vhd|vhdx|docm|xlsm|pptm|xll|rdp|"
-                        r"settingcontent-ms|library-ms|search-ms|website|theme)\s*$", re.I)
-
 TEMPLATES = [
     {"name": "Morning start", "steps": [{"tool": "get_weather", "args": {}}, {"tool": "prayer_times", "args": {}},
                                         {"ask": "Give me my daily briefing in a few short lines."}],
@@ -131,12 +128,12 @@ def check_step(step: Any, last: bool = True) -> dict:
         raise ValueError("Open a workspace: say which one.")
     if name == "open_website" and not re.match(r"^(https?://)?[\w-]+(\.[\w-]+)+([/?#:].*)?$", clean["url"], re.I):
         raise ValueError("Open a website: use a web address (http or https).")
-    if name == "open_application" and (re.search(r"[\\/:*?\"<>|&;%^]", clean["name"]) or _RUNS_CODE.search(clean["name"])):
+    if name == "open_application" and (re.search(r"[\\/:*?\"<>|&;%^]", clean["name"]) or guard.runs_code(clean["name"])):
         raise ValueError("Open an app: use the app's name, not a file or path.")
     if name == "open_path":
         path = clean["path"].strip().rstrip(". ").strip("\"'")
         # no %COMSPEC%-style names (open_path expands them after this check), no second colon (hidden streams, shell:, http:)
-        if (_RUNS_CODE.search(path) or re.search(r"[%$<>|*?\"]", path) or ":" in path[2:]
+        if (guard.runs_code(clean["path"]) or re.search(r"[%$<>|*?\"]", path) or ":" in path[2:]
                 or re.match(r"^[a-z][a-z0-9+.-]+:", path, re.I) or path.startswith(("\\\\", "//"))):
             raise ValueError("Open a folder or document: programs, scripts, links, %names% and network paths aren't allowed.")
     return {"tool": name, "args": clean}

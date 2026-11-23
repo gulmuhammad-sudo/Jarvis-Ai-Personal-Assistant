@@ -120,6 +120,7 @@ and its keys in `.env` next to the code).
 | "Read the text in this window" / "read the text in Desktop/receipt.png" | Windows' own OCR, offline |
 | "Put Chrome on the left and VS Code on the right" / "minimise everything" | Moves, snaps, minimises and maximises windows |
 | "Save this as my Study workspace" / "open Study workspace" | Saves the window layout; reopens the apps and puts them back |
+| "Ask the Researcher to compare these two phones" | A specialist agent does it (Agents page) |
 | "Run my Focus time automation" / "make an automation that tells me the weather at 8" | Automations page; creating one asks you first |
 | "Which apps have updates?" / "install VLC" / "update everything" | winget; every install, update or uninstall asks you first |
 | "Why is the internet not working?" / "speed test" / "flush DNS" | Checks Wi-Fi, router, internet, DNS and a web page; plain answer |

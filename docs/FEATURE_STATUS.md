@@ -69,7 +69,7 @@ audio, installer, uninstaller, packaged-exe smoke test). They are being moved in
 | 36 | No native mobile app | NOT APPLICABLE | — | — | — | Excluded |
 | 37 | Fully customizable voice | PARTIALLY IMPLEMENTED | `jarvis/tts.py`, `jarvis/live.py`, `jarvis/languages.py` | — | none | 12 Live + 10 reading voices. Speed/pitch only via `.env`; no local TTS |
 | 38 | Smart notification center | PARTIALLY IMPLEMENTED | `jarvis/alerts.py`, Activity feed in `jarvis/hud.html` | — | none | Pop-ups + feed (not kept after restart). Missing: history, filters, do-not-disturb |
-| 39 | AI agent ecosystem | NOT IMPLEMENTED | (the HUD "Agents" panel only lights up tool categories) | 20 | — | — |
+| 39 | AI agent ecosystem | IMPLEMENTED BUT NEEDS TESTING | `jarvis/agents.py`, table `agents`, tool `delegate`, Agents page | 20 | test_agents | 1.19.0: 4 ready-made agents and your own, hard tool limits, web or private never both. Not yet tried with a real AI |
 | 40 | Knowledge graph and memory dashboard | IMPLEMENTED BUT NEEDS TESTING | Memory page in `jarvis/hud.html` (List / Graph), `memory.graph()` | 9 | test_skills_graph (graph, names), running app | 1.15.0: graph view — you in the middle, categories, memories (size = stars), names/places found in 2+ memories link them; hover shows the text, click opens it in the list. Not yet tried by the owner |
 | 41 | Complete UI customization | PARTIALLY IMPLEMENTED | `jarvis/hud.html` | — | test_pages; running-app checks | Theme, face, focus mode, settings in tabs, animated icons (1.12–1.13). Missing: colours, layout, panel choice |
 | 42 | Multi-user voice profiles | NOT IMPLEMENTED | — | 7 | — | — |
@@ -146,7 +146,7 @@ audio, installer, uninstaller, packaged-exe smoke test). They are being moved in
 | 98 | Privacy and permission dashboard | PARTIALLY IMPLEMENTED | Settings › Privacy in `jarvis/hud.html` | 6, 26 | test_permissions, test_storage, test_guard_audit | Keep/clear history, audit record, per-action permissions (1.9.0–1.9.2). Missing: data-sent-to-cloud overview, mic/camera usage log |
 | 99 | Self-diagnostics and health monitoring | PARTIALLY IMPLEMENTED | AI Models status, mic probing, echo-canceller log | — | none | No diagnostics page |
 | 100 | Personal user understanding engine | PARTIALLY IMPLEMENTED | `jarvis/memory.py` (profile + top memories in every prompt) | 9 | test_memory_engine | Shared Personal Intelligence Engine with 9, 29, 40, 103, 104. 1.14.0: categories, importance, search. Missing: skills/custom instructions [103] |
-| 101 | Multi-agent command center | NOT IMPLEMENTED | — | 20, 39 | — | — |
+| 101 | Multi-agent command center | PARTIALLY IMPLEMENTED | Agents page, shared board, `delegate` | 20, 39 | test_agents | 1.19.0: give tasks, live state, results, shared board. One agent at a time, no parallel teams |
 | 102 | Desktop and window management | IMPLEMENTED BUT NEEDS TESTING | `jarvis/winmgr.py` (Win32 via ctypes), tools `manage_windows`, `arrange_windows` | — | test_desktop 29, real check on 2 test windows (9/9) | 1.16.0: list, focus, minimise/maximise/restore, snap to halves/quarters/centre, minimise all, 2-6 windows side by side; per-monitor DPI and Windows 11 invisible borders handled; window titles marked untrusted |
 | 103 | Knowledge and skill expansion | PARTIALLY IMPLEMENTED | `jarvis/skills.py`, `storage.py` (table `skills`), tools `use_skill` / `save_skill`, Tools & Skills page | 100 | test_skills_graph 11 | 1.15.0: your own skills — Rules (every reply) and Routines (run by name or the Run button), on/off, edit, delete; the AI can save one only after you approve. Missing: importing documents as knowledge, shareable skill packs |
 | 104 | User understanding for all user types | PARTIALLY IMPLEMENTED | same as 100 | 100 | none | Same engine as 100 |
@@ -157,13 +157,13 @@ audio, installer, uninstaller, packaged-exe smoke test). They are being moved in
 | 109 | Command history and activity timeline | PARTIALLY IMPLEMENTED | `jarvis/storage.py` (SQLite), `jarvis/audit.py`, Conversations page, Settings › Privacy | — | test_storage 4, test_guard_audit | 1.9.0: conversation + activity survive restarts; permanent audit record viewable in Settings. Missing: timeline page with search and dates |
 | 110 | Modular expansion and upgrade system | NOT IMPLEMENTED | — | 13 | — | — |
 
-## Totals (after v1.18.0, 23 Nov 2026)
+## Totals (after v1.19.0, 23 Nov 2026)
 
 | Status | Count |
 |---|---|
 | IMPLEMENTED AND VERIFIED | 1 |
-| IMPLEMENTED BUT NEEDS TESTING | 18 |
-| PARTIALLY IMPLEMENTED | 41 |
-| NOT IMPLEMENTED | 40 |
+| IMPLEMENTED BUT NEEDS TESTING | 19 |
+| PARTIALLY IMPLEMENTED | 42 |
+| NOT IMPLEMENTED | 38 |
 | BLOCKED BY EXTERNAL DEPENDENCY | 0 |
 | NOT APPLICABLE | 10 |

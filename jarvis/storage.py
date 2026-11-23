@@ -70,6 +70,16 @@ MIGRATIONS: list[str] = [
            last_result TEXT,
            last_day TEXT,                                -- the day its timed run last started (once a day)
            runs INTEGER NOT NULL DEFAULT 0);""",
+    # 6: your own agents (the ready-made ones are in agents.py)
+    """CREATE TABLE agents (
+           id INTEGER PRIMARY KEY AUTOINCREMENT,
+           name TEXT NOT NULL UNIQUE COLLATE NOCASE,
+           role TEXT NOT NULL,
+           tools TEXT NOT NULL,                          -- JSON list, checked again on every run
+           memory INTEGER NOT NULL DEFAULT 0,            -- may see your memories
+           created TEXT NOT NULL,
+           updated TEXT NOT NULL,
+           runs INTEGER NOT NULL DEFAULT 0);""",
 ]
 
 # event types worth keeping across restarts (not live captions, levels, approval prompts...)

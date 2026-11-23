@@ -26,7 +26,7 @@ from urllib.parse import parse_qs
 
 from . import __version__
 from . import live as live_mod
-from . import alerts, approvals, audit, automations, denoise, gpu, languages, local_ai, local_stt, local_tts, memory, plans, schedule, netcheck, skills, software, stt, storage, tools, tts, urdu, wake, winmgr
+from . import agents, alerts, approvals, audit, automations, denoise, gpu, languages, local_ai, local_stt, local_tts, memory, plans, schedule, netcheck, skills, software, stt, storage, tools, tts, urdu, wake, winmgr
 from .brain import make_brain
 from .config import NOTES_DIR
 from .providers import provider_status
@@ -97,6 +97,8 @@ class Hub:
         tools.SOFTWARE_CHANGED = lambda: self.emit("software_changed")
         self.runner = automations.Runner(self.ctx, emit=self.emit, ask=lambda t: self.submit(t, source="scheduled"))
         tools.AUTOMATION_RUN = lambda a: self.runner.start(a, "you asked")
+        self.agents = agents.Runner(lambda: self.brain, self.ctx, emit=self.emit, on_tool=self.on_tool)
+        tools.AGENT_RUN = self.agents.run
         tools.AUTOMATIONS_CHANGED = lambda: self.emit("automations_changed")
         plans.CHANGED = lambda plan: self.emit("plan", plan=plan)
         self.voice_mode = schedule.get_setting("hands_free", True) is not False   # hands-free from the moment the app opens
@@ -1198,6 +1200,7 @@ class Handler(BaseHTTPRequestHandler):
                 "automation_templates": [{**t, "steps_text": [automations.describe_step(s) for s in t["steps"]],
                                           "trigger_text": automations.describe_trigger(t["trigger"])} for t in automations.TEMPLATES],
                 "plan": plans.current(),
+                "agents": agents.all_agents(), "agent_tools": agents.tool_choices(), "agent_board": agents.board(),
                 "notes": sorted((n.name for n in NOTES_DIR.glob("*.md")), reverse=True)})
         if path == "/api/tts_stream":
             return self._tts_stream(query)
@@ -1254,6 +1257,38 @@ class Handler(BaseHTTPRequestHandler):
             if HUB.speaker == cid:
                 HUB.set_speaker(remaining)
             HUB.last_client_seen = time.time()
+
+    def _agents(self, action: str, data: dict) -> None:
+        """The Agents page: everything is checked again in agents.py."""
+        try:
+            if action == "save":
+                a = agents.save(data.get("name"), data.get("role"), data.get("tools"), data.get("memory"), data.get("id") or None)
+                audit.record("agent_saved", name=a["name"], tools=a["tools"], memory=a["memory"])
+                HUB.emit("agents_changed")
+                return self._json({"ok": True, "agent": a})
+            if action == "clear":
+                agents.clear_board()
+                HUB.emit("agents_changed")
+                return self._json({"ok": True})
+            a = agents.get(data.get("id"))
+            if not a:
+                return self._json({"error": "That agent is gone."}, 404)
+            if action == "run":
+                task = str(data.get("task") or "").strip()
+                if not task:
+                    return self._json({"error": "Write a task first."}, 400)
+                tools.STOP.clear()                     # your click is a new instruction: Stop is over
+                threading.Thread(target=HUB.agents.run, args=(a, task), daemon=True, name="agent").start()
+                return self._json({"ok": True})
+            if action == "delete":
+                if not agents.delete(a["id"]):
+                    return self._json({"error": "The ready-made agents stay."}, 400)
+                audit.record("agent_deleted", name=a["name"])
+                HUB.emit("agents_changed")
+                return self._json({"ok": True})
+        except (ValueError, TypeError) as e:
+            return self._json({"error": str(e)}, 400)
+        return self._json({"error": "unknown action"}, 404)
 
     def _automations(self, action: str, data: dict) -> None:
         """The Automations page: everything is checked again in automations.py; your click is the approval here."""
@@ -1528,6 +1563,8 @@ class Handler(BaseHTTPRequestHandler):
             threading.Thread(target=_open, daemon=True).start()
         elif self.path.startswith("/api/auto/"):       # Automations page
             return self._automations(self.path.rsplit("/", 1)[1], data)
+        elif self.path.startswith("/api/agents/"):     # Agents page
+            return self._agents(self.path.rsplit("/", 1)[1], data)
         elif self.path == "/api/plan/dismiss":
             plans.dismiss()
         elif self.path == "/api/software/updates":    # PC Care card: list (slow: winget asks the internet)
@@ -1571,6 +1608,7 @@ class Handler(BaseHTTPRequestHandler):
             HUB.live_stop()
             HUB.brain.reset()
             HUB.history.clear()
+            agents.clear_board()
             HUB.emit("reset")
         else:
             return self._json({"error": "not found"}, 404)

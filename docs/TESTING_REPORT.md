@@ -11,6 +11,16 @@ set PA_TEST_NETWORK=1 && .venv\Scripts\python -m pytest tests   # also the onlin
 .venv\Scripts\python packaging\build.py              # then smoke-test the packaged exe (see below)
 ```
 
+## 2026-11-23 — Agents and safety fixes (v1.19.0)
+
+| Suite | Result | Notes |
+|---|---|---|
+| `pytest tests` | 360 passed, 3 skipped | new tests/test_agents.py (57 cases incl. every web × private pair, tools an agent asks for but doesn't have, a changed database row, board and memories kept from web agents, the real local tool loop, approvals, Stop, one at a time) and a page test that nothing is defined twice |
+| Holes probed before the fix | 3 of 3 real | a repository's core.fsmonitor program ran during git status (marker file); write_file accepted a PowerShell profile and a .bat without asking; open_application accepted a web address, a network path and any .exe path. All three were in released versions. Same probe after the fix: refused / asks. Reading secret files was found by reading the code |
+| Running app (test copy, no mic) | pass after 1 fix | agent editor, web + memories refused, HTML shown as text, live state, 9 pages and the form without sideways scroll at 375 px, no script errors. Fixed: a second renderAgents() stopped the whole page at start-up; 358 tests had passed because they only check syntax |
+| Emergency Stops | 0 in this session | with a hook on the button and Esc; the earlier 16 remain unexplained |
+| Not tested | — | agents, plans and automations by voice with a real AI; the packaged exe of 1.19.0 |
+
 ## 2026-11-23 — Automations and plans (v1.18.0)
 
 | Suite | Result | Notes |

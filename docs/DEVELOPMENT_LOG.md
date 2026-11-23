@@ -2,6 +2,14 @@
 
 Newest first. Each entry: what was done, how it was tested, what is open, the next task.
 
+## 2026-11-23 — Session 2, part 8: Phase 6 part 2 — agents (v1.19.0) — Phase 6 done
+
+**Done** — `jarvis/agents.py` (profiles, OUTBOUND / PRIVATE / PLAIN, AgentContext checked in tools.execute, Runner with a
+copy of the current AI, shared board), migration 6, tool `delegate`, `/api/agents/*`, Agents page. Safety fixes in
+guard.py, tools.py, devtools.py.
+
+**Next** — ask the owner: build 1.19.0 (contains safety fixes), then Phase 7 or the universal command bar.
+
 ## 2026-11-23 — Session 2, part 7: Phase 6 part 1 — automations and plans (v1.18.0)
 
 **Done** — `jarvis/automations.py` (step allow-list checked on save and on run, triggers, Runner, templates, export /

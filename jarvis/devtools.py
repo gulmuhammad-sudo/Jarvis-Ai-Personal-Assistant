@@ -53,8 +53,20 @@ def describe_tools(found: dict[str, str | None]) -> str:
     return ("Installed: " + (", ".join(have) or "none of the usual tools")) + (f"\nNot found: {', '.join(missing)}" if missing else "")
 
 
+# settings inside a repository that make git start a program
+_RISKY_GIT = r"^(core\.(fsmonitor|hookspath|sshcommand|gitproxy|pager|editor|askpass|alternaterefscommand)|filter\.|diff\.|gpg\.|log\.showsignature|include|extensions\.worktreeconfig|pager\.|credential\.)"
+
+
+def risky_settings(path: Path) -> list[str]:
+    """Names of such settings in this repository (reading the list starts nothing)."""
+    r = subprocess.run(["git", "-C", str(path), "config", "--local", "--no-includes", "--name-only", "--get-regexp", _RISKY_GIT],
+                       capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=15, creationflags=_NOWIN)
+    return sorted(set((r.stdout or "").split()))
+
+
 def _git(path: Path, *args: str) -> str:
-    r = subprocess.run(["git", "-C", str(path), *args], capture_output=True, text=True, encoding="utf-8", errors="replace",
+    r = subprocess.run(["git", "-c", "core.fsmonitor=false", "-c", "core.hooksPath=/dev/null", "-c", "log.showSignature=false",
+                        "--no-pager", "-C", str(path), *args], capture_output=True, text=True, encoding="utf-8", errors="replace",
                        timeout=15, creationflags=_NOWIN)
     if r.returncode != 0:
         raise ValueError((r.stderr or r.stdout or "git failed").strip().splitlines()[-1][:200])
@@ -65,12 +77,18 @@ def git_status(path: str) -> str:
     if not shutil.which("git"):
         return "Git isn't installed."
     p = Path(os.path.expandvars(os.path.expanduser(str(path or ".")))).resolve()
+    if str(path or "").replace("/", "\\").strip().startswith("\\\\"):
+        return "I only look at folders on this PC."
     if not p.is_dir():
         return f"There's no folder at {p}."
     try:
         root = Path(_git(p, "rev-parse", "--show-toplevel").strip())
     except ValueError:
         return f"{p} isn't inside a git repository."
+    risky = risky_settings(root)
+    if risky:
+        return (f"{root.name} has git settings that can start programs ({', '.join(risky[:5])}), so I won't read its status. "
+                "Open a terminal if you trust it.")
     branch = _git(root, "rev-parse", "--abbrev-ref", "HEAD").strip()
     status = _git(root, "status", "--porcelain=v1", "--branch")
     lines = status.splitlines()
