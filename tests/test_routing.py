@@ -83,3 +83,33 @@ def test_online_check_is_remembered(monkeypatch):
     providers._net.update(at=0.0, up=False)
     assert providers.online() and providers.online() and len(calls) == 1
     providers._net.update(at=0.0, up=True)
+
+
+def test_request_too_large_is_tried_again_with_fewer_tools():
+    """Groq's free limit answered 413 in the middle of a real task; the task was dropped half done."""
+    from types import SimpleNamespace
+
+    import openai
+
+    from jarvis import providers, tools
+    b = providers.OpenAICompatBrain.__new__(providers.OpenAICompatBrain)
+    b.openai, b.model, b.system, b.language = openai, "m", "s", "en"
+    b.tool_defs = [{"type": "function", "function": {"name": d["name"]}} for d in tools.TOOL_DEFINITIONS + tools.WEB_TOOL_DEFINITIONS]
+    b.messages = [{"role": "assistant", "tool_calls": [{"id": "1", "type": "function", "function": {"name": "software", "arguments": "{}"}}]}]
+    sent = []
+
+    def make(fail):
+        def create(model, messages, tools):
+            sent.append([d["function"]["name"] for d in tools])
+            if len(sent) <= fail:
+                raise openai.APIStatusError("too large", response=SimpleNamespace(status_code=413, headers={}, request=None), body=None)
+            return "answer"
+        return create
+    b.client = type("C", (), {"chat": type("H", (), {"completions": type("M", (), {"create": staticmethod(make(1))})})})
+    assert b._create() == "answer"
+    assert len(sent[0]) == len(b.tool_defs) and len(sent[1]) < 35 and {"software", "get_datetime", "make_plan"} <= set(sent[1])
+    sent.clear()
+    b.client = type("C", (), {"chat": type("H", (), {"completions": type("M", (), {"create": staticmethod(make(9))})})})
+    with pytest.raises(openai.APIStatusError):
+        b._create()
+    assert len(sent) == 2                                   # fewer tools didn't help: no endless tries

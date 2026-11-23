@@ -580,13 +580,24 @@ SERVER_TOOLS = [{"type": "web_search_20260209", "name": "web_search", "max_uses"
 RESULT_HOOK: Callable[[str, dict, Any, bool], None] | None = None   # the HUD shows results in Activity
 
 
-def execute(name: str, tool_input: dict, ctx: ToolContext) -> tuple[Any, bool]:
+def execute(name: str, tool_input: dict, ctx: ToolContext, from_ai: bool = False) -> tuple[Any, bool]:
     """Run a tool. Returns (content, is_error). Every call goes into the audit log; text from web pages, files
     and the clipboard comes back marked as untrusted (see guard.py)."""
     args = tool_input if isinstance(tool_input, dict) else {}
     if STOP.is_set():
         audit.record("tool", tool=name, args=args, ok=False, result="stopped by the user")
         return "Stopped: the user pressed Stop. Don't continue this task; say it was stopped.", True
+    if from_ai:                               # asked for by the AI (not by a button or an automation you started)
+        from . import plans
+        why = plans.blocked(name, args)
+        if why:
+            audit.record("tool", tool=name, args=args, ok=False, result="held: " + why[:80])
+            if RESULT_HOOK:
+                try:
+                    RESULT_HOOK(name, args, why, True)
+                except Exception:
+                    pass
+            return why, True
     out, err = _execute(name, tool_input, ctx)
     audit.record("tool", tool=name, args=args, ok=not err,
                  result=(out if isinstance(out, str) else "[image]")[:120])
@@ -1448,7 +1459,7 @@ def automation(inp: dict, ctx: ToolContext) -> str:
             if action == "run":
                 if not AUTOMATION_RUN:
                     return "Automations run in the app window only."
-                return f"Started \"{a['name']}\" ({len(a['steps'])} steps)." if AUTOMATION_RUN(a) else "Another automation is still running."
+                return f"Started \"{a['name']}\" ({len(a['steps'])} steps). What it finds is shown and read out by itself; don't repeat its steps." if AUTOMATION_RUN(a) else "Another automation is still running."
             if action == "enable":
                 if not ctx.approve(f"Switch on the automation \"{a['name']}\"? It runs {a['trigger_text']}.\n\n"
                                    + "\n".join(f"{i}. {t}" for i, t in enumerate(a["steps_text"], 1))):

@@ -2,6 +2,15 @@
 
 Each version is also a git tag (`git tag -n20 vX.Y.Z` shows its notes). Newest first.
 
+## 1.20.0 — 2026-11-23 (not pushed yet)
+Found by the first test with real AIs (Gemini, Groq):
+- Your "no" to a plan or a step now holds in code: tools that change something don't run until you say something new, a
+  refused step can't be marked done, and with "Ask before every step" nothing changes outside an approved step.
+- Automations tell you what they found (weather, prayer times, internet…) when they end, or that a timed one stopped
+  early. Before, the result was only on the Automations page.
+- Notes like these obey Spoken replies; alarms and reminders still speak.
+- A request too large for a service's free limit (413) is tried again with fewer tools instead of dropping the task.
+
 ## 1.19.2 — 2026-11-23 (not pushed yet)
 - Spoken replies stay off (or on) after a restart, and with them off the greeting at start-up is silent too. Turning
   Hands-free on still turns them on. Alarms and Live calls speak as before.

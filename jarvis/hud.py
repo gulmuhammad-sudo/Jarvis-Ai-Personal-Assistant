@@ -837,6 +837,7 @@ class Hub:
             return
         if source != "scheduled":
             tools.STOP.clear()                 # a new instruction: Stop is over
+            plans.new_message("" if source in ("typed", "skill") else text)
         rid = self._next_id()
         self.emit("user", keep=True, text=text, source=source, id=rid)
         if source not in ("scheduled", "skill"):        # a skill's own text isn't you talking about yourself
@@ -957,6 +958,7 @@ class Hub:
     def _live_heard(self, text: str) -> None:
         text = self._script(text)
         self._live_user = text
+        plans.new_message(text)
         rid = self._next_id()
         self.emit("user", keep=True, text=text, source="live", id=rid)
         self._suggest_memory(text)

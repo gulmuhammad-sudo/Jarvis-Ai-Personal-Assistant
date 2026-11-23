@@ -46,6 +46,10 @@ LABELS = {
     "manage_windows": "Move a window", "workspace": "Open a workspace", "network": "Check the internet",
     "software": "Look for app updates", "close_app": "Close an app",
 }
+# steps whose answer is the point: told to you when the automation ends
+TELLS = {"get_weather": "Weather", "daily_briefing": "Briefing", "prayer_times": "Prayer times", "get_datetime": "Time", "system_status": "PC",
+         "network": "Internet", "software": "App updates"}
+
 TEMPLATES = [
     {"name": "Morning start", "steps": [{"tool": "get_weather", "args": {}}, {"tool": "prayer_times", "args": {}},
                                         {"ask": "Give me my daily briefing in a few short lines."}],
@@ -341,7 +345,7 @@ class Runner:
     def _run(self, auto: dict, why: str) -> tuple[bool, str]:
         from . import audit, tools
         audit.record("automation_start", name=auto["name"], why=why)
-        lines, ok = [], True
+        lines, tell, ok = [], [], True
         try:
             steps = check_steps(auto["steps"])              # again, at run time: never trust the stored row
         except ValueError as e:
@@ -366,11 +370,17 @@ class Runner:
             else:
                 out, err = tools.execute(step["tool"], step["args"], self.ctx)
                 out = re.sub(r"</?untrusted[^>]*>", "", out if isinstance(out, str) else "done").strip()
+                if step["tool"] in TELLS and not err:
+                    tell.append(f"{TELLS[step['tool']]}: " + " ".join(ln.strip() for ln in out.splitlines()[:4] if ln.strip())[:320])
             lines.append(f"{i}. {describe_step(step)}: {out[:300]}")
             if err:
                 ok = False
                 break
         result = "\n".join(lines)[:4000]
+        if tell:
+            self.ctx.notify(f"{auto['name']}. " + " ".join(tell)[:900], "info")
+        elif not ok and why.startswith("trigger"):
+            self.ctx.notify(f"The automation {auto['name']} stopped early: {lines[-1][:200] if lines else ''}", "info")
         c, lock = _db()
         with lock, c:
             c.execute("UPDATE automations SET last_run = ?, last_ok = ?, last_result = ?, runs = runs + 1 WHERE id = ?",

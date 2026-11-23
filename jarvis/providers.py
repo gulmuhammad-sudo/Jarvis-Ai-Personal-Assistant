@@ -117,13 +117,14 @@ class OpenAICompatBrain:
         raise ProviderError(f"{self.label}: no model available")
 
     def _create(self):
-        """One model call, riding out short per-minute limits and malformed tool calls."""
+        """One model call, riding out short per-minute limits, malformed tool calls and "request too large"."""
+        tool_defs = self.tool_defs
         for attempt in range(3):
             try:
                 return self.client.chat.completions.create(
                     model=self.model,
                     messages=[{"role": "system", "content": self.system + (URDU_NOTE if self.language == "ur" else languages.reply_note(self.language))}] + self.messages,
-                    tools=self.tool_defs)
+                    tools=tool_defs)
             except self.openai.RateLimitError as e:
                 wait = _retry_after(e)
                 if wait is None or wait > 20 or attempt == 2:
@@ -133,6 +134,17 @@ class OpenAICompatBrain:
                 if "tool" not in str(e).lower() or attempt == 2:
                     raise
                 # The model produced an invalid tool call (e.g. a misspelt tool name): ask again.
+            except self.openai.APIStatusError as e:
+                slim = self._everyday_tools()
+                if e.status_code != 413 or attempt == 2 or len(slim) >= len(tool_defs):
+                    raise
+                tool_defs = slim                 # too large for this service's free limit: only the everyday tools
+
+    def _everyday_tools(self) -> list[dict]:
+        """The tools a small request keeps: the everyday ones, and those already in use in this conversation."""
+        used = {c["function"]["name"] for m in self.messages if m.get("role") == "assistant" for c in m.get("tool_calls") or []}
+        keep = set(LOCAL_TOOLS) | used | {"make_plan", "plan_step", "manage_windows", "set_brightness", "delegate"}
+        return [d for d in self.tool_defs if d["function"]["name"] in keep]
 
     def _ask_once(self, user_text: str) -> str:
         checkpoint = len(self.messages)
@@ -170,7 +182,7 @@ class OpenAICompatBrain:
                     else:
                         self.on_tool(call.function.name, args)
                         acted = True
-                        result, is_error = tools.execute(call.function.name, args, self.ctx)
+                        result, is_error = tools.execute(call.function.name, args, self.ctx, True)
                     if isinstance(result, list):  # screenshot: text + image blocks
                         text = " ".join(b.get("text", "") for b in result if b.get("type") == "text")
                         if self.vision:
@@ -276,7 +288,7 @@ class OllamaBrain:
                     else:
                         self.on_tool(name, args)
                         acted = True
-                        result, err = tools.execute(name, args, self.ctx)
+                        result, err = tools.execute(name, args, self.ctx, True)
                     if isinstance(result, list):         # a screenshot: a text-only model can't look at it
                         result = " ".join(b.get("text", "") for b in result if b.get("type") == "text") + \
                                  " (This local model can't see images.)"

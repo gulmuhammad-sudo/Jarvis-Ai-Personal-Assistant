@@ -649,7 +649,7 @@ class LiveSession:
                 continue
             self._set_phase("thinking")
             self.on_tool(name, args)
-            out, err = await asyncio.get_running_loop().run_in_executor(self._pool, tools.execute, name, args, self.ctx)
+            out, err = await asyncio.get_running_loop().run_in_executor(self._pool, tools.execute, name, args, self.ctx, True)
             if isinstance(out, list):                    # a screenshot: send the picture itself
                 for block in out:
                     if block.get("type") == "image":

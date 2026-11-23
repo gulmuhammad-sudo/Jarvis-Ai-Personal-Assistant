@@ -1,5 +1,11 @@
 # Security review
 
+## 2026-11-23 — v1.20.0
+
+| Area | How | Where |
+|---|---|---|
+| Refused plans and steps (was: only the AI's instructions; a real AI ignored a refusal) | `plans.blocked` in `tools.execute` for every call made by an AI; only tools that look run until the user says something new; the spoken "no" itself doesn't count as new. Buttons and automations are not held | `jarvis/plans.py`, `jarvis/tools.py` |
+
 ## 2026-11-23 — v1.19.0 additions and fixes
 
 | Area | How | Where |

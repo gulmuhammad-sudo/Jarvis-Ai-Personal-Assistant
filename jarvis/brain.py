@@ -152,7 +152,7 @@ class Brain:
                     if block.type != "tool_use":
                         continue
                     self.on_tool(block.name, block.input)
-                    content, is_error = tools.execute(block.name, block.input, self.ctx)
+                    content, is_error = tools.execute(block.name, block.input, self.ctx, True)
                     result = {"type": "tool_result", "tool_use_id": block.id, "content": content}
                     if is_error:
                         result["is_error"] = True

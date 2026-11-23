@@ -1801,7 +1801,7 @@ function handle(ev) {
     }
     case "notify": {
       const kind = ev.kind || "reminder";
-      const LBL = { prayer: "NAMAZ", alarm: "ALARM", battery: "BATTERY" }, SUB = { prayer: "Prayer reminder", alarm: "Alarm", battery: "Battery" };
+      const LBL = { prayer: "NAMAZ", alarm: "ALARM", battery: "BATTERY", info: "NOTE" }, SUB = { prayer: "Prayer reminder", alarm: "Alarm", battery: "Battery" };
       addMsg("notify", ev.text, LBL[kind] || "REMINDER");
       const good = kind === "info" || /fully charged/i.test(ev.text);       // not a warning: no alert
       const loudOn = !lastStats || lastStats.loud_alerts !== false;
@@ -1810,7 +1810,7 @@ function handle(ev) {
                 ic: kind === "prayer" ? "moon" : kind === "battery" ? "battery" : "bell", time: ev.time });
       if (!replaying && isSpeaker() && (kind === "prayer" || good || !loudOn)) chime(kind);   // alerts beep loudly instead
       doneReminders.push({ time: (ev.time || nowT()).slice(0, 5), text: ev.text.replace(/^Reminder:\s*/, "") });
-      if (!replaying) setTimeout(() => speak(ev.text, true), kind === "prayer" || good ? 900 : kind === "battery" ? 1400 : 2300);
+      if (!replaying) setTimeout(() => speak(ev.text, kind !== "info"), kind === "prayer" || good ? 900 : kind === "battery" ? 1400 : 2300);
       break;
     }
     case "error":

@@ -143,7 +143,7 @@ def test_run_in_order_and_remember_the_result(db, rec):
     r, ev = runner(notes, asks, sleeps)
     a = au.save("All", [WEATHER, {"wait": 3}, {"say": "done"}, {"ask": "brief me"}])
     ok, text = r._run(a, "test")
-    assert ok and rec == [("get_weather", {})] and sleeps == [3] and notes == ["done"] and asks == ["brief me"]
+    assert ok and rec == [("get_weather", {})] and sleeps == [3] and notes == ["done", "All. Weather: get_weather ok"] and asks == ["brief me"]
     saved = au.get(a["id"])
     assert saved["last_ok"] and saved["runs"] == 1 and "1. Weather" in saved["last_result"]
     assert [e[1]["state"] for e in ev][0] == "running" and ev[-1][1]["state"] == "ok"
@@ -299,6 +299,8 @@ def plan_mode(monkeypatch):
     monkeypatch.setattr(plans, "mode", lambda: mode["m"])
     monkeypatch.setattr(plans, "_PLAN", None)
     monkeypatch.setattr(plans, "CHANGED", None)
+    monkeypatch.setattr(plans, "_HOLD", "")
+    monkeypatch.setattr(plans, "_OPEN", None)
     return mode
 
 
@@ -320,7 +322,7 @@ def test_each_mode_asks_every_step(plan_mode):
     plan_mode["m"] = "each"
     answers = iter([True, False])
     plans.start("X", ["a", "b"], lambda q: next(answers))
-    assert "said no to step 1" in plans.step(1, "doing", "", lambda q: next(answers))
+    assert "said no to step 1" in plans.step(1, "doing", "", lambda q: next(answers)).replace("The user ", "")
     assert plans.current()["steps"][0]["status"] == "skipped"
 
 
@@ -343,3 +345,127 @@ def test_plan_limits(plan_mode):
     assert "steps 1 to 2" in plans.step(9, "done", "", None) and "status must be" in plans.step(1, "maybe", "", None)
     plans.dismiss()
     assert plans.current() is not None    # a running plan stays
+
+
+# ---------------- a "no" holds in code: a real AI (23 Nov) went on with a refused step in the same breath ----------------
+CHANGE = ("open_application", {"name": "chrome"})
+
+
+@pytest.fixture
+def ai(plan_mode, monkeypatch):
+    """The AI's tool calls, with the app-opening tool replaced by a recorder."""
+    did = []
+    monkeypatch.setitem(tools._HANDLERS, "open_application", lambda i, c: did.append(i["name"]) or "Launched")
+    monkeypatch.setitem(tools._HANDLERS, "manage_windows", lambda i, c: did.append(i["action"]) or "ok")
+    answers = []
+    c = tools.ToolContext(confirm=lambda q, **k: answers.pop(0), notify=lambda *a, **k: None)
+    return plan_mode, did, answers, lambda n, a: tools.execute(n, a, c, True)
+
+
+def test_the_batch_a_real_ai_sent_after_a_refused_step(ai):
+    mode, did, answers, call = ai
+    mode["m"] = "each"
+    answers += [True, True, False]                       # the plan, step 1, NOT step 2
+    call("make_plan", {"title": "Desk", "steps": ["VS Code", "Chrome", "Dim"]})
+    call("plan_step", {"number": 1, "status": "doing"})
+    assert call("open_application", {"name": "code"}) == ("Launched", False)
+    call("plan_step", {"number": 1, "status": "done"})
+    out, _ = call("plan_step", {"number": 2, "status": "doing"})
+    assert "said no to step 2" in out
+    for tool, args in (CHANGE, ("manage_windows", {"action": "snap", "app": "chrome"}), ("plan_step", {"number": 2, "status": "done"}),
+                       ("plan_step", {"number": 3, "status": "doing"}), CHANGE):
+        call(tool, args)
+    assert did == ["code"] and [s["status"] for s in plans.current()["steps"]] == ["done", "skipped", "todo"]
+    assert call("get_datetime", {})[1] is False and call("manage_windows", {"action": "list"})[1] is False       # looking is fine
+
+
+def test_after_you_answer_the_rest_can_go_on_but_not_the_refused_step(ai):
+    mode, did, answers, call = ai
+    mode["m"] = "each"
+    answers += [True, False, True]
+    call("make_plan", {"title": "Desk", "steps": ["Chrome", "Dim"]})
+    call("plan_step", {"number": 1, "status": "doing"})
+    plans.new_message("no")                              # a call hears the refusal itself as speech
+    plans.new_message("nahi")
+    assert call(*CHANGE)[1] is True and did == []
+    plans.new_message("haan baqi karo")
+    call("plan_step", {"number": 2, "status": "doing"})
+    assert call(*CHANGE) == ("Launched", False)
+    assert "stays skipped" in call("plan_step", {"number": 1, "status": "doing"})[0]
+    call("plan_step", {"number": 2, "status": "done"})
+    assert plans.current()["state"] == "finished"
+
+
+def test_refused_plan_holds_until_you_say_something_new(ai):
+    mode, did, answers, call = ai
+    answers += [False]
+    call("make_plan", {"title": "Desk", "steps": ["Chrome", "Dim"]})
+    assert "said no to the plan" in call(*CHANGE)[0] and did == []
+    plans.new_message("just open chrome then")
+    assert call(*CHANGE) == ("Launched", False) and did == ["chrome"]
+
+
+def test_each_mode_refuses_changes_outside_a_step_and_done_without_start(ai):
+    mode, did, answers, call = ai
+    mode["m"] = "each"
+    answers += [True]
+    call("make_plan", {"title": "Desk", "steps": ["Chrome", "Dim"]})
+    assert "approves every step" in call(*CHANGE)[0] and did == []
+    assert "wasn't started" in call("plan_step", {"number": 1, "status": "done"})[0]
+    plans.new_message("open chrome please")              # your own new wish isn't blocked by the old plan
+    assert call(*CHANGE) == ("Launched", False)
+
+
+def test_buttons_and_automations_are_not_held(ai):
+    mode, did, answers, call = ai
+    answers += [False]
+    call("make_plan", {"title": "Desk", "steps": ["Chrome", "Dim"]})
+    c = tools.ToolContext(confirm=lambda q, **k: True, notify=lambda *a, **k: None)
+    assert tools.execute(*CHANGE, c) == ("Launched", False)            # not asked for by the AI
+
+
+def test_ask_and_show_modes_run_freely_once_agreed(ai):
+    mode, did, answers, call = ai
+    for m, ans in (("ask", [True]), ("show", [])):
+        mode["m"] = m
+        answers += ans
+        call("make_plan", {"title": "Desk", "steps": ["Chrome", "Dim"]})
+        assert call(*CHANGE) == ("Launched", False)
+
+
+def test_every_ai_path_goes_through_the_hold():
+    from pathlib import Path
+    src = Path(tools.__file__).parent
+    for f, want in (("providers.py", 2), ("brain.py", 1), ("live.py", 1)):
+        text = (src / f).read_text(encoding="utf-8")
+        assert text.count("tools.execute") == want and text.count("self.ctx, True)") == want, f
+
+
+def test_automation_tells_what_it_found_and_when_it_fails(db, monkeypatch):
+    notes = []
+    monkeypatch.setattr(tools, "execute", lambda n, a, c: ('<untrusted source="x">\nSunny, 24 C\nline 2\n</untrusted>', False))
+    r, _ = runner(notes)
+    r._run(au.save("Morning", [WEATHER, {"tool": "set_theme", "args": {"theme": "dark"}}]), "trigger: time")
+    assert notes == ["Morning. Weather: Sunny, 24 C line 2"]
+    notes.clear()
+    monkeypatch.setattr(tools, "execute", lambda n, a, c: ("no internet", True))
+    r._run(au.find("Morning"), "trigger: time")
+    assert len(notes) == 1 and "stopped early" in notes[0]
+
+
+def test_which_words_settle_a_no(ai, monkeypatch):
+    mode, did, answers, call = ai
+    answers += [False]
+    call("make_plan", {"title": "Desk", "steps": ["Chrome", "Dim"]})
+    for heard in ("no", "nahi", "nahi nahi", "no don't do that"):              # the refusal itself, heard by a call
+        plans.new_message(heard)
+        assert plans._HOLD, heard
+    monkeypatch.setattr(plans, "_HOLD_AT", plans.time.time() - 30)
+    plans.new_message("nahi")
+    assert plans._HOLD
+    plans.new_message("nahi, sirf chrome kholo")                               # later, with a wish of its own
+    assert not plans._HOLD
+    answers += [False]
+    call("make_plan", {"title": "Desk", "steps": ["Chrome", "Dim"]})
+    plans.new_message()                                                        # typed: always something new
+    assert not plans._HOLD

@@ -2,6 +2,13 @@
 
 Newest first. Each entry: what was done, how it was tested, what is open, the next task.
 
+## 2026-11-23 — Session 2, part 9: Setup and voice panel, spoken replies, first real-AI test (v1.19.1 – v1.20.0)
+
+**Done** — see CHANGELOG. The real AI found two faults that 360 tests with a scripted AI had not: a refused step carried
+out anyway, and automations that never told their result.
+
+**Next** — ask the owner: build 1.20.0; Live-call test; Phase 7.
+
 ## 2026-11-23 — Session 2, part 8: Phase 6 part 2 — agents (v1.19.0) — Phase 6 done
 
 **Done** — `jarvis/agents.py` (profiles, OUTBOUND / PRIVATE / PLAIN, AgentContext checked in tools.execute, Runner with a
