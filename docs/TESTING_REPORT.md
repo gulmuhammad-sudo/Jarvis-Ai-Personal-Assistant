@@ -19,7 +19,7 @@ set PA_TEST_NETWORK=1 && .venv\Scripts\python -m pytest tests   # also the onlin
 | Real restarts of the engine (separate data, no keys, no mic) | pass | on → switched off → off after a restart → switched on → on after a restart |
 | Running page with spoken replies off | pass | greeting shown, 0 speech requests, no speech line in the log |
 | Correction | — | 1.19.1's "demo copy stays quiet" check only read the setting; the greeting was still spoken, because the page greeted before it read the setting |
-| Not tested | — | the packaged exe of 1.19.2 |
+| Packaged exe 1.19.2 (isolated data, no mic, fake Ollama, a page kept open) | 56/56 in 2 of 2 runs | the checks of 1.19.1 (the quiet switch replaced by the setting itself) plus: spoken replies on at first, switched off, still off after a restart; setup.html and hud.html inside the builds identical to the source |
 
 ## 2026-11-23 — Voice panel on the left (v1.19.1, reported by the owner with a picture)
 
