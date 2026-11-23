@@ -20,7 +20,8 @@ set PA_TEST_NETWORK=1 && .venv\Scripts\python -m pytest tests   # also the onlin
 | Aegis offline | pass after a fix | downloaded in the running app with its real button; 227 Hz, 4 s of speech in 0.3 s, no unknown sounds. Fixed before release: sherpa-onnx ended the whole program at two-character sounds in the voice's list |
 | Gemini Live, real (owner's key, with their OK) | 6 of 6 connected | one sentence each on gemini-3.1-flash-live-preview, empty data, no mic: Urdu, in the feminine, no Hindi words |
 | Settings and first-run setup | pass | lists, choices kept, 18 call voices fit at 1534x787, no console errors |
-| Not tested | — | how any of them sounds to a person (accent, naturalness); the packaged exe; the installer's window; a whole Live call with them |
+| Packaged exe 1.23.0 (isolated data, no mic, fake Ollama) | 77/77 and documents 22/22, one run each | the checks of 1.22.1 plus the voices: lists, Uzma's 4 ways online in Urdu and English, Aegis downloaded by the exe, offline voice 111 Hz with Ryan and 230 Hz with Uzma |
+| Not tested | — | how any of them sounds to a person (accent, naturalness); the installer's window; a whole Live call with them |
 
 ## 2026-11-23 — Documents (v1.22.0, 1.22.1)
 
