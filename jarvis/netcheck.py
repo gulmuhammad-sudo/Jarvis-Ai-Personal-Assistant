@@ -17,6 +17,7 @@ import urllib.request
 NCSI_URL = "http://www.msftconnecttest.com/connecttest.txt"      # what Windows itself uses
 NCSI_TEXT = "Microsoft Connect Test"
 SPEED_URL = "https://speed.cloudflare.com/__down?bytes={n}"
+WEB_BACKUP_URL = "https://www.gstatic.com/generate_204"         # a second, unrelated site (answers 204, empty)
 INTERNET_HOST = "1.1.1.1"
 DNS_NAME = "www.microsoft.com"
 _NOWIN = getattr(subprocess, "CREATE_NO_WINDOW", 0)
@@ -91,10 +92,20 @@ def _dns() -> float | None:
 
 
 def _web() -> str:
-    """ok | portal (a 'sign in to this Wi-Fi' page answered instead) | fail"""
+    """ok | portal (a 'sign in to this Wi-Fi' page answered instead) | fail
+
+    One lost request must not be reported as "web pages don't load" (it happened once on a working connection),
+    so: two tries, then a second, unrelated site."""
+    for attempt in range(2):
+        try:
+            with urllib.request.urlopen(NCSI_URL, timeout=5) as r:
+                return "ok" if r.read(200).decode("utf-8", "ignore").strip() == NCSI_TEXT else "portal"
+        except Exception:
+            if attempt == 0:
+                time.sleep(0.7)
     try:
-        with urllib.request.urlopen(NCSI_URL, timeout=6) as r:
-            return "ok" if r.read(200).decode("utf-8", "ignore").strip() == NCSI_TEXT else "portal"
+        with urllib.request.urlopen(WEB_BACKUP_URL, timeout=5) as r:
+            return "ok" if r.status == 204 else "portal"
     except Exception:
         return "fail"
 
@@ -124,7 +135,8 @@ def verdict(r: dict) -> str:
                 + ". Restart the router or reconnect to Wi-Fi.")
     if net is None:
         return "The router answers but there's no internet behind it: restart the router, or the internet provider has a problem."
-    return "The internet answers pings but web pages don't load: a firewall, proxy or VPN may be blocking them."
+    return ("The internet answers pings, but three web page tests failed. Run the check again; if it stays like this, "
+            "a firewall, proxy or VPN may be blocking web pages.")
 
 
 def check() -> dict:

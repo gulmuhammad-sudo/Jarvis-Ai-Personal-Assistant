@@ -11,14 +11,23 @@ set PA_TEST_NETWORK=1 && .venv\Scripts\python -m pytest tests   # also the onlin
 .venv\Scripts\python packaging\build.py              # then smoke-test the packaged exe (see below)
 ```
 
+## 2026-11-23 — Packaged exe 1.17.0 and 1.17.1
+
+| Suite | Result | Notes |
+|---|---|---|
+| `pytest tests` | 222 passed, 3 skipped | 5 new cases: the web page test retries and uses a second site before reporting a failure |
+| Packaged exe 1.17.0 | 27/27, not released | the network check in that run wrongly said web pages don't load (one lost request; cause not known); the exe check only looked for *a* verdict, so it passed. 5 of 5 repeats in the exe were right. Fixed in 1.17.1 (retry + second site) |
+| Packaged exe 1.17.1 (isolated data, no mic, fake Ollama) | first run broke off (connection reset), then 27/27 in 8 runs | the network check must now say "Internet is working" 3 times in a row. The reset matches a test mistake, reproduced separately: started with --no-window and no open page, the engine stops itself (exit code 0, after 55 s in the probe); with a page open it keeps running. The last 3 runs keep a page open. The installed app runs without that watchdog |
+| Setup.exe size | 142 MB | |
+
 ## 2026-11-22 — Software manager, network center, developer tools (v1.17.0)
 
 | Suite | Result | Notes |
 |---|---|---|
 | `pytest tests` | 217 passed, 3 skipped | new tests/test_pccare.py (40): winget tables (search, updates, list, truncation note), good/bad package ids, looking needs no OK, install/update/uninstall/update-all ask first (kind `software`) and do nothing on No, unknown ids refused, one change at a time, report when done, 10 network verdicts, netsh parsing, git status of a temporary repo, ports, untrusted marking, JARVIS_NO_MIC keeps the mic closed |
 | Real, read-only (PA_TEST_NETWORK=1) | pass | winget search "vlc", 17 waiting updates listed, installed list; network check "Internet is working (45 ms)" in 8.6 s; speed test 57 Mbps (5 MB); dev tool versions in 1.8 s |
-| Running app (test copy) | pass after 3 fixes | PC Care cards: 17 updates with Update buttons, network verdict + details; Update → approval box "Update Bonjour from 3.0.0.10 to 3.1.0.1 with winget?" → Deny → nothing changed (audit: granted false ×3; Bonjour still 3.0.0.10). Fixed: raw `<untrusted>` tags in the Activity feed, the button stuck on "Asking…" after Deny, software approvals now use the warning style |
-| Found | fixed | the test copy tried to open the mic to hear a spoken yes/no for the approval (JARVIS_NO_MIC only skipped the start-up check); now JARVIS_NO_MIC=1 turns the microphone off completely |
+| Running app (test copy) | pass after 3 fixes | PC Care cards: 17 updates with Update buttons, network verdict + details; Update → approval box "Update Bonjour from 3.0.0.10 to 3.1.0.1 with winget?" → Deny → nothing changed (audit: granted false ×4; a fifth approval got no answer because the server was stopped; Bonjour still 3.0.0.10). Fixed: raw `<untrusted>` tags in the Activity feed, the button stuck on "Asking…" after Deny, software approvals now use the warning style |
+| Found | fixed | with an approval waiting in the test copy, the app opened the mic to hear a spoken yes/no (log: no mic heard anything; no words were logged). Whether a silent clip reached the online speech service isn't known: the test copy uses the project's keys. JARVIS_NO_MIC=1 now turns the microphone off completely |
 | Not tested | — | a real install/update/uninstall (would change the owner's PC) |
 
 ## 2026-11-21 — Focus mode: just the face (v1.16.1)
@@ -29,7 +38,7 @@ set PA_TEST_NETWORK=1 && .venv\Scripts\python -m pytest tests   # also the onlin
 | Running app (test copy) | pass after 1 fix | side/top/foot hidden, face 1008x756 in a 1024x768 window, dock visible; globe, rings (green pulsing mic while listening), mask, light theme, phone width 375 px (no sideways scroll); Show details brings everything back, Ctrl+K shows the typing box, dock mic starts listening, dock buttons follow Hands-free and Spoken replies. Fixed: the assistant's name under the mask sat behind the dock |
 | Packaged exe 1.16.1 (isolated data, real local voice + speech model, fake Ollama) | 23/23 | the 19 checks of 1.15.0 plus: window/workspace/OCR tools inside the exe, empty workspaces list, workspace needs a name, focus-mode dock in the page (the owner's windows were not read or moved) |
 | Setup.exe size | 142 MB | |
-| Note | — | one check turned Hands-free on in the test copy (it could open the microphone); it was switched off within a minute and the test copy now starts with JARVIS_NO_MIC=1 |
+| Note (corrected 23 Nov) | — | one check turned Hands-free on in the test copy. That could not open the microphone: JARVIS_HANDSFREE=off blocks standby. What did open it briefly was the start-up level check of every test copy run until then. JARVIS_NO_MIC=1 was added to the test copy here, but it only skipped that start-up check; spoken answers to approvals were still possible until 1.17.0 |
 
 ## 2026-11-21 — Windows, workspaces, OCR (v1.16.0)
 

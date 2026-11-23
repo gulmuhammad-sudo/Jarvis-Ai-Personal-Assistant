@@ -2,6 +2,10 @@
 
 Each version is also a git tag (`git tag -n20 vX.Y.Z` shows its notes). Newest first.
 
+## 1.17.1 — 2026-11-23 (not pushed yet)
+- Network check: one lost web request no longer leads to "a firewall, proxy or VPN may be blocking them". It
+  tries twice, then a second site, and only then says web pages don't load (and suggests running it again).
+
 ## 1.17.0 — 2026-11-22
 - Software manager (winget, built into Windows): "find VLC", "what's installed", "which apps have updates",
   "install / update / uninstall …", "update everything". Changes always ask first (Settings › Permissions ›

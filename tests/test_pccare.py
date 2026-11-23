@@ -214,3 +214,38 @@ def test_no_mic_flag_keeps_the_microphone_closed():
     """Tests and demo copies run with JARVIS_NO_MIC=1: not even a spoken yes/no for an approval opens the mic."""
     from jarvis import hud
     assert hud.recorder is None
+
+
+class _Resp:
+    def __init__(self, body=b"", status=200):
+        self.body, self.status = body, status
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *a):
+        return False
+
+    def read(self, n=-1):
+        return self.body
+
+
+@pytest.mark.parametrize("answers,expect,calls", [
+    ([_Resp(b"Microsoft Connect Test")], "ok", 1),
+    ([OSError("lost"), _Resp(b"Microsoft Connect Test")], "ok", 2),            # one lost request isn't a verdict
+    ([OSError("x"), OSError("x"), _Resp(b"", 204)], "ok", 3),                  # Microsoft's page down, the web works
+    ([OSError("x"), OSError("x"), OSError("x")], "fail", 3),
+    ([_Resp(b"<html>Sign in to Hotel Wi-Fi</html>")], "portal", 1),
+])
+def test_web_test_retries_before_blaming_anything(monkeypatch, answers, expect, calls):
+    todo, seen = list(answers), []
+
+    def urlopen(url, timeout=0):
+        seen.append(url)
+        a = todo.pop(0)
+        if isinstance(a, Exception):
+            raise a
+        return a
+    monkeypatch.setattr(netcheck.urllib.request, "urlopen", urlopen)
+    monkeypatch.setattr(netcheck.time, "sleep", lambda s: None)
+    assert netcheck._web() == expect and len(seen) == calls
