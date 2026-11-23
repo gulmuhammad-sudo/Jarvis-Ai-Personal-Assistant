@@ -19,7 +19,9 @@ set PA_TEST_NETWORK=1 && .venv\Scripts\python -m pytest tests   # also the onlin
 | Running app (test copy, no mic) | pass after 1 fix | make / run / import / switch on / delete, template editor, unsafe imports refused, HTML in a name shown as text, plan card (hidden in focus mode), plan setting (bad value ignored), phone width. Fixed: the On checkbox was invisible |
 | Found while building | fixed | `open_path` with %COMSPEC% passed the first file check; a second start-up automation was dropped when the first was busy; an imported AI prompt would have reached the AI as the user's words; an object without properties in a tool schema (some AI services refuse the whole request) |
 | Unexplained | open | 16 Emergency Stops in the test copy at 10:16:19-24 (also 8 on 21 Nov 14:25-14:26 and 1 at 20:54). The code only stops on the button, Esc twice or the tray. Two instrumented repeats (desktop and phone size): none. Cause not established |
-| Not tested | — | with a real AI (plans, creating by voice); a real timed run overnight; the packaged exe |
+| Packaged exe 1.18.0 (isolated data, no mic, fake Ollama, a page kept open) | 38/38 in 3 of 3 runs | the 27 checks of 1.17.1 plus: automation and plan tools, 21 safe step kinds, an automation ran all its steps, unsafe step and imported AI prompt refused, import arrives off, the start-up automation ran by itself once after a restart and not before, plans ask first, no Emergency Stop by itself |
+| Setup.exe size | 142 MB | |
+| Not tested | — | with a real AI (plans, creating by voice); a real timed run (tick is unit-tested with a fake clock) |
 
 ## 2026-11-23 — Packaged exe 1.17.0 and 1.17.1
 
