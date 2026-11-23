@@ -19,14 +19,14 @@ import sys
 import threading
 import time
 import webbrowser
-from datetime import datetime
+from datetime import datetime, timedelta
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import parse_qs
 
 from . import __version__
 from . import live as live_mod
-from . import agents, alerts, approvals, audit, automations, denoise, gpu, languages, local_ai, local_stt, local_tts, memory, plans, schedule, netcheck, skills, software, stt, storage, tools, tts, urdu, wake, winmgr
+from . import agents, alerts, approvals, audit, automations, denoise, gpu, languages, local_ai, local_stt, local_tts, memory, notes, planner, plans, schedule, netcheck, skills, software, stt, storage, tools, tts, urdu, wake, winmgr
 from .brain import make_brain
 from .config import NOTES_DIR
 from .providers import provider_status
@@ -127,7 +127,8 @@ class Hub:
             threading.Thread(target=recorder.choose_mic, daemon=True).start()   # pick a working mic early
         self.scheduler = schedule.Scheduler(notify=self.notify,
                                             run_prompt=lambda text: self.submit(text, source="scheduled"))
-        self.scheduler.on_tick = self.runner.tick
+        self.scheduler.on_tick = self._tick
+        tools.PLANNER_CHANGED = lambda: self.emit("planner_changed")
 
     # ---------- events to the page ----------
     def emit(self, event_type: str, keep: bool = False, **data) -> None:
@@ -256,6 +257,21 @@ class Hub:
 
     # ---------- wake word: only respond after you call its name ----------
     WAKE_FOLLOW_UP = 15                     # seconds it keeps listening for a follow-up before waiting for the name again
+
+    def _tick(self, now: datetime) -> None:
+        """Every few seconds: reminders first; a fault in one part doesn't stop the other."""
+        try:
+            planner.tick(now, self.notify)
+        except Exception as e:
+            print(f"[planner] {type(e).__name__}: {e}")
+        self.runner.tick(now)
+
+    def _upcoming(self) -> list[dict]:
+        try:
+            return self.scheduler.upcoming() + planner.upcoming()
+        except Exception as e:
+            print(f"[planner] {type(e).__name__}: {e}")
+            return self.scheduler.upcoming()
 
     def suggest_memories(self) -> bool:
         return schedule.get_setting("suggest_memories", True) is not False
@@ -1104,7 +1120,7 @@ class Hub:
                "timers": sorted([{"id": i, "message": m, "due": d.strftime("%H:%M"), "kind": "timer", "repeat": "",
                                   "left": max(0, int((d - datetime.now()).total_seconds()))}
                                  for i, (_, m, d) in self.ctx.timers.items()]
-                                + self.scheduler.upcoming(), key=lambda x: x["left"])}
+                                + self._upcoming(), key=lambda x: x["left"])}
         total, used, _ = shutil.disk_usage(Path.home().anchor)
         out["disk"] = round(used / total * 100, 1)
         if psutil:
@@ -1265,6 +1281,59 @@ class Handler(BaseHTTPRequestHandler):
             if HUB.speaker == cid:
                 HUB.set_speaker(remaining)
             HUB.last_client_seen = time.time()
+
+    def _planner(self, action: str, data: dict) -> None:
+        """The Planner page (agenda, tasks, notes). Your click is the approval here; notes go to the Recycle Bin."""
+        out: dict = {"ok": True}
+        changed = True
+        try:
+            if action == "load":
+                changed = False
+                day = planner.parse_day(data.get("day") or "today")
+                first = day.replace(day=1)
+                grid = first - timedelta(days=first.weekday())
+                today = datetime.now().date()
+                out = {"today": today.isoformat(), "day": day.isoformat(), "grid": planner.agenda(grid, 42, extra=False),
+                       "next": planner.agenda(day, 7), "tasks": planner.list_tasks(), "done": planner.list_tasks(done=True, limit=40),
+                       "projects": planner.projects(), "notes": notes.all_notes(str(data.get("query") or ""))}
+            elif action == "task":
+                t = planner.save_task(data.get("title"), data.get("notes"), data.get("project"), data.get("due"), data.get("priority"),
+                                      int(data["id"]) if data.get("id") else None)
+                out["task"] = t
+            elif action == "done":
+                planner.set_done(int(data["id"]), bool(data.get("on")))
+            elif action == "task_delete":
+                planner.delete_task(int(data["id"]))
+            elif action == "event":
+                e = planner.save_event(**{k: data.get(k) for k in ("title", "day", "time", "end_time", "minutes", "place", "notes", "repeat", "until", "remind")},
+                                       event_id=int(data["id"]) if data.get("id") else None)
+                out["event"] = e
+                out["overlaps"] = [planner.describe_event(o) for o in planner.conflicts(e)[:4]]
+            elif action == "event_delete":
+                planner.delete_event(int(data["id"]))
+            elif action == "note_read":
+                changed = False
+                out = {"name": data.get("name"), "text": notes.read(str(data.get("name") or ""))}
+            elif action == "note_save":
+                name = str(data.get("name") or "")
+                if data.get("new"):
+                    out["note"] = notes.save(name, str(data.get("text") or ""), new=True)
+                else:
+                    out["note"] = notes.save(str(data.get("old") or name), str(data.get("text") or ""))
+                    if data.get("old") and data["old"] != name:
+                        out["note"] = notes.rename(str(data["old"]), name)
+            elif action == "note_delete":
+                if not notes.delete(str(data.get("name") or "")):
+                    return self._json({"error": "Windows couldn't move it to the Recycle Bin, so it stays."}, 500)
+            else:
+                return self._json({"error": "unknown action"}, 404)
+        except (ValueError, TypeError, KeyError) as e:
+            return self._json({"error": str(e) if not isinstance(e, KeyError) else "Something is missing."}, 400)
+        except OSError as e:
+            return self._json({"error": f"Windows said: {e.strerror or e}"}, 500)
+        if changed:
+            HUB.emit("planner_changed")
+        return self._json(out)
 
     def _agents(self, action: str, data: dict) -> None:
         """The Agents page: everything is checked again in agents.py."""
@@ -1571,6 +1640,8 @@ class Handler(BaseHTTPRequestHandler):
             threading.Thread(target=_open, daemon=True).start()
         elif self.path.startswith("/api/auto/"):       # Automations page
             return self._automations(self.path.rsplit("/", 1)[1], data)
+        elif self.path.startswith("/api/planner/"):    # Planner page
+            return self._planner(self.path.rsplit("/", 1)[1], data)
         elif self.path.startswith("/api/agents/"):     # Agents page
             return self._agents(self.path.rsplit("/", 1)[1], data)
         elif self.path == "/api/plan/dismiss":

@@ -47,7 +47,7 @@ enough to finish, test and release on its own. Numbers in brackets are decisions
 ## Phase 7 — Productivity and knowledge
 - [ ] Read/create DOCX, XLSX, PPTX, PDF [32, 25, 87]
 - [ ] Local document index (RAG) [25]
-- [ ] Tasks/projects, calendar/planner, notes manager [85, 45, 53]
+- [x] Tasks/projects, calendar/planner, notes manager [85, 45, 53]
 - [ ] Email (IMAP/SMTP, user's own account) [46]; finance, journal, goals [51, 86, 84]
 
 ## Phase 8 — Personal, creative, entertainment

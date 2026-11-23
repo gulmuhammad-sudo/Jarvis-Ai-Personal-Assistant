@@ -11,6 +11,16 @@ set PA_TEST_NETWORK=1 && .venv\Scripts\python -m pytest tests   # also the onlin
 .venv\Scripts\python packaging\build.py              # then smoke-test the packaged exe (see below)
 ```
 
+## 2026-11-23 — Planner (v1.21.0)
+
+| Suite | Result | Notes |
+|---|---|---|
+| `pytest tests` | 453 passed, 3 skipped | new tests/test_planner.py (72): days and times, repeats (31st, 29 February, over midnight, a daily event since 1990), changes, overlaps, reminders once and never late, agenda, note names that try to leave the folder, the AI's tools, agents, automations, held plans |
+| Running app (test copy, quiet, no mic) | pass after 2 fixes | add / change / move / delete events, overlap message, tasks done and undone, projects, notes opened, renamed and searched, bad names refused, HTML shown as text, months; left side and top bar at 5 window sizes incl. the owner's 1534x787. Fixed: Done, Edit, Delete and Open were wired to nothing (`[data-view="planner"]` found the menu button first; 72 tests had passed); the clock under the search box (older) |
+| One slow test run | explained | 18 minutes: the PC was in standby from 15:08:54 to 15:25:24 |
+| Emergency Stops in the test copy | a likely cause | the browser pane reported clicks by the owner in the test copy during this session; whether the 16 Stops were such clicks isn't proven |
+| Not tested | — | moving a real note to the Recycle Bin (the bin was replaced by a recorder); a real reminder at its time (a fake clock was used); the planner with a real AI; the packaged exe |
+
 ## 2026-11-23 — First test with real AIs (fixes in v1.20.0)
 
 Separate empty data, no mic, no memories sent; every tool that touches the PC only recorded the call. 58 requests in all

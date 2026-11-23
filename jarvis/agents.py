@@ -29,24 +29,26 @@ BOARD_SIZE = 10
 BOARD_CHARS = 1200                 # of each result, in an agent's instructions
 
 # sends something out of this PC (words you typed, an address)
-OUTBOUND = {"web_search", "fetch_webpage", "open_website", "search_web_in_browser", "play_youtube", "get_weather", "daily_briefing",
-            "prayer_times"}
+# (daily_briefing is neither: it goes out AND holds alarms, timers and plans, so no agent has it)
+OUTBOUND = {"web_search", "fetch_webpage", "open_website", "search_web_in_browser", "play_youtube", "get_weather", "prayer_times"}
 # shows the agent something private
 PRIVATE = {"recall_memories", "list_notes", "read_text_file", "find_files", "read_screen_text", "manage_windows", "workspace",
            "list_alarms", "list_timers", "dev_tools", "find_old_files", "remember_fact", "edit_memory", "system_status", "network",
-           "write_file", "make_folder", "save_note"}
+           "write_file", "make_folder", "save_note", "tasks", "calendar", "notes", "arrange_windows", "cancel_timer"}
 # neither
-PLAIN = {"get_datetime", "set_timer", "cancel_timer", "set_alarm", "media_control", "set_brightness", "set_theme", "open_application", "arrange_windows"}
+PLAIN = {"get_datetime", "set_timer", "set_alarm", "media_control", "set_brightness", "set_theme", "open_application"}
 AGENT_TOOLS = OUTBOUND | PRIVATE | PLAIN
 # tools with a wider reach than an agent should have: only these actions
-LIMITS: dict[str, tuple[str, ...]] = {"workspace": ("open", "list"), "network": ("check",), "dev_tools": ("versions", "ports")}
+LIMITS: dict[str, tuple[str, ...]] = {"workspace": ("open", "list"), "network": ("check",), "dev_tools": ("versions", "ports"),
+                                     "tasks": ("list", "add", "update", "done", "undone"), "calendar": ("agenda", "find", "add", "update"),
+                                     "notes": ("search", "read")}
 
 BUILT_IN = [
     {"key": "researcher", "name": "Researcher", "memory": False, "tools": ["web_search", "fetch_webpage", "get_datetime"],
      "role": "Find current, reliable information on the web. Check more than one source, say when they disagree, and give a short "
              "answer with the addresses you used."},
     {"key": "organiser", "name": "Organiser", "memory": True,
-     "tools": ["recall_memories", "list_notes", "save_note", "set_timer", "list_timers", "set_alarm", "list_alarms", "get_datetime"],
+     "tools": ["recall_memories", "tasks", "calendar", "notes", "save_note", "set_timer", "list_timers", "set_alarm", "list_alarms", "get_datetime"],
      "role": "Keep the user's day in order: notes, timers, alarms and what they told you before. Be brief and exact about times."},
     {"key": "pc_helper", "name": "PC Helper", "memory": False,
      "tools": ["system_status", "network", "manage_windows", "arrange_windows", "workspace", "open_application", "media_control",

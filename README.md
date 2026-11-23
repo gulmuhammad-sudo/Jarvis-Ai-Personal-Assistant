@@ -36,6 +36,7 @@ Open **Personal Assistant** from the Start Menu or the Desktop.
 - Timers, alarms, notes and long-term memory you can search, edit and see as a graph
 - Your own skills: rules it always follows and routines you run by name
 - Windows on command (snap, side by side, minimise all) and saved workspaces; reads text on screen (offline OCR)
+- Planner: calendar, tasks and notes on your PC, with reminders
 - Agents: specialists with their own tools; web or your private things, never both
 - Automations (by hand, at a time, or when the app opens) and visible plans for longer tasks
 - Software updates and installs through winget (always asks first), internet check and speed test, dev helpers

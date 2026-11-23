@@ -179,7 +179,8 @@ body[data-state="listening"] .mic::before { border-color: rgba(var(--c-green), .
 .focusbtn.on { color: var(--green); border-color: rgba(var(--c-green), .45); background: rgba(var(--c-green), .06); }
 
 /* ---------- top bar ---------- */
-.top { grid-area: top; display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); align-items: center; gap: 12px; }
+/* the last column is as wide as the buttons need: with equal sides they ran over the clock on every page but the Command Center */
+.top { grid-area: top; display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(min-content, max-content); align-items: center; gap: 12px; }
 .sysstat { justify-self: start; display: flex; align-items: center; gap: 9px; font-family: var(--sans); font-size: 12px; font-weight: 500; letter-spacing: .08em; color: var(--dim); }
 .sysstat b { color: var(--green); font-weight: 500; }
 .sysstat .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--green); box-shadow: 0 0 0 3px rgba(var(--c-green), .15); }
@@ -709,7 +710,7 @@ svg.ic { transition: transform .28s cubic-bezier(.3, 1.5, .5, 1), color .2s, fil
 .navi:active { transform: scale(.98); }
 @media (max-height: 900px) and (min-width: 1101px) {
   .side > nav { gap: 1px; padding: 5px; }
-  .side .navi { padding: 5px 9px; font-size: 14px; }
+  .side .navi { padding: 3px 9px; font-size: 14px; }
   .side .navi svg.ic { width: 26px; height: 26px; padding: 5px; }
 }
 @media (max-height: 700px) and (min-width: 1101px) {
@@ -899,6 +900,25 @@ body[data-state="thinking"] .fdock .fdmic { color: var(--amber); border-color: v
 body.focus .subs { bottom: 104px; }
 body.focus[data-face="mask"] .heroText { bottom: 98px; }
 @media (max-width: 560px) { body.focus .fdock { gap: 6px; padding: 6px 8px; bottom: 14px; } .fdock button { width: 36px; height: 36px; } .fdock .fdmic { width: 50px; height: 50px; } }
+/* planner */
+.plbar { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-bottom: 12px; } .plbar .err { color: var(--red); font-size: 12.5px; }
+.plpane[hidden], #plForm[hidden] { display: none !important; }
+.plcal { display: grid; grid-template-columns: minmax(300px, 1.1fr) minmax(0, 1fr); gap: 14px; align-items: start; }
+.plhead { display: flex; gap: 6px; align-items: center; margin-bottom: 8px; } .plhead b { flex: 1; text-align: center; font-size: 15px; font-weight: 600; } .plhead .btn { height: 30px; padding: 0 10px; font-size: 13px; }
+.plgrid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 4px; }
+.plgrid i { font: 500 10.5px var(--mono); font-style: normal; color: var(--dim); text-align: center; padding: 2px 0; }
+.plday { min-height: 58px; border: 1px solid var(--hair); border-radius: 9px; background: rgba(var(--c-fill), .015); color: var(--text); font: inherit; font-size: 12px; text-align: left; padding: 5px 6px; cursor: pointer; overflow: hidden; display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.plday:hover { border-color: rgba(var(--c-accent), .4); } .plday.out { opacity: .38; } .plday.sel { border-color: var(--cyan); background: rgba(var(--c-accent), .07); }
+.plday.today b { background: var(--cyan); color: var(--bg); border-radius: 50%; width: 19px; height: 19px; display: grid; place-items: center; }
+.plday b { font-weight: 600; font-size: 11.5px; flex: none; } .plday span { display: block; font-size: 10.5px; line-height: 1.35; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; border-left: 2px solid var(--cyan); padding-left: 4px; } .plday span.t { border-color: var(--violet); } .plday span.more { border: 0; color: var(--dim); }
+.plweek h4 { margin: 0 0 6px; font-size: 13px; font-weight: 600; color: var(--head); } .plweek h4 small { color: var(--dim); font-weight: 400; margin-left: 6px; }
+.pld { margin-bottom: 12px; } .plrow { display: flex; gap: 9px; align-items: flex-start; padding: 7px 10px; border: 1px solid var(--hair); border-radius: 9px; margin-bottom: 4px; font-size: 13px; }
+.plrow > em { font: 500 11.5px var(--mono); color: var(--cyan); flex: 0 0 84px; padding-top: 1px; } .plrow.task > em { color: var(--violet); } .plrow.alarm > em, .plrow.prayer > em { color: var(--dim); }
+.plrow > div { flex: 1; min-width: 0; overflow-wrap: anywhere; } .plrow small { display: block; color: var(--muted); font-size: 12px; } .plrow .x { border: 0; background: none; color: var(--dim); cursor: pointer; padding: 1px 3px; } .plrow .x:hover { color: var(--text); } .plrow .x.del:hover { color: var(--red); }
+.plrow.late small { color: var(--amber); } .pltick { width: 19px; height: 19px; border-radius: 6px; border: 1.5px solid var(--hair-2); background: none; color: var(--bg); cursor: pointer; flex: none; padding: 0; display: grid; place-items: center; margin-top: 1px; } .pltick:hover { border-color: var(--green); } .pltick.on { background: var(--green); border-color: var(--green); } .pltick svg { width: 13px; height: 13px; }
+.pltask.done b { text-decoration: line-through; color: var(--muted); } .pltask.late .due { color: var(--amber); } .plp2 { color: var(--amber); } .plp3 { color: var(--red); }
+.skform textarea.note { min-height: 260px; font-family: var(--mono); font-size: 13px; } .skform .plf { display: flex; gap: 8px; flex-wrap: wrap; } .skform .plf label { display: grid; gap: 4px; font-size: 11.5px; color: var(--muted); } .skform .plf input, .skform .plf select { min-width: 0; flex: none; height: 34px; font-size: 13px; }
+@media (max-width: 1100px) { .plcal { grid-template-columns: minmax(0, 1fr); } } @media (max-width: 560px) { .plday { min-height: 42px; padding: 3px; } .plday span { display: none; } .plday.has::after { content: ""; width: 5px; height: 5px; border-radius: 50%; background: var(--cyan); } .plrow > em { flex-basis: 62px; } }
 /* agents */
 .agask { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 8px; }
 .agask select, .agask input { height: 38px; border-radius: 10px; border: 1px solid var(--hair-2); background: var(--surface-2); color: var(--text); font: inherit; font-size: 13.5px; padding: 0 10px; min-width: 0; }
@@ -986,6 +1006,7 @@ body.focus .plancard { display: none !important; }
       <button class="navi active" data-view="dash"><i data-ic="grid"></i><span>Command Center</span></button>
       <button class="navi" data-view="conv"><i data-ic="chat"></i><span>Conversations</span><em class="badge" id="bConv">0</em></button>
       <button class="navi" data-view="memory"><i data-ic="db"></i><span>Memory</span><em class="badge" id="bMem">0</em></button>
+      <button class="navi" data-view="planner"><i data-ic="clock"></i><span>Planner</span><em class="badge" id="bPlan">0</em></button>
       <button class="navi" data-view="profile"><i data-ic="user"></i><span>Profile</span></button>
       <button class="navi" data-view="tools"><i data-ic="wrench"></i><span>Tools &amp; Skills</span><em class="badge" id="bTools">0</em></button>
       <button class="navi" data-view="auto"><i data-ic="tasks"></i><span>Automations</span><em class="badge" id="bAuto">0</em></button>
@@ -1136,6 +1157,32 @@ body.focus .plancard { display: none !important; }
           </div>
           <h4 class="sec">NOTES</h4>
           <div class="list" id="noteList"></div>
+        </div>
+      </section>
+    </section>
+
+    <!-- Planner -->
+    <section class="view" data-view="planner">
+      <section class="card page">
+        <h3>Planner <span class="more" style="cursor:default">Calendar, tasks and notes, kept on this PC</span></h3>
+        <div class="body">
+          <div class="plbar"><div class="seg" id="plTabs" role="tablist" aria-label="Planner">
+              <button class="on" data-pl="agenda" role="tab" aria-selected="true"><i data-ic="clock"></i>Calendar</button>
+              <button data-pl="tasks" role="tab" aria-selected="false"><i data-ic="tasks"></i>Tasks</button>
+              <button data-pl="notes" role="tab" aria-selected="false"><i data-ic="note"></i>Notes</button></div>
+            <button class="btn on" id="plNew"><i data-ic="edit"></i><span id="plNewTxt">New event</span></button><span class="err" id="plErr" role="alert"></span></div>
+          <div class="skform" id="plForm" hidden></div>
+          <div class="plpane" data-plpane="agenda"><div class="plcal">
+              <div class="plmonth"><div class="plhead"><button class="btn" id="plPrev" aria-label="Month before">‹</button><b id="plMonth"></b><button class="btn" id="plNext" aria-label="Next month">›</button><button class="btn" id="plToday">Today</button></div>
+                <div class="plgrid" id="plGrid"></div></div>
+              <div class="plweek" id="plWeek"></div></div></div>
+          <div class="plpane" data-plpane="tasks" hidden>
+            <form class="agask" id="plQuick" autocomplete="off"><input id="plQuickT" maxlength="160" placeholder="Add a task and press Enter" aria-label="New task"><input id="plQuickD" type="date" aria-label="Due day" style="flex:0 0 150px"><button class="btn on" type="submit"><i data-ic="check"></i>Add</button></form>
+            <div class="memcats" id="plProj"></div><div class="list skilllist" id="plTasks"></div>
+            <details id="plDoneBox"><summary><h4 class="sec" style="display:inline-block">DONE</h4></summary><div class="list skilllist" id="plDone"></div></details></div>
+          <div class="plpane" data-plpane="notes" hidden>
+            <div class="memsearch" style="margin-bottom:10px"><i data-ic="search"></i><input id="plNoteQ" placeholder="Search notes…" aria-label="Search notes" autocomplete="off"></div>
+            <div class="list skilllist" id="plNotes"></div></div>
         </div>
       </section>
     </section>
@@ -1575,6 +1622,7 @@ function go(view) {
   if (view === "profile") loadProfile();
   if (view === "models") { renderModels(); loadLocal(); }
   if (view === "dash") requestAnimationFrame(() => { sizeCanvases(); drawConstel(); });
+  if (view === "planner") loadPlanner();
 }
 document.querySelectorAll(".navi").forEach(n => n.onclick = () => go(n.dataset.view));
 document.querySelectorAll("[data-go]").forEach(b => b.onclick = () => go(b.dataset.go));
@@ -1633,7 +1681,7 @@ const FRIENDLY = {
   open_application: ["Launched an app", "pc"], open_path: ["Opened a file or folder", "note"],
   find_files: ["Searched your files", "search"], read_text_file: ["Read a file", "note"],
   save_note: ["Saved a note", "note"], list_notes: ["Checked your notes", "note"],
-  remember_fact: ["Saved to memory", "db"], recall_memories: ["Recalled memories", "db"], forget_memory: ["Removed a memory", "db"], use_skill: ["Used a skill", "zap"], save_skill: ["Saved a skill", "zap"],
+  remember_fact: ["Saved to memory", "db"], recall_memories: ["Recalled memories", "db"], forget_memory: ["Removed a memory", "db"], tasks: ["Tasks", "tasks"], calendar: ["Calendar", "clock"], notes: ["Notes", "note"], use_skill: ["Used a skill", "zap"], save_skill: ["Saved a skill", "zap"],
   set_timer: ["Set a timer", "clock"], list_timers: ["Checked timers", "clock"], cancel_timer: ["Cancelled a timer", "clock"],
   media_control: ["Media control", "speaker"], clipboard: ["Used the clipboard", "note"],
   look_at_screen: ["Scanned your screen", "eye"], run_powershell: ["Ran a PowerShell command", "cpu"],
@@ -1721,8 +1769,8 @@ document.addEventListener("keydown", e => { if (e.key === "Escape" && detailId &
 const AGENTS = [
   { id: "research", name: "Research Agent", ic: "search", color: "var(--cyan)", tools: ["web_search", "fetch_webpage", "search_web_in_browser", "daily_briefing", "get_weather"] },
   { id: "browser", name: "Browser Agent", ic: "globe", color: "var(--amber)", tools: ["open_website", "open_application", "open_path", "play_youtube"] },
-  { id: "memory", name: "Memory Agent", ic: "db", color: "var(--violet)", tools: ["remember_fact", "recall_memories", "forget_memory", "use_skill", "save_skill", "save_note", "list_notes", "read_text_file", "find_files"] },
-  { id: "task", name: "Task Agent", ic: "tasks", color: "var(--blue)", tools: ["delegate", "automation", "make_plan", "plan_step", "set_timer", "list_timers", "cancel_timer", "get_datetime", "set_alarm", "list_alarms", "delete_alarm", "prayer_times", "prayer_reminders"] },
+  { id: "memory", name: "Memory Agent", ic: "db", color: "var(--violet)", tools: ["remember_fact", "recall_memories", "forget_memory", "use_skill", "save_skill", "save_note", "list_notes", "notes", "read_text_file", "find_files"] },
+  { id: "task", name: "Task Agent", ic: "tasks", color: "var(--blue)", tools: ["tasks", "calendar", "delegate", "automation", "make_plan", "plan_step", "set_timer", "list_timers", "cancel_timer", "get_datetime", "set_alarm", "list_alarms", "delete_alarm", "prayer_times", "prayer_reminders"] },
   { id: "vision", name: "Vision Agent", ic: "eye", color: "var(--green)", tools: ["look_at_screen", "take_screenshot", "read_screen_text"] },
   { id: "system", name: "System Agent", ic: "cpu", color: "var(--muted)", tools: ["system_status", "software", "network", "dev_tools", "manage_windows", "arrange_windows", "workspace", "run_powershell", "lock_computer", "media_control", "clipboard", "set_language", "set_location",
     "close_app", "power_action", "set_brightness", "wireless", "find_old_files", "clean_folder"] },
@@ -1869,6 +1917,9 @@ function handle(ev) {
       break;
     case "automations_changed":
       loadInfo();
+      break;
+    case "planner_changed":
+      loadPlanner();
       break;
     case "agents_changed":
       loadInfo();
@@ -2657,6 +2708,7 @@ async function loadInfo() {
     renderSkills();
     wsAll = j.workspaces || [];
     renderWorkspaces();
+    if (plOn()) loadPlanner();
     auAll = j.automations || []; auSteps = j.automation_steps || []; auTpls = j.automation_templates || [];
     renderAutomations(); drawPlan(j.plan);
     agAll = j.agents || []; agTools = j.agent_tools || []; agBoard = j.agent_board || []; renderAgentPage();
@@ -3042,6 +3094,106 @@ $("auImportGo").onclick = async () => {
   if (j.error) { $("auImportErr").textContent = j.error; return; }
   $("auImport").hidden = true; $("auImportText").value = ""; $("auImportErr").textContent = ""; loadInfo();
 };
+
+// ---------- planner: calendar, tasks, notes ----------
+let plData = null, plTab = "agenda", plDay = "", plProject = null, plDel = { key: "", at: 0 }, plSeq = 0;
+const plOn = () => !!document.querySelector('.view.active[data-view="planner"]');
+const plIso = d => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+const plDate = iso => { const [y, m, d] = iso.slice(0, 10).split("-").map(Number); return new Date(y, m - 1, d); };
+const plAdd = (iso, n) => { const d = plDate(iso); d.setDate(d.getDate() + n); return plIso(d); };
+const plName = (iso, o) => plDate(iso).toLocaleDateString("en-GB", o);
+const plWhen = due => { if (!due) return ""; const n = Math.round((plDate(due) - plDate(plData.today)) / 864e5);
+  return (n === 0 ? "today" : n === 1 ? "tomorrow" : n === -1 ? "yesterday" : plName(due, { weekday: "short", day: "numeric", month: "short" })) + (due.length > 10 ? " " + due.slice(11, 16) : ""); };
+const plLate = t => !t.done && t.due && (t.due.length > 10 ? new Date(t.due) < new Date() : t.due < plData.today);
+async function plPost(action, body = {}) {
+  const r = await post("/api/planner/" + action, body); const j = r ? await r.json().catch(() => ({ error: "The app didn't answer." })) : { error: "The app didn't answer." };
+  if (j.error || action !== "load") $("plErr").textContent = j.error || "";     // reloading keeps the last message
+  return j;
+}
+async function loadPlanner() {
+  const seq = ++plSeq, j = await plPost("load", { day: plDay || "today", query: $("plNoteQ").value });
+  if (j.error || seq !== plSeq) return;          // an older answer never replaces a newer one
+  plData = j; plDay = j.day; drawPlanner();
+}
+function plArm(key, b, again) {                  // deleting asks once more
+  if (plDel.key === key && Date.now() - plDel.at < 4000) { plDel = { key: "", at: 0 }; again(); return; }
+  plDel = { key, at: Date.now() }; const old = b.innerHTML; b.innerHTML = `${icon("x")}Delete?`; setTimeout(() => { if (b.isConnected) b.innerHTML = old; }, 4000);
+}
+function drawPlanner() {
+  const d = plData;
+  document.querySelectorAll("#plTabs [data-pl]").forEach(b => { const on = b.dataset.pl === plTab; b.classList.toggle("on", on); b.setAttribute("aria-selected", on); });
+  document.querySelectorAll("[data-plpane]").forEach(p => p.hidden = p.dataset.plpane !== plTab);
+  $("plNewTxt").textContent = { agenda: "New event", tasks: "New task", notes: "New note" }[plTab];
+  $("bPlan").textContent = d.tasks.filter(t => t.due && t.due.slice(0, 10) <= d.today).length;
+  // month
+  $("plMonth").textContent = plName(d.day, { month: "long", year: "numeric" });
+  $("plGrid").innerHTML = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map(x => `<i>${x}</i>`).join("") + d.grid.map(c => {
+    const all = [...c.events.map(e => ({ t: (e.all_day || e.start.slice(0, 10) < c.day ? "" : e.start.slice(11, 16) + " ") + e.title })), ...c.tasks.map(t => ({ t: t.title, k: "t" }))];
+    return `<button class="plday${c.day.slice(0, 7) !== d.day.slice(0, 7) ? " out" : ""}${c.day === d.day ? " sel" : ""}${c.day === d.today ? " today" : ""}${all.length ? " has" : ""}" data-plday="${c.day}" aria-label="${esc(plName(c.day, { weekday: "long", day: "numeric", month: "long" }))}, ${all.length} planned"><b>${+c.day.slice(8)}</b>${all.slice(0, 2).map(x => `<span class="${x.k || ""}">${esc(x.t)}</span>`).join("")}${all.length > 2 ? `<span class="more">+${all.length - 2} more</span>` : ""}</button>`; }).join("");
+  $("plGrid").querySelectorAll("[data-plday]").forEach(b => b.onclick = () => { plDay = b.dataset.plday; loadPlanner(); });
+  // the chosen day and the six after it
+  $("plWeek").innerHTML = d.next.map((r, i) => {
+    const rows = [...r.events.map(e => ({ at: e.all_day || e.start.slice(0, 10) < r.day ? "" : e.start.slice(11, 16), h: `<div class="plrow"><em>${e.all_day ? "all day" : (e.start.slice(0, 10) < r.day ? "…" : e.start.slice(11, 16)) + "–" + (e.end.slice(0, 10) > r.day && e.end.slice(11, 16) !== "00:00" ? "…" : e.end.slice(11, 16))}</em><div>${esc(e.title)}<small>${esc([e.place, e.repeat !== "none" ? "repeats " + e.repeat : "", e.notes].filter(Boolean).join(" · "))}</small></div><button class="x" data-evedit="${e.id}" aria-label="Edit ${esc(e.title)}">${icon("edit")}</button><button class="x del" data-evdel="${e.id}" aria-label="Delete ${esc(e.title)}">${icon("x")}</button></div>` })),
+      ...r.tasks.map(t => ({ at: t.due.length > 10 ? t.due.slice(11, 16) : "", h: `<div class="plrow task${plLate(t) ? " late" : ""}"><em>${t.due.length > 10 ? t.due.slice(11, 16) : "task"}</em><button class="pltick" data-tkdone="${t.id}" aria-label="Done: ${esc(t.title)}">${icon("check")}</button><div>${esc(t.title)}<small>${esc([t.project, plLate(t) ? "due " + plWhen(t.due) : ""].filter(Boolean).join(" · "))}</small></div></div>` })),
+      ...r.alarms.map(a => ({ at: a.time, h: `<div class="plrow alarm"><em>${esc(a.time)}</em><div>${esc(a.label || "Alarm")}<small>alarm</small></div></div>` })),
+      ...r.prayers.map(p => ({ at: p.time, h: `<div class="plrow prayer"><em>${esc(p.time)}</em><div>${esc(p.label)}</div></div>` }))].sort((a, b) => a.at < b.at ? -1 : a.at > b.at ? 1 : 0);
+    return rows.length || !i ? `<div class="pld"><h4>${esc(plName(r.day, { weekday: "long", day: "numeric", month: "long" }))}${r.day === d.today ? "<small>today</small>" : ""}</h4>${rows.map(x => x.h).join("") || '<div class="empty">Nothing planned.</div>'}</div>` : ""; }).join("");
+  // tasks
+  const inProj = t => plProject === null || t.project.toLowerCase() === plProject;
+  $("plProj").innerHTML = `<button class="chip2${plProject === null ? " on" : ""}" data-plproj="">All <em>${d.tasks.length}</em></button>` + d.projects.map(p => `<button class="chip2${plProject === p.name.toLowerCase() ? " on" : ""}" data-plproj="${esc(p.name.toLowerCase())}">${esc(p.name)} <em>${p.open}${p.done ? "/" + (p.open + p.done) : ""}</em></button>`).join("");
+  $("plProj").querySelectorAll("[data-plproj]").forEach(b => b.onclick = () => { plProject = b.dataset.plproj || null; drawPlanner(); });
+  const row = t => `<div class="item skitem pltask${t.done ? " done" : ""}${plLate(t) ? " late" : ""}" style="align-items:flex-start"><button class="pltick${t.done ? " on" : ""}" data-tkdone="${t.id}" role="checkbox" aria-checked="${t.done}" aria-label="Done: ${esc(t.title)}">${icon("check")}</button>
+      <div style="min-width:0;flex:1"><b style="overflow-wrap:anywhere">${t.priority > 1 ? `<span class="plp${t.priority}" title="${t.priority === 3 ? "Urgent" : "Important"}">${t.priority === 3 ? "!! " : "! "}</span>` : ""}${esc(t.title)}</b><small>${t.due ? `<span class="due">${esc(plLate(t) ? "overdue, " : "")}${esc(plWhen(t.due))}</span>` : ""}${t.project ? ` · ${esc(t.project)}` : ""}${t.notes ? ` · ${esc(t.notes.slice(0, 140))}` : ""}</small></div>
+      <div class="skacts"><button class="btn" data-tkedit="${t.id}" aria-label="Edit ${esc(t.title)}">${icon("edit")}</button><button class="btn danger" data-tkdel="${t.id}" aria-label="Delete ${esc(t.title)}">${icon("x")}</button></div></div>`;
+  $("plTasks").innerHTML = d.tasks.filter(inProj).map(row).join("") || '<div class="empty">Nothing to do here. Add a task above, or say "remind me to send the report tomorrow at 5".</div>';
+  $("plDone").innerHTML = d.done.filter(inProj).map(row).join("") || '<div class="empty">Nothing done yet.</div>';
+  // notes
+  $("plNotes").innerHTML = d.notes.map(n => `<div class="item skitem" style="align-items:flex-start"><span class="ico">${icon("note")}</span><div style="min-width:0;flex:1"><b style="overflow-wrap:anywhere">${esc(n.name)}</b><small class="skt">${esc(n.preview)}</small><small>${esc(n.modified.replace("T", " "))}</small></div>
+      <div class="skacts"><button class="btn" data-ntopen="${esc(n.name)}">${icon("edit")}Open</button><button class="btn danger" data-ntdel="${esc(n.name)}" aria-label="Delete ${esc(n.name)}">${icon("x")}</button></div></div>`).join("") || `<div class="empty">${$("plNoteQ").value ? "No note matches that." : 'No notes yet. Make one, or say "take a note: …".'}</div>`;
+  const pg = document.querySelector('section.view[data-view="planner"]'), on = (sel, fn) => pg.querySelectorAll(`[data-${sel}]`).forEach(b => b.onclick = () => fn(b.dataset[sel], b));
+  const anyTask = id => [...d.tasks, ...d.done].find(t => t.id === +id), anyEv = id => [...d.next, ...d.grid].flatMap(r => r.events).find(e => e.id === +id);
+  on("tkdone", (id, b) => { b.classList.add("on"); plPost("done", { id: +id, on: !anyTask(id).done }); });
+  on("tkedit", id => taskForm(anyTask(id))); on("tkdel", (id, b) => plArm("t" + id, b, () => plPost("task_delete", { id: +id })));
+  on("evedit", id => eventForm(anyEv(id))); on("evdel", (id, b) => plArm("e" + id, b, () => plPost("event_delete", { id: +id })));
+  on("ntopen", async name => { const j = await plPost("note_read", { name }); if (!j.error) noteForm(j); });
+  on("ntdel", (name, b) => plArm("n" + name, b, () => plPost("note_delete", { name })));
+}
+function plShow(html) { const f = $("plForm"); f.hidden = false; f.innerHTML = html + `<div class="row"><button class="btn on" id="plSave">${icon("check")}Save</button><button class="btn" id="plCancel">Cancel</button><span class="err" id="plFormErr"></span></div>`; $("plCancel").onclick = plHide; f.scrollIntoView({ block: "nearest" }); }
+function plHide() { const f = $("plForm"); f.hidden = true; f.innerHTML = ""; }
+function plSaver(action, body, after) { $("plSave").onclick = async () => { const j = await plPost(action, body()); if (j.error) { if ($("plFormErr")) $("plFormErr").textContent = j.error; $("plErr").textContent = ""; return; } plHide(); if (after) after(j); }; }
+const plOpt = (v, l, cur) => `<option value="${esc(v)}"${String(v) === String(cur) ? " selected" : ""}>${esc(l)}</option>`;
+function eventForm(e) {
+  const s = e ? (e.first_start || e.start) : null, n = e && !e.all_day ? Math.round((new Date(e.end) - new Date(e.start)) / 60000) : 60;
+  plShow(`<div class="row"><input id="evT" maxlength="160" placeholder="What is it?" aria-label="Title" value="${esc(e ? e.title : "")}"><input id="evP" maxlength="160" placeholder="Where (optional)" aria-label="Place" value="${esc(e ? e.place : "")}"></div>
+    <div class="plf"><label>Day<input type="date" id="evD" value="${esc(s ? s.slice(0, 10) : plDay)}"></label><label>Time (empty = all day)<input type="time" id="evH" value="${s && !e.all_day ? s.slice(11, 16) : ""}"></label><label>Minutes<input type="number" id="evM" min="1" max="10080" style="width:90px" value="${n}"></label>
+      <label>Repeat<select id="evR">${["none", "daily", "weekly", "monthly", "yearly"].map(r => plOpt(r, r, e ? e.repeat : "none")).join("")}</select></label><label>Until (optional)<input type="date" id="evU" value="${esc((e && e.until) || "")}"></label>
+      <label>Remind<select id="evB">${[[-1, "no"], [0, "at the time"], [5, "5 min before"], [15, "15 min before"], [30, "30 min before"], [60, "1 hour before"], [1440, "1 day before"]].concat(e && e.remind != null && ![0, 5, 15, 30, 60, 1440].includes(e.remind) ? [[e.remind, e.remind + " min before"]] : []).map(([v, l]) => plOpt(v, l, e ? e.remind ?? -1 : 15)).join("")}</select></label></div>
+    <textarea id="evN" maxlength="2000" placeholder="Notes (optional)" aria-label="Notes" style="min-height:56px">${esc(e ? e.notes : "")}</textarea>${e && e.repeat !== "none" ? "<small>It repeats: changes apply to all its days.</small>" : ""}`);
+  plSaver("event", () => ({ id: e ? e.id : null, title: $("evT").value, place: $("evP").value, day: $("evD").value, time: $("evH").value, minutes: $("evM").value, repeat: $("evR").value, until: $("evU").value, remind: $("evB").value, notes: $("evN").value }),
+    j => { plDay = j.event.start.slice(0, 10); if (j.overlaps.length) $("plErr").textContent = "Saved. It overlaps with: " + j.overlaps.join("; "); });
+  $("evT").focus();
+}
+function taskForm(t) {
+  plShow(`<div class="row"><input id="tkT" maxlength="160" placeholder="What needs doing?" aria-label="Task" value="${esc(t ? t.title : "")}"></div>
+    <div class="plf"><label>Due day<input type="date" id="tkD" value="${esc(t && t.due ? t.due.slice(0, 10) : "")}"></label><label>Time (reminds you then)<input type="time" id="tkH" value="${esc(t && t.due && t.due.length > 10 ? t.due.slice(11, 16) : "")}"></label>
+      <label>Importance<select id="tkP">${[[1, "normal"], [2, "important"], [3, "urgent"]].map(([v, l]) => plOpt(v, l, t ? t.priority : 1)).join("")}</select></label><label>Project<input id="tkJ" maxlength="40" list="tkList" value="${esc(t ? t.project : plProject ? (plData.projects.find(p => p.name.toLowerCase() === plProject) || {}).name || "" : "")}"><datalist id="tkList">${plData.projects.map(p => `<option value="${esc(p.name)}">`).join("")}</datalist></label></div>
+    <textarea id="tkN" maxlength="2000" placeholder="Notes (optional)" aria-label="Notes" style="min-height:56px">${esc(t ? t.notes : "")}</textarea>`);
+  plSaver("task", () => ({ id: t ? t.id : null, title: $("tkT").value, due: $("tkD").value ? $("tkD").value + ($("tkH").value ? "T" + $("tkH").value : "") : "", priority: $("tkP").value, project: $("tkJ").value, notes: $("tkN").value }));
+  $("tkT").focus();
+}
+function noteForm(n) {
+  plShow(`<div class="row"><input id="ntN" maxlength="110" placeholder="Name of the note" aria-label="Name" value="${esc(n ? n.name : "")}"></div><textarea class="note" id="ntT" aria-label="Text" placeholder="Write here…"></textarea>`);
+  $("ntT").value = n ? n.text : "";
+  plSaver("note_save", () => ({ name: $("ntN").value.trim(), old: n ? n.name : "", text: $("ntT").value, new: !n }));
+  (n ? $("ntT") : $("ntN")).focus();
+}
+document.querySelectorAll("#plTabs [data-pl]").forEach(b => b.onclick = () => { plTab = b.dataset.pl; plHide(); if (plData) drawPlanner(); });
+$("plNew").onclick = () => { if (plData) ({ agenda: () => eventForm(null), tasks: () => taskForm(null), notes: () => noteForm(null) })[plTab](); };
+const plMove = n => { const d = plDate(plDay || plIso(new Date())); plDay = plIso(new Date(d.getFullYear(), d.getMonth() + n, 1)); loadPlanner(); };
+$("plPrev").onclick = () => plMove(-1); $("plNext").onclick = () => plMove(1); $("plToday").onclick = () => { plDay = ""; loadPlanner(); };
+$("plQuick").onsubmit = async e => { e.preventDefault(); const title = $("plQuickT").value.trim(); if (!title) return; const j = await plPost("task", { title, due: $("plQuickD").value, project: plProject ? (plData.projects.find(p => p.name.toLowerCase() === plProject) || {}).name : "" }); if (!j.error) { $("plQuickT").value = ""; $("plQuickD").value = ""; $("plQuickT").focus(); } };
+let plNoteTimer = 0;
+$("plNoteQ").oninput = () => { clearTimeout(plNoteTimer); plNoteTimer = setTimeout(loadPlanner, 250); };
 
 // ---------- agents ----------
 let agAll = [], agTools = [], agBoard = [], agDelArmed = { id: 0, at: 0 }, agBusy = false;

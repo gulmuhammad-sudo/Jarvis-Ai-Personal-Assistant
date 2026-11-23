@@ -2,6 +2,13 @@
 
 Newest first. Each entry: what was done, how it was tested, what is open, the next task.
 
+## 2026-11-23 — Session 2, part 10: Phase 7 part 1 — planner (v1.21.0)
+
+**Done** — `jarvis/planner.py`, `jarvis/notes.py`, migration 7, tools `tasks`, `calendar`, `notes`, `/api/planner/*`,
+Planner page, reminders in the scheduler tick.
+
+**Next** — ask the owner: build 1.21.0; Phase 7 part 2 (Word, Excel, PowerPoint, PDF: needs four free packages).
+
 ## 2026-11-23 — Session 2, part 9: Setup and voice panel, spoken replies, first real-AI test (v1.19.1 – v1.20.0)
 
 **Done** — see CHANGELOG. The real AI found two faults that 360 tests with a scripted AI had not: a refused step carried

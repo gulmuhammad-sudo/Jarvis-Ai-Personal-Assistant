@@ -36,7 +36,9 @@ STEP_TOOLS: dict[str, dict[str, Any]] = {
     "manage_windows": {"action": ("focus", "minimize", "maximize", "restore", "snap", "minimize_all")},
     "workspace": {"action": ("open",)}, "network": {"action": ("check",)}, "software": {"action": ("updates",)},
     "close_app": {"force": (False,)},
+    "calendar": {"action": ("agenda",)}, "tasks": {"action": ("list",)},
 }
+ONLY = {"calendar": ("action", "day", "days"), "tasks": ("action", "project")}       # of these tools, only these settings
 LABELS = {
     "open_application": "Open an app", "open_website": "Open a website", "open_path": "Open a folder or document",
     "play_youtube": "Play on YouTube", "media_control": "Media and volume", "set_brightness": "Screen brightness",
@@ -44,14 +46,14 @@ LABELS = {
     "daily_briefing": "Daily briefing", "prayer_times": "Prayer times", "get_datetime": "Date and time",
     "system_status": "PC health", "arrange_windows": "Windows side by side", "lock_computer": "Lock the PC (asks first)",
     "manage_windows": "Move a window", "workspace": "Open a workspace", "network": "Check the internet",
-    "software": "Look for app updates", "close_app": "Close an app",
+    "software": "Look for app updates", "close_app": "Close an app", "calendar": "What's planned", "tasks": "Open tasks",
 }
 # steps whose answer is the point: told to you when the automation ends
 TELLS = {"get_weather": "Weather", "daily_briefing": "Briefing", "prayer_times": "Prayer times", "get_datetime": "Time", "system_status": "PC",
-         "network": "Internet", "software": "App updates"}
+         "network": "Internet", "software": "App updates", "calendar": "Planned", "tasks": "Tasks"}
 
 TEMPLATES = [
-    {"name": "Morning start", "steps": [{"tool": "get_weather", "args": {}}, {"tool": "prayer_times", "args": {}},
+    {"name": "Morning start", "steps": [{"tool": "get_weather", "args": {}}, {"tool": "prayer_times", "args": {}}, {"tool": "calendar", "args": {"action": "agenda"}},
                                         {"ask": "Give me my daily briefing in a few short lines."}],
      "trigger": {"type": "time", "at": "08:00", "days": [0, 1, 2, 3, 4, 5, 6]}},
     {"name": "Focus time", "steps": [{"tool": "manage_windows", "args": {"action": "minimize_all"}},
@@ -108,7 +110,7 @@ def check_step(step: Any, last: bool = True) -> dict:
     clean = {}
     for key, val in args.items():
         spec = schema["properties"].get(key)
-        if spec is None:
+        if spec is None or (name in ONLY and key not in ONLY[name]):
             raise ValueError(f"{LABELS[name]}: unknown setting {key!r}.")
         if val is None or val == "":
             continue
@@ -197,7 +199,7 @@ def step_choices() -> list[dict]:
         schema = _schemas()[name]
         props = []
         for key, spec in schema["properties"].items():
-            if limits.get(key) == (False,):
+            if limits.get(key) == (False,) or (name in ONLY and key not in ONLY[name]):
                 continue                                   # fixed off (e.g. force-closing)
             choices = limits.get(key) or spec.get("enum")
             props.append({"key": key, "type": spec.get("type", "string"), "choices": list(choices) if choices else None,

@@ -61,3 +61,9 @@ def test_voice_panel_fits_itself_to_its_room():
     assert "container: voice / size" in html and ".side > nav { flex: 0 1 auto; min-height: 90px; overflow-y: auto;" in html
     rules = re.findall(r"@container voice .*?\n(?=@container|\.unmute)", html, re.S)
     assert len(rules) == 3 and not re.search(r"(?<!vbody )#(wave|vLabel)\b", "".join(r.replace(":not([hidden])) #vLabel", "") for r in rules))
+
+
+def test_page_lookups_never_find_the_menu_button():
+    """[data-view="x"] is on the menu button too, and it comes first: the Planner's buttons were wired to nothing."""
+    html = (ROOT / "jarvis/hud.html").read_text(encoding="utf-8")
+    assert not re.findall(r"""querySelector\(['"]\[data-view=""", html)

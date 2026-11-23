@@ -80,6 +80,33 @@ MIGRATIONS: list[str] = [
            created TEXT NOT NULL,
            updated TEXT NOT NULL,
            runs INTEGER NOT NULL DEFAULT 0);""",
+    # 7: planner (see planner.py): tasks and the calendar
+    """CREATE TABLE tasks (
+           id INTEGER PRIMARY KEY AUTOINCREMENT,
+           title TEXT NOT NULL,
+           notes TEXT NOT NULL DEFAULT '',
+           project TEXT NOT NULL DEFAULT '',
+           due TEXT,                                     -- a day or a moment, local time
+           priority INTEGER NOT NULL DEFAULT 1,          -- 1 normal, 2 important, 3 urgent
+           done INTEGER NOT NULL DEFAULT 0,
+           done_at TEXT,
+           reminded TEXT,                                -- the due time it was reminded of
+           created TEXT NOT NULL,
+           updated TEXT NOT NULL);
+       CREATE TABLE calendar (
+           id INTEGER PRIMARY KEY AUTOINCREMENT,
+           title TEXT NOT NULL,
+           place TEXT NOT NULL DEFAULT '',
+           notes TEXT NOT NULL DEFAULT '',
+           start TEXT NOT NULL,
+           end TEXT NOT NULL,
+           all_day INTEGER NOT NULL DEFAULT 0,
+           repeat TEXT NOT NULL DEFAULT 'none',
+           until TEXT,
+           remind INTEGER,                               -- minutes before; NULL = no reminder
+           reminded TEXT,                                -- the start it was last reminded of
+           created TEXT NOT NULL,
+           updated TEXT NOT NULL);""",
 ]
 
 # event types worth keeping across restarts (not live captions, levels, approval prompts...)

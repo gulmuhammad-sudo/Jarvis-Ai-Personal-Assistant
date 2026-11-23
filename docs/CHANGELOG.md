@@ -2,6 +2,17 @@
 
 Each version is also a git tag (`git tag -n20 vX.Y.Z` shows its notes). Newest first.
 
+## 1.21.0 — 2026-11-23 (not pushed yet)
+- Planner page. Calendar: month and week with events, tasks, alarms and prayers; repeating events, reminders, a warning
+  when two overlap. Tasks: due day or time, importance, projects. Notes: search, read, change, rename, delete (Recycle Bin).
+  All on this PC.
+- By voice or chat: "send the report tomorrow at 5, project Work", "what's planned on Friday?", "read my shopping note".
+  Deleting, and replacing a note's text, asks first.
+- The daily briefing, the Timeline and automations ("What's planned", "Open tasks") know about it.
+- Agents: plans, tasks and notes are on the private side. Corrected: a web agent could have been given the daily briefing
+  (alarm and timer names), timers or the names of open apps since 1.19; none of the ready-made ones was.
+- The clock is no longer partly covered by the search box on pages other than the Command Center.
+
 ## 1.20.0 — 2026-11-23
 Found by the first test with real AIs (Gemini, Groq):
 - Your "no" to a plan or a step now holds in code: tools that change something don't run until you say something new, a

@@ -1,5 +1,13 @@
 # Security review
 
+## 2026-11-23 — v1.21.0
+
+| Area | How | Where |
+|---|---|---|
+| Notes | Named by file name only (no folders, drives, streams, device names), must lie in the notes folder; deleting goes to the Recycle Bin and asks; replacing asks and shows the new text | `jarvis/notes.py`, `tools.notes` |
+| Web or private (was: daily_briefing, cancel_timer and arrange_windows let a web agent see alarm, timer or app names) | daily_briefing is for no agent; the others and the planner are private | `jarvis/agents.py` |
+| Text kept earlier | tasks, calendar and notes are marked untrusted when read back | `guard.READ_BACK` |
+
 ## 2026-11-23 — v1.20.0
 
 | Area | How | Where |

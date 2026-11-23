@@ -107,7 +107,7 @@ def test_request_too_large_is_tried_again_with_fewer_tools():
         return create
     b.client = type("C", (), {"chat": type("H", (), {"completions": type("M", (), {"create": staticmethod(make(1))})})})
     assert b._create() == "answer"
-    assert len(sent[0]) == len(b.tool_defs) and len(sent[1]) < 35 and {"software", "get_datetime", "make_plan"} <= set(sent[1])
+    assert len(sent[0]) == len(b.tool_defs) and len(sent[1]) < 40 and {"software", "get_datetime", "make_plan"} <= set(sent[1])
     sent.clear()
     b.client = type("C", (), {"chat": type("H", (), {"completions": type("M", (), {"create": staticmethod(make(9))})})})
     with pytest.raises(openai.APIStatusError):

@@ -224,7 +224,7 @@ LOCAL_TOOLS = ("get_datetime", "system_status", "open_website", "search_web_in_b
                "open_path", "find_files", "read_text_file", "save_note", "list_notes", "remember_fact",
                "recall_memories", "set_timer", "list_timers", "cancel_timer", "media_control", "clipboard",
                "web_search", "fetch_webpage", "get_weather", "play_youtube", "set_alarm", "list_alarms",
-               "close_app", "take_screenshot", "write_file")
+               "close_app", "take_screenshot", "write_file", "tasks", "calendar", "notes")
 
 
 def prefer_local() -> bool:
