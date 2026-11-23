@@ -19,7 +19,8 @@ set PA_TEST_NETWORK=1 && .venv\Scripts\python -m pytest tests   # also the onlin
 | Running app (test copy, quiet, no mic) | pass after 2 fixes | add / change / move / delete events, overlap message, tasks done and undone, projects, notes opened, renamed and searched, bad names refused, HTML shown as text, months; left side and top bar at 5 window sizes incl. the owner's 1534x787. Fixed: Done, Edit, Delete and Open were wired to nothing (`[data-view="planner"]` found the menu button first; 72 tests had passed); the clock under the search box (older) |
 | One slow test run | explained | 18 minutes: the PC was in standby from 15:08:54 to 15:25:24 |
 | Emergency Stops in the test copy | a likely cause | the browser pane reported clicks by the owner in the test copy during this session; whether the 16 Stops were such clicks isn't proven |
-| Not tested | — | moving a real note to the Recycle Bin (the bin was replaced by a recorder); a real reminder at its time (a fake clock was used); the planner with a real AI; the packaged exe |
+| Packaged exe 1.21.0 (isolated data, no mic, fake Ollama, a page kept open) | 64/64 in 2 of 2 runs | the checks of 1.20.0 plus the planner (events, overlap, weekly repeats in a month, tasks, projects, notes, a bad note name), kept after a restart, and a real reminder: due 15:49:00, came 15:49:13, once, not again after the restart |
+| Not tested | — | moving a real note to the Recycle Bin (the bin was replaced by a recorder); the planner with a real AI |
 
 ## 2026-11-23 — First test with real AIs (fixes in v1.20.0)
 
