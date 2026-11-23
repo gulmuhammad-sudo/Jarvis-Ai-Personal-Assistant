@@ -54,6 +54,15 @@ def test_nothing_is_defined_twice(page):
     assert not [i for i, c in Counter(ids).items() if c > 1]
 
 
+def test_glass_is_not_paid_for_with_blur():
+    """Blurring every panel doubled the CPU use of the page and looked the same: only popups are blurred. Solid without transparency effects."""
+    html = (ROOT / "jarvis/hud.html").read_text(encoding="utf-8")
+    css = re.search(r"<style>(.*?)</style>", html, re.S).group(1)
+    blurred = {s.strip() for sel in re.findall(r"([^{}]+)\{[^{}]*backdrop-filter: blur", re.sub(r"/\*.*?\*/", "", css, flags=re.S)) for s in sel.split(",")}
+    assert blurred and not {".card", ".hero", ".side > nav", ".foot", ".item", ".setrow", ".card:not(.hero)", ".card.page"} & blurred, blurred
+    assert "prefers-reduced-transparency: reduce" in css and "select option, select optgroup { background: var(--solid)" in css
+
+
 def test_voice_panel_fits_itself_to_its_room():
     """Two more menu items once squeezed it until its text lay over the mic. The compact rules need the .vbody prefix:
     without it the plain #wave / #vLabel rules further down win."""

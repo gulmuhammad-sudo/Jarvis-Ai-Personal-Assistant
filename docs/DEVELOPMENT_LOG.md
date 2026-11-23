@@ -2,6 +2,16 @@
 
 Newest first. Each entry: what was done, how it was tested, what is open, the next task.
 
+## 2026-11-23 — Session 2, part 14: glass everywhere (v1.25.0)
+
+**Done** — one block of CSS at the end of `jarvis/hud.html` (tokens `--surface`, `--row`, `--field`, `--pane`, `--sheen`), headings
+with icons on all pages, the same in `packaging/setup.html`.
+
+**Learned** — `backdrop-filter` on panels costs as much CPU as everything else on the page; the built-in browser pane can't
+measure it (1 fps while hidden), a hidden Edge with remote debugging can.
+
+**Next** — email [46].
+
 ## 2026-11-23 — Session 2, part 13: Phase 7 part 3 — goals, journal, money (v1.24.0)
 
 **Done** — `jarvis/life.py`, migration 9, tools `goals`, `journal`, `money`, `/api/life/*`, three Planner tabs, reminders in

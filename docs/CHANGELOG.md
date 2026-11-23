@@ -2,10 +2,17 @@
 
 Each version is also a git tag (`git tag -n20 vX.Y.Z` shows its notes). Newest first.
 
-## 1.24.1 — 2026-11-23 (not pushed yet)
+## 1.25.0 — 2026-11-23
+- The glass look of Settings everywhere: see-through panels over soft light, the same rows, tabs, buttons, fields and
+  headings with icons on every page, frosted popups; dark and light theme; the Setup window too. Profile sits in the middle
+  like Settings.
+- It costs no more than before. Blurring the panels as well looked the same and doubled the CPU use, so only popups are
+  blurred. With Windows' Transparency effects off, everything is solid.
+
+## 1.24.1 — 2026-11-23
 - The local AI (offline) can write in the journal too. Before, only the online ones could. (Found by the packaged-exe test.)
 
-## 1.24.0 — 2026-11-23 (not pushed yet)
+## 1.24.0 — 2026-11-23
 Planner page, three new tabs, all on this PC:
 - Goals: goals with a target or steps, a day and a progress bar; habits (every day or some days a week) to tick, streaks,
   a reminder at your time.

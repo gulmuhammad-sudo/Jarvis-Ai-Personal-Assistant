@@ -1011,6 +1011,75 @@ body.focus .plancard { display: none !important; }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: .001ms !important; animation-iteration-count: 1 !important; transition-duration: .001ms !important; }
 }
+/* ===================== glass (1.25): one look for every page =====================
+   Panels are see-through over a softly lit background, rows inside them are lighter glass, popups are frosted.
+   Only popups are blurred. Blurred panels looked the same (there is only a soft gradient behind them) and doubled the CPU use
+   (measured: 41% of a core without, 82% with, on the Command Center). A blurred parent also holds position: fixed things in place. */
+:root {
+  --surface: rgba(17, 29, 42, .46); --surface-2: rgba(150, 195, 230, .075); --solid: #0b131c; --pane: rgba(9, 16, 24, .82); --field: rgba(2, 6, 10, .42);
+  --hair: rgba(var(--c-ink), .125); --hair-2: rgba(var(--c-ink), .2); --r: 16px;
+  --sheen: inset 0 1px 0 rgba(255, 255, 255, .075), inset 0 -1px 0 rgba(0, 0, 0, .16); --lift: 0 12px 34px rgba(0, 0, 0, .26);
+  --row: linear-gradient(180deg, rgba(var(--c-fill), .052), rgba(var(--c-fill), .017)); --row-sheen: inset 0 1px 0 rgba(255, 255, 255, .05);
+  --blob1: rgba(28, 104, 150, .34); --blob2: rgba(88, 66, 160, .26); --blob3: rgba(16, 110, 120, .22);
+}
+:root[data-theme="light"] {
+  --surface: rgba(255, 255, 255, .58); --surface-2: rgba(255, 255, 255, .62); --solid: #ffffff; --pane: rgba(255, 255, 255, .86); --field: rgba(255, 255, 255, .72);
+  --hair: rgba(var(--c-ink), .13); --hair-2: rgba(var(--c-ink), .2);
+  --sheen: inset 0 1px 0 rgba(255, 255, 255, .95), inset 0 -1px 0 rgba(15, 30, 50, .04); --lift: 0 10px 30px rgba(15, 40, 70, .1);
+  --row: linear-gradient(180deg, rgba(255, 255, 255, .72), rgba(255, 255, 255, .42)); --row-sheen: inset 0 1px 0 rgba(255, 255, 255, .9);
+  --blob1: rgba(120, 190, 235, .5); --blob2: rgba(180, 165, 240, .38); --blob3: rgba(130, 215, 205, .36);
+}
+body { background: radial-gradient(900px 620px at 12% -6%, var(--blob1), transparent 68%), radial-gradient(900px 640px at 96% 16%, var(--blob2), transparent 66%),
+  radial-gradient(1000px 620px at 55% 112%, var(--blob3), transparent 68%), radial-gradient(1100px 650px at 50% 30%, var(--bg-glow) 0%, var(--bg) 70%); }
+/* panels */
+.card, .side > nav, .foot { background: linear-gradient(160deg, rgba(var(--c-fill), .05), rgba(var(--c-fill), .008) 46%), var(--surface); border-color: var(--hair); border-radius: var(--r);
+  box-shadow: var(--sheen), var(--lift); }
+:root[data-theme="light"] .card { box-shadow: var(--sheen), var(--lift); }
+.hero { background: radial-gradient(ellipse at 50% 46%, var(--hero-glow) 0%, transparent 70%), var(--surface); }
+/* frosted popups */
+.modal .card, .detail, .plancard, .micask, .setup .card, .mgtip, .subs, .offline { background: linear-gradient(160deg, rgba(var(--c-fill), .06), rgba(var(--c-fill), .01) 50%), var(--pane);
+  backdrop-filter: blur(24px) saturate(1.35); -webkit-backdrop-filter: blur(24px) saturate(1.35); box-shadow: var(--sheen), 0 22px 60px var(--shadow); }
+.offline { background: var(--alert-red); } .subs { border-radius: 14px; }
+.tli .dot { background: var(--solid); } .tli.done .dot { background: var(--dim); } .tli.soon .dot { background: var(--amber); }
+select option, select optgroup { background: var(--solid); color: var(--text); }
+/* rows: the Settings row, everywhere */
+.item, .setrow, .permrow, .plrow, .ag, .llm, .qbtn, .austep, .lftiles div, .dxhit, .plday, .opt2, .tcard, .memgraph, .msg.jarvis, .wsitem, .ov-row { background: var(--row); border-color: var(--hair); box-shadow: var(--row-sheen); }
+.item, .setrow, .permrow, .skform, .memgraph, .lftiles div, .austep { border-radius: 12px; }
+.item, .setrow, .permrow, .plrow, .ag, .llm, .lftiles div, .austep { transition: border-color .2s, background .2s, transform .2s; }
+.item:hover, .setrow:hover, .permrow:hover, .plrow:hover, .ag:hover, .llm:hover, .lftiles div:hover, .dxhit:hover { border-color: rgba(var(--c-accent), .28); background: linear-gradient(180deg, rgba(var(--c-accent), .07), rgba(var(--c-accent), .022)); }
+.skform { background: linear-gradient(180deg, rgba(var(--c-accent), .09), rgba(var(--c-accent), .03)); box-shadow: var(--row-sheen), var(--lift); }
+.plday.sel { background: rgba(var(--c-accent), .1); border-color: var(--cyan); } .tcard.on, .opt2.on { border-color: var(--cyan); background: linear-gradient(180deg, rgba(var(--c-accent), .14), rgba(var(--c-accent), .05)); }
+/* buttons and fields */
+.btn, .iconbtn, .focusbtn, .chip2, .operator, .lfmood button { background: linear-gradient(180deg, rgba(var(--c-fill), .07), rgba(var(--c-fill), .02)), var(--surface-2); box-shadow: var(--row-sheen); }
+.btn.on { background: linear-gradient(180deg, rgba(var(--c-green), .16), rgba(var(--c-green), .05)); }
+.btn.primary, .btn.allow { background: var(--cyan); } .btn.allow { background: var(--amber); }
+.btn.switch { background: rgba(var(--c-fill), .08); box-shadow: none; } .btn.switch.on { background: rgba(var(--c-accent), .28); }
+.focusbtn.on { background: rgba(var(--c-green), .08); } .chip2.on, .lfmood button.on { background: rgba(var(--c-accent), .15); border-color: var(--cyan); }
+.iconbtn:hover, .btn:hover { box-shadow: var(--row-sheen), 0 0 0 3px rgba(var(--c-accent), .07); }
+.search, .memsearch, select, .setrow input.txt, .composer input, .pf input, .pf textarea, .sfield input, .sfield select, .keyrow input, .skform input, .skform select, .skform textarea,
+.agask input, .agask select, .wsave input, .lfwrite textarea, .lfwrite input, .lfset input[type="time"], .lfset input:not([type]), .memmeta select { background-color: var(--field); box-shadow: inset 0 1px 3px rgba(0, 0, 0, .18); }
+:root[data-theme="light"] :is(.search, .memsearch, select, .setrow input.txt, .composer input, .pf input, .pf textarea, .sfield input, .skform input, .skform textarea, .agask input, .lfwrite textarea) { box-shadow: inset 0 1px 2px rgba(15, 40, 70, .07); }
+.memsearch input, .search input, .agask .memsearch input { background: none; box-shadow: none; }
+/* tabs: the Settings tab bar, everywhere */
+.settabs, .seg { background: linear-gradient(180deg, rgba(var(--c-fill), .045), rgba(var(--c-fill), .012)), var(--surface); border: 1px solid var(--hair); box-shadow: var(--row-sheen); border-radius: 14px; padding: 4px; }
+.seg { height: auto; gap: 4px; overflow: visible; flex-wrap: wrap; } .seg button { height: 32px; border: 1px solid transparent; border-radius: 10px; } .seg button + button { border-left: 1px solid transparent; }
+.seg button:hover { background: rgba(var(--c-fill), .05); } .seg button.on, .settab.on { color: var(--cyan); border-color: rgba(var(--c-accent), .38); background: rgba(var(--c-accent), .1); box-shadow: inset 0 -2px 0 var(--cyan), 0 0 16px rgba(var(--c-accent), .12); }
+/* headings with their icon, as in Settings */
+h4.sec { display: flex; align-items: center; gap: 8px; margin: 18px 0 8px; color: var(--cyan); letter-spacing: .14em; font-weight: 600; }
+.body > h4.sec:first-child, .plpane > h4.sec:first-child, .lfhead h4.sec { margin-top: 0; } .lfhead { margin-top: 14px; } .plpane > .lfhead:first-child { margin-top: 0; } .lfhead h4.sec { margin-bottom: 0; } .lfhead { margin-bottom: 8px; }
+h4.sec svg.ic { width: 15px; height: 15px; padding: 4px; border-radius: 7px; box-sizing: content-box; background: rgba(var(--c-accent), .1); color: var(--cyan); flex: none; }
+summary h4.sec { display: inline-flex !important; vertical-align: middle; margin: 12px 0 8px; } h4.sec .more, h4.sec span { font-weight: 400; }
+.navi.active { background: linear-gradient(90deg, rgba(var(--c-accent), .17), rgba(var(--c-accent), .04)); box-shadow: var(--row-sheen); }
+.talk { box-shadow: inset 0 1px 0 rgba(255, 255, 255, .1), 0 8px 26px rgba(var(--c-accent), .16); }
+body.focus .hero { background: none; box-shadow: none; }
+.item .btn, .permrow .btn { white-space: nowrap; flex: none; }
+#profileForm { max-width: 860px; margin: 0 auto; padding: 16px 18px; border: 1px solid var(--hair); border-radius: 14px; background: var(--row); box-shadow: var(--row-sheen); }
+@media (max-height: 900px) and (min-width: 1101px) { .card { border-radius: 14px; } }
+/* Windows › Personalisation › Transparency effects off: solid panels, no blur */
+@media (prefers-reduced-transparency: reduce) {
+  :root { --surface: #0c141d; --pane: #0b131c; --surface-2: #101a25; --field: #060b11; } :root[data-theme="light"] { --surface: #ffffff; --pane: #ffffff; --surface-2: #f4f7fa; --field: #ffffff; }
+  .modal, .modal .card, .detail, .plancard, .micask, .setup .card, .mgtip, .subs, .offline, .settabs { backdrop-filter: none !important; -webkit-backdrop-filter: none !important; }
+}
 </style>
 </head>
 <body data-state="idle">
@@ -4012,8 +4081,11 @@ loadMics();
 // ---------- settings polish: icons, aligned rows, switches, row animation ----------
 (function polishSettings() {
   const SEC = { "ASSISTANT": "user", "LANGUAGE": "globe", "STARTUP": "zap", "CHAT": "chat", "TALKING": "mic", "VOICES": "speaker",
-    "MICROPHONE": "mic", "AI MODEL": "layers", "PRIVACY": "shield", "PERMISSIONS": "check", "ALERTS": "bell" };
-  document.querySelectorAll(".settings h4.sec").forEach(h => { const n = SEC[h.textContent.trim()]; if (n) h.insertAdjacentHTML("afterbegin", icon(n)); });
+    "MICROPHONE": "mic", "AI MODEL": "layers", "PRIVACY": "shield", "PERMISSIONS": "check", "ALERTS": "bell",
+    "MY SKILLS": "zap", "WORKSPACES": "layers", "DOCUMENTS": "note", "PC CARE": "pc", "BUILT-IN TOOLS": "wrench", "TEMPLATES": "note", "BOARD": "tasks", "ALL AIS": "layers",
+    "LOCAL AI · ON THIS PC": "cpu", "HOW TO SWITCH": "swap", "NOTES": "note", "HABITS": "check", "GOALS": "zap", "REACHED": "check", "DONE": "check",
+    "MOOD, LAST 30 DAYS": "sun", "WHERE IT WENT": "briefcase", "BILLS": "bell", "SIX MONTHS": "clock" };
+  document.querySelectorAll("h4.sec").forEach(h => { const n = SEC[(h.firstChild ? h.firstChild.textContent : "").trim().toUpperCase()]; if (n) h.insertAdjacentHTML("afterbegin", icon(n)); });
   const TAB = { general: "gear", voice: "mic", ai: "layers", privacy: "shield", permissions: "check", alerts: "bell" };
   document.querySelectorAll("[data-settab]").forEach(b => b.insertAdjacentHTML("afterbegin", icon(TAB[b.dataset.settab] || "info")));
   document.querySelectorAll(".settings .setrow").forEach(row => {       // label left, all controls together on the right

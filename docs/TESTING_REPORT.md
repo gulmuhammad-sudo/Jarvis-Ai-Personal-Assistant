@@ -11,6 +11,16 @@ set PA_TEST_NETWORK=1 && .venv\Scripts\python -m pytest tests   # also the onlin
 .venv\Scripts\python packaging\build.py              # then smoke-test the packaged exe (see below)
 ```
 
+## 2026-11-23 — Glass everywhere (v1.25.0)
+
+| Suite | Result | Notes |
+|---|---|---|
+| `pytest tests` | 704 passed, 3 skipped | |
+| Running app (test copy) | pass | all ten pages in dark; four in light (Command Center, Planner, Settings, Conversations); approval box, details panel, plan card, first-run setup, focus mode; no sideways scroll at 1534x787 and 1280x601; at 900x700 the old menu strip is 2 px too wide (older) |
+| Speed, hidden Edge on the owner's AMD graphics, Command Center | 60 fps, no late frames | CPU of one core: 45% before, 82% with blurred panels (dropped), 47% now; Planner 26 / 23%, Settings 29 / 31% |
+| Setup window (page only, pretend installer) | pass | all ten pages fit at 900x620 |
+| Not tested | — | the packaged exe and the real Setup window with it; Transparency effects off (rule only); a weaker PC |
+
 ## 2026-11-23 — Goals, journal, money (v1.24.0, 1.24.1)
 
 | Suite | Result | Notes |
