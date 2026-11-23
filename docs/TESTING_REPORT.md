@@ -19,7 +19,10 @@ set PA_TEST_NETWORK=1 && .venv\Scripts\python -m pytest tests   # also the onlin
 | Holes probed before the fix | 3 of 3 real | a repository's core.fsmonitor program ran during git status (marker file); write_file accepted a PowerShell profile and a .bat without asking; open_application accepted a web address, a network path and any .exe path. All three were in released versions. Same probe after the fix: refused / asks. Reading secret files was found by reading the code |
 | Running app (test copy, no mic) | pass after 1 fix | agent editor, web + memories refused, HTML shown as text, live state, 9 pages and the form without sideways scroll at 375 px, no script errors. Fixed: a second renderAgents() stopped the whole page at start-up; 358 tests had passed because they only check syntax |
 | Emergency Stops | 0 in this session | with a hook on the button and Esc; the earlier 16 remain unexplained |
-| Not tested | — | agents, plans and automations by voice with a real AI; the packaged exe of 1.19.0 |
+| Packaged exe 1.19.0 (isolated data, no mic, fake Ollama, a page kept open) | 51/51 in 3 runs, 50/51 in one | the 38 checks of 1.18.0 plus: an agent really ran, only its own tools were sent to the AI, no memories sent for a web agent, a tricked AI got refusals for 3 tools, private results kept off the web agent's board, nothing written, audit log, own agent kept after restart. The one failure: the PC went to standby during that run (Windows log 12:09:29 to 13:03:33) and the network check reported the disconnected Wi-Fi |
+| Page of the packaged exe in a browser | pass | version 1.19.0, all 9 pages open, no script errors |
+| Setup.exe size | 142 MB | |
+| Not tested | — | agents, plans and automations by voice with a real AI |
 
 ## 2026-11-23 — Automations and plans (v1.18.0)
 
