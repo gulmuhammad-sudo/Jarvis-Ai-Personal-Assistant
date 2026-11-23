@@ -1,5 +1,12 @@
 # Security review
 
+## 2026-11-23 — v1.23.0
+
+| Area | How | Where |
+|---|---|---|
+| Voice from Hugging Face | a fixed version, both files checked by SHA-256, size limit, put in place only when complete | `local_tts._download_piper` |
+| Voice ids from the page | only listed ones, styles included; anything else becomes the default | `tts._resolve` |
+
 ## 2026-11-23 — v1.22.0
 
 | Area | How | Where |

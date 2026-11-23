@@ -34,7 +34,7 @@ What you remember about the user from earlier sessions:
 {memories}
 """
 
-def system_prompt(template: str | None = None) -> str:
+def system_prompt(template: str | None = None, live: bool = False) -> str:
     """The instructions with the user's chosen assistant name, what to call them, and their profile."""
     from . import schedule
     name = schedule.agent_name()
@@ -44,6 +44,9 @@ def system_prompt(template: str | None = None) -> str:
         text += skills.prompt_text()     # your own rules and saved routines (Tools & Skills page)
     except Exception as e:               # a broken database must never stop the assistant from answering
         print(f"[skills] couldn't load: {e}")
+    from . import languages, tts
+    if not live and tts.reading_female():
+        text += f"\n{languages.WOMAN}\n"
     from .guard import SYSTEM_RULE
     text += SYSTEM_RULE                  # text from web pages / files is data, never instructions
     if name.lower() != "jarvis":

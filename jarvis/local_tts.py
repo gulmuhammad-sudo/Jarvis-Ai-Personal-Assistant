@@ -22,9 +22,16 @@ URL = "https://github.com/k2-fsa/sherpa-onnx/releases/download/tts-models/{file}
 VOICES = {   # id: (label, language, file name in the release, size MB)
     "alan": ("Alan · British (male)", "en", "vits-piper-en_GB-alan-medium-int8", 21),
     "jenny": ("Jenny · British (female)", "en", "vits-piper-en_GB-jenny_dioco-medium-int8", 20),
-    "fasih": ("Fasih · Urdu (male)", "ur", "vits-piper-ur_PK-fasih-medium-int8", 21),
+    "fasih": ("Fasih · Pakistani Urdu (male)", "ur", "vits-piper-ur_PK-fasih-medium-int8", 21),
+    "aegis": ("Aegis · Pakistani Urdu (female)", "ur", "vits-piper-ur_PK-aegis_female-medium", 64),
     "rohan": ("Rohan · Hindi (male)", "hi", "vits-piper-hi_IN-rohan-medium-int8", 21),
     "priyamvada": ("Priyamvada · Hindi (female)", "hi", "vits-piper-hi_IN-priyamvada-medium-int8", 21),
+}
+# voices that aren't in sherpa-onnx's release: taken from Piper's own (a fixed version, checked by its SHA-256)
+PIPER_URL = "https://huggingface.co/rhasspy/piper-voices/resolve/e9c8a39444359388adaa94255becb37a5a2b8e51/{path}"
+PIPER = {   # id: ((path of the model, SHA-256), (path of its description, SHA-256))
+    "aegis": (("ur/ur_PK/aegis_female/medium/ur_PK-aegis_female-medium.onnx", "3ec306035cfd0bbc22342fee5890450708a16dd231809522731678aa583c961f"),
+              ("ur/ur_PK/aegis_female/medium/ur_PK-aegis_female-medium.onnx.json", "a8385c217a7e276acf5234bf01dbd0adb007a57c32ffbcc57d2db7eac3979bb6")),
 }
 _lock = threading.Lock()
 _engines: dict = {}
@@ -62,6 +69,8 @@ def download(voice: str, on_progress=None) -> Path:
         raise ValueError(f"unknown voice {voice}")
     folder = _folder(voice)
     folder.parent.mkdir(parents=True, exist_ok=True)
+    if voice in PIPER:
+        return _download_piper(voice, folder, on_progress)
     part = folder.parent / (folder.name + ".tar.bz2.part")
     req = urllib.request.Request(URL.format(file=VOICES[voice][2]), headers={"User-Agent": "PersonalAssistant"})
     with urllib.request.urlopen(req, timeout=60) as r, open(part, "wb") as f:
@@ -93,9 +102,65 @@ def download(voice: str, on_progress=None) -> Path:
     return folder
 
 
+def _download_piper(voice: str, folder: Path, on_progress=None) -> Path:
+    """A Piper voice in its original form: download, check, and add what sherpa-onnx needs next to the model."""
+    import hashlib
+    import json
+    tmp = folder.parent / (folder.name + ".unpacking")
+    shutil.rmtree(tmp, ignore_errors=True)
+    tmp.mkdir()
+    try:
+        for path, want in PIPER[voice]:
+            req = urllib.request.Request(PIPER_URL.format(path=path), headers={"User-Agent": "PersonalAssistant"})
+            h, out = hashlib.sha256(), tmp / path.rsplit("/", 1)[1]
+            with urllib.request.urlopen(req, timeout=60) as r, open(out, "wb") as f:
+                total = int(r.headers.get("Content-Length") or 0)
+                done, last = 0, 0.0
+                while chunk := r.read(1 << 20):
+                    h.update(chunk)
+                    f.write(chunk)
+                    done += len(chunk)
+                    if done > 200 << 20:
+                        raise OSError("that's not the voice file")
+                    if on_progress and total and out.suffix == ".onnx" and time.time() - last > 0.4:
+                        last = time.time()
+                        on_progress(min(done / total, 0.99))
+            if h.hexdigest() != want:
+                raise OSError("the download was cut off or isn't the right file; try again")
+        model = next(tmp.glob("*.onnx"))
+        meta = json.loads(next(tmp.glob("*.onnx.json")).read_text(encoding="utf-8"))
+        # one character each (sherpa-onnx ends the whole program at longer ones, like this voice's "aɪ")
+        (tmp / "tokens.txt").write_text("".join(f"{s} {ids[0]}\n" for s, ids in meta["phoneme_id_map"].items() if len(s) == 1), encoding="utf-8", newline="\n")
+        with open(model, "ab") as f:
+            f.write(onnx_notes({"model_type": "vits", "comment": "piper", "language": "Urdu", "voice": meta["espeak"]["voice"], "version": "1",
+                                "has_espeak": "1", "has_g2pw": "0", "n_speakers": str(meta["num_speakers"]), "sample_rate": str(meta["audio"]["sample_rate"])}))
+        shutil.rmtree(folder, ignore_errors=True)
+        shutil.move(str(tmp), str(folder))
+    finally:
+        shutil.rmtree(tmp, ignore_errors=True)
+    if on_progress:
+        on_progress(1.0)
+    return folder
+
+
+def onnx_notes(notes: dict[str, str]) -> bytes:
+    """Notes (metadata_props) to put at the end of an .onnx file: it's a protobuf message, so adding fields at its end adds them to it."""
+    def field(n: int, data: bytes) -> bytes:
+        size, out = len(data), bytearray([n << 3 | 2])
+        while size > 127:
+            out.append(size & 127 | 128)
+            size >>= 7
+        return bytes(out) + bytes([size]) + data
+    return b"".join(field(14, field(1, k.encode()) + field(2, v.encode())) for k, v in notes.items())
+
+
+def female(voice: str) -> bool:
+    return "(female)" in VOICES[voice][0]
+
+
 def pick(text: str, language: str | None = None) -> str | None:
     """The downloaded voice for this text: Urdu script → an Urdu voice, Hindi → Hindi, else English
-    (the one chosen in Settings if it's downloaded)."""
+    (the one chosen in Settings if it's downloaded, else one like the online voice you chose: male or female)."""
     from . import schedule
     have = installed()
     if any("؀" <= c <= "ۿ" for c in text) or language == "ur":
@@ -107,7 +172,9 @@ def pick(text: str, language: str | None = None) -> str | None:
     chosen = schedule.get_setting(f"local_voice_{want}")
     if chosen in have and VOICES[chosen][1] == want:
         return chosen
-    return next((v for v in have if VOICES[v][1] == want), None)
+    from .tts import reading_female
+    fits = [v for v in have if VOICES[v][1] == want]
+    return next((v for v in fits if female(v) == reading_female()), fits[0] if fits else None)
 
 
 _ESPEAK: dict = {}

@@ -11,6 +11,17 @@ set PA_TEST_NETWORK=1 && .venv\Scripts\python -m pytest tests   # also the onlin
 .venv\Scripts\python packaging\build.py              # then smoke-test the packaged exe (see below)
 ```
 
+## 2026-11-23 — Pakistani women's voices (v1.23.0)
+
+| Suite | Result | Notes |
+|---|---|---|
+| `pytest tests` | 584 passed, 3 skipped | new tests/test_voices.py (25): which voice reads what, speed and pitch, made-up names, feminine forms, Live names, the download (checked by SHA-256, cut-off and changed files refused) |
+| Uzma online, through the running app | pass | 4 ways of speaking, Urdu and English: all gave sound; middle pitch 203 to 262 Hz in Urdu (a man's voice here: about 108 Hz) |
+| Aegis offline | pass after a fix | downloaded in the running app with its real button; 227 Hz, 4 s of speech in 0.3 s, no unknown sounds. Fixed before release: sherpa-onnx ended the whole program at two-character sounds in the voice's list |
+| Gemini Live, real (owner's key, with their OK) | 6 of 6 connected | one sentence each on gemini-3.1-flash-live-preview, empty data, no mic: Urdu, in the feminine, no Hindi words |
+| Settings and first-run setup | pass | lists, choices kept, 18 call voices fit at 1534x787, no console errors |
+| Not tested | — | how any of them sounds to a person (accent, naturalness); the packaged exe; the installer's window; a whole Live call with them |
+
 ## 2026-11-23 — Documents (v1.22.0, 1.22.1)
 
 | Suite | Result | Notes |

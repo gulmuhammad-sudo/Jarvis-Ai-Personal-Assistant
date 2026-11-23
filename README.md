@@ -31,7 +31,7 @@ Open **Personal Assistant** from the Start Menu or the Desktop.
 
 ## What it can do
 
-- Live voice conversations you can interrupt, in English, Urdu (Roman or Urdu script) and more
+- Live voice conversations you can interrupt, in English, Urdu (Roman or Urdu script) and more; Pakistani voices, men's and women's
 - Open apps, files and websites; search the web; play YouTube; weather, news, prayer times
 - Timers, alarms, notes and long-term memory you can search, edit and see as a graph
 - Your own skills: rules it always follows and routines you run by name

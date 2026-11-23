@@ -76,8 +76,9 @@ and its keys in `.env` next to the code).
 
 - **Name:** Settings → **Assistant's name** (or just say "your name is Maya now" / "tumhara naam Friday rakh do").
   The new name is used for how it introduces itself, Live calls, approvals, the wake word and the labels on
-  screen. The app itself (window title, shortcut) is always called **Personal Assistant**; every skill keeps working. For a female voice pick Kore or Aoede in
-  Settings → Live voice (and Sonia/Libby for Classic).
+  screen. The app itself (window title, shortcut) is always called **Personal Assistant**; every skill keeps working. For a woman's voice pick Kore or Aoede in
+  Settings → Live voice (and Sonia/Libby for Classic). Pakistani: the Live voices marked "(Pakistani)", Uzma for Classic
+  and typed answers, Aegis for offline (Download in Settings → Voice & Mic).
 - **Appearance:** Settings → Assistant → **Appearance** (Dark, Light, or Auto to follow Windows), or say "light mode".
 
 - **Hands-free (on by default):** as soon as the app opens Jarvis is listening, so just start talking. In Live
@@ -159,7 +160,7 @@ Click the mic, **Start live conversation** or press **Ctrl+Space**, then just ta
 - It knows today's date and the time the call started.
 - **End the call:** say "bye" / "bas, shukriya", tap the mic while he's listening, or press **End live conversation**.
   It also ends by itself after 3 quiet minutes.
-- **Voice:** Settings → **Live voice** (Charon by default; Kore and Aoede are female voices). The Ryan voice is
+- **Voice:** Settings → **Live voice** (Charon by default; Kore, Aoede and the Pakistani ones are women's voices). The Ryan voice is
   only in Classic mode.
 - **Free limits:** if one live model hits its free limit, Jarvis carries on with the next one
   (3.1 Flash Live, the quickest → 3.8 Live → 2.5 Flash Native Audio) and rests the busy one for 15 minutes.
@@ -170,7 +171,7 @@ Click the mic, **Start live conversation** or press **Ctrl+Space**, then just ta
 - **Listening:** Jarvis records from your microphone itself and picks one that actually works. If the laptop mic goes silent (for example while a Bluetooth headset is connected), it switches mic on its own. If Windows has the mic **muted**, an **Unmute** button appears; **Settings → Microphone** lets you pick a mic or **Boost** a low input level.
 - **Understanding:** Whisper (free Groq key) works out whether you spoke English or Urdu. Fan noise is filtered out first. Unclear audio, and Whisper's made-up "sentences" from noise, get "Sorry, I didn't catch that" instead of a wrong answer.
 - **Weak laptop mic?** Press **Settings → Microphone → Boost level**, or use a headset. If Microsoft Teams or the keyboard's mic key mutes the mic, Jarvis tells you and shows **Unmute**.
-- **Speaking:** Microsoft's natural voice **Ryan (British)** by default; Urdu replies use **Asad**. Speech starts streaming about a second after the reply.
+- **Speaking:** Microsoft's natural voice **Ryan (British)** by default; Replies in Urdu letters use **Asad**, or **Uzma** with a woman's voice; Uzma can also be the reading voice. Speech starts streaming about a second after the reply.
 - **Conversation mode:** after answering something you *said*, Jarvis listens again for a follow-up, so you don't need to press the mic each time. Click the mic or press **Esc** to interrupt Jarvis. You can turn it off in Settings.
 - The last 5 recordings are kept in `data/voice_debug` to diagnose voice problems.
 

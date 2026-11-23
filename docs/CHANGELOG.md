@@ -2,12 +2,22 @@
 
 Each version is also a git tag (`git tag -n20 vX.Y.Z` shows its notes). Newest first.
 
-## 1.22.1 — 2026-11-23 (not pushed yet)
+## 1.23.0 — 2026-11-23
+Pakistani women's voices:
+- Reading voice: Uzma (Microsoft's Pakistani voice) can be chosen now, in four ways of speaking: normal, soft, lively,
+  deeper. She reads Urdu, Roman Urdu and English. Asad can be chosen too. Before, they only read text in Urdu letters.
+- On this PC, offline: Aegis, a Pakistani Urdu woman's voice (64 MB, one click in Settings › Voice & Mic, MIT licence).
+  With a woman's reading voice, the offline voice is a woman's too.
+- Live calls: Aoede, Leda, Zephyr, Kore, Sulafat and Achernar "(Pakistani)": Google's women's voices told to speak the
+  Pakistani way. Google has no voice from Pakistan.
+- With a woman's voice the assistant speaks of itself in the feminine in Urdu (kar rahi hun).
+
+## 1.22.1 — 2026-11-23
 - Documents whose name says they hold passwords, sign-ins, keys or recovery codes ("My Passwords.xlsx", Windows' BitLocker
   recovery key file) now ask before they are read and stay out of the document search. Before, only key files like `.env`
   and `id_rsa` did. It goes by the name: a password inside "notes.docx" isn't recognised.
 
-## 1.22.0 — 2026-11-23 (not pushed yet)
+## 1.22.0 — 2026-11-23
 - Documents: reads PDF, Word, Excel, PowerPoint and text files ("summarise Desktop/report.pdf", "what's on sheet Budget?")
   and makes Word, Excel, PowerPoint and PDF files ("make a PowerPoint about… on my Desktop"). Replacing a file asks first.
 - PDFs are made with Windows' own Edge, hidden, with an empty profile and no internet; its temporary folder is removed.
@@ -16,7 +26,7 @@ Each version is also a git tag (`git tag -n20 vX.Y.Z` shows its notes). Newest f
 - The Writer agent can use documents; web agents can't.
 - Four free packages came in: pypdf, python-docx, openpyxl, python-pptx.
 
-## 1.21.0 — 2026-11-23 (not pushed yet)
+## 1.21.0 — 2026-11-23
 - Planner page. Calendar: month and week with events, tasks, alarms and prayers; repeating events, reminders, a warning
   when two overlap. Tasks: due day or time, importance, projects. Notes: search, read, change, rename, delete (Recycle Bin).
   All on this PC.

@@ -96,7 +96,7 @@ class Api:
             "existing": {"dir": str(self._existing["dir"]), "version": self._existing["version"]} if self._existing else None,
             "old": str(self._old) if self._old else None, "data": str(DATA),
             "languages": languages.choices(), "live_voices": languages.LIVE_VOICES,
-            "reading_voices": [{"id": v, "name": n} for v, n in tts.VOICES if not v.startswith("ur-")],
+            "reading_voices": [{"id": v, "name": n} for v, n in tts.VOICES],
             "keys": {k: bool(env.get(name) or os.environ.get(name)) for k, name in KEYS.items()},
             "s": {"name": settings.get("assistant_name") or "Jarvis", "call": prof.get("call", ""), "user_name": prof.get("name", ""),
                   "language": settings.get("language") or "en", "live_voice": settings.get("live_voice") or "Charon",

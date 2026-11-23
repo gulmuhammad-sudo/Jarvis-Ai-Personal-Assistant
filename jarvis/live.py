@@ -55,7 +55,7 @@ def pause_ms() -> int:
 
 LIVE_NOTE = """
 LIVE VOICE CONVERSATION: you are talking with {user} out loud, in real time, like a phone call.
-- Speak with a calm, refined British accent, like a loyal butler-engineer.
+- {accent}
 - Keep each reply short and natural (one to three sentences) unless asked for detail. Never read out lists,
   markdown, URLs or file paths in full.
 - Language: {language}
@@ -417,7 +417,7 @@ class LiveSession:
         lang_line = ("if the user speaks Urdu (or Hindi/Roman Urdu), reply in natural spoken Urdu. English gets English."
                      if lang == "en" else f"always reply in natural spoken {languages.name(lang)}, whatever language the user uses.")
         from datetime import datetime
-        system = (system_prompt() + LIVE_NOTE.format(user=user, language=lang_line)
+        system = (system_prompt(live=True) + LIVE_NOTE.format(user=user, language=lang_line, accent=languages.accent(self.voice))
                   + f"\nToday is {datetime.now():%A %d %B %Y}; the time when this call started was {datetime.now():%H:%M}.\n")
         if self.history:
             system += "\nEarlier in this conversation (typed or spoken before the call):\n" + "\n".join(
@@ -439,7 +439,7 @@ class LiveSession:
                     silence_duration_ms=pause_ms())),
             response_modalities=["AUDIO"],
             speech_config=types.SpeechConfig(voice_config=types.VoiceConfig(
-                prebuilt_voice_config=types.PrebuiltVoiceConfig(voice_name=self.voice))),
+                prebuilt_voice_config=types.PrebuiltVoiceConfig(voice_name=languages.live_name(self.voice)))),
             system_instruction=system,
             input_audio_transcription=types.AudioTranscriptionConfig(),   # (Urdu comes back in Hindi letters: see urdu.py)
             output_audio_transcription=types.AudioTranscriptionConfig(),

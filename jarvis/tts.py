@@ -1,7 +1,7 @@
 """Natural neural text-to-speech (Microsoft's online voices via the free edge-tts package).
 
 Default voice: en-GB-RyanNeural, a smooth British male voice in the spirit of the films.
-Urdu text is automatically read by the Urdu voice (Asad).
+Urdu text is automatically read by a Pakistani voice (Asad, or Uzma with a woman's voice).
 If this fails (offline), the HUD falls back to the Windows voices built into the browser.
 """
 from __future__ import annotations
@@ -22,9 +22,14 @@ VOICES = [
     ("en-GB-SoniaNeural", "Sonia · British (female)"),
     ("en-GB-LibbyNeural", "Libby · British (female)"),
     ("en-US-AvaMultilingualNeural", "Ava · multilingual (female)"),
-    ("ur-PK-AsadNeural", "Asad · Urdu (Pakistan)"),
-    ("ur-PK-UzmaNeural", "Uzma · Urdu (Pakistan)"),
+    ("ur-PK-UzmaNeural", "Uzma · Pakistani (female)"),
+    ("ur-PK-UzmaNeural@soft", "Uzma · Pakistani, soft and calm (female)"),
+    ("ur-PK-UzmaNeural@lively", "Uzma · Pakistani, lively (female)"),
+    ("ur-PK-UzmaNeural@mature", "Uzma · Pakistani, deeper (female)"),
+    ("ur-PK-AsadNeural", "Asad · Pakistani (male)"),
 ]
+# Microsoft has one Pakistani woman's voice; these are ways of speaking with it: (speed in %, pitch in Hz) on top of yours
+STYLES = {"soft": (-8, -6), "lively": (6, 16), "mature": (-3, -22)}
 DEFAULT_VOICE = os.environ.get("JARVIS_VOICE", "en-GB-RyanNeural")
 URDU_VOICE = os.environ.get("JARVIS_URDU_VOICE", "ur-PK-AsadNeural")
 RATE = os.environ.get("JARVIS_VOICE_SPEED", "+5%")    # e.g. -10%, +0%, +15%
@@ -43,17 +48,35 @@ def available() -> bool:
         return False
 
 
+def is_female(voice: str | None) -> bool:
+    return any(f in (voice or "") for f in _FEMALE)
+
+
+def reading_female() -> bool:
+    """Is the chosen reading voice a woman's?"""
+    from . import schedule
+    return is_female(schedule.get_setting("reading_voice") or DEFAULT_VOICE)
+
+
 def _resolve(text: str, voice: str | None, lang: str | None = None) -> tuple[str, str, str]:
     """(voice, rate, pitch) for this text: unknown voices become the default; Urdu script gets the Urdu voice;
     another chosen language gets that language's voice (same gender as the voice you picked)."""
     voice = voice if voice in _ALLOWED else DEFAULT_VOICE
     lang = _languages.clean(lang) if lang else "en"
-    if lang not in ("en", "ur") and voice.startswith("en-") and "Multilingual" not in voice:
-        voice = _languages.voice(lang, female=any(f in voice for f in _FEMALE))
+    voice, _, style = voice.partition("@")
+    chosen = voice.startswith("ur-")                  # picked as the reading voice: then it reads English and Roman Urdu too
+    if lang not in ("en", "ur") and voice.startswith(("en-", "ur-")) and "Multilingual" not in voice:
+        style = ""
+        voice = _languages.voice(lang, female=is_female(voice))
     elif voice.startswith("en-") and any("؀" <= ch <= "ۿ" for ch in text) and lang in ("en", "ur"):
-        voice = _languages.voice("ur", female=any(f in voice for f in _FEMALE))
-    speed = f"{speed_pct():+d}%"
-    return (voice, speed, "+0Hz") if voice.startswith("ur-") else (voice, speed, f"{pitch_hz():+d}Hz")
+        voice = _languages.voice("ur", female=is_female(voice))
+    faster, higher = STYLES.get(style, (0, 0))
+    speed = f"{max(-50, min(60, speed_pct() + faster)):+d}%"
+    if voice.startswith("ur-"):                       # (the default pitch, a little lower, is meant for the British voice)
+        from . import schedule
+        own = pitch_hz() if chosen and schedule.get_setting("voice_pitch") is not None else 0
+        return voice, speed, f"{own + higher:+d}Hz"
+    return voice, speed, f"{pitch_hz():+d}Hz"
 
 
 # ---------------- Settings › Voices: speed, pitch, and online voices vs voices on this PC ----------------
@@ -133,7 +156,7 @@ async def _audio(text: str, voice: str | None, lang: str | None):
         if got or type(e).__name__ != "NoAudioReceived":
             raise
         import edge_tts
-        female = any(f in (voice or DEFAULT_VOICE) for f in _FEMALE)
+        female = is_female(voice or DEFAULT_VOICE)
         alt = "en-US-AvaMultilingualNeural" if female else "en-US-AndrewMultilingualNeural"
         print(f"[speech] {voice or DEFAULT_VOICE} couldn't read {text[:40]!r}; {alt} reads it instead")
         async for chunk in edge_tts.Communicate(text, alt, connect_timeout=8).stream():

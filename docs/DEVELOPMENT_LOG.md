@@ -2,6 +2,15 @@
 
 Newest first. Each entry: what was done, how it was tested, what is open, the next task.
 
+## 2026-11-23 — Session 2, part 12: Pakistani women's voices (v1.23.0)
+
+**Done** — Uzma with styles (`tts.STYLES`, ids like `ur-PK-UzmaNeural@soft`), Aegis (`local_tts.PIPER`: Piper's own files,
+pinned and checked, with the notes sherpa-onnx needs added), Live voices with an accent (`languages.accent`).
+
+**Learned** — sherpa-onnx ends the process on a bad tokens.txt; it can't be caught in Python.
+
+**Next** — ask the owner: build 1.23.0; Phase 7 part 3.
+
 ## 2026-11-23 — Session 2, part 11: Phase 7 part 2 — documents (v1.22.0)
 
 **Done** — `jarvis/documents.py`, `jarvis/docindex.py`, migration 8, tool `documents`, `/api/docs/*`, Documents section on

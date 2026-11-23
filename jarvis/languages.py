@@ -107,4 +107,28 @@ LIVE_VOICES = {   # Gemini Live's voices (male-sounding ones first; Charon is th
     "Charon": "deep, informative", "Iapetus": "clear", "Orus": "firm", "Sadaltager": "knowledgeable",
     "Rasalgethi": "informative", "Algenib": "gravelly", "Fenrir": "lively", "Puck": "upbeat",
     "Umbriel": "easy-going", "Schedar": "even", "Kore": "firm (female)", "Aoede": "breezy (female)",
+    # the same kind of voice, told to speak like someone from Pakistan (Google has no voice from there)
+    "Aoede (Pakistani)": "breezy (female)", "Leda (Pakistani)": "youthful (female)", "Zephyr (Pakistani)": "bright (female)",
+    "Kore (Pakistani)": "firm (female)", "Sulafat (Pakistani)": "warm (female)", "Achernar (Pakistani)": "soft (female)",
 }
+
+
+def live_name(voice: str) -> str:
+    """Google's own name of a Live voice: "Leda (Pakistani)" -> "Leda"."""
+    return voice.split(" (")[0]
+
+
+def live_female(voice: str) -> bool:
+    return "(female)" in LIVE_VOICES.get(voice, "")
+
+
+def accent(voice: str) -> str:
+    """How a Live voice should speak."""
+    if "(Pakistani)" in voice:
+        return ("You are a Pakistani woman. Speak with a natural, educated Pakistani accent, warm and polite, in Urdu and in English alike "
+                "(never a British or Indian one). In Urdu use the everyday words of Pakistan (shukriya, ji, theek hai, meherbani), not Hindi ones "
+                "(dhanyavaad, kripya, namaste). " + WOMAN)
+    return "Speak with a calm, refined British accent, like a loyal butler-engineer." + (" " + WOMAN if live_female(voice) else "")
+
+
+WOMAN = "Your voice is a woman's: in Urdu and Hindi speak of yourself in the feminine (main kar rahi hun, میں کر سکتی ہوں)."

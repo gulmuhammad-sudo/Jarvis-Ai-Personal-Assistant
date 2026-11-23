@@ -67,7 +67,7 @@ audio, installer, uninstaller, packaged-exe smoke test). They are being moved in
 | 34 | Cybersecurity scope = privacy protection | PARTIALLY IMPLEMENTED | see 26 | 26, 98 | — | Baseline security partly there; privacy-protection tools not yet |
 | 35 | Automation Studio | IMPLEMENTED BUT NEEDS TESTING | `jarvis/automations.py`, table `automations`, tool `automation`, Automations page | 20, 26 | test_automations, running app | 1.18.0: safe steps, by hand / at a time / when the app opens, results kept. No conditions or loops; only runs while the app runs |
 | 36 | No native mobile app | NOT APPLICABLE | — | — | — | Excluded |
-| 37 | Fully customizable voice | PARTIALLY IMPLEMENTED | `jarvis/tts.py`, `jarvis/live.py`, `jarvis/languages.py` | — | none | 12 Live + 10 reading voices. Speed/pitch only via `.env`; no local TTS |
+| 37 | Fully customizable voice | PARTIALLY IMPLEMENTED | `jarvis/tts.py`, `jarvis/live.py`, `jarvis/languages.py`, `jarvis/local_tts.py` | — | test_voices, test_local_tts | 18 Live, 15 reading and 6 offline voices (1.23.0: Pakistani women's voices in all three); speed and pitch in Settings. Missing: your own voice |
 | 38 | Smart notification center | PARTIALLY IMPLEMENTED | `jarvis/alerts.py`, Activity feed in `jarvis/hud.html` | — | none | Pop-ups + feed (not kept after restart). Missing: history, filters, do-not-disturb |
 | 39 | AI agent ecosystem | IMPLEMENTED BUT NEEDS TESTING | `jarvis/agents.py`, table `agents`, tool `delegate`, Agents page | 20 | test_agents | 1.19.0: 4 ready-made agents and your own, hard tool limits, web or private never both. Tried with Gemini (Researcher, Writer, a tricked page) |
 | 40 | Knowledge graph and memory dashboard | IMPLEMENTED BUT NEEDS TESTING | Memory page in `jarvis/hud.html` (List / Graph), `memory.graph()` | 9 | test_skills_graph (graph, names), running app | 1.15.0: graph view — you in the middle, categories, memories (size = stars), names/places found in 2+ memories link them; hover shows the text, click opens it in the list. Not yet tried by the owner |
@@ -157,7 +157,7 @@ audio, installer, uninstaller, packaged-exe smoke test). They are being moved in
 | 109 | Command history and activity timeline | PARTIALLY IMPLEMENTED | `jarvis/storage.py` (SQLite), `jarvis/audit.py`, Conversations page, Settings › Privacy | — | test_storage 4, test_guard_audit | 1.9.0: conversation + activity survive restarts; permanent audit record viewable in Settings. Missing: timeline page with search and dates |
 | 110 | Modular expansion and upgrade system | NOT IMPLEMENTED | — | 13 | — | — |
 
-## Totals (after v1.22.0, 23 Nov 2026)
+## Totals (after v1.23.0, 23 Nov 2026)
 
 | Status | Count |
 |---|---|

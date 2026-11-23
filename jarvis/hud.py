@@ -344,8 +344,7 @@ class Hub:
         return schedule.get_setting("wake_word", True) is not False
 
     def _female(self) -> bool:
-        return live_mod.voice() in ("Kore", "Aoede") if self.voice_engine == "live" else \
-            any(f in (schedule.get_setting("reading_voice") or "") for f in tts._FEMALE)
+        return languages.live_female(live_mod.voice()) if self.voice_engine == "live" else tts.reading_female()
 
     def ack_phrase(self) -> str:
         call = memory.call_name()
@@ -562,7 +561,7 @@ class Hub:
                 "engine": self.voice_engine, "live_voice": live_mod.voice(), "live_voices": live_mod.VOICES,
                 "wake_word": self.wake_on(),
                 "reading_voice": schedule.get_setting("reading_voice") or tts.DEFAULT_VOICE,
-                "reading_voices": [{"id": v, "name": n} for v, n in tts.VOICES if not v.startswith("ur-")],
+                "reading_voices": [{"id": v, "name": n} for v, n in tts.VOICES],
                 "keys": {k: bool(os.environ.get(env)) for k, env in self.KEYS.items()}}   # never the keys themselves
 
     def apply_setup(self, d: dict) -> dict:
@@ -1508,6 +1507,8 @@ class Handler(BaseHTTPRequestHandler):
                 HUB.toggle_voice_mode(bool(data["voice_mode"]))
             if data.get("reading_voice"):
                 schedule.set_setting("reading_voice", str(data["reading_voice"])[:60])
+                if hasattr(HUB.brain, "refresh_system"):
+                    HUB.brain.refresh_system()         # (how it speaks of itself in Urdu: rahi / raha)
             if data.get("face") in FACES:
                 schedule.set_setting("face", data["face"])
             if "wake_word" in data:
