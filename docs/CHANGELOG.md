@@ -2,6 +2,9 @@
 
 Each version is also a git tag (`git tag -n20 vX.Y.Z` shows its notes). Newest first.
 
+## 1.24.1 — 2026-11-23 (not pushed yet)
+- The local AI (offline) can write in the journal too. Before, only the online ones could. (Found by the packaged-exe test.)
+
 ## 1.24.0 — 2026-11-23 (not pushed yet)
 Planner page, three new tabs, all on this PC:
 - Goals: goals with a target or steps, a day and a progress bar; habits (every day or some days a week) to tick, streaks,

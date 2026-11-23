@@ -11,7 +11,7 @@ set PA_TEST_NETWORK=1 && .venv\Scripts\python -m pytest tests   # also the onlin
 .venv\Scripts\python packaging\build.py              # then smoke-test the packaged exe (see below)
 ```
 
-## 2026-11-23 — Goals, journal, money (v1.24.0)
+## 2026-11-23 — Goals, journal, money (v1.24.0, 1.24.1)
 
 | Suite | Result | Notes |
 |---|---|---|
@@ -19,7 +19,11 @@ set PA_TEST_NETWORK=1 && .venv\Scripts\python -m pytest tests   # also the onlin
 | Found by those tests | fixed | "tomorrow" was quietly taken as a day last week |
 | Running app (test copy, quiet, no mic) | pass after 4 fixes | every new button except the two exports; no sideways scroll at 1534x787, 1100x601, 620x760. Fixed: an entry for another month didn't move the view and left its day in the form; Cancel stayed visible; ticking flashed the list; the budget tile compared all spending with some budgets |
 | Request size | +7.5% tools | 68 tools; about 500 tokens more per request |
-| Not tested | — | the packaged exe; these tools with a real AI; real reminders at their time (a fake clock was used); the exports' buttons (the files were tested in a temporary folder) |
+| Packaged exe 1.24.0 | 80/80; documents and the AI's tools failed at the journal | the local AI hadn't been given the journal tool |
+| `pytest tests` 1.24.1 | 703 passed, 3 skipped | |
+| Packaged exe 1.24.1 (isolated data, made-up home folder, no mic, fake Ollama) | 80/80 and 35/35, one run each | the AI's three tools, the journal closed and opened, its text not in the audit log, both exports, kept after a restart; a real habit reminder and a real bill reminder, once each |
+| One slow build | explained | the PC was in standby (resumed 19:21:30) |
+| Not tested | — | these tools with a real AI; a real journal reminder |
 
 ## 2026-11-23 — Pakistani women's voices (v1.23.0)
 

@@ -395,6 +395,12 @@ def test_held_plans_still_allow_looking(db, monkeypatch):
     assert life.list_money() == [] and life.entries() == []
 
 
+def test_every_ai_gets_the_three_tools():
+    """The local AI, too: a diary belongs to the AI that keeps everything on this PC first of all."""
+    from jarvis import providers
+    assert {"goals", "journal", "money"} <= set(providers.LOCAL_TOOLS) and {"goals", "journal", "money"} <= {d["name"] for d in tools.TOOL_DEFINITIONS}
+
+
 def test_agents_never_get_the_journal_and_never_with_the_web(db):
     assert "journal" not in agents.AGENT_TOOLS and {"goals", "money"} <= agents.PRIVATE
     with pytest.raises(ValueError):

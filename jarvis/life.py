@@ -316,7 +316,7 @@ def habit_delete(habit_id: int) -> bool:
 def describe_habit(h: dict) -> str:
     how = "every day" if h["per_week"] == 7 else f"{h['per_week']} times a week"
     return (f"#{h['id']} {h['name']} ({how}): " + ("done today" if h["today"] else "not yet today") + f", {h['week']} this week, "
-            f"streak {h['streak']} {h['unit']} (best {h['best']})")
+            f"streak {h['streak']} {h['unit'] if h['streak'] != 1 else h['unit'][:-1]} (best {h['best']})")
 
 
 # ---------------- journal ----------------
