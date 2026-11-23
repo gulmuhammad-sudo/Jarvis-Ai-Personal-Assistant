@@ -61,7 +61,8 @@ class Hub:
         self.inbox: queue.Queue[str] = queue.Queue()
         self.pending: dict[str, dict] = {}  # confirm id -> {"event", "allow"}
         self.state = "idle"  # idle | listening | thinking
-        self.speak = os.environ.get("JARVIS_NO_SPEAK") != "1"      # demo copies stay quiet
+        # spoken replies: as you left them (demo copies with JARVIS_NO_SPEAK=1 stay quiet)
+        self.speak = os.environ.get("JARVIS_NO_SPEAK") != "1" and schedule.get_setting("speak", True) is not False
         self.voice_mode = False
         self.busy = False
         self.history: list[dict] = self._restore_history()  # replayed to a page that (re)connects
@@ -1031,6 +1032,11 @@ class Hub:
         while psutil:
             self.cpu = psutil.cpu_percent(interval=1.0)
 
+    def set_speak(self, on: bool) -> None:
+        """Spoken replies on / off, remembered for the next time the app opens."""
+        self.speak = bool(on) and os.environ.get("JARVIS_NO_SPEAK") != "1"
+        schedule.set_setting("speak", bool(on))
+
     def toggle_voice_mode(self, on: bool) -> None:
         self.voice_mode = on
         schedule.set_setting("hands_free", bool(on))
@@ -1039,7 +1045,7 @@ class Hub:
         elif not on:
             self.standby_halt()
         if on:
-            self.speak = True
+            self.set_speak(True)                 # hands-free without a voice would leave you waiting for an answer
         self.brain.set_voice_mode(on)
         self.emit("settings", voice_mode=self.voice_mode, speak=self.speak, language=self.language)
 
@@ -1407,7 +1413,7 @@ class Handler(BaseHTTPRequestHandler):
                     return self._json({"error": str(e)}, 400)
                 return self._json({"ok": True, "message": msg, "brain": HUB.brain.options()})
             if "speak" in data:
-                HUB.speak = bool(data["speak"])
+                HUB.set_speak(bool(data["speak"]))
                 HUB.emit("settings", voice_mode=HUB.voice_mode, speak=HUB.speak, language=HUB.language)
             if "language" in data:
                 HUB.set_language(str(data["language"]))

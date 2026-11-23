@@ -2,6 +2,10 @@
 
 Each version is also a git tag (`git tag -n20 vX.Y.Z` shows its notes). Newest first.
 
+## 1.19.2 — 2026-11-23 (not pushed yet)
+- Spoken replies stay off (or on) after a restart, and with them off the greeting at start-up is silent too. Turning
+  Hands-free on still turns them on. Alarms and Live calls speak as before.
+
 ## 1.19.1 — 2026-11-23
 - The Voice panel on the left: with two more menu items since 1.18 it was squeezed, so its text lay over the mic and its
   heading broke in two. The menu is more compact on lower windows and the panel rearranges itself to the room it has.

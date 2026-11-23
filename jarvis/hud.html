@@ -1995,10 +1995,10 @@ function handle(ev) {
       myId = ev.client; speakerId = ev.speaker;
       chat.innerHTML = ""; msgCount = 0;
       replaying = true; ev.events.forEach(handle); replaying = false;
+      setState(ev.state); applySettings(ev);                // before the greeting: spoken replies may be off
       { const last = ev.events[ev.events.length - 1];       // the start-up greeting (saved chat comes before it)
         if (!greeted && last && last.greeting && !last.quiet) speak(last.text); }
       greeted = true;
-      setState(ev.state); applySettings(ev);
       confirmQueue = ev.pending || []; showConfirm();
       break;
   }

@@ -11,6 +11,16 @@ set PA_TEST_NETWORK=1 && .venv\Scripts\python -m pytest tests   # also the onlin
 .venv\Scripts\python packaging\build.py              # then smoke-test the packaged exe (see below)
 ```
 
+## 2026-11-23 — Spoken replies are remembered (v1.19.2)
+
+| Suite | Result | Notes |
+|---|---|---|
+| `pytest tests` | 371 passed, 3 skipped | remembered on and off, Hands-free on turns it on, demo copies quiet, the page reads the setting before it greets |
+| Real restarts of the engine (separate data, no keys, no mic) | pass | on → switched off → off after a restart → switched on → on after a restart |
+| Running page with spoken replies off | pass | greeting shown, 0 speech requests, no speech line in the log |
+| Correction | — | 1.19.1's "demo copy stays quiet" check only read the setting; the greeting was still spoken, because the page greeted before it read the setting |
+| Not tested | — | the packaged exe of 1.19.2 |
+
 ## 2026-11-23 — Voice panel on the left (v1.19.1, reported by the owner with a picture)
 
 | Suite | Result | Notes |

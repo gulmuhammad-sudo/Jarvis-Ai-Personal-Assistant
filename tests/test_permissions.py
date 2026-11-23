@@ -1,4 +1,6 @@
 """Saved permissions (Settings > Privacy): ask / allow / never per kind of action, kept across restarts."""
+from pathlib import Path
+
 import pytest
 
 from jarvis import audit, hud, schedule, tools
@@ -61,3 +63,46 @@ def test_tools_respect_never_and_it_is_audited(hub, tmp_path):
     events = audit.recent(10)
     assert any(e["event"] == "approval" and e["granted"] is False for e in events)
     assert any(e["event"] == "permission_changed" and e["rule"] == "never" for e in events)
+
+
+# ---------------- spoken replies are remembered ----------------
+@pytest.fixture
+def speak_setting(monkeypatch):
+    monkeypatch.delenv("JARVIS_NO_SPEAK", raising=False)
+    before = schedule.get_setting("speak", None)
+    schedule.set_setting("speak", None)
+    yield
+    schedule.set_setting("speak", before)
+
+
+def test_spoken_replies_stay_as_you_left_them(hub, speak_setting):
+    assert hud.Hub().speak is True                    # never chosen: on
+    hub.set_speak(False)
+    assert hub.speak is False and hud.Hub().speak is False          # a new start
+    hub.set_speak(True)
+    assert hud.Hub().speak is True
+
+
+def test_hands_free_off_leaves_it_and_on_turns_it_on(hub, speak_setting, monkeypatch):
+    monkeypatch.setattr(hub, "standby_wanted", lambda: False)
+    hub.set_speak(False)
+    hub.toggle_voice_mode(False)
+    assert hub.speak is False and hud.Hub().speak is False
+    hub.toggle_voice_mode(True)
+    assert hub.speak is True and hud.Hub().speak is True            # what you see is what is remembered
+    hub.toggle_voice_mode(False)
+
+
+def test_demo_copies_stay_quiet(hub, speak_setting, monkeypatch):
+    monkeypatch.setenv("JARVIS_NO_SPEAK", "1")
+    assert hud.Hub().speak is False
+    hub.set_speak(True)
+    assert hub.speak is False
+
+
+def test_the_page_knows_the_setting_before_it_greets():
+    """It used to greet out loud first and read the setting afterwards."""
+    html = (Path(hud.__file__).parent / "hud.html").read_text(encoding="utf-8")
+    block = html[html.index('case "replay":'):]
+    block = block[:block.index("break;")]
+    assert block.index("applySettings(ev)") < block.index("speak(last.text)")
