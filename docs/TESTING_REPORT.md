@@ -32,7 +32,8 @@ Separate empty data, no mic, no memories sent; every tool that touches the PC on
 | `pytest tests` | 381 passed, 3 skipped; 10 new tests for the hold (including the very batch the AI sent), automation results and 413 |
 | Request size | 61 tools: about 6,700 tokens on Gemini, 4,800 on Groq, whose free limit is 8,000 a minute, so a second step waits about 16 s. Most of it predates 1.17 (54 tools) |
 | 413 on Groq | seen once, not reproduced; the retry is tested with a fake answer only |
-| Not tested | Live calls (voice) with plans and agents; OpenRouter; the packaged exe of 1.20.0 |
+| Packaged exe 1.20.0 (isolated data, no mic, fake Ollama, a page kept open) | 57/57 in 2 of 2 runs: the checks of 1.19.2 plus an automation telling the user what it found. The hold on refused plans isn't exercised there (the local AI isn't given the plan tools) |
+| Not tested | Live calls (voice) with plans and agents; OpenRouter |
 
 ## 2026-11-23 — Spoken replies are remembered (v1.19.2)
 
