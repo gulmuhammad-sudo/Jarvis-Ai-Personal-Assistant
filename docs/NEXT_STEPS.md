@@ -2,7 +2,7 @@
 
 Exact order. Each step ends with tests, docs (FEATURE_STATUS, TESTING_REPORT, DEVELOPMENT_LOG) and a tagged release.
 
-1. **Owner installs 1.19.0** — it contains safety fixes; Setup built and exe checked (51/51); Setup opened for the owner on 23 Nov (1.18.0 is installed).
+1. **Owner installs 1.19.1** — Setup built and exe checked (53/53); Setup opened for the owner on 23 Nov (1.19.0, with the safety fixes, is installed).
 2. **Try with a real AI** — agents, plans, automations by voice (with the owner's OK: uses their free AI quota).
 3. **Phase 7 — productivity and knowledge.** Also: find out where the unexplained Emergency Stops in the test copy came from.
 4. **Universal command bar** [107] — the top box also searches settings, memories and saved history.
