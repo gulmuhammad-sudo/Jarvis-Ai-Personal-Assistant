@@ -606,7 +606,8 @@ def execute(name: str, tool_input: dict, ctx: ToolContext, from_ai: bool = False
             audit.record("tool", tool=name, args=args, ok=False, result="held: after an email")
             return "Not done: the user was asked, because an email was read in this conversation, and didn't allow it. Don't try it another way.", True
     out, err = _execute(name, tool_input, ctx)
-    shown = "(read)" if name in guard.PRIVATE_TEXT and str(args.get("action")).lower() in ("read", "list", "search") and not err else out
+    # (email: every answer, since they name people; the journal: what was read)
+    shown = "(not kept)" if name == "email" or (name == "journal" and str(args.get("action")).lower() == "read" and not err) else out
     audit.record("tool", tool=name, args=args, ok=not err,
                  result=(shown if isinstance(shown, str) else "[image]")[:120])
     if RESULT_HOOK:

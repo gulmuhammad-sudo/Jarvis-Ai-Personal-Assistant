@@ -19,7 +19,7 @@ READ_BACK = {"tasks": ("list", ""), "calendar": ("agenda", "find", ""), "notes":
              "documents": ("read", "search", ""), "goals": ("list", ""), "journal": ("read",), "money": ("list", "summary", "bills", "")}
 
 # what these say stays out of the activity list, the saved history and the audit log
-PRIVATE_TEXT = {"journal": ("text", "query"), "email": ("body", "subject", "query")}
+PRIVATE_TEXT = {"journal": ("text", "query"), "email": ("body", "subject", "query", "to", "cc")}
 PRIVATE_KINDS = {"email", "email_draft", "after_email"}          # approvals: only their first line is kept
 
 

@@ -11,13 +11,15 @@ set PA_TEST_NETWORK=1 && .venv\Scripts\python -m pytest tests   # also the onlin
 .venv\Scripts\python packaging\build.py              # then smoke-test the packaged exe (see below)
 ```
 
-## 2026-11-23 — Email, look only (v1.26.0)
+## 2026-11-23 — Email, look only (v1.26.0, 1.26.1)
 
 | Suite | Result | Notes |
 |---|---|---|
 | `pytest tests` | 787 passed, 3 skipped | new tests/test_mail.py (83) against a pretend Gmail with real sockets: signing in, the password nowhere in plain text, 19 ways to change something refused before they leave the PC, searches that try to add commands, trick emails, broken emails, drafts and headers, the AI's questions, the hold after an email, logs |
 | Running app (test copy, pretend Gmail, quiet, no mic) | pass | every button of the tab (the two that open Google in the browser and the two that ask the AI were caught before they left); no sideways scroll at 1534x787, 1280x601, 620x760. Fixed: seams in the 1.25 background where a small window scrolls |
-| Not tested | — | a real Gmail account (the owner connects it); email with a real AI or in a Live call; the packaged exe |
+| Packaged exe 1.26.0 | 80/80; documents, life and email 53/54 | found that a draft's address got into the audit log |
+| Packaged exe 1.26.1 (isolated data, made-up home folder, no mic, fake Ollama, pretend Gmail) | 80/80 and 54/54, one run each | the checks of 1.24.1 plus email: the password nowhere in plain text, ordinary passwords refused before they leave, the AI's questions, the hold, the reply draft, only looking on the wire, kept after a restart, disconnect |
+| Not tested | — | a real Gmail account (the owner connects it); email with a real AI or in a Live call |
 
 ## 2026-11-23 — Glass everywhere (v1.25.0)
 

@@ -388,8 +388,10 @@ def test_email_stays_out_of_the_logs(on, tmp_path, monkeypatch):
     call(action="read", id="I5")
     call(action="search", query="Shall")
     call(action="draft", to="a@example.com", subject="TOPSUBJECT", body="TOPBODY")
+    call(action="draft", reply_to="I5", body="TOPBODY")
+    call(False, action="draft", to="nobody@secret.example", subject="TOPSUBJECT", body="TOPBODY")
     log = (tmp_path / "audit.log").read_text(encoding="utf-8")
-    for word in ("Shall", "Meeting tomorrow", "TOPBODY", "TOPSUBJECT", "ali@example.com", "abcdefghijklmnop"):
+    for word in ("secret.example", "a@example.com", "Shall", "Meeting tomorrow", "TOPBODY", "TOPSUBJECT", "ali@example.com", "abcdefghijklmnop"):
         assert word not in log and word not in json.dumps(seen), word
     assert '"tool": "email"' in log and "Let the assistant read this email?" in log
 

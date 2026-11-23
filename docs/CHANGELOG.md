@@ -2,6 +2,10 @@
 
 Each version is also a git tag (`git tag -n20 vX.Y.Z` shows its notes). Newest first.
 
+## 1.26.1 — 2026-11-23 (not pushed yet)
+- Whom a draft is for, and the tool's answers about email, stay out of the activity list and the audit log too. Before, an
+  address could get into them. (Found by the packaged-exe test.)
+
 ## 1.26.0 — 2026-11-23 (not pushed yet)
 Email (Gmail), look only: Planner page › Email.
 - Connect with an app password that you make at Google; kept encrypted for your Windows account. Inbox, unread, search in

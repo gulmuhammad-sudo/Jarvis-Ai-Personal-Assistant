@@ -10,7 +10,7 @@
 | Commands through a search | sent as a counted literal, one line | `mail.listing` |
 | The AI | asks before it sees email; drafts always shown and asked; no agent or automation has email | `tools.email` |
 | Carrying things out | after an email, web, opening, agents, automations, PowerShell, software and new skills ask, showing what would go out, for 30 minutes or until a new conversation. Not covered: weather and prayer city names, and things kept on this PC | `guard.AFTER_EMAIL` |
-| Logs | subjects, searches, text and results left out; approvals keep only their first line. What the assistant answers about an email is in the conversation, as always | `guard.PRIVATE_TEXT`, `PRIVATE_KINDS` |
+| Logs | addresses, subjects, searches, text and results left out (1.26.1; before, a draft's address could be there); approvals keep only their first line. What the assistant answers about an email is in the conversation, as always | `guard.PRIVATE_TEXT`, `PRIVATE_KINDS` |
 | Test switch | `JARVIS_MAIL_TEST` works only with `JARVIS_DATA_DIR` set and only for 127.0.0.1 | `mail._test_server` |
 
 ## 2026-11-23 — v1.24.0
