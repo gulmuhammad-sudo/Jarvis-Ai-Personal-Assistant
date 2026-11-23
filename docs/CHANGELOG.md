@@ -2,6 +2,11 @@
 
 Each version is also a git tag (`git tag -n20 vX.Y.Z` shows its notes). Newest first.
 
+## 1.22.1 — 2026-11-23 (not pushed yet)
+- Documents whose name says they hold passwords, sign-ins, keys or recovery codes ("My Passwords.xlsx", Windows' BitLocker
+  recovery key file) now ask before they are read and stay out of the document search. Before, only key files like `.env`
+  and `id_rsa` did. It goes by the name: a password inside "notes.docx" isn't recognised.
+
 ## 1.22.0 — 2026-11-23 (not pushed yet)
 - Documents: reads PDF, Word, Excel, PowerPoint and text files ("summarise Desktop/report.pdf", "what's on sheet Budget?")
   and makes Word, Excel, PowerPoint and PDF files ("make a PowerPoint about… on my Desktop"). Replacing a file asks first.

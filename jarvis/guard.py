@@ -56,10 +56,17 @@ def runs_code(path: str) -> bool:
 _SECRET = re.compile(r"(^|[\\/])(\.env[^\\/]*|keys\.dat|id_(rsa|dsa|ecdsa|ed25519)[^\\/]*|\.netrc|\.pgpass|\.git-credentials|credentials(\.json)?|"
                      r"login data|cookies|key4\.db|logins\.json|[^\\/]*\.(pem|key|pfx|p12|kdbx|ppk|ovpn|rdp))$|[\\/]\.(ssh|aws|gnupg|azure)[\\/]", re.I)
 
+# documents people keep them in, by name ("My Passwords 2024.xlsx", Windows' own "BitLocker Recovery Key ….txt", "backup-codes.txt")
+_SECRET_NAME = re.compile(r"pass[ _-]?(words?|codes?|phrases?|wd)|پاس ?ورڈ|(?<![a-z])(credentials?|log-?ins|log-?in[ _-]?(details?|info|data)|secrets|pin[ _-]?codes?|"
+                          r"(api|private|secret|access|recovery|licen[cs]e|bitlocker|encryption)[ _-]?(recovery[ _-]?)?keys?|"
+                          r"(recovery|backup|2fa|otp)[ _-]?codes?|(seed|recovery|wallet)[ _-]?(phrases?|words|seed))(?![a-z])|(?<![a-z])log-?in\.[a-z]+$", re.I)
+
 
 def secret_file(path: str) -> bool:
-    """Passwords, keys and sign-ins: never handed to the AI without asking."""
-    return bool(_SECRET.search(str(path or "").strip().strip("\"'").rstrip(". ").split("::")[0]))
+    """Passwords, keys and sign-ins, going by the name: never handed to the AI without asking."""
+    p = str(path or "").strip().strip("\"'").rstrip(". ").split("::")[0]
+    name = re.sub(r"(?<=[a-z])(?=[A-Z])", " ", re.split(r"[\\/]", p)[-1])        # MyApiKeys -> My Api Keys
+    return bool(_SECRET.search(p) or _SECRET_NAME.search(name))
 
 
 def elsewhere(path: str) -> bool:

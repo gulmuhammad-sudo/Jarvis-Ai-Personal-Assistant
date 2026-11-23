@@ -128,6 +128,35 @@ def test_pdf_without_edge_says_so(tmp_path, monkeypatch):
     assert list(tmp_path.iterdir()) == []
 
 
+@pytest.mark.parametrize("name", ["passwords.txt", "My Passwords 2024.xlsx", "wifi-password.docx", "passwd.md", "PassCodes.pdf", "MyApiKeys.txt", "api_keys.csv",
+                                  "BitLocker Recovery Key 1A2B-3C4D.TXT", "backup-codes.txt", "github recovery codes.txt", "seed phrase.docx", "logins.xlsx",
+                                  "Bank login.txt", "Bank Credentials.docx", "pin codes.txt", "secrets.json", "پاس ورڈ.docx", "id_rsa.txt", ".env"])
+def test_names_that_hold_secrets(name, tmp_path):
+    from jarvis import guard
+    assert guard.secret_file(str(tmp_path / name)) and guard.secret_file(name)
+
+
+@pytest.mark.parametrize("name", ["Passport copy.pdf", "Compass.docx", "Keyboard.txt", "Secretary report.docx", "Secret Santa.xlsx", "Monkeys.pdf", "Passing marks.xlsx",
+                                  "Login page design.pptx", "Pinboard.pdf", "Codes of conduct.pdf", "Recovery plan.docx", "key findings.docx", "Bypass road.pdf"])
+def test_ordinary_names_are_not_secrets(name):
+    from jarvis import guard
+    assert not guard.secret_file(r"C:\Users\x\Documents" + "\\" + name)
+
+
+def test_a_password_document_asks_and_is_never_indexed(tmp_path, monkeypatch):
+    monkeypatch.setenv("USERPROFILE", str(tmp_path))
+    (tmp_path / "Desktop").mkdir()
+    (tmp_path / "Desktop" / "passwords.txt").write_text("TOPSECRET", encoding="utf-8")
+    asked = []
+    ctx = tools.ToolContext(confirm=lambda q, **k: asked.append(q) or False, notify=lambda *a, **k: None)
+    for path in ("Desktop/passwords.txt", str(tmp_path / "Desktop" / "passwords.txt")):
+        assert "TOPSECRET" not in tools.execute("documents", {"action": "read", "path": path}, ctx)
+    assert len(asked) == 2
+    from jarvis import docindex
+    (tmp_path / "Desktop" / "plan.txt").write_text("hello", encoding="utf-8")
+    assert [p.name for p, _ in docindex._walk(tmp_path / "Desktop", lambda: False)] == ["plan.txt"]
+
+
 # ---------------- Excel ----------------
 def test_excel_numbers_text_headings_and_formulas(tmp_path):
     import openpyxl

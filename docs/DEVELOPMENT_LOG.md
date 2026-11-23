@@ -9,7 +9,9 @@ Tools & Skills, automatic update of the index (3 minutes after the start, then e
 
 **Learned** — Edge's helper processes hold their profile a moment after Edge ends, so one clean-up isn't enough.
 
-**Next** — ask the owner: build 1.22.0; Phase 7 part 3 (email, finance, journal, goals).
+**1.22.1** — the packaged-exe test found that password documents by name weren't treated as secret; fixed, built, checked.
+
+**Next** — ask the owner: push; Phase 7 part 3 (email, finance, journal, goals).
 
 ## 2026-11-23 — Session 2, part 10: Phase 7 part 1 — planner (v1.21.0)
 

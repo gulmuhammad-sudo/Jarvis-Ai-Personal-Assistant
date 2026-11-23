@@ -11,13 +11,18 @@ set PA_TEST_NETWORK=1 && .venv\Scripts\python -m pytest tests   # also the onlin
 .venv\Scripts\python packaging\build.py              # then smoke-test the packaged exe (see below)
 ```
 
-## 2026-11-23 — Documents (v1.22.0)
+## 2026-11-23 — Documents (v1.22.0, 1.22.1)
 
 | Suite | Result | Notes |
 |---|---|---|
 | `pytest tests` | 526 passed, 3 skipped | new tests/test_documents.py (73): the four kinds written and read back, real Edge PDFs (A4, Urdu, HTML shown as text), zip bombs, entities, password and broken files, time limit, formulas, replacing asks, secret files ask, the index (folders refused, changes, deletions, Stop), agents and held plans |
 | Running app (test copy, quiet, no mic, made-up files) | pass after 2 fixes | folder added / updated / removed, 4 bad folders refused, English and Urdu search, marks, HTML shown as text, broken file counted; no sideways scroll at 1534x787, 1100x601, 800x700. Fixed: a second border inside the search box; Edge's temporary folder stayed after a PDF (new test) |
-| Not tested | — | the packaged exe; documents with a real AI; the files seen in real Word, Excel and PowerPoint; opening a result with a click; a very large folder of real documents |
+| Packaged exe 1.22.0, documents (made-up home folder, fake Ollama) | 19/22 | found that `passwords.txt` was read without asking and was in the search: only key files counted as secret. All 3 failures were this |
+| `pytest tests` 1.22.1 | 559 passed, 3 skipped | 33 new: names that hold secrets, ordinary names that don't |
+| Packaged exe 1.22.1, documents | 22/22, one run | the four kinds made by the AI's tool and read back, opened by the normal libraries, replacing asks, outside folders refused, password file asks, index, search, restart, removal, no PDF folder or Edge left |
+| Packaged exe 1.22.1, everything else (the checks of 1.21.0) | 64/64, one run | 1.22.0 too, one run |
+| Known limit | — | a formula has no value until Excel opens the file, so reading back a sheet we made shows an empty total |
+| Not tested | — | documents with a real AI; the files seen in real Word, Excel and PowerPoint; opening a result with a click; a very large folder of real documents |
 
 ## 2026-11-23 — Planner (v1.21.0)
 
