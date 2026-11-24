@@ -11,6 +11,14 @@ set PA_TEST_NETWORK=1 && .venv\Scripts\python -m pytest tests   # also the onlin
 .venv\Scripts\python packaging\build.py              # then smoke-test the packaged exe (see below)
 ```
 
+## 2026-11-24 — Learning and fitness (v1.28.0)
+
+| Suite | Result | Notes |
+|---|---|---|
+| `pytest tests` | 983 passed, 4 skipped | new tests/test_learn_fit.py (63): intervals, a day of study, new cards a day, undo, streak, import in seven forms, export that comes back, reminders; amounts in many forms and 15 bad ones, adding up, BMI, settings, privacy (closed to the AI until allowed, nothing in the audit log, no agent or automation), upgrade from database 10 |
+| Running app (test copy, no mic, quiet) | pass | every button of both tabs at 1534x787, the keyboard, light theme, 620x760. Fixed: a clipped button, saved messages in red. The two exports went into the real Documents folder and were removed again |
+| Not tested | — | a real AI making cards or quizzing, voice, the packaged exe |
+
 ## 2026-11-24 — Setup and release for new users (v1.27.1)
 
 | Suite | Result | Notes |
@@ -19,6 +27,7 @@ set PA_TEST_NETWORK=1 && .venv\Scripts\python -m pytest tests   # also the onlin
 | What a new user gets (the real release files, isolated) | 15 / 15 | checksums, ZIP, Setup whole, picture after 1.8 s (0.4 s the second time), fresh install 8 s with all 752 files into a folder with spaces and Urdu letters, update 8 s, own files refused, the installed app starts and asks the first-time questions |
 | The Setup window | pass | picture, then the window after 5 s, the picture goes, closes by itself; all pages walked in the preview with a wrong folder, a wrong name and a failing install |
 | Packaged exe 1.27.1 | 80 / 80 and 78 / 78 | the same checks as 1.27.0 |
+| GitHub release v1.27.1 | published | "Latest"; GitHub's SHA-256 of both files equals the built ones; the download link answers without signing in |
 | Not tested | — | a PC without WebView2, SmartScreen on a fresh download, Windows 10 |
 
 ## 2026-11-24 — Clock and news (v1.27.0)

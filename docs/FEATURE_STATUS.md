@@ -96,8 +96,8 @@ audio, installer, uninstaller, packaged-exe smoke test). They are being moved in
 | 58 | No public plugin SDK initially | NOT APPLICABLE | — | — | — | Excluded for now |
 | 59 | Voice communication assistant | NOT IMPLEMENTED | — | — | — | — |
 | 60 | AI personal companion | NOT IMPLEMENTED | — | 100, 105 | — | — |
-| 61 | AI learning center | NOT IMPLEMENTED | — | — | — | — |
-| 62 | Health and fitness center | NOT IMPLEMENTED | — | storage layer | — | — |
+| 61 | AI learning center | IMPLEMENTED BUT NEEDS TESTING | `jarvis/learn.py`, tool `learn`, Daily › Learn | — | test_learn_fit, running app | 1.28.0: decks, spaced repetition, quiz, import/export, reminder. Not tried with a real AI; no courses or lessons |
+| 62 | Health and fitness center | IMPLEMENTED BUT NEEDS TESTING | `jarvis/fit.py`, tool `fitness`, Daily › Fitness | storage layer | test_learn_fit, running app | 1.28.0: water, steps, sleep, weight, workouts, targets, charts, reminders. Typed or spoken by the owner; no watch or phone is connected |
 | 63 | Travel and trip planner | NOT IMPLEMENTED | (weather only) | 31 | — | — |
 | 64 | No shopping assistant | NOT APPLICABLE | — | — | — | Excluded |
 | 65 | News and intelligence center | IMPLEMENTED BUT NEEDS TESTING | `jarvis/news.py`, tool `news`, Daily › News | 31 | test_news (made-up feeds), running app with real feeds | 1.27.0: topics, sources, search, follow, keep, briefing. Not tried with a real AI; no alerts when something new appears |
@@ -157,13 +157,13 @@ audio, installer, uninstaller, packaged-exe smoke test). They are being moved in
 | 109 | Command history and activity timeline | PARTIALLY IMPLEMENTED | `jarvis/storage.py` (SQLite), `jarvis/audit.py`, Conversations page, Settings › Privacy | — | test_storage 4, test_guard_audit | 1.9.0: conversation + activity survive restarts; permanent audit record viewable in Settings. Missing: timeline page with search and dates |
 | 110 | Modular expansion and upgrade system | NOT IMPLEMENTED | — | 13 | — | — |
 
-## Totals (after v1.27.0, 24 Nov 2026)
+## Totals (after v1.28.0, 24 Nov 2026)
 
 | Status | Count |
 |---|---|
 | IMPLEMENTED AND VERIFIED | 1 |
-| IMPLEMENTED BUT NEEDS TESTING | 27 |
+| IMPLEMENTED BUT NEEDS TESTING | 29 |
 | PARTIALLY IMPLEMENTED | 41 |
-| NOT IMPLEMENTED | 31 |
+| NOT IMPLEMENTED | 29 |
 | BLOCKED BY EXTERNAL DEPENDENCY | 0 |
 | NOT APPLICABLE | 10 |

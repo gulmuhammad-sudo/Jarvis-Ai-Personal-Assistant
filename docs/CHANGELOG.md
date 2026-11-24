@@ -2,6 +2,17 @@
 
 Each version is also a git tag (`git tag -n20 vX.Y.Z` shows its notes). Newest first.
 
+## 1.28.0 — 2026-11-24 (not pushed yet)
+Learning and fitness: two new tabs on the Daily page (Phase 8 part 2).
+- Learn: decks of flashcards that come back just before you would forget them (spaced repetition). Study with the mouse, the keyboard
+  (Space, 1 to 4) or by voice ("quiz me"); undo; only some new cards a day; streak and chart; a daily reminder; import from pasted text,
+  CSV or Anki, export to CSV. The assistant can make cards, for example from a document you ask about.
+- Fitness: water, steps, sleep, weight and workouts, daily targets, 30-day charts, BMI as a number, water and move reminders, CSV export.
+  "I drank two glasses", "I slept 7 and a half hours", "I walked 30 minutes". No advice: numbers only.
+- Health is private: the assistant writes what you tell it, but reads nothing back until you allow it; what was noted stays out of the
+  activity list and the audit log; no agent or automation has it.
+- The page of a demo copy can't open the microphone either.
+
 ## 1.27.1 — 2026-11-24
 Downloading and installing, for new users.
 - Setup is a file in the project folder itself (not in `dist` any more), next to READ ME FIRST.txt (English and Roman Urdu). Folders that

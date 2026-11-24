@@ -125,6 +125,8 @@ and its keys in `.env` next to the code).
 | "Snooze ten minutes" / "stop the alarm" | What is ringing now (or the Stop and Snooze buttons) |
 | "What time is it in London?" | World clock |
 | "What's in the news?" / "news about Karachi" / "what's new in what I follow?" | Headlines with their sources (Daily › News) |
+| "Make ten flashcards about …" / "quiz me" | Daily › Learn |
+| "I drank two glasses" / "I slept 7:30" / "I walked 30 minutes" | Daily › Fitness (it reads them back only if you allow it) |
 | "Summarise my unread emails" / "draft a reply to Ali: yes, ten is fine" | Reads your Gmail and saves drafts; never sends (Planner › Email to connect) |
 | "I spent 1500 on groceries" / "how much did I spend this month?" / "mark walk as done" / "write in my journal: …" | Goals, habits, journal, money (Planner page) |
 | "Summarise Desktop/report.pdf" / "make a PowerPoint about solar power on my Desktop" / "find the warranty in my documents" | Reads, makes and searches documents (folders: Tools & Skills › Documents) |

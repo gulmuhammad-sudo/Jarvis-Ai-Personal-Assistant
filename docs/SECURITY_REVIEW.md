@@ -1,5 +1,15 @@
 # Security review
 
+## 2026-11-24 — v1.28.0 (learning and fitness)
+
+| Area | How | Where |
+|---|---|---|
+| Health notes | the AI may write; reading needs the owner's tick (only a real `true`); arguments and answers stay out of the activity list and audit log; not in agents or automations | `tools.fitness`, `guard.PRIVATE_TEXT`, `agents` |
+| Cards | may hold text from documents or the web: wrapped as untrusted when read back; an agent may add and search, not answer; private, so never with the web in one agent | `guard.READ_BACK`, `agents.LIMITS` |
+| Import | 2 MB at most, markup removed, every card checked before any is kept | `learn.read_cards`, `add_cards` |
+| Export | never over a file, no cell a spreadsheet would run | `learn.export`, `fit.export` |
+| Numbers | finite, in range, and a day's water or steps can't go past what is possible | `fit.amount`, `fit.add` |
+
 ## 2026-11-24 — v1.27.0 (clock and news)
 
 | Area | How | Where |

@@ -44,6 +44,8 @@ To update, run the newer Setup: your settings, memories and keys stay. Problems?
 - Windows on command (snap, side by side, minimise all) and saved workspaces; reads text on screen (offline OCR)
 - Clock: timers, stopwatch, focus rounds, alarms that ring until stopped, world clock
 - News: topics, your own sources, search, words you follow
+- Learning: flashcards that come back before you forget them; quizzes you by voice
+- Fitness: water, steps, sleep, weight, workouts, with targets and charts, private on your PC
 - Email: reads your Gmail, warns of tricks, saves drafts; it can't send or delete
 - Goals and habits, a private journal, and your own record of money, on your PC
 - Documents: reads and makes Word, Excel, PowerPoint and PDF files, and searches inside the folders you choose

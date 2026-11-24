@@ -26,7 +26,7 @@ from urllib.parse import parse_qs, quote
 
 from . import __version__
 from . import live as live_mod
-from . import agents, alerts, approvals, audit, automations, clock, denoise, docindex, gpu, guard, languages, life, local_ai, mail, local_stt, local_tts, memory, news, notes, planner, plans, schedule, netcheck, skills, software, stt, storage, tools, tts, urdu, wake, winmgr
+from . import agents, alerts, approvals, audit, automations, clock, denoise, docindex, fit, gpu, guard, languages, learn, life, local_ai, mail, local_stt, local_tts, memory, news, notes, planner, plans, schedule, netcheck, skills, software, stt, storage, tools, tts, urdu, wake, winmgr
 from .brain import make_brain
 from .config import NOTES_DIR
 from .providers import provider_status
@@ -134,6 +134,7 @@ class Hub:
                                             run_prompt=lambda text: self.submit(text, source="scheduled"))
         self.scheduler.on_tick = self._tick
         tools.PLANNER_CHANGED = lambda: self.emit("planner_changed")
+        tools.DAILY_CHANGED = lambda what: self.emit("daily_changed", what=what)
         docindex.CHANGED = lambda: self.emit("docs_changed")
         self._docs_next = time.time() + 180           # look for new documents a few minutes after the start, then every 6 hours
 
@@ -284,10 +285,11 @@ class Hub:
             planner.tick(now, self.notify)
         except Exception as e:
             print(f"[planner] {type(e).__name__}: {e}")
-        try:
-            life.tick(now, self.notify)
-        except Exception as e:
-            print(f"[life] {type(e).__name__}: {e}")
+        for part in (life, learn, fit):
+            try:
+                part.tick(now, self.notify)
+            except Exception as e:
+                print(f"[{part.__name__.rsplit('.', 1)[-1]}] {type(e).__name__}: {e}")
         try:
             if time.time() >= self._docs_next:
                 self._docs_next = time.time() + 6 * 3600
@@ -1234,6 +1236,8 @@ class Handler(BaseHTTPRequestHandler):
                     .replace("__USER__", memory.call_name()))
             body = html.encode()
             self.send_response(200)
+            if os.environ.get("JARVIS_NO_MIC") == "1":          # demo copies: the page can't open the microphone either
+                self.send_header("Permissions-Policy", "microphone=()")
             self.send_header("Content-Type", "text/html; charset=utf-8")
             self.send_header("Content-Length", str(len(body)))
             self.send_header("Cache-Control", "no-store")
@@ -1521,6 +1525,77 @@ class Handler(BaseHTTPRequestHandler):
             return self._json({"error": str(e) if isinstance(e, ValueError) and "invalid literal" not in str(e) else "Something is missing."}, 400)
         HUB.emit("clock_changed")
         return self._json(clock.load())
+
+    def _learn(self, action: str, data: dict) -> None:
+        """The Daily page's Learn: your own clicks."""
+        try:
+            num = lambda k="id": int(data.get(k))                                        # noqa: E731
+            deck = int(data["deck"]) if data.get("deck") not in (None, "") else None
+            if action == "load":
+                return self._json(learn.load(deck, str(data.get("query") or "")))
+            if action == "due":
+                return self._json({"cards": learn.due(deck, limit=50), "soon": learn.next_soon(deck)})
+            if action == "grade":
+                before = learn.get_card(num())
+                return self._json({"card": learn.grade(num(), data.get("how")), "before": before, "soon": learn.next_soon(deck)})
+            out = {}
+            if action == "undo":
+                learn.undo(data.get("card") or {})
+            elif action == "deck":
+                out["deck"] = learn.save_deck(data.get("name"), num() if data.get("id") else None)["id"]
+            elif action == "deck_delete":
+                learn.delete_deck(num())
+                audit.record("deck_deleted", id=num())
+            elif action == "card":
+                if data.get("id"):
+                    learn.update_card(num(), data.get("front"), data.get("back"))
+                else:
+                    out["added"], out["there"] = learn.add_cards(num("deck"), [(data.get("front"), data.get("back"))])
+            elif action == "card_delete":
+                learn.delete_card(num())
+            elif action == "import":
+                pairs = learn.read_cards(data.get("text"))
+                out["added"], out["there"] = learn.add_cards(num("deck"), pairs)
+            elif action == "settings":
+                learn.save_settings(data)
+            elif action == "export":
+                out["path"] = str(learn.export(num("deck")))
+            else:
+                return self._json({"error": "unknown action"}, 404)
+        except (ValueError, TypeError, KeyError, AttributeError) as e:
+            return self._json({"error": str(e) if isinstance(e, ValueError) and str(e)[:1].isupper() else "Something is missing or wrong."}, 400)
+        except OSError as e:
+            return self._json({"error": f"Windows said: {e.strerror or e}"}, 500)
+        return self._json({**out, **learn.load(deck, str(data.get("query") or ""))})
+
+    def _fit(self, action: str, data: dict) -> None:
+        """The Daily page's Fitness: your own clicks. Nothing here goes to the AI."""
+        try:
+            num = lambda: int(data.get("id"))                                           # noqa: E731
+            out = {}
+            if action == "add":
+                out["added"] = fit.add(data.get("kind"), data.get("value"), data.get("day"), data.get("unit"))
+            elif action == "delete":
+                fit.delete(num())
+            elif action == "workout":
+                fit.add_workout(data.get("what"), data.get("minutes"), data.get("day"), data.get("km"), data.get("note"), num() if data.get("id") else None)
+            elif action == "workout_delete":
+                fit.delete_workout(num())
+            elif action == "settings":
+                before = fit.settings()["ai"]
+                fit.save_settings(data)
+                if fit.settings()["ai"] != before:
+                    audit.record("fitness_ai", allowed=not before)
+            elif action == "export":
+                out["path"] = str(fit.export())
+                audit.record("fitness_export")
+            elif action != "load":
+                return self._json({"error": "unknown action"}, 404)
+        except (ValueError, TypeError, KeyError, AttributeError) as e:
+            return self._json({"error": str(e) if isinstance(e, ValueError) and str(e)[:1].isupper() else "Something is missing or wrong."}, 400)
+        except OSError as e:
+            return self._json({"error": f"Windows said: {e.strerror or e}"}, 500)
+        return self._json({**out, **fit.load()})
 
     def _news(self, action: str, data: dict) -> None:
         """The Daily page's News: your own clicks."""
@@ -1907,6 +1982,10 @@ class Handler(BaseHTTPRequestHandler):
             return self._life(self.path.rsplit("/", 1)[1], data)
         elif self.path.startswith("/api/clock/"):      # Daily page: Clock; Stop and Snooze
             return self._clock(self.path.rsplit("/", 1)[1], data)
+        elif self.path.startswith("/api/learn/"):      # Daily page: Learn
+            return self._learn(self.path.rsplit("/", 1)[1], data)
+        elif self.path.startswith("/api/fit/"):        # Daily page: Fitness
+            return self._fit(self.path.rsplit("/", 1)[1], data)
         elif self.path.startswith("/api/news/"):       # Daily page: News
             return self._news(self.path.rsplit("/", 1)[1], data)
         elif self.path.startswith("/api/mail/"):       # Planner page: Email

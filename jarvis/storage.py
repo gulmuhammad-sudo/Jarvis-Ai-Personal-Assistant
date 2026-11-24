@@ -209,6 +209,47 @@ MIGRATIONS: list[str] = [
            at TEXT NOT NULL DEFAULT '',
            saved TEXT NOT NULL,
            read INTEGER NOT NULL DEFAULT 0);""",
+    # 11: learning (flashcards) and fitness
+    """CREATE TABLE decks (
+           id INTEGER PRIMARY KEY AUTOINCREMENT,
+           name TEXT NOT NULL UNIQUE COLLATE NOCASE,
+           created TEXT NOT NULL);
+       CREATE TABLE cards (
+           id INTEGER PRIMARY KEY AUTOINCREMENT,
+           deck INTEGER NOT NULL,
+           front TEXT NOT NULL,
+           back TEXT NOT NULL,
+           due TEXT,                                       -- NULL: new, never asked
+           days INTEGER NOT NULL DEFAULT 0,                -- the interval; 0: still being learned
+           ease REAL NOT NULL DEFAULT 2.5,
+           reps INTEGER NOT NULL DEFAULT 0,
+           lapses INTEGER NOT NULL DEFAULT 0,
+           created TEXT NOT NULL);
+       CREATE INDEX cards_deck ON cards(deck, due);
+       CREATE TABLE reviews (
+           id INTEGER PRIMARY KEY AUTOINCREMENT,
+           card INTEGER NOT NULL,
+           deck INTEGER NOT NULL,
+           day TEXT NOT NULL,
+           grade INTEGER NOT NULL,
+           was_new INTEGER NOT NULL DEFAULT 0);
+       CREATE INDEX reviews_day ON reviews(day);
+       CREATE TABLE fit_log (
+           id INTEGER PRIMARY KEY AUTOINCREMENT,
+           kind TEXT NOT NULL,
+           day TEXT NOT NULL,
+           value REAL NOT NULL,
+           created TEXT NOT NULL);
+       CREATE INDEX fit_kind ON fit_log(kind, day);
+       CREATE TABLE workouts (
+           id INTEGER PRIMARY KEY AUTOINCREMENT,
+           day TEXT NOT NULL,
+           what TEXT NOT NULL,
+           minutes INTEGER NOT NULL,
+           km REAL,
+           note TEXT NOT NULL DEFAULT '',
+           created TEXT NOT NULL);
+       CREATE INDEX workouts_day ON workouts(day);""",
 ]
 
 # event types worth keeping across restarts (not live captions, levels, approval prompts...)

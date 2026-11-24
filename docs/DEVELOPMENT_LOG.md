@@ -2,6 +2,15 @@
 
 Newest first. Each entry: what was done, how it was tested, what is open, the next task.
 
+## 2026-11-24 — Session 2, part 18: Phase 8 part 2 — learning and fitness (v1.28.0)
+
+**Done** — `jarvis/learn.py`, `jarvis/fit.py`, tools `learn` and `fitness`, `/api/learn/*`, `/api/fit/*`, tabs Learn and Fitness, database 11.
+
+**A slip** — one check imported the app without `JARVIS_DATA_DIR`; it did what it does at a start from source: moved the three AI keys
+from the project's `.env` into the encrypted `data/keys.dat` (checked: all three are there; the installed app has its own and wasn't touched).
+
+**Next** — ask the owner: build 1.28.0 (and release it); then part 3 (travel, meetings, companion).
+
 ## 2026-11-24 — Session 2, part 17: downloading and installing (v1.27.1)
 
 **Why** — the owner saw that GitHub still offered 1.7.1: pushing code doesn't change a release. The Setup also sat in `dist`, where nobody looked.

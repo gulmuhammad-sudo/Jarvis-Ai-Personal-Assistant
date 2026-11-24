@@ -639,7 +639,7 @@ def execute(name: str, tool_input: dict, ctx: ToolContext, from_ai: bool = False
             return "Not done: the user was asked, because an email was read in this conversation, and didn't allow it. Don't try it another way.", True
     out, err = _execute(name, tool_input, ctx)
     # (email: every answer, since they name people; the journal: what was read)
-    shown = "(not kept)" if name == "email" or (name == "journal" and str(args.get("action")).lower() == "read" and not err) else out
+    shown = "(not kept)" if name in ("email", "fitness") or (name == "journal" and str(args.get("action")).lower() == "read" and not err) else out
     audit.record("tool", tool=name, args=args, ok=not err,
                  result=(shown if isinstance(shown, str) else "[image]")[:120])
     if RESULT_HOOK:
@@ -1881,6 +1881,83 @@ def email(inp: dict, ctx: ToolContext) -> str:
     return f"Unknown action {action!r}. This app can only list, search and read email and save drafts."
 
 
+DAILY_CHANGED: Callable[[str], None] | None = None         # the HUD redraws its Daily page
+
+
+def _daily_changed(what: str) -> None:
+    if DAILY_CHANGED:
+        DAILY_CHANGED(what)
+
+
+def learn_tool(inp: dict, ctx: ToolContext) -> str:
+    from . import learn
+    action, name = str(inp.get("action") or "decks").lower(), str(inp.get("deck") or "").strip()
+    try:
+        if action == "decks":
+            s = learn.stats()
+            head = f"Today {s['today']} answered" + (f", {s['right']}% right in 30 days" if s["right"] is not None else "") + f", streak {s['streak']} day{'' if s['streak'] == 1 else 's'}."
+            return "\n".join([head] + [f"- {learn.describe_deck(d)}" for d in learn.decks()]) if learn.decks() else "No decks yet."
+        if action == "add":
+            if not name:
+                return "Which deck? (A new name makes a new deck.)"
+            pairs = [(c.get("front"), c.get("back")) if isinstance(c, dict) else (None, None) for c in (inp.get("cards") or [])][:200]
+            if not pairs:
+                return "Give the cards as [{front, back}]."
+            for f, b in pairs:                        # all of them are right, or nothing is made
+                learn._side(f, "The front"), learn._side(b, "The back")
+            d = learn.deck_for(name)
+            n, there = learn.add_cards(d["id"], pairs)
+            _daily_changed("learn")
+            return f"{n} card{'' if n == 1 else 's'} added to {d['name']}" + (f" ({there} were already there)" if there else "") + "."
+        d = learn.find_deck(name) if name else None
+        if name and not d:
+            return f"There is no one deck called {name!r}. Decks: {', '.join(x['name'] for x in learn.decks()) or 'none'}."
+        if action == "quiz":
+            got = learn.due(d["id"] if d else None, limit=1)
+            if not got:
+                return "Nothing to look at now" + (f" in {d['name']}" if d else "") + ". Well done."
+            c = got[0]
+            return f"Card {c['id']}. Ask only the front; keep the back to yourself until they answer.\nFront: {c['front']}\nBack: {c['back']}"
+        if action == "grade":
+            r = learn.grade(int(str(inp.get("card")).lstrip("#")), inp.get("how"))
+            _daily_changed("learn")
+            return f"Noted ({r['grade']}): it comes back {r['back_in']}. For the next card: quiz."
+        if action == "search":
+            rows = learn.cards(d["id"] if d else None, str(inp.get("query") or ""), 20)
+            return "\n".join(f"- {c['id']}: {c['front']} = {c['back']}" for c in rows) or "No card matches that."
+    except (ValueError, TypeError, AttributeError) as e:
+        return str(e) if isinstance(e, ValueError) and str(e)[:1].isupper() else "Which card? Give its number."
+    return f"Unknown action {action!r}."
+
+
+def fitness(inp: dict, ctx: ToolContext) -> str:
+    from . import fit
+    action = str(inp.get("action") or "log").lower()
+    try:
+        if action == "log":
+            r = fit.add(inp.get("what"), inp.get("value"), inp.get("day"), inp.get("unit"))
+            _daily_changed("fit")
+            more = f" That makes {fit.show(r['kind'], r['total'])} of {fit.show(r['kind'], fit.targets()[r['kind']])}." if fit.KINDS[r["kind"]][4] else ""
+            return f"Noted: {fit.LABELS[r['kind']].lower()} {r['text']} ({r['day']}).{more}"
+        if action == "workout":
+            w = fit.add_workout(inp.get("what"), inp.get("value"), inp.get("day"), inp.get("km"), inp.get("note"))
+            _daily_changed("fit")
+            return f"Noted: {w['what']}, {w['minutes']} minutes" + (f", {w['km']:g} km" if w["km"] else "") + f" ({w['day']}). This week: {fit.week_minutes()} of {fit.targets()['workout']:g} minutes."
+        if action in ("summary", "history"):
+            if not fit.settings()["ai"]:
+                return ("The user's health notes are closed to you: they see them on the Daily page (Fitness), and can allow you to read them there. "
+                        "Don't ask again in this conversation.")
+            if action == "summary":
+                return fit.describe(fit.overview()) + " (Numbers only: give no medical advice; a doctor knows.)"
+            k = str(inp.get("what") or "").lower()
+            if k in fit.KINDS:
+                return "\n".join(f"- {r['day']}: {r['text']}" for r in fit.rows(k, 30)) or "Nothing noted."
+            return "\n".join(f"- {w['day']}: {w['what']}, {w['minutes']} minutes" + (f", {w['km']:g} km" if w["km"] else "") + (f", {w['note']}" if w["note"] else "") for w in fit.workouts(30)) or "Nothing noted."
+    except (ValueError, TypeError) as e:
+        return str(e) if isinstance(e, ValueError) else "Something is missing."
+    return f"Unknown action {action!r}."
+
+
 def news_tool(inp: dict, ctx: ToolContext) -> str:
     from . import news
     action = str(inp.get("action") or "top").lower()
@@ -1995,6 +2072,18 @@ PLANNER_TOOLS = [
                      "search (query), following (what the user follows), saved, story (id), save (id) for later. Say the source; read the full story with web_search.",
       "input_schema": _obj({"action": {"type": "string", "enum": ["top", "topic", "search", "following", "saved", "story", "save"]}, "topic": _STR, "query": _STR,
                             "id": _STR, "limit": _INT}, ["action"])}, news_tool),
+    ({"name": "learn",
+      "description": "The user's flashcards. decks, add (deck = a name, new or old; cards [{front, back}], short and exact, e.g. from a document they asked about), "
+                     "quiz (deck optional): one card to ask, then grade (card, how = again / hard / good / easy, from their answer), search (query, deck).",
+      "input_schema": _obj({"action": {"type": "string", "enum": ["decks", "add", "quiz", "grade", "search"]}, "deck": _STR, "card": _INT,
+                            "how": {"type": "string", "enum": ["again", "hard", "good", "easy"]}, "query": _STR,
+                            "cards": {"type": "array", "items": {"type": "object", "properties": {"front": _STR, "back": _STR}, "required": ["front", "back"]}}},
+                           ["action"])}, learn_tool),
+    ({"name": "fitness",
+      "description": "The user's own health notes; give no medical advice. log (what = weight, water, steps or sleep; value like 250, '2 glasses', '7h 30m'; day), "
+                     "workout (what, value = minutes, km, note, day), summary, history (what). Reading is only possible if they allowed it.",
+      "input_schema": _obj({"action": {"type": "string", "enum": ["log", "workout", "summary", "history"]}, "what": _STR, "value": _STR, "unit": _STR,
+                            "km": {"type": "number"}, "note": _STR, "day": _STR}, ["action"])}, fitness),
     ({"name": "documents",
       "description": "read: the text of a PDF, Word, Excel, PowerPoint or CSV file (path; part like 2-5 or a sheet's name). make: write one "
                      "(path ending .docx .xlsx .pptx .pdf, title, content). content is Markdown; for .pptx each # heading starts a slide, "

@@ -53,7 +53,8 @@ enough to finish, test and release on its own. Numbers in brackets are decisions
 
 ## Phase 8 — Personal, creative, entertainment
 - [x] Clock: stopwatch, timers, focus, alarms, world clock [83]; news [65]
-- [ ] Learning, fitness [61, 62]; travel, meetings, companion [63, 68, 60]; media [48]
+- [x] Learning [61], fitness [62]
+- [ ] Travel, meetings, companion [63, 68, 60]; media [48]
 - [ ] Screen recording (never silent) [54]; local image generation if hardware allows [55]
 
 ## Phase 9 — Privacy, integrations, system tools

@@ -2,8 +2,8 @@
 
 Exact order. Each step ends with tests, docs (FEATURE_STATUS, TESTING_REPORT, DEVELOPMENT_LOG) and a tagged release.
 
-1. **Owner**: 1.27.0 is installed; 1.27.1 changes only Setup. Connect Gmail, hear an alarm ring.
-2. **Phase 8, part 2** — learning center [61] and fitness [62]; then part 3 (travel, meetings, companion), part 4 (media, screen recording never silent, local images if the PC can).
+1. **Build 1.28.0** (committed and tagged locally, not pushed): exe test with learn / fitness checks, setup_test, push, `packaging/release.py --publish` (notes in docs/RELEASE_NOTES.md). 1.27.1 is the latest release on GitHub.
+2. **Phase 8, part 3** — travel [63], meetings [68], companion [60]; then part 4 (media, screen recording never silent, local images if the PC can).
 3. **Real AI, rest** — Live calls with plans and agents (needs the owner's microphone); fewer tools per request for Groq.
 4. **Phase 7 — productivity and knowledge.** Also: find out where the unexplained Emergency Stops in the test copy came from.
 5. **Universal command bar** [107] — the top box also searches settings, memories and saved history.

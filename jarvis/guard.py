@@ -16,10 +16,11 @@ UNTRUSTED_TOOLS = {"fetch_webpage", "web_search", "read_text_file", "clipboard",
                    "read_screen_text", "software", "dev_tools", "delegate", "email", "news"}
 
 READ_BACK = {"tasks": ("list", ""), "calendar": ("agenda", "find", ""), "notes": ("search", "read", ""),
-             "documents": ("read", "search", ""), "goals": ("list", ""), "journal": ("read",), "money": ("list", "summary", "bills", "")}
+             "documents": ("read", "search", ""), "goals": ("list", ""), "journal": ("read",), "money": ("list", "summary", "bills", ""),
+             "learn": ("quiz", "search", "decks", ""), "fitness": ("history",)}
 
 # what these say stays out of the activity list, the saved history and the audit log
-PRIVATE_TEXT = {"journal": ("text", "query"), "email": ("body", "subject", "query", "to", "cc")}
+PRIVATE_TEXT = {"journal": ("text", "query"), "email": ("body", "subject", "query", "to", "cc"), "fitness": ("value", "note", "km", "what")}
 PRIVATE_KINDS = {"email", "email_draft", "after_email"}          # approvals: only their first line is kept
 
 
