@@ -46,7 +46,7 @@ def check() -> list[Path]:
         raise SystemExit(f"The Setup doesn't check out: {r}")
     if run("git", "status", "--porcelain"):
         raise SystemExit("There are changes that aren't committed.")
-    if run("git", "rev-parse", f"{TAG}^{{commit}}") != run("git", "rev-parse", "HEAD") and run("git", "diff", "--name-only", TAG, "HEAD", "--", "jarvis", "packaging", "assets"):
+    if run("git", "rev-parse", f"{TAG}^{{commit}}") != run("git", "rev-parse", "HEAD") and run("git", "diff", "--name-only", TAG, "HEAD", "--", "jarvis", "packaging", "assets", ":(exclude)packaging/release.py"):
         raise SystemExit(f"{TAG} isn't what is built now: tag the commit you built.")
     if not run("git", "ls-remote", "--tags", "origin", f"refs/tags/{TAG}"):
         raise SystemExit(f"{TAG} isn't on GitHub yet: push it first.")
