@@ -1,5 +1,19 @@
 # Security review
 
+## 2026-11-24 — v1.30.0 (media, screen recording, pictures)
+
+| Area | How | Where |
+|---|---|---|
+| Starting a recording | the browser's own getDisplayMedia: it can't start without a click and Windows' box, each time; `/api/rec/start` needs the page's token and `agree: true`; no tool, agent, automation or plan | `hud.html rcStart`, `hud._rec` |
+| Never silent | red bar on every page, REC window above all others (also when the app is hidden), a sound and an activity entry at the start, start and end in the audit log, Emergency Stop | `desktop.rec_pill`, `screenrec.Recording` |
+| The file | pieces only in order and only with the recording's own secret number; 4 hours, 8 GB, always 1 GB left; ends by itself when the page is gone; new names only; deleting means the Recycle Bin | `screenrec` |
+| Files for the player | only what is in the library, resolved and still inside its folder, media types only; recordings and pictures only by plain name from their own folder; token; `nosniff`; parts checked | `media.path_of`, `screenrec.path_of`, `images.path_of`, `hud._send_file` |
+| Now playing | one fixed helper script; only seven fixed words ever reach it; what apps say is untrusted for the AI | `media.NowPlaying`, `guard.READ_BACK` |
+| Radio | the search words go to radio-browser.info (after an email it asks first); a station must be a public address (odd ports allowed, home network and this PC not) | `media._station_url` |
+| Pictures | read by Pillow with limits and only as known kinds, written again without metadata, new files only; the AI only in your own folders, the original stays | `images._open`, `keep`, `picture_path` |
+| Making online | your button says where the words go; the AI asks each time (or your rule in Permissions), after an email always; the service's filter is on; nothing about you is sent but the words | `images.generate`, `tools.images_tool` |
+| JSON posts | a body that isn't an object is refused (before: an error) | `hud.do_POST` |
+
 ## 2026-11-24 — v1.29.0 (travel, meetings, people)
 
 | Area | How | Where |

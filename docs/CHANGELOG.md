@@ -2,6 +2,19 @@
 
 Each version is also a git tag (`git tag -n20 vX.Y.Z` shows its notes). Newest first.
 
+## 1.30.0 — 2026-11-24 (not pushed yet)
+Media, screen recording and pictures: a new Studio page (Phase 8 part 4; Phase 8 is complete).
+- Media: what is playing on this PC, in any app, with its controls and the volume; your own music and videos from folders you choose
+  (search, playlists, mixed order, repeat), free internet radio with your own stations. It gets quieter by itself while someone
+  speaks, in a Live call or when something rings. "Play …", "volume 40", "next song" by voice.
+- Recorder: the screen, a window or a tab, with the computer's sound and your microphone if you tick them. Never silent: only its
+  button starts it, Windows' own box asks each time what to share, a red bar stays on every page, and a small REC window stays above
+  all others (also while a meeting is written down, also when the app is hidden). Pause, Stop, Emergency Stop; a recording cut short
+  by a crash or a full drive keeps what there is. The assistant can't start one.
+- Images: crop, turn, flip, size, light and colour, looks, text (Urdu too), see-through background, PNG / JPG / WebP, all on this PC;
+  new files only, without the place and camera that photos carry. Make a picture online for free (Pollinations.ai): it says so, and
+  the assistant asks each time.
+
 ## 1.29.0 — 2026-11-24
 Travel, meetings and people: three new tabs on the Daily page (Phase 8 part 3).
 - Travel: trips with a day-by-day plan, packing lists (basic, summer, winter, business, umrah, family), papers, a budget that follows

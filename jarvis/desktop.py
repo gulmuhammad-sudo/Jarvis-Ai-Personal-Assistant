@@ -250,6 +250,35 @@ def _show_running_app() -> bool:
         return False
 
 
+_PILL = None
+_PILL_LOCK = threading.Lock()
+
+
+def rec_pill(on: bool) -> None:
+    """A small red window above all others while the screen is recorded or a meeting written down: also when the app is hidden."""
+    global _PILL
+    import webview
+    from . import hud
+    with _PILL_LOCK:
+        try:
+            if on and _PILL is None:
+                screen = webview.screens[0]
+                w, h = 300, 46
+                _PILL = webview.create_window("REC", f"http://127.0.0.1:{hud.PORT}/recpill?token={hud.TOKEN}", width=w, height=h, x=screen.x + screen.width - w - 24, y=screen.y + 16,
+                                              frameless=True, easy_drag=True, on_top=True, resizable=False, focus=False, shadow=True, min_size=(160, 40), background_color="#C22638")
+                _PILL.events.closed += _pill_gone
+            elif not on and _PILL is not None:
+                p, _PILL = _PILL, None
+                p.destroy()
+        except Exception as e:
+            print(f"[desktop] REC window: {type(e).__name__}: {e}")
+
+
+def _pill_gone() -> None:
+    global _PILL
+    _PILL = None
+
+
 def main(tray: bool = False) -> None:
     if sys.stdout is None or "pythonw" in Path(sys.executable).name.lower():
         _log_to_file()
@@ -299,6 +328,7 @@ def main(tray: bool = False) -> None:
         _keep_running_on_close(window, icon)
         hud.WINDOW_HOOK = lambda action="show": show_window(window)
         hud.STARTUP_HOOK = install.set_startup
+        hud.REC_HOOK = rec_pill
         install.set_startup(schedule.get_setting("start_with_windows", True) is not False)
 
     store = str(DATA_DIR / "webview")

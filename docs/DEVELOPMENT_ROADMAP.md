@@ -55,8 +55,8 @@ enough to finish, test and release on its own. Numbers in brackets are decisions
 - [x] Clock: stopwatch, timers, focus, alarms, world clock [83]; news [65]
 - [x] Learning [61], fitness [62]
 - [x] Travel [63], meetings [68], companion [60]
-- [ ] Media [48]
-- [ ] Screen recording (never silent) [54]; local image generation if hardware allows [55]
+- [x] Media [48]
+- [x] Screen recording (never silent) [54]; pictures: editing on the PC, making online (no hardware for local) [55]
 
 ## Phase 9 — Privacy, integrations, system tools
 - [ ] Privacy & permission dashboard [98, 6]; encrypted vault (outside AI reach) [77, 81]

@@ -28,6 +28,9 @@ One Python process (`Personal Assistant.exe`, or `pythonw -m jarvis` from source
      ├── travel.py                 trips, packing, papers, budget
      ├── meet.py                   meetings; writing down what is said (with consent)
      ├── people.py                 people, birthdays, the assistant's manner
+     ├── media.py                  now playing, own music and videos, radio
+     ├── screenrec.py              screen recordings (the page records, this keeps)
+     ├── images.py                 pictures: keeping, converting, making online
      ├── documents.py, docindex.py reading and making Word, Excel, PowerPoint, PDF; the local index
      ├── planner.py, notes.py      tasks, calendar, agenda, reminders; the notes folder
      ├── agents.py                 specialists with hard tool limits and a shared board

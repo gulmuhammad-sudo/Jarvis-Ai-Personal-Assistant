@@ -2,6 +2,17 @@
 
 Newest first. Each entry: what was done, how it was tested, what is open, the next task.
 
+## 2026-11-24 — Session 2, part 20: Phase 8 part 4 — media, recorder, pictures (v1.30.0)
+
+**Decided by the owner** — pictures are made with a free online service (not a local model: 11.8 GB of memory, no graphics card, 13 GB
+of disk); recordings may have the computer's sound and the microphone, each with its own tick, both off at first.
+
+**Done** — `jarvis/media.py`, `jarvis/screenrec.py`, `jarvis/images.py`, tools `media` and `images`, page Studio, `_send_file` (parts of files),
+`/api/media|rec|images/*`, REC window (`desktop.rec_pill`, `/recpill`), permission kind `image_online`, database 13. Phase 8 is complete.
+The test copy now has its own home folder (`USERPROFILE` in the git-ignored launch.json).
+
+**Next** — ask the owner: build and release 1.30.0; then Phase 9 (privacy dashboard, vault, backup, diagnostics).
+
 ## 2026-11-24 — Session 2, part 19: Phase 8 part 3 — travel, meetings, people (v1.29.0)
 
 **Done** — `jarvis/travel.py`, `jarvis/meet.py` (Scribe, Mic), `jarvis/people.py`, tools `travel`, `meetings`, `people`, `/api/travel|meet|people/*`,

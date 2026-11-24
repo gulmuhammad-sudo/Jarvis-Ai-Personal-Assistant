@@ -1889,6 +1889,73 @@ def _daily_changed(what: str) -> None:
         DAILY_CHANGED(what)
 
 
+MEDIA_PLAY: Callable[[dict], None] | None = None            # the page's player
+STUDIO_CHANGED: Callable[[str], None] | None = None
+
+
+def media_tool(inp: dict, ctx: ToolContext) -> str:
+    from . import media
+    action = str(inp.get("action") or "now").lower()
+    try:
+        if action in ("now", "control"):
+            n = media.now(str(inp.get("name") or "play_pause").lower() if action == "control" else "get")
+            if n.get("none"):
+                return "Nothing is playing."
+            return f"{'Playing' if n['playing'] else 'Paused'} in {n['app']}: {n['title']}" + (f" by {n['artist']}" if n["artist"] else "")
+        if action == "volume":
+            v = media.volume(inp["value"]) if inp.get("value") not in (None, "") else media.volume()
+            return f"The volume is {v['volume']}%{' (muted)' if v['muted'] else ''}."
+        if action == "search":
+            rows = media.files(str(inp.get("query") or ""), limit=20)
+            names = [p["name"] for p in media.playlists()]
+            return "\n".join([f"- {f['title']}" + (f" by {f['artist']}" if f["artist"] else "") for f in rows] + ([f"Playlists: {', '.join(names)}"] if names else [])) or "Nothing found. (The user adds folders on the Studio page.)"
+        if action == "radio":
+            return "\n".join(f"- {s['name']} ({s['country']}) [{s['uid']}]" for s in media.radio_search(inp.get("query"))[:10]) or "No station found."
+        if action == "play":
+            q = str(inp.get("query") or "")
+            found = media.find(q)
+            if not found and (s := media.station(q)):
+                found = {"what": "station", "name": s["name"], "uid": s["uid"]}
+            if not found:
+                return f"There is nothing called {q!r} in the library, the playlists or the saved stations. (YouTube: play_youtube. Radio: radio.)"
+            if MEDIA_PLAY is None:
+                return "The player isn't open."
+            if found["what"] == "station":
+                media.station_play(found["uid"])
+            MEDIA_PLAY(found)
+            return f"Playing: {found['name']}."
+    except ValueError as e:
+        return str(e)
+    return f"Unknown action {action!r}."
+
+
+def images_tool(inp: dict, ctx: ToolContext) -> str:
+    from . import images
+    action = str(inp.get("action") or "info").lower()
+    try:
+        if action == "info":
+            i = images.info(inp.get("path"))
+            return f"{i['path']}: {i['width']} x {i['height']} pixels, {i['kb']} KB."
+        if action == "convert":
+            p = images.convert(inp.get("path"), inp.get("format"), inp.get("max_side"), inp.get("quality") or 85, inp.get("rotate"), inp.get("grey"))
+            return f"Saved a changed copy: {p} (the original stays)."
+        if action == "generate":
+            prompt = images.clean_prompt(inp.get("prompt"))
+            if not ctx.approve(f"Make this picture online? These words go to Pollinations.ai (free):\n\n{prompt}", kind="image_online"):
+                return "Okay, I didn't make it."
+            p = images.make(prompt, inp.get("size") or "square")
+            if STUDIO_CHANGED:
+                STUDIO_CHANGED("images")
+            return f"The picture is in Pictures, Personal Assistant: {p.name}. It is on the Studio page (Images)."
+        if action in ("record", "screen"):
+            return "Only the user can start a screen recording, with the button on the Studio page."
+    except (ValueError, TypeError) as e:
+        return str(e) if isinstance(e, ValueError) and str(e)[:1].isupper() else "Something is missing or wrong."
+    except OSError as e:
+        return f"Windows said: {e.strerror or e}"
+    return f"Unknown action {action!r}."
+
+
 def travel_tool(inp: dict, ctx: ToolContext) -> str:
     from . import travel
     action, ref = str(inp.get("action") or "list").lower(), inp.get("trip")
@@ -2184,6 +2251,15 @@ PLANNER_TOOLS = [
                      "search (query), following (what the user follows), saved, story (id), save (id) for later. Say the source; read the full story with web_search.",
       "input_schema": _obj({"action": {"type": "string", "enum": ["top", "topic", "search", "following", "saved", "story", "save"]}, "topic": _STR, "query": _STR,
                             "id": _STR, "limit": _INT}, ["action"])}, news_tool),
+    ({"name": "media",
+      "description": "Music and video. now: what is playing on the PC; control (name = play, pause, play_pause, next, previous, stop), volume (value 0-100, or ask), search (query) the user's own "
+                     "music and videos, play (query = a song, artist, playlist or saved radio station), radio (query): find internet stations. YouTube is play_youtube.",
+      "input_schema": _obj({"action": {"type": "string", "enum": ["now", "control", "volume", "search", "play", "radio"]}, "name": _STR, "value": _INT, "query": _STR}, ["action"])}, media_tool),
+    ({"name": "images",
+      "description": "Pictures. info (path), convert (path, format png/jpg/webp, max_side, quality, rotate 90/180/270, grey): a changed copy, generate (prompt, size square/wide/tall): "
+                     "makes one online, asks first. Write the prompt in English.",
+      "input_schema": _obj({"action": {"type": "string", "enum": ["info", "convert", "generate"]}, "path": _STR, "format": _STR, "max_side": _INT, "quality": _INT, "rotate": _INT,
+                            "grey": {"type": "boolean"}, "prompt": _STR, "size": {"type": "string", "enum": ["square", "wide", "tall"]}}, ["action"])}, images_tool),
     ({"name": "travel",
       "description": "The user's trips; nothing is booked or paid. list, show (trip), add (title, place, start, end, abroad, budget, notes), update, plan (trip, day = date or number, "
                      "time, text, place), pack / papers (trip, items, or list = basic, summer, winter, business, umrah, family, papers), done (trip, text), weather (trip or place).",

@@ -78,7 +78,7 @@ audio, installer, uninstaller, packaged-exe smoke test). They are being moved in
 | 45 | Calendar and planner | IMPLEMENTED BUT NEEDS TESTING | `jarvis/planner.py`, table `calendar`, tool `calendar`, Planner page | — | test_planner, running app | 1.21.0: events (repeat, all day, over midnight), overlap warning, reminders, month and week view with tasks, alarms, prayers. No sync with online calendars, no .ics |
 | 46 | Email assistant | IMPLEMENTED BUT NEEDS TESTING | `jarvis/mail.py`, tool `email`, Planner › Email | 77 | test_mail (pretend Gmail), running app | 1.26.0: Gmail, reading, search, warnings, drafts. Never sends. Not tried with a real account; no other providers, no attachments |
 | 47 | File intelligence | PARTIALLY IMPLEMENTED | tools `find_files`, `find_old_files`, `clean_folder`, `read_text_file`, `write_file`, `make_folder` | 25 | none | Search, clean-up to Recycle Bin, text files |
-| 48 | Media center | PARTIALLY IMPLEMENTED | tools `media_control`, `play_youtube` | — | none | Media keys, volume, YouTube |
+| 48 | Media center | IMPLEMENTED BUT NEEDS TESTING | `jarvis/media.py`, tool `media`, Studio › Media | — | test_studio, running app with real radio | 1.30.0: now playing, volume, own library, playlists, radio. Control of other apps' music only checked as far as Windows' answer |
 | 49 | Gaming assistant | NOT IMPLEMENTED | — | — | — | — |
 | 50 | Developer studio | PARTIALLY IMPLEMENTED | `jarvis/devtools.py`, tool `dev_tools` | 24 | test_pccare | 1.17.0: installed dev tools and versions, git status of a project, programs listening on ports (read-only). Missing: running builds/tests, editing code |
 
@@ -89,8 +89,8 @@ audio, installer, uninstaller, packaged-exe smoke test). They are being moved in
 | 51 | Personal finance manager | IMPLEMENTED BUT NEEDS TESTING | `jarvis/life.py`, tables `money`, `budgets`, `bills`, tool `money`, Planner › Money | — | test_life, running app | 1.24.0: spending, income, budgets, bills with reminders, trend, CSV copy. One currency; no bank, no import |
 | 52 | Language assistant | PARTIALLY IMPLEMENTED | `jarvis/languages.py`, `jarvis/urdu.py`, `jarvis/local_stt.py` | — | test_core (Urdu text) | Talks in many languages (speech recognised online or on this PC); no translation/learning tools |
 | 53 | Personal knowledge manager and notes | PARTIALLY IMPLEMENTED | `jarvis/notes.py`, tools `notes`, `save_note`, Planner page › Notes | 25 | test_planner, running app | 1.21.0: search, read, change, rename, delete (Recycle Bin). Missing: links between notes, meaning search |
-| 54 | Screen recording | NOT IMPLEMENTED | — | 26 (no silent recording) | — | — |
-| 55 | AI image generation and editing | NOT IMPLEMENTED | — | 5 | — | — |
+| 54 | Screen recording | IMPLEMENTED BUT NEEDS TESTING | `jarvis/screenrec.py`, Studio › Recorder, REC window in `desktop.py` | 26 (no silent recording) | test_studio, real getDisplayMedia of the test page's own tab, REC window for real | 1.30.0. Not tried with a real screen, microphone or the box in the app's window |
+| 55 | AI image generation and editing | IMPLEMENTED BUT NEEDS TESTING | `jarvis/images.py`, tool `images`, Studio › Images | 5 | test_studio, running app with one real picture | 1.30.0: editing on the PC; making online (Pollinations.ai, owner's choice). No local making: this PC has no graphics card for it. The free service puts its name in a corner |
 | 56 | No AI video studio | NOT APPLICABLE | — | — | — | Excluded |
 | 57 | Backup and recovery | PARTIALLY IMPLEMENTED | installer keeps data on update/uninstall | 26 | installer test | No backup/restore command |
 | 58 | No public plugin SDK initially | NOT APPLICABLE | — | — | — | Excluded for now |
@@ -157,13 +157,13 @@ audio, installer, uninstaller, packaged-exe smoke test). They are being moved in
 | 109 | Command history and activity timeline | PARTIALLY IMPLEMENTED | `jarvis/storage.py` (SQLite), `jarvis/audit.py`, Conversations page, Settings › Privacy | — | test_storage 4, test_guard_audit | 1.9.0: conversation + activity survive restarts; permanent audit record viewable in Settings. Missing: timeline page with search and dates |
 | 110 | Modular expansion and upgrade system | NOT IMPLEMENTED | — | 13 | — | — |
 
-## Totals (after v1.29.0, 24 Nov 2026)
+## Totals (after v1.30.0, 24 Nov 2026)
 
 | Status | Count |
 |---|---|
 | IMPLEMENTED AND VERIFIED | 1 |
-| IMPLEMENTED BUT NEEDS TESTING | 32 |
-| PARTIALLY IMPLEMENTED | 41 |
-| NOT IMPLEMENTED | 26 |
+| IMPLEMENTED BUT NEEDS TESTING | 35 |
+| PARTIALLY IMPLEMENTED | 40 |
+| NOT IMPLEMENTED | 24 |
 | BLOCKED BY EXTERNAL DEPENDENCY | 0 |
 | NOT APPLICABLE | 10 |

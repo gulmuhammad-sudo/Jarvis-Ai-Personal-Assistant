@@ -11,6 +11,16 @@ set PA_TEST_NETWORK=1 && .venv\Scripts\python -m pytest tests   # also the onlin
 .venv\Scripts\python packaging\build.py              # then smoke-test the packaged exe (see below)
 ```
 
+## 2026-11-24 — Media, recorder, pictures (v1.30.0)
+
+| Suite | Result | Notes |
+|---|---|---|
+| `pytest tests` | 1092 passed, 4 skipped | new tests/test_studio.py (61): library, tags, what may be served, playlists, radio and its addresses, volume, the helper process that ends by itself; recordings in order, limits, full drive, page gone, cut short, names; pictures with metadata, broken and too large ones, conversions, making one (with a pretend service), questions; the real HTTP server (parts of files, tokens, pieces) |
+| Running app (test copy, own home folder, no mic; real radio and one real picture) | pass | every button of the three tabs at 1534x787 (the PC's volume and other apps' music were caught, not changed), light theme, 620x760. Fixed: a folder offered twice, the position left after Stop |
+| The recorder for real | pass | hidden Edge, its own getDisplayMedia limited to the test page's own tab, with sound: 0.6 MB, plays. A pretend screen: start, pause, stop, Emergency Stop, "stop sharing", nothing chosen |
+| The REC window for real | pass | the app's window (WebView2) can record; the window is above all others, says the time, its Stop works, it goes away |
+| Not tested | — | a real screen with Windows' box in the app's own window, sound and microphone together, other apps' music, the packaged exe |
+
 ## 2026-11-24 — Travel, meetings, people (v1.29.0)
 
 | Suite | Result | Notes |

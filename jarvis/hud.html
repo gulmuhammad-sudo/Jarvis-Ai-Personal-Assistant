@@ -904,10 +904,21 @@ body.focus[data-face="mask"] .heroText { bottom: 98px; }
 .docbox { margin-bottom: 4px; } .docbox .agask { margin-bottom: 6px; } .dxnote { display: block; color: var(--dim); font-size: 12px; line-height: 1.5; }
 .dxfolders { display: flex; flex-wrap: wrap; gap: 6px; margin: 6px 0; } .dxfolders span { display: inline-flex; gap: 7px; align-items: center; font-size: 12px; padding: 3px 6px 3px 10px; border-radius: 999px; border: 1px solid var(--hair-2); color: var(--muted); max-width: 100%; overflow-wrap: anywhere; } .dxfolders em { font: 500 11px var(--mono); color: var(--dim); } .dxfolders button { border: 0; background: none; color: var(--dim); cursor: pointer; padding: 0 3px; } .dxfolders button:hover { color: var(--red); }
 .dxhit { display: block; width: 100%; text-align: left; border: 1px solid var(--hair); border-radius: 9px; background: none; color: var(--muted); font: inherit; font-size: 12.5px; padding: 7px 10px; margin-bottom: 4px; cursor: pointer; overflow-wrap: anywhere; } .dxhit:hover { border-color: rgba(var(--c-accent), .45); } .dxhit b { color: var(--text); font-weight: 500; } .dxhit em { font-style: normal; color: var(--cyan); font-size: 11.5px; } .dxhit small { display: block; line-height: 1.5; margin-top: 2px; } .dxhit mark { background: rgba(var(--c-accent), .22); color: var(--text); border-radius: 3px; }
+/* studio */
+.st2 { display: grid; grid-template-columns: minmax(0, 1.9fr) minmax(0, 1fr); gap: 14px; align-items: start; } .stbox .btn:disabled { opacity: .45; }
+.mdnow { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; } .mdnow > div:first-child { flex: 1; min-width: 180px; } .mdnow b { display: block; font-size: 15px; font-weight: 600; overflow-wrap: anywhere; unicode-bidi: plaintext; } .mdnow small { color: var(--muted); font-size: 12.5px; } .mdvol { display: flex; gap: 8px; align-items: center; } .mdvol input { width: 130px; accent-color: var(--cyan); } .mdvol em { font: 600 12.5px var(--mono); font-style: normal; width: 38px; text-align: right; }
+#mdV { width: 100%; max-height: 38vh; border-radius: 12px; background: #000; display: block; } #mdV.audio { display: none; } .mdbar { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-top: 8px; } .mdbar input[type="range"] { flex: 1; min-width: 120px; accent-color: var(--cyan); } .mdbar em { font: 500 12px var(--mono); font-style: normal; color: var(--muted); } .mdbar .btn.on { color: var(--cyan); }
+.mdrow { display: flex; gap: 10px; align-items: center; border-top: 1px solid var(--hair); padding: 5px 4px; font-size: 13.5px; } .mdrow.on { color: var(--cyan); } .mdrow > button.t { flex: 1; min-width: 0; text-align: left; border: 0; background: none; color: inherit; font: inherit; cursor: pointer; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; unicode-bidi: plaintext; padding: 3px 0; } .mdrow small { color: var(--muted); } .mdrow .x { border: 0; background: none; color: var(--dim); cursor: pointer; padding: 2px 5px; flex: none; } .mdrow .x[data-mda] { color: var(--muted); font-size: 17px; line-height: 1; } .mdrow .x:hover { color: var(--cyan); } .mdrow .x.del:hover { color: var(--red); } .mdlist { max-height: 46vh; overflow: auto; }
+#mdMini { position: fixed; right: 18px; bottom: 92px; z-index: 40; display: flex; gap: 6px; align-items: center; max-width: min(360px, calc(100vw - 36px)); padding: 6px 8px 6px 14px; border-radius: 999px; border: 1px solid var(--hair-2); background: var(--solid); box-shadow: 0 8px 28px var(--shadow); font-size: 13px; } #mdMini[hidden] { display: none; } #mdMini span { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; unicode-bidi: plaintext; } #mdMini button { border: 0; background: none; color: var(--muted); cursor: pointer; width: 28px; height: 28px; border-radius: 50%; } #mdMini button:hover { color: var(--cyan); }
+.rcopt { display: grid; gap: 9px; font-size: 13.5px; } .rcopt label { display: flex; gap: 8px; align-items: flex-start; } .rcopt small { color: var(--dim); display: block; font-size: 12px; } .rcopt input { accent-color: var(--cyan); margin-top: 3px; } #rcV { width: 100%; max-height: 46vh; border-radius: 12px; background: #000; margin-bottom: 10px; } #rcV[hidden] { display: none; }
+.imwrap { position: relative; display: grid; place-items: center; min-height: 220px; border: 1px dashed var(--hair-2); border-radius: 14px; overflow: hidden; background: repeating-conic-gradient(rgba(var(--c-fill), .06) 0 25%, transparent 0 50%) 0 0 / 22px 22px; } .imwrap.drop { border-color: var(--cyan); } .imwrap canvas { max-width: 100%; max-height: 52vh; display: block; } #imSel { position: absolute; border: 1.5px dashed #fff; box-shadow: 0 0 0 9999px rgba(0, 0, 0, .45); pointer-events: none; } #imSel[hidden] { display: none; } .imwrap .empty { position: absolute; }
+.imtools { display: flex; gap: 6px; flex-wrap: wrap; margin: 10px 0; } .imtools .btn { height: 32px; font-size: 12.5px; } .impanel { border: 1px solid var(--hair); border-radius: 12px; padding: 10px 12px; margin-bottom: 10px; display: grid; gap: 8px; font-size: 13px; } .impanel[hidden] { display: none; } .impanel label { display: inline-flex; gap: 8px; align-items: center; } .impanel input[type="range"] { width: 150px; accent-color: var(--cyan); } .impanel .row { display: flex; gap: 10px 16px; flex-wrap: wrap; align-items: center; } .impanel input[type="number"], .impanel input[type="text"], .impanel select { height: 32px; border-radius: 9px; border: 1px solid var(--hair-2); background-color: var(--field); color: var(--text); font: inherit; font-size: 13px; padding: 0 8px; }
+.imgrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(92px, 1fr)); gap: 8px; max-height: 44vh; overflow: auto; } .imgrid button { border: 1px solid var(--hair); border-radius: 10px; padding: 0; background: none; cursor: pointer; aspect-ratio: 1; overflow: hidden; } .imgrid button:hover { border-color: var(--cyan); } .imgrid .empty { grid-column: 1 / -1; } .imgrid img { width: 100%; height: 100%; object-fit: cover; display: block; }
+@media (max-width: 1000px) { .st2 { grid-template-columns: minmax(0, 1fr); } }
 /* daily: travel, meetings, people; the red bar while a meeting is written down */
-#recbar { position: fixed; top: 0; left: 0; right: 0; z-index: 80; display: flex; gap: 12px; align-items: center; justify-content: center; flex-wrap: wrap; padding: 5px 14px; font-size: 13px; color: #fff; background: #c22638; box-shadow: 0 4px 18px rgba(0, 0, 0, .35); } #recbar[hidden] { display: none; } #recbar .dot { width: 10px; height: 10px; border-radius: 50%; background: #fff; animation: recPulse 1.4s infinite; } #recbar.paused .dot { animation: none; opacity: .4; } #recbar button { border: 1px solid rgba(255, 255, 255, .6); border-radius: 8px; background: rgba(0, 0, 0, .18); color: #fff; font: inherit; font-size: 12.5px; padding: 3px 12px; cursor: pointer; } #recbar b { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 40vw; } #recbar em { font: 600 13px var(--mono); font-style: normal; }
+#recwrap { position: fixed; top: 0; left: 0; right: 0; z-index: 80; display: grid; gap: 1px; box-shadow: 0 4px 18px rgba(0, 0, 0, .35); } .recbar { display: flex; gap: 12px; align-items: center; justify-content: center; flex-wrap: wrap; padding: 5px 14px; font-size: 13px; color: #fff; background: #c22638; } .recbar[hidden] { display: none; } .recbar .dot { width: 10px; height: 10px; border-radius: 50%; background: #fff; animation: recPulse 1.4s infinite; } .recbar.paused .dot { animation: none; opacity: .4; } .recbar button { border: 1px solid rgba(255, 255, 255, .6); border-radius: 8px; background: rgba(0, 0, 0, .18); color: #fff; font: inherit; font-size: 12.5px; padding: 3px 12px; cursor: pointer; } .recbar b { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 40vw; } .recbar em { font: 600 13px var(--mono); font-style: normal; }
 @keyframes recPulse { 50% { opacity: .25; } }
-body.rec .shell { padding-top: 38px; box-sizing: border-box; } body.rec #alerts { top: 106px; }
+body.rec .shell { padding-top: var(--recH, 38px); box-sizing: border-box; } body.rec #alerts { top: calc(70px + var(--recH, 38px)); }
 .dylist .lndeck { cursor: default; } .dy2 { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 2.5fr); gap: 14px; align-items: start; }
 .dyform { display: grid; gap: 8px; } .dyform[hidden] { display: none; } .dyform .fitset input:not([type="checkbox"]), .dyform .fitset select { width: auto; } .dyform textarea, .mtarea { min-height: 58px; border-radius: 10px; border: 1px solid var(--hair-2); background-color: var(--field); color: var(--text); font: inherit; font-size: 13.5px; line-height: 1.5; padding: 8px 10px; resize: vertical; unicode-bidi: plaintext; width: 100%; box-sizing: border-box; } .dyform textarea:focus, .mtarea:focus { outline: none; border-color: rgba(var(--c-accent), .6); }
 .trhead { display: flex; gap: 10px; align-items: flex-start; flex-wrap: wrap; } .trhead h5 { margin: 0; font-size: 18px; font-weight: 600; flex: 1; min-width: 160px; overflow-wrap: anywhere; } .trhead small { display: block; color: var(--muted); font-size: 12.5px; font-weight: 400; }
@@ -1139,7 +1150,7 @@ body.focus .hero { background: none; box-shadow: none; }
 </head>
 <body data-state="idle">
 <div class="offline" id="offline">CONNECTION LOST · RECONNECTING</div>
-<div id="recbar" role="status" hidden><span class="dot"></span><em id="recT"></em><b id="recN"></b><span id="recW"></span><button id="recP">Pause</button><button id="recS">Stop</button></div>
+<div id="recwrap"><div id="recbar" class="recbar" role="status" hidden><span class="dot"></span><em id="recT"></em><b id="recN"></b><span id="recW"></span><button id="recP">Pause</button><button id="recS">Stop</button></div><div id="scrbar" class="recbar" role="status" hidden><span class="dot"></span><em id="scrT"></em><b>Screen recording</b><span id="scrW"></span><button id="scrP">Pause</button><button id="scrS">Stop</button></div></div>
 <div class="shell">
 
   <!-- ===== sidebar ===== -->
@@ -1158,6 +1169,7 @@ body.focus .hero { background: none; box-shadow: none; }
       <button class="navi" data-view="memory"><i data-ic="db"></i><span>Memory</span><em class="badge" id="bMem">0</em></button>
       <button class="navi" data-view="planner"><i data-ic="clock"></i><span>Planner</span><em class="badge" id="bPlan">0</em></button>
       <button class="navi" data-view="daily"><i data-ic="sun"></i><span>Daily</span><em class="badge" id="bDaily">0</em></button>
+      <button class="navi" data-view="studio"><i data-ic="play"></i><span>Studio</span></button>
       <button class="navi" data-view="profile"><i data-ic="user"></i><span>Profile</span></button>
       <button class="navi" data-view="tools"><i data-ic="wrench"></i><span>Tools &amp; Skills</span><em class="badge" id="bTools">0</em></button>
       <button class="navi" data-view="auto"><i data-ic="tasks"></i><span>Automations</span><em class="badge" id="bAuto">0</em></button>
@@ -1399,6 +1411,41 @@ body.focus .hero { background: none; box-shadow: none; }
         </div>
       </section>
     </section>
+
+    <!-- Studio -->
+    <section class="view" data-view="studio">
+      <section class="card page">
+        <h3>Studio <span class="more" style="cursor:default">Music and video, screen recording, pictures</span></h3>
+        <div class="body">
+          <div class="plbar"><div class="seg" id="stTabs" role="tablist" aria-label="Studio">
+              <button class="on" data-st="media" role="tab" aria-selected="true"><i data-ic="play"></i>Media</button>
+              <button data-st="rec" role="tab" aria-selected="false"><i data-ic="pc"></i>Recorder</button>
+              <button data-st="images" role="tab" aria-selected="false"><i data-ic="sun"></i>Images</button></div><span class="err" id="stErr" role="alert"></span></div>
+          <div class="stpane" data-stpane="media"><div class="st2"><div class="lncol">
+              <section class="ckbox stbox"><h4 class="sec">PLAYING ON THIS PC</h4><div class="mdnow"><div><b id="mdNowT">Nothing is playing</b><small id="mdNowS"></small></div><div class="ckrow"><button class="btn" data-mdc="previous" aria-label="Previous">⏮</button><button class="btn on" data-mdc="play_pause" id="mdNowP" aria-label="Play or pause">⏯</button><button class="btn" data-mdc="next" aria-label="Next">⏭</button></div><div class="mdvol"><button class="btn" id="mdMute" aria-label="Mute"><i data-ic="speaker"></i></button><input type="range" id="mdVol" min="0" max="100" aria-label="Volume of the PC"><em id="mdVolN"></em></div></div></section>
+              <section class="ckbox stbox" id="mdPlayer"><h4 class="sec">PLAYER</h4><video id="mdV" class="audio" playsinline></video><div class="mdnow"><div><b id="mdT">Choose something below</b><small id="mdS"></small></div></div>
+                <div class="mdbar"><button class="btn" id="mdPrev" aria-label="Previous">⏮</button><button class="btn on" id="mdGo" aria-label="Play or pause">▶</button><button class="btn" id="mdNext" aria-label="Next">⏭</button><em id="mdAt">0:00</em><input type="range" id="mdPos" min="0" max="1000" value="0" aria-label="Position"><em id="mdLen">0:00</em><button class="btn" id="mdShuf" aria-pressed="false" title="Play in a mixed order">Shuffle</button><button class="btn" id="mdRep">Repeat: off</button><button class="btn" id="mdStop">Stop</button></div></section>
+              <section class="ckbox stbox"><div class="lfhead" style="margin-top:0"><h4 class="sec">MY LIBRARY</h4><select id="mdKind" aria-label="What" style="height:30px;border-radius:9px;border:1px solid var(--hair-2);color:var(--text);font:inherit;font-size:12.5px"><option value="">all</option><option value="audio">music</option><option value="video">videos</option></select><button class="btn" id="mdAll"><i data-ic="play"></i>Play all</button></div><div class="memsearch" style="margin-bottom:6px"><i data-ic="search"></i><input id="mdQ" placeholder="Search your music and videos…" aria-label="Search the library" autocomplete="off"></div><div class="mdlist" id="mdFiles"></div></section>
+            </div><div class="lncol">
+              <section class="ckbox stbox"><h4 class="sec">PLAYLISTS</h4><form class="agask" id="mdNewL" autocomplete="off"><input id="mdLn" maxlength="60" placeholder="New playlist" aria-label="New playlist"><button class="btn" type="submit">Add</button></form><div id="mdLists"></div></section>
+              <section class="ckbox stbox"><h4 class="sec">RADIO</h4><form class="agask" id="mdRf" autocomplete="off"><input id="mdRq" maxlength="80" placeholder="Station, music or word, e.g. quran" aria-label="Search radio"><button class="btn" type="submit">Find</button></form><div class="mdlist" style="max-height:26vh" id="mdRadio"></div><small class="dxnote" style="margin-top:6px">Free stations from radio-browser.info. Your words go there; a station is played from its own address.</small></section>
+              <section class="ckbox stbox"><div class="lfhead" style="margin-top:0"><h4 class="sec">FOLDERS</h4><button class="btn" id="mdPick"><i data-ic="note"></i>Choose a folder</button><button class="btn" id="mdScan" aria-label="Look again" title="Look again"><i data-ic="refresh"></i></button></div><div id="mdFolders"></div></section>
+            </div></div></div>
+          <div class="stpane" data-stpane="rec" hidden><div class="st2"><section class="ckbox stbox"><h4 class="sec">RECORDINGS</h4><video id="rcV" controls hidden></video><div id="rcList"></div></section>
+              <section class="ckbox stbox"><h4 class="sec">RECORD THE SCREEN</h4><div class="rcopt"><label><input type="checkbox" id="rcSound"><span>The computer's sound too<small>Tick "share audio" in the box that comes as well.</small></span></label><label><input type="checkbox" id="rcMic"><span>My microphone too</span></label>
+                <div class="fitset"><label>Quality <select id="rcQ" aria-label="Quality"><option value="2500000">small file</option><option value="5000000" selected>good</option><option value="10000000">best</option></select></label><label>Pictures a second <select id="rcF" aria-label="Pictures a second"><option>15</option><option selected>30</option></select></label></div>
+                <button class="btn on" id="rcGo" style="justify-self:start"><i data-ic="pc"></i>Start recording</button><small>Windows asks each time what to share: the screen, a window or a tab. A red bar stays on every page here, and a small REC window above all others. Only this button starts it: the assistant can't. It is kept as a video in Videos › Personal Assistant, on this PC.</small></div></section></div></div>
+          <div class="stpane" data-stpane="images" hidden><div class="st2"><section class="ckbox stbox"><div class="lfhead" style="margin-top:0"><h4 class="sec">EDIT</h4><button class="btn on" id="imOpen"><i data-ic="note"></i>Open a picture</button><input type="file" id="imFile" accept="image/*" hidden><button class="btn" id="imUndo" disabled>Undo</button><button class="btn" id="imReset" disabled>Original</button></div>
+                <div class="imwrap" id="imWrap"><div class="empty" id="imEmpty">Open a picture, drop one here, or paste one (Ctrl+V). It stays on this PC.</div><canvas id="imC" hidden></canvas><div id="imSel" hidden></div></div>
+                <div class="imtools" id="imTools"></div>
+                <div class="impanel" id="imPanel" hidden></div>
+                <div class="impanel" id="imSave" hidden><div class="row"><label>Name <input type="text" id="imName" maxlength="60" style="width:170px"></label><label>As <select id="imFmt"><option value="png">PNG</option><option value="jpg">JPG</option><option value="webp">WebP</option></select></label><label>Quality <input type="range" id="imQ" min="30" max="100" value="90"></label><button class="btn on" id="imKeep"><i data-ic="check"></i>Save a copy</button><span id="imDim" style="color:var(--dim)"></span></div></div></section>
+              <div class="lncol"><section class="ckbox stbox"><h4 class="sec">MAKE A PICTURE</h4><form class="dyform" id="imMake"><textarea id="imP" maxlength="600" placeholder="What should be in it? English works best." aria-label="What should be in the picture"></textarea><div class="ckrow" style="justify-content:flex-start"><select id="imSize" aria-label="Shape" style="height:32px;border-radius:9px;border:1px solid var(--hair-2);color:var(--text);font:inherit;font-size:13px"><option value="square">square</option><option value="wide">wide</option><option value="tall">tall</option></select><button class="btn on" type="submit" id="imGo"><i data-ic="zap"></i>Make it online</button></div></form><small class="dxnote" style="margin-top:6px">Free, without a key: your words go to Pollinations.ai, so write nothing private. Nothing else leaves this PC.</small></section>
+                <section class="ckbox stbox"><div class="lfhead" style="margin-top:0"><h4 class="sec">MY PICTURES</h4><button class="btn" id="imDir"><i data-ic="note"></i>Folder</button></div><div class="imgrid" id="imGrid"></div></section></div></div></div>
+        </div>
+      </section>
+    </section>
+    <div id="mdMini" hidden><span id="mdMt"></span><button id="mdMg" aria-label="Play or pause">⏸</button><button id="mdMn" aria-label="Next">⏭</button><button id="mdMx" aria-label="Stop">✕</button></div>
 
     <!-- Planner -->
     <section class="view" data-view="planner">
@@ -1916,6 +1963,8 @@ function go(view) {
   if (view === "planner") { loadPlanner(); lfReload(); }
   if (view === "tools") dxLoad();
   if (view === "daily") dyShow();
+  if (view === "studio") stShow();
+  mdMini();
 }
 document.querySelectorAll(".navi").forEach(n => n.onclick = () => go(n.dataset.view));
 document.querySelectorAll("[data-go]").forEach(b => b.onclick = () => go(b.dataset.go));
@@ -1988,7 +2037,7 @@ const FRIENDLY = {
   manage_windows: ["Windows", "layers"], arrange_windows: ["Arranged windows", "layers"], workspace: ["Workspace", "layers"],
   read_screen_text: ["Read text on screen", "eye"],
   delegate: ["Asked an agent", "user"], automation: ["Automation", "tasks"], make_plan: ["Made a plan", "tasks"], plan_step: ["Plan step", "tasks"],
-  travel: ["Trips", "pin"], meetings: ["Meetings", "chat"], meeting: ["Meeting", "mic"], people: ["People", "user"], learn: ["Flashcards", "db"], fitness: ["Fitness", "zap"], clock: ["Clock", "clock"], news: ["Read the news", "globe"],
+  media: ["Media", "play"], images: ["Pictures", "sun"], screenrec: ["Screen recording", "pc"], travel: ["Trips", "pin"], meetings: ["Meetings", "chat"], meeting: ["Meeting", "mic"], people: ["People", "user"], learn: ["Flashcards", "db"], fitness: ["Fitness", "zap"], clock: ["Clock", "clock"], news: ["Read the news", "globe"],
   software: ["Software (winget)", "download"], network: ["Network check", "wifi"], dev_tools: ["Developer tools", "cpu"],
   find_old_files: ["Scanned for old files", "search"], clean_folder: ["Cleaned up a folder", "note"],
   renamed: ["Renamed the assistant", "user"], set_assistant_name: ["Renamed the assistant", "user"],
@@ -2066,7 +2115,7 @@ const AGENTS = [
   { id: "memory", name: "Memory Agent", ic: "db", color: "var(--violet)", tools: ["remember_fact", "recall_memories", "forget_memory", "use_skill", "save_skill", "save_note", "list_notes", "notes", "documents", "read_text_file", "find_files"] },
   { id: "task", name: "Task Agent", ic: "tasks", color: "var(--blue)", tools: ["tasks", "calendar", "delegate", "automation", "make_plan", "plan_step", "set_timer", "list_timers", "cancel_timer", "clock", "learn", "fitness", "travel", "meetings", "people", "get_datetime", "set_alarm", "list_alarms", "delete_alarm", "prayer_times", "prayer_reminders"] },
   { id: "vision", name: "Vision Agent", ic: "eye", color: "var(--green)", tools: ["look_at_screen", "take_screenshot", "read_screen_text"] },
-  { id: "system", name: "System Agent", ic: "cpu", color: "var(--muted)", tools: ["system_status", "software", "network", "dev_tools", "manage_windows", "arrange_windows", "workspace", "run_powershell", "lock_computer", "media_control", "clipboard", "set_language", "set_location",
+  { id: "system", name: "System Agent", ic: "cpu", color: "var(--muted)", tools: ["system_status", "software", "network", "dev_tools", "manage_windows", "arrange_windows", "workspace", "run_powershell", "lock_computer", "media_control", "media", "images", "clipboard", "set_language", "set_location",
     "close_app", "power_action", "set_brightness", "wireless", "find_old_files", "clean_folder"] },
 ];
 const agentState = Object.fromEntries(AGENTS.map(a => [a.id, { until: 0, runs: 0 }]));
@@ -2220,6 +2269,15 @@ function handle(ev) {
       break;
     case "daily_changed":
       if (dyOn() && dyTab === ev.what) ({ learn: lnLoad, fit: ftLoad, travel: trLoad, meet: mtLoad, people: ppLoad })[ev.what]();
+      break;
+    case "screen_state":
+      if (!replaying) scShow(ev.state);
+      break;
+    case "media_play":
+      if (!replaying && isSpeaker()) mdPlayFound(ev.play);
+      break;
+    case "studio_changed":
+      if (stOn() && stTab === ev.what) stShow();
       break;
     case "meeting_state":
       if (!replaying) mtShow(ev.state);
@@ -2927,7 +2985,7 @@ async function poll() {
     if (hotFor.cpu >= 20) alertOnce("cpu", { title: `CPU running hot (${Math.round(s.cpu)}%) for 30 seconds`, sub: "Something is working hard. Ask me \"how's my PC doing?\" to see what", tag: "WARN", ic: "warn" });
     paintAlertSettings(s); paintStartup(s); paintPrivacy(s); paintStt(s); paintTts(s);
     renderTimeline(s.timers || []);
-    if (!!s.meeting !== !!mtState) mtShow(s.meeting);
+    if (!!s.meeting !== !!mtState) mtShow(s.meeting); if (!!s.screen !== !!scState) scShow(s.screen);
     showRinging(s.ringing); $("bDaily").textContent = (s.timers || []).filter(t => t.kind === "timer").length;
     renderLlms(s.llms || []);
     if (constelN !== Math.min(s.memories, 24)) { constelN = Math.min(s.memories, 24); drawConstel(); }
@@ -3706,7 +3764,7 @@ $("mtNew").onclick = async () => { await mtSaveNow(); const j = await mtPost("sa
 $("mtQ").oninput = () => { clearTimeout(ppTimer); ppTimer = setTimeout(mtLoad, 250); };
 function mtShow(st) {                                                  // the red bar, on every page
   const was = mtState && mtState.meeting; mtState = st && st.active ? st : null; mtAt = Date.now();
-  $("recbar").hidden = !mtState; document.body.classList.toggle("rec", !!mtState); mtTick();
+  $("recbar").hidden = !mtState; mtTick(); recRoom();
   if (dyOn() && dyTab === "meet" && mtData && (!!was !== !!mtState || mtState && mtState.meeting === mtId)) mtLoad();
 }
 function mtTick() {
@@ -3715,6 +3773,7 @@ function mtTick() {
   $("recT").textContent = `${n >= 3600 ? Math.floor(n / 3600) + ":" : ""}${p(Math.floor(n % 3600 / 60))}:${p(n % 60)}`; $("recN").textContent = s.title; $("recbar").classList.toggle("paused", s.paused);
   $("recW").textContent = s.paused ? "paused: nothing is heard" : `being written down ${s.engine === "local" ? "on this PC" : "by Groq"} · ${s.words} words${s.waiting > 2 ? ` · ${s.waiting} pieces waiting` : ""}${s.failed ? ` · ${s.failed} missed` : ""}`; $("recP").textContent = s.paused ? "Go on" : "Pause";
 }
+function recRoom() { const on = !!mtState || !!scState; document.body.classList.toggle("rec", on); if (on) document.body.style.setProperty("--recH", $("recwrap").offsetHeight + "px"); }
 setInterval(mtTick, 1000);
 $("recP").onclick = () => mtState && post("/api/meet/pause", { on: !mtState.paused }); $("recS").onclick = () => post("/api/meet/stop", {});
 // -- people
@@ -3736,6 +3795,195 @@ $("ppNew").onclick = () => ppForm(null); $("ppX").onclick = () => { $("ppForm").
 $("ppForm").onsubmit = async e => { e.preventDefault(); const j = await ppPost("save", { id: ppEdit || null, name: $("ppN").value, relation: $("ppR").value, birthday: $("ppB").value, phone: $("ppP").value, notes: $("ppT").value, remind: $("ppD").value }); if (!j.error) $("ppForm").hidden = true; };
 $("ppQ").oninput = () => { clearTimeout(ppTimer); ppTimer = setTimeout(ppLoad, 250); };
 $("ppHu").onchange = () => ppPost("settings", { humour: $("ppHu").value }); $("ppLe").onchange = () => ppPost("settings", { length: $("ppLe").value }); $("ppC").onchange = () => ppPost("settings", { checkin: $("ppC").value }); $("ppA").onchange = () => { if ($("ppA").value) ppPost("settings", { birthday_at: $("ppA").value }); }; $("ppU").onchange = () => ppPost("settings", { use_names: $("ppU").checked });
+
+// ---------- studio ----------
+let stTab = "media", mdData = null, mdQueue = [], mdI = -1, mdShuf = false, mdRep = "off", mdSt = null, mdTimer = 0, mdNow = null, mdFound = null, mdAddTo = 0, scState = null, scAt = 0, scMine = null, rcData = null, imC = null, imUndoList = [], imFirst = null, imTool = "", imDrag = null, imData = null;
+const stOn = () => !!document.querySelector('.view.active[data-view="studio"]'), stTell = (t, good = false) => { $("stErr").textContent = t || ""; $("stErr").classList.toggle("ok", good); };
+async function stPost(page, action, body = {}) {
+  const r = await post(`/api/${page}/${action}`, body), j = r ? await r.json().catch(() => ({ error: "The app didn't answer." })) : { error: "The app didn't answer." };
+  if (j.error || action !== "load") stTell(j.error);
+  return j;
+}
+function stShow() {
+  document.querySelectorAll("#stTabs [data-st]").forEach(b => { const on = b.dataset.st === stTab; b.classList.toggle("on", on); b.setAttribute("aria-selected", on); });
+  document.querySelectorAll("[data-stpane]").forEach(p => p.hidden = p.dataset.stpane !== stTab);
+  ({ media: mdLoad, rec: rcLoad, images: imLoad })[stTab](); mdMini();
+}
+document.querySelectorAll("#stTabs [data-st]").forEach(b => b.onclick = () => { stTab = b.dataset.st; stTell(""); stShow(); });
+// -- media
+const mdFmt = s => !isFinite(s) ? "live" : `${s >= 3600 ? Math.floor(s / 3600) + ":" : ""}${s >= 3600 ? String(Math.floor(s % 3600 / 60)).padStart(2, "0") : Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, "0")}`;
+async function mdPost(action, body = {}) { const j = await stPost("media", action, { query: $("mdQ").value, kind: $("mdKind").value, ...body }); if (!j.error && j.folders) { mdData = j; mdDraw(); } return j; }
+const mdLoad = () => { mdPost("load"); mdAsk(); };
+function mdDraw() {
+  const d = mdData, cur = mdI >= 0 ? mdQueue[mdI] : null;
+  setHTML($("mdFiles"), d.files.map(f => `<div class="mdrow${cur && cur.id === f.id ? " on" : ""}"><span>${f.kind === "video" ? "🎬" : "🎵"}</span><button class="t" data-mdf="${f.id}" title="${esc(f.name)}">${esc(f.title)}${f.artist ? ` <small>${esc(f.artist)}</small>` : ""}</button><button class="x" data-mda="${f.id}" title="Add to the playlist" aria-label="Add to a playlist: ${esc(f.title)}">+</button></div>`).join("") || `<div class="empty">${d.folders.length ? "Nothing matches." : "Choose a folder of music or videos (on the right)."}</div>`);
+  setHTML($("mdFolders"), d.folders.map(f => `<div class="mdrow"><button class="t" style="cursor:default" title="${esc(f.path)}">${esc(f.path)} <small>${f.files}</small></button><button class="x del" data-mdfx="${f.id}" aria-label="Remove ${esc(f.path)}">${icon("x")}</button></div>`).join("") + (d.suggestions || []).map(p => `<div class="mdrow"><button class="t" data-mdsug="${esc(p)}">+ ${esc(p)}</button></div>`).join(""));
+  setHTML($("mdLists"), d.playlists.map(p => `<div class="mdrow${mdAddTo === p.id ? " on" : ""}"><button class="t" data-mdl="${p.id}">${esc(p.name)} <small>${p.items.length}</small></button><button class="x" data-mdlp="${p.id}" aria-label="Play ${esc(p.name)}">▶</button><button class="x del" data-mdlx="${p.id}" aria-label="Delete ${esc(p.name)}">${icon("x")}</button></div>${mdAddTo === p.id ? p.items.map(f => `<div class="mdrow" style="padding-left:18px"><button class="t" data-mdf1="${f.id}">${esc(f.title)}</button><button class="x del" data-mdli="${f.id}" aria-label="Take out ${esc(f.title)}">${icon("x")}</button></div>`).join("") || '<div class="empty">Press + next to a song to add it here.</div>' : ""}`).join("") || '<div class="empty">No playlists yet.</div>');
+  const st = mdFound || d.stations;
+  setHTML($("mdRadio"), (mdFound ? `<div class="mdrow"><button class="t" id="mdRback">‹ My stations (${d.stations.length})</button></div>` : "") + (st.map(x => { const sv = d.stations.some(y => y.uid === x.uid); return `<div class="mdrow${mdSt && mdSt.uid === x.uid ? " on" : ""}"><button class="t" data-mdr="${esc(x.uid)}">${esc(x.name)} <small>${esc(x.country)}</small></button><button class="x" data-mdrs="${esc(x.uid)}" data-on="${sv ? "" : 1}" title="${sv ? "Remove" : "Keep"}" aria-label="${sv ? "Remove" : "Keep"} ${esc(x.name)}">${sv ? "★" : "☆"}</button></div>`; }).join("") || `<div class="empty">${mdFound ? "No station found." : "Search, then keep the ones you like with ☆."}</div>`));
+  const on = (k, fn) => document.querySelectorAll(`[data-${k}]`).forEach(b => b.onclick = () => fn(b.dataset[k], b));
+  on("mdf", id => { mdQueue = d.files.slice(); mdPlayAt(mdQueue.findIndex(f => f.id === +id)); });
+  on("mda", async id => { if (!mdAddTo) { const first = d.playlists[0]; if (!first) return stTell("Make a playlist first."); mdAddTo = first.id; } const j = await mdPost("playlist_item", { id: mdAddTo, file: +id, add: true }); if (!j.error) stTell("Added to " + (j.playlists.find(p => p.id === mdAddTo) || {}).name + ".", true); });
+  on("mdfx", (id, b) => lnArm("mf" + id, b, () => mdPost("folder_remove", { id: +id }))); on("mdsug", p => mdPost("folder", { path: p }));
+  on("mdl", id => { mdAddTo = mdAddTo === +id ? 0 : +id; mdDraw(); }); on("mdlp", id => { const p = d.playlists.find(x => x.id === +id); if (p.items.length) { mdQueue = p.items.slice(); mdPlayAt(mdShuf ? Math.floor(Math.random() * mdQueue.length) : 0); } });
+  on("mdf1", id => { mdQueue = d.playlists.find(p => p.id === mdAddTo).items.slice(); mdPlayAt(mdQueue.findIndex(f => f.id === +id)); });
+  on("mdlx", (id, b) => lnArm("ml" + id, b, () => { if (mdAddTo === +id) mdAddTo = 0; mdPost("playlist_delete", { id: +id }); })); on("mdli", id => mdPost("playlist_item", { id: mdAddTo, file: +id, add: false }));
+  on("mdr", uid => mdRadio(uid)); on("mdrs", (uid, b) => mdPost("station_save", { uid, on: !!b.dataset.on })); if ($("mdRback")) $("mdRback").onclick = () => { mdFound = null; mdDraw(); };
+}
+const mdV = $("mdV");
+function mdTitles() {
+  const f = mdSt || (mdI >= 0 ? mdQueue[mdI] : null);
+  $("mdT").textContent = f ? f.title || f.name : "Choose something below"; $("mdS").textContent = mdSt ? ["Radio", mdSt.country].filter(Boolean).join(" · ") : f ? [f.artist, f.album].filter(Boolean).join(" · ") : "";
+  $("mdGo").textContent = mdV.paused || !mdV.src ? "▶" : "⏸"; if (mdData) mdDraw(); mdMini();
+  if ("mediaSession" in navigator) navigator.mediaSession.metadata = f ? new MediaMetadata({ title: f.title || f.name, artist: f.artist || f.country || "", album: f.album || "" }) : null;
+}
+function mdPlayAt(i) {
+  const f = mdQueue[i]; if (!f) return;
+  mdSt = null; mdI = i; mdV.classList.toggle("audio", f.kind !== "video"); mdV.src = `/api/media/file?id=${f.id}&token=${encodeURIComponent(TOKEN)}`; mdV.play().catch(() => {}); mdTitles();
+}
+async function mdRadio(uid) {
+  const j = await stPost("media", "station", { uid }); if (j.error) return;
+  mdSt = j.station; mdI = -1; mdV.classList.add("audio"); mdV.src = j.station.url; mdV.play().catch(() => {}); mdTitles();
+}
+function mdStep(n) {
+  if (!mdQueue.length || mdSt) return;
+  let i = mdShuf && n > 0 && mdQueue.length > 1 ? (mdI + 1 + Math.floor(Math.random() * (mdQueue.length - 1))) % mdQueue.length : mdI + n;
+  if (i >= mdQueue.length) { if (mdRep !== "all") return mdTitles(); i = 0; } if (i < 0) i = 0; mdPlayAt(i);
+}
+function mdStopAll() { mdV.pause(); mdV.removeAttribute("src"); mdV.load(); mdSt = null; mdI = -1; mdQueue = []; $("mdPos").value = 0; $("mdAt").textContent = $("mdLen").textContent = "0:00"; mdTitles(); }
+function mdPlayFound(p) { if (!p) return; if (p.what === "station") mdRadio(p.uid); else { mdQueue = p.items; mdPlayAt(p.what === "playlist" && mdShuf ? Math.floor(Math.random() * mdQueue.length) : 0); } }
+mdV.onended = () => mdRep === "one" ? (mdV.currentTime = 0, mdV.play()) : mdStep(1); mdV.onplay = mdV.onpause = mdTitles;
+mdV.onerror = () => { if (!mdV.getAttribute("src")) return; const f = mdI >= 0 ? mdQueue[mdI] : null; if (mdSt) stTell("That station doesn't answer."); else if (f) { stTell("The page can't play this kind of file; opening it in your own player."); stPost("media", "open", { id: f.id }); } mdV.removeAttribute("src"); mdSt = null; mdTitles(); };
+mdV.ontimeupdate = () => { $("mdAt").textContent = mdFmt(mdV.currentTime); $("mdLen").textContent = mdV.duration ? mdFmt(mdV.duration) : "0:00"; if (document.activeElement !== $("mdPos") && isFinite(mdV.duration)) $("mdPos").value = 1000 * mdV.currentTime / mdV.duration; };
+$("mdPos").oninput = () => { if (isFinite(mdV.duration)) mdV.currentTime = mdV.duration * $("mdPos").value / 1000; }; $("mdPos").onchange = () => $("mdPos").blur();
+$("mdGo").onclick = $("mdMg").onclick = () => { if (!mdV.src) { if (mdData && mdData.files.length) { mdQueue = mdData.files.slice(); mdPlayAt(0); } } else if (mdV.paused) mdV.play().catch(() => {}); else mdV.pause(); };
+$("mdPrev").onclick = () => mdV.currentTime > 4 ? mdV.currentTime = 0 : mdStep(-1); $("mdNext").onclick = $("mdMn").onclick = () => mdStep(1); $("mdStop").onclick = $("mdMx").onclick = mdStopAll;
+$("mdShuf").onclick = () => { mdShuf = !mdShuf; $("mdShuf").classList.toggle("on", mdShuf); $("mdShuf").setAttribute("aria-pressed", mdShuf); };
+$("mdRep").onclick = () => { mdRep = { off: "all", all: "one", one: "off" }[mdRep]; $("mdRep").classList.toggle("on", mdRep !== "off"); $("mdRep").textContent = "Repeat: " + mdRep; };
+$("mdAll").onclick = () => { if (mdData && mdData.files.length) { mdQueue = mdData.files.slice(); mdPlayAt(mdShuf ? Math.floor(Math.random() * mdQueue.length) : 0); } };
+$("mdQ").oninput = () => { clearTimeout(mdTimer); mdTimer = setTimeout(() => mdPost("load"), 250); }; $("mdKind").onchange = () => mdPost("load");
+$("mdPick").onclick = async () => { const j = await stPost("media", "pick"); if (!j.error && j.path) mdPost("folder", { path: j.path }); }; $("mdScan").onclick = () => mdPost("scan");
+$("mdNewL").onsubmit = async e => { e.preventDefault(); const j = await mdPost("playlist", { name: $("mdLn").value }); if (!j.error) { $("mdLn").value = ""; mdAddTo = j.playlist; mdDraw(); } };
+$("mdRf").onsubmit = async e => { e.preventDefault(); setHTML($("mdRadio"), '<div class="empty">Looking…</div>'); const j = await stPost("media", "radio", { words: $("mdRq").value }); mdFound = j.error ? null : j.found; if (mdData) mdDraw(); };
+setInterval(() => { if (!mdV.src) return; const low = isSpeaking() || live.active || rings.length; const want = low ? 0.12 : 1; if (Math.abs(mdV.volume - want) > 0.01) mdV.volume = want; }, 300);     // quieter while someone speaks or rings
+function mdMini() { const f = mdSt || (mdI >= 0 ? mdQueue[mdI] : null), show = !!f && !!mdV.src && !(stOn() && stTab === "media"); $("mdMini").hidden = !show; if (show) { $("mdMt").textContent = f.title || f.name; $("mdMg").textContent = mdV.paused ? "▶" : "⏸"; } }
+async function mdAsk(act = "get") {
+  if (!(stOn() && stTab === "media")) return;
+  const r = await post("/api/media/now", { do: act }), j = r ? await r.json().catch(() => null) : null; if (!j || j.error) return;
+  mdNow = j.now; $("mdNowT").textContent = j.now.none ? "Nothing is playing" : j.now.title || "(no title)"; $("mdNowS").textContent = j.now.none ? "Start something in any app, or below." : [j.now.artist, j.now.app, j.now.playing ? "playing" : "paused"].filter(Boolean).join(" · "); $("mdNowP").textContent = j.now.playing ? "⏸" : "▶";
+  if (document.activeElement !== $("mdVol")) $("mdVol").value = j.volume; $("mdVolN").textContent = j.volume + "%"; $("mdMute").classList.toggle("danger", j.muted);
+}
+document.querySelectorAll("[data-mdc]").forEach(b => b.onclick = () => mdAsk(b.dataset.mdc).then(() => setTimeout(mdAsk, 700)));
+$("mdVol").oninput = () => { $("mdVolN").textContent = $("mdVol").value + "%"; }; $("mdVol").onchange = async () => { await stPost("media", "volume", { value: $("mdVol").value }); $("mdVol").blur(); mdAsk(); };
+$("mdMute").onclick = async () => { await stPost("media", "volume", { mute: !$("mdMute").classList.contains("danger") }); mdAsk(); };
+setInterval(() => { if (stOn() && stTab === "media" && !document.hidden) mdAsk(); }, 3000);
+// -- screen recorder: only this button, and Windows' own box each time
+async function rcLoad() { const j = await stPost("rec", "load"); if (!j.error) { rcData = j; rcDraw(); } }
+function rcDraw() {
+  $("rcGo").disabled = !!scState;
+  setHTML($("rcList"), rcData.recordings.map(r => `<div class="mdrow"><span>🎬</span><button class="t" data-rcp="${esc(r.name)}">${esc(r.name.replace(/\.\w+$/, ""))} <small>${(r.size / 1048576).toFixed(1)} MB</small></button><button class="x" data-rco="${esc(r.name)}" title="Open in your player" aria-label="Open ${esc(r.name)}">${icon("play")}</button><button class="x del" data-rcx="${esc(r.name)}" title="To the Recycle Bin" aria-label="Delete ${esc(r.name)}">${icon("x")}</button></div>`).join("") + (rcData.recordings.length ? '<div class="ckrow" style="justify-content:flex-start;margin-top:8px"><button class="btn" id="rcDir">Open the folder</button></div>' : '<div class="empty">No recordings yet.</div>'));
+  if ($("rcDir")) $("rcDir").onclick = () => stPost("rec", "folder");
+  document.querySelectorAll("[data-rcp]").forEach(b => b.onclick = () => { $("rcV").hidden = false; $("rcV").src = `/api/rec/file?name=${encodeURIComponent(b.dataset.rcp)}&token=${encodeURIComponent(TOKEN)}`; $("rcV").play().catch(() => {}); });
+  document.querySelectorAll("[data-rco]").forEach(b => b.onclick = () => stPost("rec", "open", { name: b.dataset.rco }));
+  document.querySelectorAll("[data-rcx]").forEach(b => b.onclick = () => lnArm("rc" + b.dataset.rcx, b, async () => { if ($("rcV").src.includes(encodeURIComponent(b.dataset.rcx))) { $("rcV").pause(); $("rcV").removeAttribute("src"); $("rcV").load(); $("rcV").hidden = true; } const j = await stPost("rec", "delete", { name: b.dataset.rcx }); if (!j.error) { rcData = j; rcDraw(); } }));
+}
+async function rcStart() {
+  if (scState || scMine) return;
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getDisplayMedia || !window.MediaRecorder) return stTell("Recording isn't possible in this window.");
+  let disp, mic = null, ac = null;
+  try { disp = await navigator.mediaDevices.getDisplayMedia({ video: { frameRate: +$("rcF").value }, audio: $("rcSound").checked }); } catch (e) { return stTell("Nothing was chosen, so nothing is recorded."); }
+  const drop = () => { disp.getTracks().forEach(t => t.stop()); if (mic) mic.getTracks().forEach(t => t.stop()); if (ac) ac.close().catch(() => {}); };
+  if ($("rcMic").checked) try { mic = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true } }); } catch (e) { drop(); return stTell("The microphone can't be used. Untick it, or allow it in Windows."); }
+  const tracks = [...disp.getVideoTracks()], sounds = [disp, mic].filter(x => x && x.getAudioTracks().length);
+  if (sounds.length) { ac = new AudioContext(); const out = ac.createMediaStreamDestination(); sounds.forEach(x => ac.createMediaStreamSource(new MediaStream(x.getAudioTracks())).connect(out)); tracks.push(...out.stream.getAudioTracks()); }
+  const kind = ["video/webm;codecs=vp9,opus", "video/webm;codecs=vp8,opus", "video/webm"].find(k => MediaRecorder.isTypeSupported(k)) || "";
+  const j = await stPost("rec", "start", { kind: kind || "video/webm", mic: !!mic, sound: disp.getAudioTracks().length > 0, agree: true });
+  if (j.error) { drop(); return; }
+  const me = scMine = { id: j.state.id, n: 0, chain: Promise.resolve(), drop, over: false }, mr = me.mr = new MediaRecorder(new MediaStream(tracks), { ...(kind ? { mimeType: kind } : {}), videoBitsPerSecond: +$("rcQ").value });
+  mr.ondataavailable = e => { if (!e.data.size) return; const n = me.n++; me.chain = me.chain.then(async () => { if (me.dead) return; const r = await fetch(`/api/rec/piece?id=${encodeURIComponent(me.id)}&n=${n}`, { method: "POST", headers: { "X-Jarvis-Token": TOKEN, "Content-Type": "application/octet-stream" }, body: e.data }).catch(() => null); if (!r || !r.ok) { me.dead = true; rcEnd(me); } }); };
+  mr.onstop = () => me.chain.then(() => { if (!me.told) { me.told = true; post("/api/rec/stop", { id: me.id }); } });
+  disp.getVideoTracks()[0].onended = () => rcEnd(me);               // "Stop sharing" in Windows' own bar
+  mr.start(2000); scShow(j.state); chime("reminder");
+}
+function rcEnd(me) { if (!me || me.over) return; me.over = true; try { if (me.mr.state !== "inactive") me.mr.stop(); } catch (e) {} me.drop(); if (scMine === me) scMine = null; }
+function scShow(st) {
+  if (!st && scMine) { scMine.told = true; scMine.dead = true; rcEnd(scMine); }       // the app ended it (Stop, full drive…)
+  scState = st || null; scAt = Date.now(); $("scrbar").hidden = !scState; scTick(); recRoom(); if (stOn() && stTab === "rec") rcLoad();
+}
+function scTick() { const s = scState; if (!s) return; $("scrT").textContent = mdFmt(s.seconds + Math.floor((Date.now() - scAt) / 1000)); $("scrW").textContent = [s.paused ? "paused: nothing is recorded" : "everything you share is recorded", s.sound ? "with the computer's sound" : "", s.mic ? "with your microphone" : ""].filter(Boolean).join(" · "); $("scrP").textContent = s.paused ? "Go on" : "Pause"; $("scrP").hidden = !scMine; $("scrbar").classList.toggle("paused", s.paused); }
+setInterval(scTick, 1000);
+$("rcGo").onclick = rcStart;
+$("scrP").onclick = () => { if (!scMine || !scState) return; const on = !scState.paused; try { on ? scMine.mr.pause() : scMine.mr.resume(); } catch (e) { return; } post("/api/rec/pause", { id: scMine.id, on }); };
+$("scrS").onclick = () => { if (scMine) rcEnd(scMine); else post("/api/rec/stop_any", {}); };
+window.addEventListener("beforeunload", () => { if (scMine) try { scMine.mr.requestData(); } catch (e) {} });
+// -- pictures: edited in the page
+async function imLoad() { const j = await stPost("images", "load"); if (!j.error) { imData = j; imGrid(); } }
+const imUrl = n => `/api/images/file?name=${encodeURIComponent(n)}&token=${encodeURIComponent(TOKEN)}`;
+function imGrid() { setHTML($("imGrid"), imData.images.map(i => `<button data-img="${esc(i.name)}" title="${esc(i.name)}, ${i.kb} KB"><img loading="lazy" src="${esc(imUrl(i.name))}" alt="${esc(i.name)}"></button>`).join("") || '<div class="empty">What you save or make comes here.</div>'); document.querySelectorAll("[data-img]").forEach(b => b.onclick = async () => { const r = await fetch(imUrl(b.dataset.img)).catch(() => null); if (r && r.ok) imUse(await r.blob(), b.dataset.img); else stTell("That picture is gone."); }); }
+const imNew = (w, h) => { const c = document.createElement("canvas"); c.width = Math.max(1, Math.round(w)); c.height = Math.max(1, Math.round(h)); return c; };
+async function imUse(blob, name = "Picture") {
+  let bm; try { bm = await createImageBitmap(blob, { imageOrientation: "from-image" }); } catch (e) { return stTell("That isn't a picture the page can open."); }
+  if (bm.width * bm.height > 60e6 || Math.max(bm.width, bm.height) > 12000) { bm.close(); return stTell("That picture has too many pixels."); }
+  const c = imNew(bm.width, bm.height); c.getContext("2d").drawImage(bm, 0, 0); bm.close(); imC = imFirst = c; imUndoList = []; $("imName").value = String(name).replace(/\.\w+$/, "").slice(0, 50) + " edited"; imPick(""); imShow(); stTell("");
+}
+function imShow() {
+  const v = $("imC"), has = !!imC; v.hidden = !has; $("imEmpty").hidden = has; $("imSave").hidden = !has; $("imTools").hidden = !has; $("imUndo").disabled = !imUndoList.length; $("imReset").disabled = !has || imC === imFirst;
+  if (!has) return; v.width = imC.width; v.height = imC.height; v.style.filter = ""; v.getContext("2d").drawImage(imC, 0, 0); $("imDim").textContent = `${imC.width} × ${imC.height}`;
+}
+function imSet(c) { imUndoList.push(imC); const keep = imC.width * imC.height > 12e6 ? 4 : 15; while (imUndoList.length > keep) imUndoList.shift(); imC = c; imShow(); }
+function imDraw(w, h, fn) { const c = imNew(w, h), x = c.getContext("2d"); x.imageSmoothingQuality = "high"; fn(x); imSet(c); }
+const IM_DO = {
+  left: () => imDraw(imC.height, imC.width, x => { x.translate(0, imC.width); x.rotate(-Math.PI / 2); x.drawImage(imC, 0, 0); }), right: () => imDraw(imC.height, imC.width, x => { x.translate(imC.height, 0); x.rotate(Math.PI / 2); x.drawImage(imC, 0, 0); }),
+  fliph: () => imDraw(imC.width, imC.height, x => { x.translate(imC.width, 0); x.scale(-1, 1); x.drawImage(imC, 0, 0); }), flipv: () => imDraw(imC.width, imC.height, x => { x.translate(0, imC.height); x.scale(1, -1); x.drawImage(imC, 0, 0); }),
+};
+const IM_FILTERS = { grey: "grayscale(1)", sepia: "sepia(.85)", vivid: "saturate(1.6) contrast(1.08)", warm: "sepia(.25) saturate(1.3)", cool: "hue-rotate(-12deg) saturate(1.1)", invert: "invert(1)", soft: "contrast(.9) brightness(1.06)" };
+const imFilter = f => imDraw(imC.width, imC.height, x => { x.filter = f; x.drawImage(imC, 0, 0); });
+$("imTools").innerHTML = [["crop", "Crop"], ["left", "↺ Turn"], ["right", "↻ Turn"], ["fliph", "⇋ Flip"], ["flipv", "⇅ Flip"], ["size", "Size"], ["light", "Light and colour"], ["look", "Looks"], ["text", "Text"], ["cut", "Background"]].map(([k, l]) => `<button class="btn" data-imt="${k}">${l}</button>`).join("");
+document.querySelectorAll("[data-imt]").forEach(b => b.onclick = () => { const k = b.dataset.imt; if (IM_DO[k]) { imPick(""); IM_DO[k](); } else imPick(imTool === k ? "" : k); });
+function imPick(k) {
+  imTool = k; imDrag = null; $("imSel").hidden = true; if (imC) $("imC").style.filter = ""; document.querySelectorAll("[data-imt]").forEach(b => b.classList.toggle("on", b.dataset.imt === k));
+  const P = $("imPanel"); P.hidden = !k; if (!k) return; const C = imC;
+  if (k === "crop") { P.innerHTML = `<div class="row"><span>Drag over the part you want to keep.</span><button class="btn on" id="imCropGo" disabled>Crop</button></div>`; $("imCropGo").onclick = () => { const r = imDrag; if (!r) return; imDraw(r.w, r.h, x => x.drawImage(C, r.x, r.y, r.w, r.h, 0, 0, r.w, r.h)); imPick(""); }; }
+  if (k === "size") { P.innerHTML = `<div class="row"><label>Width <input type="number" id="imW" min="1" max="12000" value="${C.width}" style="width:90px"></label><label>Height <input type="number" id="imH" min="1" max="12000" value="${C.height}" style="width:90px"></label><label><input type="checkbox" id="imLock" checked> keep the shape</label><button class="btn on" id="imSizeGo">Apply</button></div>`; $("imW").oninput = () => { if ($("imLock").checked) $("imH").value = Math.round($("imW").value * C.height / C.width); }; $("imH").oninput = () => { if ($("imLock").checked) $("imW").value = Math.round($("imH").value * C.width / C.height); }; $("imSizeGo").onclick = () => { const w = +$("imW").value, h = +$("imH").value; if (!(w >= 1 && h >= 1 && w <= 12000 && h <= 12000 && w * h <= 60e6)) return stTell("That size can't be made."); imDraw(w, h, x => x.drawImage(C, 0, 0, w, h)); imPick(""); }; }
+  if (k === "light") { P.innerHTML = `<div class="row">${[["b", "Brightness", 100, 0, 200], ["c", "Contrast", 100, 0, 200], ["s", "Colour", 100, 0, 250], ["u", "Blur", 0, 0, 20]].map(([i, l, v, a, z]) => `<label>${l} <input type="range" id="imL${i}" min="${a}" max="${z}" value="${v}"></label>`).join("")}<button class="btn on" id="imLGo">Apply</button></div>`; const f = () => `brightness(${$("imLb").value}%) contrast(${$("imLc").value}%) saturate(${$("imLs").value}%) blur(${$("imLu").value * (C.width / Math.max(1, $("imC").clientWidth)) / 4}px)`, show = () => { $("imC").style.filter = `brightness(${$("imLb").value}%) contrast(${$("imLc").value}%) saturate(${$("imLs").value}%) blur(${$("imLu").value / 4}px)`; }; ["b", "c", "s", "u"].forEach(i => $("imL" + i).oninput = show); $("imLGo").onclick = () => { const x = f(); imFilter(x); imPick(""); }; }
+  if (k === "look") { P.innerHTML = `<div class="row">${Object.keys(IM_FILTERS).map(n => `<button class="btn" data-iml="${n}">${n}</button>`).join("")}</div>`; document.querySelectorAll("[data-iml]").forEach(b => { b.onmouseenter = () => { $("imC").style.filter = IM_FILTERS[b.dataset.iml]; }; b.onmouseleave = () => { $("imC").style.filter = ""; }; b.onclick = () => { imFilter(IM_FILTERS[b.dataset.iml]); imPick(""); }; }); }
+  if (k === "text") { P.innerHTML = `<div class="row"><input type="text" id="imTx" maxlength="200" placeholder="Your words (Urdu too)" style="flex:1;min-width:150px"><label>Size <input type="number" id="imTs" min="8" max="2000" value="${Math.max(16, Math.round(C.width / 14))}" style="width:80px"></label><input type="color" id="imTc" value="#ffffff" aria-label="Colour"><label><input type="checkbox" id="imTb" checked> bold</label><label><input type="checkbox" id="imTo" checked> outline</label></div><span>Then click on the picture where the words should be.</span>`; $("imTx").focus(); }
+  if (k === "cut") { P.innerHTML = `<div class="row"><label>How alike <input type="range" id="imCt" min="2" max="120" value="36"></label><label>Edge <input type="range" id="imCe" min="0" max="4" value="1"></label></div><span>Click on the background: that colour, as far as it goes from there, becomes see-through. Save as PNG or WebP to keep it so.</span>`; }
+}
+const imAt = e => { const r = $("imC").getBoundingClientRect(); return { x: Math.max(0, Math.min(imC.width, (e.clientX - r.left) * imC.width / r.width)), y: Math.max(0, Math.min(imC.height, (e.clientY - r.top) * imC.height / r.height)) }; };
+$("imC").onpointerdown = e => { if (imTool !== "crop") return; $("imC").setPointerCapture(e.pointerId); imDrag = { a: imAt(e) }; };
+$("imC").onpointermove = e => {
+  if (imTool !== "crop" || !imDrag || !imDrag.a || !(e.buttons & 1)) return;
+  const p = imAt(e), a = imDrag.a, r = { a, x: Math.round(Math.min(a.x, p.x)), y: Math.round(Math.min(a.y, p.y)), w: Math.round(Math.abs(a.x - p.x)), h: Math.round(Math.abs(a.y - p.y)) }; imDrag = r;
+  const c = $("imC").getBoundingClientRect(), w = $("imWrap").getBoundingClientRect(), k = c.width / imC.width; Object.assign($("imSel").style, { left: c.left - w.left + r.x * k + "px", top: c.top - w.top + r.y * k + "px", width: r.w * k + "px", height: r.h * k + "px" }); $("imSel").hidden = r.w < 2 || r.h < 2; if ($("imCropGo")) $("imCropGo").disabled = r.w < 2 || r.h < 2;
+};
+$("imC").onclick = e => {
+  if (!imC) return; const p = imAt(e);
+  if (imTool === "text") { const t = $("imTx").value.trim(); if (!t) return stTell("Write the words first."); const s = Math.max(8, Math.min(2000, +$("imTs").value || 32)), C = imC; imDraw(C.width, C.height, x => { x.drawImage(C, 0, 0); x.font = `${$("imTb").checked ? 700 : 400} ${s}px "Segoe UI", "Jameel Noori Nastaleeq", "Noto Nastaliq Urdu", sans-serif`; x.textAlign = "center"; x.textBaseline = "middle"; x.direction = isUrdu(t) ? "rtl" : "ltr"; if ($("imTo").checked) { x.lineWidth = Math.max(2, s / 9); x.lineJoin = "round"; x.strokeStyle = "rgba(0,0,0,.65)"; x.strokeText(t, p.x, p.y); } x.fillStyle = $("imTc").value; x.fillText(t, p.x, p.y); }); }
+  if (imTool === "cut") imCut(Math.min(imC.width - 1, Math.floor(p.x)), Math.min(imC.height - 1, Math.floor(p.y)), +$("imCt").value, +$("imCe").value);
+};
+function imCut(sx, sy, tol, edge) {                                     // flood from the click; then soften the edge a little
+  const C = imC, w = C.width, h = C.height, c = imNew(w, h), x = c.getContext("2d"); x.drawImage(C, 0, 0);
+  const im = x.getImageData(0, 0, w, h), d = im.data, i0 = (sy * w + sx) * 4, R = d[i0], G = d[i0 + 1], B = d[i0 + 2], seen = new Uint8Array(w * h), st = [sy * w + sx], T = tol * tol * 3;
+  if (!d[i0 + 3]) return; seen[st[0]] = 1;
+  const ok = i => { const k = i * 4, a = d[k] - R, b = d[k + 1] - G, e = d[k + 2] - B; return d[k + 3] && a * a + b * b + e * e <= T; };
+  while (st.length) { const i = st.pop(), px = i % w; if (px > 0 && !seen[i - 1] && ok(i - 1)) { seen[i - 1] = 1; st.push(i - 1); } if (px < w - 1 && !seen[i + 1] && ok(i + 1)) { seen[i + 1] = 1; st.push(i + 1); } if (i >= w && !seen[i - w] && ok(i - w)) { seen[i - w] = 1; st.push(i - w); } if (i < w * (h - 1) && !seen[i + w] && ok(i + w)) { seen[i + w] = 1; st.push(i + w); } }
+  for (let i = 0; i < seen.length; i++) if (seen[i]) d[i * 4 + 3] = 0;
+  for (let n = 0; n < edge; n++) { const al = new Uint8Array(w * h); for (let i = 0; i < al.length; i++) al[i] = d[i * 4 + 3]; for (let y = 1; y < h - 1; y++) for (let X = 1; X < w - 1; X++) { const i = y * w + X; if (al[i] && (!al[i - 1] || !al[i + 1] || !al[i - w] || !al[i + w])) d[i * 4 + 3] = Math.min(d[i * 4 + 3], 120); } }
+  x.putImageData(im, 0, 0); imSet(c);
+}
+$("imOpen").onclick = () => $("imFile").click(); $("imFile").onchange = () => { const f = $("imFile").files[0]; $("imFile").value = ""; if (f) imUse(f, f.name); };
+$("imUndo").onclick = () => { if (imUndoList.length) { imC = imUndoList.pop(); imPick(""); imShow(); } }; $("imReset").onclick = () => { if (imC !== imFirst) { imPick(""); imSet(imFirst); } };
+$("imWrap").ondragover = e => { e.preventDefault(); $("imWrap").classList.add("drop"); }; $("imWrap").ondragleave = () => $("imWrap").classList.remove("drop"); $("imWrap").ondrop = e => { e.preventDefault(); $("imWrap").classList.remove("drop"); const f = [...e.dataTransfer.files].find(f => f.type.startsWith("image/")); if (f) imUse(f, f.name); };
+document.addEventListener("paste", e => { if (!stOn() || stTab !== "images" || e.target.closest("input, textarea")) return; const f = [...(e.clipboardData || {}).files || []].find(f => f.type.startsWith("image/")); if (f) { e.preventDefault(); imUse(f, "Pasted"); } });
+$("imKeep").onclick = async () => {
+  if (!imC) return; const fmt = $("imFmt").value, blob = await new Promise(r => imC.toBlob(r, "image/png")); if (!blob) return stTell("The picture is too large to save.");
+  const r = await fetch(`/api/images/keep?${new URLSearchParams({ name: $("imName").value, fmt, quality: $("imQ").value })}`, { method: "POST", headers: { "X-Jarvis-Token": TOKEN, "Content-Type": "application/octet-stream" }, body: blob }).catch(() => null), j = r ? await r.json().catch(() => ({ error: "The app didn't answer." })) : { error: "The app didn't answer." };
+  if (j.error) stTell(j.error); else { stTell("Saved: " + j.path, true); imLoad(); }
+};
+$("imDir").onclick = () => stPost("images", "folder");
+$("imMake").onsubmit = async e => { e.preventDefault(); const b = $("imGo"); if (b.disabled) return; b.disabled = true; stTell("Making it… this takes up to a minute.", true); const j = await stPost("images", "make", { prompt: $("imP").value, size: $("imSize").value }); b.disabled = false; if (j.error) return; imData = j; imGrid(); stTell("Made: " + j.made, true); const r = await fetch(imUrl(j.made)).catch(() => null); if (r && r.ok) { await imUse(await r.blob(), j.made); stTell("Made: " + j.made, true); } };
+imShow();
 
 // ---------- something is ringing ----------
 let rings = [];
@@ -4718,7 +4966,9 @@ loadMics();
     "MOOD, LAST 30 DAYS": "sun", "WHERE IT WENT": "briefcase", "BILLS": "bell", "SIX MONTHS": "clock", "CONNECT GMAIL": "mail",
     "STOPWATCH": "clock", "FOCUS": "zap", "TIMERS": "refresh", "ALARMS": "bell", "WORLD CLOCK": "globe", "DECKS": "layers", "PROGRESS": "sun", "STUDY": "db", "CARDS": "note",
     "WATER": "drop", "STEPS": "pin", "SLEEP": "moon", "WEIGHT": "layers", "WORKOUTS": "zap", "LATEST": "clock", "TARGETS AND REMINDERS": "bell",
-    "TRIPS": "pin", "MEETINGS": "chat", "PEOPLE": "user", "BIRTHDAYS": "bell", "HOW IT TALKS WITH YOU": "chat" };
+    "TRIPS": "pin", "MEETINGS": "chat", "PEOPLE": "user", "BIRTHDAYS": "bell", "HOW IT TALKS WITH YOU": "chat",
+    "PLAYING ON THIS PC": "speaker", "PLAYER": "play", "MY LIBRARY": "layers", "PLAYLISTS": "tasks", "RADIO": "wifi", "FOLDERS": "note", "RECORD THE SCREEN": "pc", "RECORDINGS": "layers",
+    "MAKE A PICTURE": "zap", "MY PICTURES": "layers", "EDIT": "edit" };
   document.querySelectorAll("h4.sec").forEach(h => { const n = SEC[(h.firstChild ? h.firstChild.textContent : "").trim().toUpperCase()]; if (n) h.insertAdjacentHTML("afterbegin", icon(n)); });
   const TAB = { general: "gear", voice: "mic", ai: "layers", privacy: "shield", permissions: "check", alerts: "bell" };
   document.querySelectorAll("[data-settab]").forEach(b => b.insertAdjacentHTML("afterbegin", icon(TAB[b.dataset.settab] || "info")));

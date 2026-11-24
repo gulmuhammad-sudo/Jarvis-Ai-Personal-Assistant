@@ -18,7 +18,7 @@ UNTRUSTED_TOOLS = {"fetch_webpage", "web_search", "read_text_file", "clipboard",
 READ_BACK = {"tasks": ("list", ""), "calendar": ("agenda", "find", ""), "notes": ("search", "read", ""),
              "documents": ("read", "search", ""), "goals": ("list", ""), "journal": ("read",), "money": ("list", "summary", "bills", ""),
              "learn": ("quiz", "search", "decks", ""), "fitness": ("history",),
-             "travel": ("list", "show", ""), "meetings": ("list", "show", "transcript", ""), "people": ("list", "coming", "")}
+             "travel": ("list", "show", ""), "meetings": ("list", "show", "transcript", ""), "people": ("list", "coming", ""), "media": ("now", "control", "search", "radio", "")}
 
 # what these say stays out of the activity list, the saved history and the audit log
 PRIVATE_TEXT = {"journal": ("text", "query"), "email": ("body", "subject", "query", "to", "cc"), "fitness": ("value", "note", "km", "what"),
@@ -37,9 +37,10 @@ def question_for_logs(question: str, kind: str | None) -> str:
 
 # after the AI has seen an email, these ask first: each could carry what it read out of this PC, or keep an order from the email
 AFTER_EMAIL = {"fetch_webpage", "web_search", "open_website", "search_web_in_browser", "play_youtube", "open_path", "delegate", "automation", "run_powershell",
-               "software", "save_skill", "news", "travel"}
+               "software", "save_skill", "news", "travel", "media", "images"}
 AFTER_EMAIL_FINE = {"automation:list", "software:installed", "software:updates", "news:top", "news:saved", "news:story", "news:save", "news:following", "travel:list", "travel:show", "travel:add",
-                    "travel:update", "travel:plan", "travel:pack", "travel:papers", "travel:done"}
+                    "travel:update", "travel:plan", "travel:pack", "travel:papers", "travel:done", "media:now", "media:control", "media:volume", "media:search", "media:play",
+                    "images:info", "images:convert"}
 
 
 def held_after_email(tool: str, args: dict) -> bool:

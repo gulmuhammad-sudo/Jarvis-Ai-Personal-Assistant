@@ -26,7 +26,7 @@ from urllib.parse import parse_qs, quote
 
 from . import __version__
 from . import live as live_mod
-from . import agents, alerts, approvals, audit, automations, clock, denoise, docindex, fit, gpu, guard, languages, learn, life, local_ai, mail, local_stt, local_tts, meet, memory, news, notes, people, planner, plans, schedule, netcheck, skills, software, stt, storage, tools, travel, tts, urdu, wake, winmgr
+from . import agents, alerts, approvals, audit, automations, clock, denoise, docindex, fit, gpu, guard, images, languages, learn, life, local_ai, mail, local_stt, local_tts, media, meet, memory, news, notes, people, planner, plans, schedule, screenrec, netcheck, skills, software, stt, storage, tools, travel, tts, urdu, wake, winmgr
 from .brain import make_brain
 from .config import NOTES_DIR
 from .providers import provider_status
@@ -86,6 +86,9 @@ class Hub:
         self.weather: dict | None = None
         self.recording = None               # the native-mic Recording in progress
         self.meeting: meet.Scribe | None = None            # a meeting is being written down (only you start it)
+        self.screen = screenrec.Recording(changed=self._screen_changed, ended=self._screen_ended)       # the screen is being recorded (only you start it)
+        tools.MEDIA_PLAY = lambda what: self.emit("media_play", play=what)
+        tools.STUDIO_CHANGED = lambda what: self.emit("studio_changed", what=what)
         self._listen_lock = threading.Lock()
         self._mic_cache: tuple[float, dict] = (0.0, {})
         self.live: live_mod.LiveSession | None = None     # the live conversation in progress
@@ -442,10 +445,26 @@ class Hub:
                 raise ValueError(str(e) if isinstance(e, RuntimeError) else f"The microphone couldn't be opened ({type(e).__name__}).") from None
             tools.STOP.clear()
             self.meeting = meet.Scribe(int(meeting_id), engine, self.language, source, lambda st: self.emit("meeting_state", state=st), self._meeting_ended).start()
+        self._pill()
         audit.record("meeting_writing_started", meeting=int(meeting_id), engine=engine)
         self.emit("tool", keep=True, name="meeting", id=self._next_id(), args="writing down a meeting, started by you")
 
+    def _pill(self) -> None:
+        """The small REC window above all others (desktop.py), as long as something is recorded or written down."""
+        if REC_HOOK:
+            threading.Thread(target=REC_HOOK, args=(bool(self.screen.state()) or self.meeting_on(),), daemon=True).start()
+
+    def _screen_changed(self, state: dict | None) -> None:
+        self.emit("screen_state", state=state)
+        self._pill()
+
+    def _screen_ended(self, path: str, why: str) -> None:
+        audit.record("screen_recording_ended", reason=why, file=os.path.basename(path))
+        self.emit("notify", keep=True, text=f"The screen recording ended ({why})" + (f": {os.path.basename(path)} is in Videos, Personal Assistant." if path else "; nothing was kept."), kind="info")
+        self.emit("studio_changed", what="rec")
+
     def _meeting_ended(self, reason: str) -> None:
+        self._pill()
         audit.record("meeting_writing_ended", reason=reason)
         self.emit("notify", keep=True, text=f"The meeting isn't written down any more ({reason}).", kind="info")
         if self.standby_wanted():
@@ -751,7 +770,7 @@ class Hub:
 
     CONFIRM_TIMEOUT = 180
     # once allowed, these aren't asked again until the app restarts; shutdown, deleting files etc. always ask
-    TRUSTABLE = {"powershell": "PowerShell commands", "lock": "locking the PC", "wifi_off": "turning Wi-Fi off", "email": "reading your email", "meeting": "reading what was said in a meeting"}
+    TRUSTABLE = {"powershell": "PowerShell commands", "lock": "locking the PC", "wifi_off": "turning Wi-Fi off", "email": "reading your email", "meeting": "reading what was said in a meeting", "image_online": "making pictures online"}
     # Every kind of approval the tools ask for. Settings > Privacy keeps a rule per kind: "ask" (default),
     # "never" (refused without asking) or "allow" (only for the TRUSTABLE kinds: shutting down, deleting,
     # replacing files and closing apps with unsaved work are always asked).
@@ -769,6 +788,7 @@ class Hub:
         "email_draft": "Saving a draft in Gmail (never sent)",
         "after_email": "Going online after an email or a meeting was read",
         "meeting": "Reading what was said in a meeting, for an answer",
+        "image_online": "Making a picture online (the words go to Pollinations.ai)",
     }
 
     def permission(self, kind: str | None) -> str:
@@ -863,6 +883,7 @@ class Hub:
         self.ringer.stop()
         if self.meeting_on():
             self.meeting.stop("Stop was pressed")
+        self.screen.stop("Stop was pressed")
         audit.record("emergency_stop", how=how)
         print(f"[stop] everything stopped ({how})")
         self.emit("stopped", how=how)
@@ -1200,7 +1221,7 @@ class Hub:
                **self.mic_status(),
                "location": schedule.get_location().get("city"),
                "weather": self.weather,
-               "meeting": self.meeting.state() if self.meeting_on() else None,
+               "meeting": self.meeting.state() if self.meeting_on() else None, "screen": self.screen.state(),
                "ringing": self.ringer.list(), "silent": os.environ.get("JARVIS_NO_SPEAK") == "1",
                "timers": sorted([{"id": t["id"], "message": t["label"], "due": datetime.fromtimestamp(t["due"]).strftime("%H:%M"), "kind": "timer", "repeat": "",
                                   "left": int(t["left"])} for t in clock.timers() if not t["paused"]]
@@ -1223,6 +1244,7 @@ class Hub:
 
 
 HUB: Hub | None = None
+REC_HOOK = None                                # desktop.py: shows or hides the REC window above all others
 
 
 def _workspaces() -> list[dict]:
@@ -1293,6 +1315,25 @@ class Handler(BaseHTTPRequestHandler):
             return self._json({"error": "forbidden"}, 403)
         if path == "/api/stats":
             return self._json(HUB.stats())
+        if path == "/recpill":                               # the small REC window above all others
+            body = _PILL.replace("__TOKEN__", TOKEN).encode()
+            self.send_response(200)
+            self.send_header("Content-Type", "text/html; charset=utf-8")
+            self.send_header("Content-Length", str(len(body)))
+            self.end_headers()
+            self.wfile.write(body)
+            return
+        if path in ("/api/media/file", "/api/rec/file", "/api/images/file"):
+            q = parse_qs(query)
+            try:
+                if path == "/api/media/file":
+                    got = media.path_of((q.get("id") or [""])[0])
+                else:
+                    p = (screenrec if path == "/api/rec/file" else images).path_of((q.get("name") or [""])[0])
+                    got = (p, {".webm": "video/webm", ".mp4": "video/mp4", ".png": "image/png", ".jpg": "image/jpeg", ".webp": "image/webp"}[p.suffix.lower()]) if p else None
+            except (ValueError, TypeError):
+                got = None
+            return self._send_file(*got) if got else self._json({"error": "not there"}, 404)
         if path == "/api/local":                            # AI Models page: Ollama status
             return self._json(HUB.local_info())
         if path == "/api/audit":                            # Settings > Privacy: what it did on this PC
@@ -1646,7 +1687,7 @@ class Handler(BaseHTTPRequestHandler):
         """The Daily page's Travel, Meetings and People: your own clicks."""
         try:
             num = lambda k="id": int(data.get(k))                                        # noqa: E731
-            out = {"travel": self._travel, "meet": self._meet, "people": self._people}[page](action, data, num)
+            out = {"travel": self._travel, "meet": self._meet, "people": self._people, "media": self._media, "rec": self._rec, "images": self._images}[page](action, data, num)
         except (ValueError, TypeError, KeyError, AttributeError) as e:
             return self._json({"error": str(e) if isinstance(e, ValueError) and str(e)[:1].isupper() else "Something is missing or wrong."}, 400)
         except OSError as e:
@@ -1711,6 +1752,96 @@ class Handler(BaseHTTPRequestHandler):
         elif action != "load":
             return None
         return {**out, **meet.load(mid, str(data.get("query") or "")), "state": HUB.meeting.state() if HUB.meeting_on() else None}
+
+    @staticmethod
+    def _media(action: str, data: dict, num) -> dict | None:
+        out: dict = {}
+        if action == "now":
+            return {"now": media.now(str(data.get("do") or "get")), **media.volume()}
+        if action == "volume":
+            return media.volume(data.get("value"), data.get("mute") if isinstance(data.get("mute"), bool) else None)
+        if action == "radio":
+            return {"found": media.radio_search(data.get("words"))}
+        if action == "station":
+            return {"station": media.station_play(data.get("uid"))}
+        if action == "open":                              # a kind the page can't play: your own player
+            got = media.path_of(num())
+            if not got:
+                raise ValueError("That file isn't there any more.")
+            os.startfile(str(got[0]))
+            return {"ok": True}
+        if action == "pick":                              # a folder, chosen in Windows' own box
+            p = _pick_folder()
+            return {"path": p}
+        if action == "folder":
+            out["added"] = media.add_folder(data.get("path"))["id"]
+            audit.record("media_folder_added", path=str(data.get("path")))
+        elif action == "folder_remove":
+            media.remove_folder(num())
+        elif action == "scan":
+            media.scan()
+        elif action == "playlist":
+            out["playlist"] = media.save_playlist(data.get("name"), num() if data.get("id") else None)
+        elif action == "playlist_delete":
+            media.delete_playlist(num())
+        elif action == "playlist_item":
+            media.change_playlist(num(), data.get("file"), bool(data.get("add", True)))
+        elif action == "station_save":
+            media.station_save(data.get("uid"), bool(data.get("on")))
+        elif action != "load":
+            return None
+        return {**out, **media.load(str(data.get("query") or ""), str(data.get("kind") or ""))}
+
+    @staticmethod
+    def _rec(action: str, data: dict, num) -> dict | None:
+        out: dict = {}
+        if action == "start":                             # (the page has the owner's click and Windows' box behind it)
+            if os.environ.get("JARVIS_NO_MIC") == "1" and data.get("mic"):
+                raise ValueError("The microphone isn't available here.")
+            out["state"] = HUB.screen.start(data.get("kind"), data.get("mic"), data.get("sound"), data.get("agree"))
+            audit.record("screen_recording_started", mic=bool(data.get("mic")), sound=bool(data.get("sound")))
+            HUB.emit("tool", keep=True, name="screenrec", id=HUB._next_id(), args="recording the screen, started by you")
+        elif action == "pause":
+            HUB.screen.pause(data.get("id"), bool(data.get("on")))
+        elif action == "stop":
+            out["path"] = HUB.screen.stop("you stopped it", data.get("id"))
+        elif action == "stop_any":                        # the red bar of another window, the REC window
+            HUB.screen.stop("you stopped it")
+            if HUB.meeting_on() and data.get("meeting"):
+                HUB.meeting.stop("you stopped it")
+        elif action == "open":
+            p = screenrec.path_of(data.get("name"))
+            if not p:
+                raise ValueError("That recording is gone.")
+            os.startfile(str(p))
+        elif action == "folder":
+            screenrec.folder().mkdir(parents=True, exist_ok=True)
+            os.startfile(str(screenrec.folder()))
+        elif action == "delete":
+            screenrec.recycle(data.get("name"))
+            audit.record("screen_recording_deleted", file=str(data.get("name")))
+        elif action != "load":
+            return None
+        return {**out, "recordings": screenrec.listing(), "running": HUB.screen.state()}
+
+    @staticmethod
+    def _images(action: str, data: dict, num) -> dict | None:
+        out: dict = {}
+        if action == "make":                              # your button: it says where the words go
+            p = images.make(data.get("prompt"), data.get("size"))
+            audit.record("image_made_online")
+            out["made"] = p.name
+        elif action == "open":
+            p = images.path_of(data.get("name"))
+            if not p:
+                raise ValueError("That picture is gone.")
+            os.startfile(str(p))
+        elif action == "folder":
+            images.folder().mkdir(parents=True, exist_ok=True)
+            os.startfile(str(images.folder()))
+        elif action != "load":
+            return None
+        return {**out, "images": images.listing()}
 
     @staticmethod
     def _people(action: str, data: dict, num) -> dict | None:
@@ -1871,6 +2002,8 @@ class Handler(BaseHTTPRequestHandler):
             return self._json({"error": "forbidden"}, 403)
         if self.path == "/api/transcribe":
             return self._transcribe()
+        if self.path.partition("?")[0] in ("/api/rec/piece", "/api/images/keep"):
+            return self._binary(self.path.partition("?")[0], parse_qs(self.path.partition("?")[2]))
         if self.path == "/api/tts":
             return self._tts()
         if self.path == "/api/local":
@@ -1910,6 +2043,8 @@ class Handler(BaseHTTPRequestHandler):
         except (ValueError, json.JSONDecodeError):
             return self._json({"error": "bad json"}, 400)
 
+        if not isinstance(data, dict):
+            return self._json({"error": "bad json"}, 400)
         if self.path == "/api/send":
             HUB.submit(str(data.get("text", "")))
         elif self.path == "/api/listen":
@@ -2115,7 +2250,7 @@ class Handler(BaseHTTPRequestHandler):
             return self._learn(self.path.rsplit("/", 1)[1], data)
         elif self.path.startswith("/api/fit/"):        # Daily page: Fitness
             return self._fit(self.path.rsplit("/", 1)[1], data)
-        elif self.path.startswith(("/api/travel/", "/api/meet/", "/api/people/")):       # Daily page
+        elif self.path.startswith(("/api/travel/", "/api/meet/", "/api/people/", "/api/media/", "/api/rec/", "/api/images/")):       # Daily and Studio pages
             return self._daily_api(*self.path.split("/")[2:4], data)
         elif self.path.startswith("/api/news/"):       # Daily page: News
             return self._news(self.path.rsplit("/", 1)[1], data)
@@ -2229,6 +2364,68 @@ class Handler(BaseHTTPRequestHandler):
         except (BrokenPipeError, ConnectionResetError, ConnectionAbortedError, OSError):
             pass
 
+    def _send_file(self, path: Path, kind: str) -> None:
+        """One of the owner's own files for the player (whole, or the part it asks for)."""
+        try:
+            size = path.stat().st_size
+            f = open(path, "rb")
+        except OSError:
+            return self._json({"error": "not there"}, 404)
+        with f:
+            first, last, part = 0, size - 1, re.fullmatch(r"bytes=(\d*)-(\d*)", self.headers.get("Range") or "")
+            if part and (part.group(1) or part.group(2)):
+                if part.group(1):
+                    first, last = int(part.group(1)), min(int(part.group(2) or size - 1), size - 1)
+                else:
+                    first = max(0, size - int(part.group(2)))
+                if first > last or first >= size:
+                    self.send_response(416)
+                    self.send_header("Content-Range", f"bytes */{size}")
+                    self.send_header("Content-Length", "0")
+                    self.end_headers()
+                    return
+            self.send_response(206 if part else 200)
+            self.send_header("Content-Type", kind)
+            self.send_header("Content-Length", str(last - first + 1))
+            self.send_header("Accept-Ranges", "bytes")
+            self.send_header("X-Content-Type-Options", "nosniff")
+            self.send_header("Cache-Control", "no-store")
+            if part:
+                self.send_header("Content-Range", f"bytes {first}-{last}/{size}")
+            self.end_headers()
+            f.seek(first)
+            left = last - first + 1
+            try:
+                while left > 0 and (data := f.read(min(left, 1 << 18))):
+                    self.wfile.write(data)
+                    left -= len(data)
+            except (BrokenPipeError, ConnectionResetError, ConnectionAbortedError, OSError):
+                pass
+
+    def _body(self, limit: int) -> bytes:
+        try:
+            n = int(self.headers.get("Content-Length", "0"))
+        except ValueError:
+            n = 0
+        if not 0 < n <= limit:
+            raise ValueError("That is empty or too large.")
+        return self.rfile.read(n)
+
+    def _binary(self, path: str, q: dict) -> None:
+        """A piece of a screen recording, or an edited picture, from the page."""
+        one = lambda k: (q.get(k) or [""])[0]                                            # noqa: E731
+        try:
+            if path == "/api/rec/piece":
+                HUB.screen.piece(one("id"), one("n"), self._body(screenrec.MAX_PIECE))
+                return self._json({"ok": True})
+            p = images.keep(self._body(images.MAX_IN), one("name"), one("fmt") or "png", one("quality") or 90)
+            HUB.emit("studio_changed", what="images")
+            return self._json({"ok": True, "name": p.name, "path": str(p)})
+        except (ValueError, TypeError) as e:
+            return self._json({"error": str(e) if str(e)[:1].isupper() else "Something is missing or wrong."}, 400)
+        except OSError as e:
+            return self._json({"error": f"Windows said: {e.strerror or e}"}, 500)
+
     def _tts(self) -> None:
         try:
             data = json.loads(self.rfile.read(int(self.headers.get("Content-Length", "0"))) or b"{}")
@@ -2269,6 +2466,28 @@ class Handler(BaseHTTPRequestHandler):
         if text:
             HUB.heard(text)
         self._json({"text": text, "engine": engine})
+
+
+def _pick_folder() -> str:
+    """Windows' own box for choosing a folder ('' if you pressed Cancel)."""
+    ps = ("Add-Type -AssemblyName System.Windows.Forms; $d = New-Object System.Windows.Forms.FolderBrowserDialog; $d.Description = 'Music or videos'; "
+          "$w = New-Object System.Windows.Forms.Form; $w.TopMost = $true; if ($d.ShowDialog($w) -eq 'OK') { [Console]::OutputEncoding = [Text.Encoding]::UTF8; [Console]::Out.Write($d.SelectedPath) }")
+    try:
+        r = subprocess.run(["powershell", "-NoProfile", "-STA", "-Command", ps], capture_output=True, timeout=300, creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0))
+        return r.stdout.decode("utf-8", "ignore").lstrip("\ufeff").strip()
+    except subprocess.TimeoutExpired:
+        return ""
+
+
+_PILL = """<!doctype html><meta charset="utf-8"><title>REC</title><style>
+html,body{margin:0;height:100%;background:#c22638;color:#fff;font:600 13px 'Segoe UI',sans-serif;overflow:hidden;user-select:none}
+body{display:flex;align-items:center;gap:9px;padding:0 12px;box-sizing:border-box}i{width:11px;height:11px;border-radius:50%;background:#fff;animation:p 1.4s infinite;flex:none}
+@keyframes p{50%{opacity:.25}}span{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}button{border:1px solid rgba(255,255,255,.7);border-radius:7px;background:rgba(0,0,0,.2);color:#fff;font:inherit;padding:4px 12px;cursor:pointer}
+</style><i></i><span id=t>REC</span><button id=s>Stop</button><script>
+const T="__TOKEN__",$=x=>document.getElementById(x),p=n=>String(n).padStart(2,"0"),f=s=>(s>=3600?Math.floor(s/3600)+":":"")+p(Math.floor(s%3600/60))+":"+p(s%60);let m=false;
+async function tick(){try{const s=await(await fetch("/api/stats?token="+encodeURIComponent(T))).json();m=!!s.meeting;const a=[];if(s.screen)a.push((s.screen.paused?"paused ":"screen ")+f(s.screen.seconds));if(s.meeting)a.push((s.meeting.paused?"meeting paused ":"meeting ")+f(s.meeting.seconds));$("t").textContent="REC "+(a.join(" \u00b7 ")||"\u2026")}catch(e){}}
+setInterval(tick,1000);tick();$("s").onclick=()=>fetch("/api/rec/stop_any",{method:"POST",headers:{"Content-Type":"application/json","X-Jarvis-Token":T},body:JSON.stringify({meeting:m})});
+</script>"""
 
 
 class QuietServer(ThreadingHTTPServer):

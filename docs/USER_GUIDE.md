@@ -130,6 +130,9 @@ and its keys in `.env` next to the code).
 | "Plan a trip to Istanbul from 5 to 9 June" / "what is left to pack?" | Daily › Travel (nothing is booked) |
 | "New meeting tomorrow at 10 with Ali" / "summarise my last meeting" | Daily › Meetings; only your button starts writing down what is said |
 | "My brother Ali's birthday is 14 May" / "whose birthday is next?" | Daily › People, where you also choose how it talks with you |
+| "Play <song>" / "next song" / "volume 40" / "find a Quran radio" | Studio › Media |
+| "Make a picture of a red apple" / "make photo.jpg smaller" | Asks first, then Studio › Images; the original stays |
+| (a screen recording) | Only by its button: Studio › Recorder |
 | "Summarise my unread emails" / "draft a reply to Ali: yes, ten is fine" | Reads your Gmail and saves drafts; never sends (Planner › Email to connect) |
 | "I spent 1500 on groceries" / "how much did I spend this month?" / "mark walk as done" / "write in my journal: …" | Goals, habits, journal, money (Planner page) |
 | "Summarise Desktop/report.pdf" / "make a PowerPoint about solar power on my Desktop" / "find the warranty in my documents" | Reads, makes and searches documents (folders: Tools & Skills › Documents) |

@@ -51,7 +51,7 @@ def _google(path: str, **params: str) -> str:
 
 
 # ---------------- fetching ----------------
-def _public(url: str) -> None:
+def _public(url: str, any_port: bool = False) -> None:
     """Only ordinary web addresses out on the internet (not this PC, the router, or other machines at home)."""
     u = urlsplit(url)
     if u.scheme not in ("http", "https") or not u.hostname or u.username or u.password:
@@ -60,7 +60,7 @@ def _public(url: str) -> None:
         port = u.port
     except ValueError:
         port = 0
-    if port not in (None, 80, 443):
+    if port not in (None, 80, 443) and not (any_port and port and port > 1023):
         raise ValueError("That address uses an unusual port.")
     try:
         found = {i[4][0] for i in socket.getaddrinfo(u.hostname, port or 443, type=socket.SOCK_STREAM)}

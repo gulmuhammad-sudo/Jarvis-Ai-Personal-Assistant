@@ -39,6 +39,7 @@ STEP_TOOLS: dict[str, dict[str, Any]] = {
     "calendar": {"action": ("agenda",)}, "tasks": {"action": ("list",)},
     "goals": {"action": ("list",)}, "money": {"action": ("summary", "bills")},
     "news": {"action": ("top", "topic")}, "clock": {"action": ("focus", "focus_stop", "time_in")},
+    "media": {"action": ("control", "volume", "play")},
 }
 ONLY = {"calendar": ("action", "day", "days"), "tasks": ("action", "project"), "goals": ("action",), "money": ("action",), "news": ("action", "topic", "limit")}       # of these tools, only these settings
 LABELS = {
@@ -51,6 +52,7 @@ LABELS = {
     "software": "Look for app updates", "close_app": "Close an app", "calendar": "What's planned", "tasks": "Open tasks",
     "goals": "Goals and habits", "money": "Money this month / bills",
     "news": "News headlines", "clock": "Focus rounds / time elsewhere",
+    "media": "Play music, radio or a playlist / volume",
 }
 # steps whose answer is the point: told to you when the automation ends
 TELLS = {"get_weather": "Weather", "daily_briefing": "Briefing", "prayer_times": "Prayer times", "get_datetime": "Time", "system_status": "PC",

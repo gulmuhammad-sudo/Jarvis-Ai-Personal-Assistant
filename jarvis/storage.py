@@ -292,6 +292,30 @@ MIGRATIONS: list[str] = [
            notes TEXT NOT NULL DEFAULT '',
            remind INTEGER NOT NULL DEFAULT 1,              -- days before (0: on the day; -1: never)
            created TEXT NOT NULL);""",
+    # 13: media (the owner's music and videos, playlists, radio stations)
+    """CREATE TABLE media_folders (
+           id INTEGER PRIMARY KEY AUTOINCREMENT,
+           path TEXT NOT NULL UNIQUE);
+       CREATE TABLE media_files (
+           id INTEGER PRIMARY KEY AUTOINCREMENT,
+           folder INTEGER NOT NULL,
+           path TEXT NOT NULL UNIQUE,
+           kind TEXT NOT NULL,
+           title TEXT NOT NULL DEFAULT '',
+           artist TEXT NOT NULL DEFAULT '',
+           album TEXT NOT NULL DEFAULT '',
+           mtime REAL NOT NULL DEFAULT 0);
+       CREATE INDEX media_folder ON media_files(folder);
+       CREATE TABLE playlists (
+           id INTEGER PRIMARY KEY AUTOINCREMENT,
+           name TEXT NOT NULL UNIQUE COLLATE NOCASE,
+           items TEXT NOT NULL DEFAULT '[]',
+           created TEXT NOT NULL);
+       CREATE TABLE stations (
+           uid TEXT PRIMARY KEY,
+           name TEXT NOT NULL,
+           url TEXT NOT NULL,
+           country TEXT NOT NULL DEFAULT '');""",
 ]
 
 # event types worth keeping across restarts (not live captions, levels, approval prompts...)
