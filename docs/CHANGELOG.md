@@ -2,7 +2,7 @@
 
 Each version is also a git tag (`git tag -n20 vX.Y.Z` shows its notes). Newest first.
 
-## 1.31.3 — 2026-11-24 (not pushed yet)
+## 1.31.3 — 2026-11-24
 Look and feel.
 - Every page is one column in the middle with its tabs across it, like Settings; Tools & Skills, Automations, Agents, AI Models and
   Memory got tabs of their own.
@@ -16,7 +16,7 @@ Look and feel.
 - Fixed: "View all" of Agents opened Tools.
 - Fixed: the app's first answer waited for the internet (location, prayer times): seconds, on a bad line half a minute.
 
-## 1.31.2 — 2026-11-24 (not pushed yet)
+## 1.31.2 — 2026-11-24
 The vault and the privacy lock (Phase 9 part 2).
 - Vault: passwords, cards, documents (CNIC, passport…), notes and files, encrypted on this PC (AES-256-GCM; the key from your master
   password with scrypt). Opens with the master password, with Windows Hello if you turn it on, or with the recovery code shown once.

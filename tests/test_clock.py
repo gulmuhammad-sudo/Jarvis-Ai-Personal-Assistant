@@ -161,7 +161,7 @@ def test_focus_stopped_or_skipped_keeps_what_was_done(db):
 def test_focus_that_ended_while_the_pc_was_off_counts_but_stops(db):
     clock.focus(25, 5, 4)
     (text, _, ring), = due(time.time() + 25 * 60 + clock.LATE + 5)
-    assert not ring and text.startswith("Your focus round ended at") and clock.timers() == [] and sum(d["minutes"] for d in clock.focus_days()) == 25
+    assert not ring and text.startswith("Your focus round ended at") and clock.timers() == [] and storage.conn().execute("SELECT SUM(minutes) FROM focus_log").fetchone()[0] == 25         # (late in the evening it ends tomorrow)
 
 
 @pytest.mark.parametrize("args", [(0, 5, 4), (181, 5, 4), (25, 0, 4), (25, 61, 4), (25, 5, 0), (25, 5, 13), ("x", 5, 4), (25, 5, 1.5)])

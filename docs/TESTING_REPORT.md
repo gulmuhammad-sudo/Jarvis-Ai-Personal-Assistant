@@ -17,6 +17,8 @@ set PA_TEST_NETWORK=1 && .venv\Scripts\python -m pytest tests   # also the onlin
 |---|---|---|
 | `pytest tests` |  | new tests/test_look.py (13): taking out one and all, old entries, what can't be taken out, the request, panels under questions, waves, voice box |
 | Running app (test copy, no mic) | pass | all 14 pages at 1534x787, 1920x1000, 1534x650, 1280x787, 620x760, light theme: nothing past the edge; 8 panels opened and closed by button, backdrop, Esc; movement measured (405 → 1080 px in 0.4 s); one and all taken out, still gone after a reload; the voice box's parts at the same place with short, long, Urdu words and the Unmute button; the waves: still while silent, while it speaks and thinks, moving while talking; the graph: hover, click, drag, pan, wheel, buttons, fold, hide, find, keys, stars, large |
+| Packaged exe 1.31.3 | 80 / 80 and 183 / 183 | 21 new checks: the vault in the exe (made, entries, a file, nothing readable on disk, the pretend Windows Hello, a wrong password, kept after a restart, no screen looks while open), the lock (refuses everything, PIN), activity taken out, the new page |
+| What a new user gets (the release files) | 15 / 15 | the first answer took over 20 s once (it waited for the internet): fixed, 4.3 s → 0.08 s |
 | Found by the packaged exe | fixed | the vault couldn't be made in the exe: Python 3.15's `python3t.dll` (asked for by the encryption library) wasn't in it. It is now, and the build stops when any part asks for a Python library that isn't inside |
 | Not tested | — | the waves with a real microphone |
 

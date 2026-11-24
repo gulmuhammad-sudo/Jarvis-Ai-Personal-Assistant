@@ -44,3 +44,10 @@ def _no_real_env_file(monkeypatch, tmp_path):
     """Nothing a test does may write the real .env (one old test once did)."""
     from jarvis import config
     monkeypatch.setattr(config, "ENV_FILE", tmp_path / ".env")
+
+
+@pytest.fixture(autouse=True)
+def _no_reminders_from_other_tests(monkeypatch):
+    """A Hub made in one test keeps its reminder thread; with the next test's made-up data it took that test's reminders first."""
+    from jarvis import schedule
+    monkeypatch.setattr(schedule.Scheduler, "_loop", lambda self: None)
