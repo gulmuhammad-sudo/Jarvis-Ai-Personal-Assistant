@@ -17,7 +17,9 @@ set PA_TEST_NETWORK=1 && .venv\Scripts\python -m pytest tests   # also the onlin
 |---|---|---|
 | `pytest tests` | 983 passed, 4 skipped | new tests/test_learn_fit.py (63): intervals, a day of study, new cards a day, undo, streak, import in seven forms, export that comes back, reminders; amounts in many forms and 15 bad ones, adding up, BMI, settings, privacy (closed to the AI until allowed, nothing in the audit log, no agent or automation), upgrade from database 10 |
 | Running app (test copy, no mic, quiet) | pass | every button of both tabs at 1534x787, the keyboard, light theme, 620x760. Fixed: a clipped button, saved messages in red. The two exports went into the real Documents folder and were removed again |
-| Not tested | — | a real AI making cards or quizzing, voice, the packaged exe |
+| Packaged exe 1.28.0 (built from 23264d0) | 80 / 80 and 94 / 94 | 16 new checks: cards made, asked and graded by the AI, import, undo, export, health closed to the AI until ticked, nothing in the audit log, kept after a restart |
+| What a new user gets (the release files) | 15 / 15 | as for 1.27.1 |
+| Not tested | — | a real AI making cards or quizzing, voice |
 
 ## 2026-11-24 — Setup and release for new users (v1.27.1)
 

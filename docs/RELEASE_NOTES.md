@@ -1,4 +1,4 @@
-# Personal Assistant 1.27.1
+# Personal Assistant 1.28.0
 
 A personal AI assistant for Windows: it talks, listens and gets things done on your PC, in English, Urdu or almost any language. Free.
 
@@ -7,7 +7,7 @@ A personal AI assistant for Windows: it talks, listens and gets things done on y
 | File | For whom |
 |---|---|
 | **`Personal-Assistant-Setup.exe`** | everyone: the one file you need |
-| `Personal-Assistant-1.27.1.zip` | the same Setup in a folder with the instructions (if your browser blocks `.exe` files) |
+| `Personal-Assistant-1.28.0.zip` | the same Setup in a folder with the instructions (if your browser blocks `.exe` files) |
 | `SHA256.txt` | to check the download (optional) |
 | *Source code (zip / tar.gz)* | developers only: **there is no app inside** |
 
@@ -19,7 +19,13 @@ Windows 10 (1809 or newer) or 11, 64-bit. Updating: run this Setup; your setting
 
 **Urdu:** `Personal-Assistant-Setup.exe` download karke kholein. Windows roke to **More info → Run anyway**. Phir Next dabate jayen. *Source code* wali file mein app nahi hoti.
 
-## What's new since 1.7.1
+## New in 1.28.0
+
+- **Learn:** flashcards that come back just before you would forget them. Study with the mouse, the keyboard or by voice ("quiz me"); import from text, CSV or Anki.
+- **Fitness:** water, steps, sleep, weight and workouts, with daily targets, charts and reminders. Private: the assistant can't read it until you allow it.
+
+## If you come from 1.7.1
+
 
 - **A new look:** glass panels everywhere, light and dark.
 - **Daily page:** timers that survive a restart, stopwatch, focus rounds, alarms that ring until stopped, world clock, and news with your own sources.

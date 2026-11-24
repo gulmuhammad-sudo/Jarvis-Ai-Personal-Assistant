@@ -2,7 +2,7 @@
 
 Each version is also a git tag (`git tag -n20 vX.Y.Z` shows its notes). Newest first.
 
-## 1.28.0 — 2026-11-24 (not pushed yet)
+## 1.28.0 — 2026-11-24
 Learning and fitness: two new tabs on the Daily page (Phase 8 part 2).
 - Learn: decks of flashcards that come back just before you would forget them (spaced repetition). Study with the mouse, the keyboard
   (Space, 1 to 4) or by voice ("quiz me"); undo; only some new cards a day; streak and chart; a daily reminder; import from pasted text,
