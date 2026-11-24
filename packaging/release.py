@@ -1,4 +1,4 @@
-"""Put the build on GitHub as a release (what new users download).
+r"""Put the build on GitHub as a release (what new users download).
 
     .venv\Scripts\python.exe packaging\release.py            checks everything, says what it would do
     .venv\Scripts\python.exe packaging\release.py --publish  does it (needs the GitHub command line, signed in)
