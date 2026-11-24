@@ -374,3 +374,24 @@ def test_a_note_waits_for_antivirus(tmp_path, monkeypatch):
     monkeypatch.setattr(Path, "replace", busy)
     notes.save("x", "hello", new=True)
     assert (tmp_path / "x.md").read_text() == "hello" and len(n) == 3
+
+
+def test_setup_wears_the_theme_you_choose():
+    html = (Path(setup_app.__file__).parent / "setup.html").read_text(encoding="utf-8")
+    assert 'pick("theme", S.theme); wear(S.theme, true);' in html and ':root[data-look="light"]' in html and "prefers-color-scheme: light" in html
+    # the cards have data-theme, and pick() and the clicks go by it: the page itself must never have it
+    assert "documentElement.dataset.theme" not in html and not re.search(r"<(html|body)[^>]*data-theme", html)
+    assert html.index("wear(lookNow, false);") < html.index("<body>")                  # no dark flash before it is light
+    assert html.count('<html lang="en">') == 1                                         # (setup_app puts the saved theme there)
+    light = html[html.index(':root[data-look="light"] { color-scheme'):html.index("::view-transition-old")]
+    for part in ("--bg", "--text", "--dim", "--card", "--line", "aside", ".check", "input[type=text]", "button.b.main", ".note.warn", ".steps li.on", "[data-face] svg"):
+        assert part in light, part
+
+
+@pytest.mark.parametrize("text,want", [('{"theme": "light"}', "light"), ('{"theme": "system"}', "system"), ('{"theme": "dark"}', "dark"), ('{"theme": "\\"><script>"}', "dark"), ('{"theme": 5}', "dark"), ("[]", "dark"), ("{half", "dark"), (None, "dark")])
+def test_setup_opens_in_the_theme_chosen_before(tmp_path, monkeypatch, text, want):
+    import setup_app
+    monkeypatch.setattr(setup_app, "DATA", tmp_path)
+    if text is not None:
+        (tmp_path / "settings.json").write_text(text, encoding="utf-8")
+    assert setup_app.saved_theme() == want and setup_app.windows_light() in (True, False)

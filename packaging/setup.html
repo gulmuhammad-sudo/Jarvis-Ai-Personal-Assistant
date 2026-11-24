@@ -22,7 +22,7 @@ aside { background: linear-gradient(180deg, #08111A, #05080C); border-right: 1px
 .steps li.on { color: var(--text); background: rgba(92, 207, 255, .08); }
 .steps li.on i { border-color: var(--cyan); color: var(--cyan); }
 .steps li.done i { background: var(--cyan2); border-color: var(--cyan2); color: #031018; }
-aside .foot { margin-top: auto; color: #51657A; font-size: 11.5px; }
+aside .foot { margin-top: auto; color: #7790A6; font-size: 11.5px; }
 main { display: flex; flex-direction: column; min-width: 0; min-height: 0; }
 .page { flex: 1 1 0; min-height: 0; padding: 34px 40px 10px; overflow-y: auto; display: none; }
 .page::-webkit-scrollbar, aside::-webkit-scrollbar { width: 8px; }
@@ -96,7 +96,37 @@ input[type=text], input[type=password], select { background-color: rgba(2, 6, 10
 input:focus, select:focus { box-shadow: 0 0 0 3px rgba(92, 207, 255, .12); }
 button.b.main { background: linear-gradient(180deg, #44BCEF, #2A9FD6); box-shadow: inset 0 1px 0 rgba(255, 255, 255, .3), 0 6px 20px rgba(42, 159, 214, .25); }
 .steps li.on { background: linear-gradient(90deg, rgba(92, 207, 255, .16), rgba(92, 207, 255, .04)); box-shadow: var(--sheen); }
+/* the theme chosen on the Look page, shown on Setup itself (data-look, not data-theme: that is on the cards) */
+:root { color-scheme: dark; }
+:root[data-look="light"] { color-scheme: light; --bg: #EEF2F6; --panel: #FFFFFF; --text: #12202E; --dim: #4A5F73; --cyan: #0369A1; --cyan2: #0284C7; --green: #15803D; --red: #C81E1E;
+  --card: rgba(255, 255, 255, .62); --line: rgba(20, 55, 90, .18); --sheen: inset 0 1px 0 rgba(255, 255, 255, .9); }
+:root[data-look="light"], :root[data-look="light"] body { background: radial-gradient(700px 460px at 8% -8%, rgba(92, 190, 240, .42), transparent 68%), radial-gradient(640px 460px at 100% 10%, rgba(170, 150, 240, .34), transparent 66%),
+  radial-gradient(760px 420px at 60% 115%, rgba(120, 215, 205, .34), transparent 68%), var(--bg); }
+:root[data-look="light"] aside { background: linear-gradient(180deg, rgba(255, 255, 255, .72), rgba(255, 255, 255, .42)); } :root[data-look="light"] aside .foot { color: #5A6F82; }
+:root[data-look="light"] :is(.card, .check, button.b) { background: linear-gradient(180deg, rgba(255, 255, 255, .9), rgba(255, 255, 255, .55)), var(--card); box-shadow: var(--sheen), 0 1px 3px rgba(20, 50, 80, .08); }
+:root[data-look="light"] .card.on { background: linear-gradient(180deg, rgba(2, 132, 199, .16), rgba(2, 132, 199, .06)); box-shadow: var(--sheen), 0 0 18px rgba(2, 132, 199, .16); }
+:root[data-look="light"] :is(.card, .check, button.b):hover { border-color: rgba(2, 132, 199, .5); }
+:root[data-look="light"] :is(input[type=text], input[type=password], select) { background-color: rgba(255, 255, 255, .85); box-shadow: inset 0 1px 3px rgba(20, 50, 80, .1); } :root[data-look="light"] :is(input, select):focus { box-shadow: 0 0 0 3px rgba(2, 132, 199, .16); } :root[data-look="light"] select option { background: #FFFFFF; }
+:root[data-look="light"] button.b.main { background: linear-gradient(180deg, #0EA5E9, #0274B3); color: #FFFFFF; box-shadow: inset 0 1px 0 rgba(255, 255, 255, .35), 0 6px 20px rgba(2, 132, 199, .25); }
+:root[data-look="light"] .steps li.on { background: linear-gradient(90deg, rgba(2, 132, 199, .18), rgba(2, 132, 199, .05)); } :root[data-look="light"] .steps li.done i { color: #FFFFFF; }
+:root[data-look="light"] .note { background: rgba(2, 132, 199, .08); border-color: rgba(2, 132, 199, .3); } :root[data-look="light"] .note.warn { background: rgba(217, 119, 6, .1); border-color: rgba(217, 119, 6, .4); }
+:root[data-look="light"] [data-face] svg { stroke: #0284C7; } :root[data-look="light"] [data-face] svg [fill="#5CCFFF"] { fill: #0284C7; }
+:root[data-look="light"] :is(.page, aside)::-webkit-scrollbar-thumb { background: #B4C4D2; }
+::view-transition-old(root), ::view-transition-new(root) { animation-duration: .38s; }
+@media (prefers-reduced-motion: reduce) { ::view-transition-old(root), ::view-transition-new(root) { animation: none; } }
 </style>
+<script>
+// Setup wears the theme you choose: at once, with a soft change (Auto: as Windows is now)
+const winLight = matchMedia("(prefers-color-scheme: light)");
+let lookNow = document.documentElement.dataset.saved || "dark";
+function wear(choice, soft) {
+  lookNow = ["dark", "light", "system"].includes(choice) ? choice : "dark";
+  const go = () => { document.documentElement.dataset.look = lookNow === "light" || lookNow === "system" && winLight.matches ? "light" : "dark"; };
+  if (soft && document.startViewTransition) document.startViewTransition(go); else go();
+}
+winLight.addEventListener("change", () => wear(lookNow, true));
+wear(lookNow, false);
+</script>
 </head>
 <body>
 <div class="app">
@@ -226,7 +256,7 @@ $("steps").innerHTML = SHOWN.map((k, i) => `<li data-k="${k}"><i>${i + 1}</i>${S
 
 function pick(attr, val) { document.querySelectorAll(`[data-${attr}]`).forEach(b => b.classList.toggle("on", b.dataset[attr] === val)); }
 document.querySelectorAll("[data-engine]").forEach(b => b.onclick = () => { S.engine = b.dataset.engine; pick("engine", S.engine); });
-document.querySelectorAll("[data-theme]").forEach(b => b.onclick = () => { S.theme = b.dataset.theme; pick("theme", S.theme); });
+document.querySelectorAll("[data-theme]").forEach(b => b.onclick = () => { S.theme = b.dataset.theme; pick("theme", S.theme); wear(S.theme, true); });
 document.querySelectorAll("[data-face]").forEach(b => b.onclick = () => { S.face = b.dataset.face; pick("face", S.face); });
 document.querySelectorAll("[data-script]").forEach(b => b.onclick = () => { S.chat_script = b.dataset.script; pick("script", S.chat_script); });
 document.querySelectorAll("a[data-url]").forEach(a => a.onclick = e => { e.preventDefault(); api().open_url(a.dataset.url); });
@@ -250,6 +280,7 @@ async function load() {
   $("liveVoice").value = s.live_voice;
   $("readingVoice").innerHTML = info.reading_voices.map(v => `<option value="${esc(v.id)}">${esc(v.name)}</option>`).join("");
   $("readingVoice").value = s.reading_voice;
+  if (s.theme !== lookNow) wear(s.theme, false);
   pick("engine", s.engine); pick("theme", s.theme); pick("face", s.face); pick("script", s.chat_script);
   for (const [k, id] of [["gemini", "Gemini"], ["groq", "Groq"], ["openrouter", "Openrouter"]]) {
     if (info.keys[k]) { $("ok" + id).textContent = "✓ saved"; $("k" + id).placeholder = "Already saved. Paste a new one to replace it."; }

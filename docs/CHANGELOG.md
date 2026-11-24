@@ -2,6 +2,10 @@
 
 Each version is also a git tag (`git tag -n20 vX.Y.Z` shows its notes). Newest first.
 
+## 1.31.4 — 2026-11-24 (not pushed yet)
+- Setup wears the theme you choose on its Look page, at once and with a soft change: Light, Dark, or Auto (as Windows is). An update
+  opens in the theme you already use.
+
 ## 1.31.3 — 2026-11-24
 Look and feel.
 - Every page is one column in the middle with its tabs across it, like Settings; Tools & Skills, Automations, Agents, AI Models and

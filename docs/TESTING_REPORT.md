@@ -11,6 +11,14 @@ set PA_TEST_NETWORK=1 && .venv\Scripts\python -m pytest tests   # also the onlin
 .venv\Scripts\python packaging\build.py              # then smoke-test the packaged exe (see below)
 ```
 
+## 2026-11-24 — Setup in the chosen theme (v1.31.4)
+
+| Suite | Result | Notes |
+|---|---|---|
+| `pytest tests` | 1308 passed, 4 skipped | 9 new in tests/test_installer.py |
+| Setup's page (pretend Setup, 1106x748) | pass | light, dark, auto with Windows light and dark; six quick clicks end in the last choice; clicks elsewhere change nothing; every step in both themes, lowest contrast 4.6 |
+| Not tested | — | the built Setup.exe itself |
+
 ## 2026-11-24 — Look and feel (v1.31.3)
 
 | Suite | Result | Notes |

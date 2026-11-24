@@ -402,6 +402,25 @@ def _save_env(new: dict[str, str]) -> None:
     path.write_text("\n".join(lines) + "\n", encoding="utf-8")
 
 
+def saved_theme() -> str:
+    """The look the owner chose before ("dark" for a new user): Setup opens in it."""
+    try:
+        t = json.loads((DATA / "settings.json").read_text(encoding="utf-8")).get("theme")
+    except (OSError, ValueError, AttributeError):
+        t = None
+    return t if t in ("dark", "light", "system") else "dark"
+
+
+def windows_light() -> bool:
+    """Is Windows in light mode for apps?"""
+    try:
+        import winreg
+        with winreg.OpenKey(winreg.HKEY_CURRENT_USER, r"Software\Microsoft\Windows\CurrentVersion\Themes\Personalize") as k:
+            return bool(winreg.QueryValueEx(k, "AppsUseLightTheme")[0])
+    except OSError:
+        return True
+
+
 def window_size(want: tuple[int, int] = (900, 640), area: tuple[int, int] | None = None) -> tuple[int, int]:
     """The Setup window, never bigger than the screen without its taskbar (a small or strongly scaled screen)."""
     if area is None:
@@ -496,9 +515,10 @@ def main() -> None:
     import webview
     api = Api()
     width, height = window_size()
-    html = (HERE / "setup.html").read_text(encoding="utf-8")
+    theme = saved_theme()
+    html = (HERE / "setup.html").read_text(encoding="utf-8").replace('<html lang="en">', f'<html lang="en" data-saved="{theme}">', 1)
     api._window = webview.create_window(f"{APP_NAME} Setup", html=html, js_api=api, width=width, height=height,
-                                       min_size=(480, 380), resizable=True, background_color="#05080C")
+                                       min_size=(480, 380), resizable=True, background_color="#EEF2F6" if theme == "light" or theme == "system" and windows_light() else "#05080C")
     api._window.events.closing += api.may_close
     api._window.events.shown += _splash_off
     webview.start(gui="edgechromium", private_mode=True)
