@@ -2,6 +2,22 @@
 
 Each version is also a git tag (`git tag -n20 vX.Y.Z` shows its notes). Newest first.
 
+## 1.31.0 — 2026-11-24 (not pushed yet)
+Privacy and the timeline: a new Privacy page (Phase 9 part 1).
+- Going out: which services the app talked to, how often, what goes there and how to stop it. Only the day, the address and the number
+  are kept, on this PC, 30 days; it can be off.
+- Local only: one switch, and nothing the app does leaves the PC: AI, speech and voices only from this PC, no Live call, no web. Held
+  back at the bottom (every connection of the program), and in the window too (its letters, radio).
+- Microphone & screen: each use with its reason and length, a sign at the top while the microphone is in use, and Windows' own list of
+  which programs used the microphone, camera, location and screen.
+- Permissions: how often each kind was asked, allowed, refused; allow for one hour (ends with Stop); ask everything again.
+- Who may read what: everything the AI can be given, with switches; and what it never gets.
+- Kept here: every kind of thing the app keeps, how much, clear, and for how long (nothing goes by itself unless you choose it).
+- Timeline: everything, day by day: what you said, answers, actions, approvals, changes; search, take out one thing or a day, CSV, ask
+  again, your most used requests. The AI can look in earlier conversations, only after it asks ("what did I ask you yesterday").
+- Changed: recordings of your voice (the last five, for microphone problems) are kept only if you turn it on.
+- Fixed: Windows' own recogniser could open the microphone in a test copy; a database upgrade cut short could never be finished.
+
 ## 1.30.0 — 2026-11-24
 Media, screen recording and pictures: a new Studio page (Phase 8 part 4; Phase 8 is complete).
 - Media: what is playing on this PC, in any app, with its controls and the volume; your own music and videos from folders you choose

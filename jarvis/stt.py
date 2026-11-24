@@ -45,6 +45,9 @@ def engines() -> list[str]:
     if os.environ.get("GEMINI_API_KEY"):
         cloud.append("gemini")
     local = ["local"] if local_stt.ready() else []
+    from . import netlog
+    if netlog.local_only():
+        return local                               # nothing may leave this PC (none here: Windows' own recogniser)
     m = mode()
     if m == "local":
         return local or cloud                      # (no model yet: cloud keeps working)

@@ -71,3 +71,36 @@ def recent(n: int = 100) -> list[dict]:
         except json.JSONDecodeError:
             pass
     return out
+
+
+def _lines(f: Path) -> list[str]:
+    try:
+        return f.read_text(encoding="utf-8", errors="replace").splitlines()
+    except OSError:
+        return []
+
+
+def clear() -> int:
+    """Clear the whole record (the owner's button). One line stays that says so."""
+    f = file()
+    with _LOCK:
+        n = len(_lines(f)) + len(_lines(f.with_name("audit.old.log")))
+        f.with_name("audit.old.log").unlink(missing_ok=True)
+        f.unlink(missing_ok=True)
+    record("record_cleared", lines=n)
+    return n
+
+
+def drop_before(day: str) -> int:
+    """Lines older than a day (YYYY-MM-DD) go: the time the owner chose on the Privacy page."""
+    gone = 0
+    with _LOCK:
+        for f in (file().with_name("audit.old.log"), file()):
+            lines = _lines(f)
+            keep = [ln for ln in lines if not (ln.startswith('{"time": "') and ln[10:20] < day)]
+            if len(keep) < len(lines):
+                gone += len(lines) - len(keep)
+                tmp = f.with_name(f.name + ".tmp")
+                tmp.write_text("".join(ln + "\n" for ln in keep), encoding="utf-8")
+                tmp.replace(f)
+    return gone

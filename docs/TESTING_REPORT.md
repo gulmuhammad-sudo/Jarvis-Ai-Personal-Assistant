@@ -11,6 +11,16 @@ set PA_TEST_NETWORK=1 && .venv\Scripts\python -m pytest tests   # also the onlin
 .venv\Scripts\python packaging\build.py              # then smoke-test the packaged exe (see below)
 ```
 
+## 2026-11-24 — Privacy and the timeline (v1.31.0)
+
+| Suite | Result | Notes |
+|---|---|---|
+| `pytest tests` | 1179 passed, 4 skipped (twice) | new tests/test_privacy.py (87): this PC and everything else, counting by service, real sockets held back (also an open connection), AI, voices, calls and tools in Local only; uses merged, after faults, cleared while in use; Windows' list; what may be cleared, the open log; times in the list only; timeline of a day, search, take out, CSV; the AI only after a yes; an hour; every request of the page; upgrades all-or-nothing and by four at once |
+| Running app (test copy, no mic, own home folder) | pass | every button of the six tabs at 1534x787 (Windows' settings and the folder were caught, not opened), light theme, 620x760. Local only: real fetch and picture from outside refused by the window, no fonts after a reload, network check refused, back on after Off. Fixed: text in small switches, "under a second", names of Store apps |
+| Real sockets | pass | urllib, requests, httpx2, aiohttp (voices), websockets (Live), IMAP: all refused in Local only, counted with it off |
+| Found with the page itself | fixed | Windows' list showed PowerShell at the microphone: the app's fallback recogniser didn't obey JARVIS_NO_MIC |
+| Not tested | — | a real microphone (standby, Live call, meeting) in the list, Local only with a real Ollama, `history` with a real AI, the packaged exe |
+
 ## 2026-11-24 — Media, recorder, pictures (v1.30.0)
 
 | Suite | Result | Notes |

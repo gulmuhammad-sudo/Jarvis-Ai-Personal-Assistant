@@ -18,11 +18,12 @@ UNTRUSTED_TOOLS = {"fetch_webpage", "web_search", "read_text_file", "clipboard",
 READ_BACK = {"tasks": ("list", ""), "calendar": ("agenda", "find", ""), "notes": ("search", "read", ""),
              "documents": ("read", "search", ""), "goals": ("list", ""), "journal": ("read",), "money": ("list", "summary", "bills", ""),
              "learn": ("quiz", "search", "decks", ""), "fitness": ("history",),
-             "travel": ("list", "show", ""), "meetings": ("list", "show", "transcript", ""), "people": ("list", "coming", ""), "media": ("now", "control", "search", "radio", "")}
+             "travel": ("list", "show", ""), "meetings": ("list", "show", "transcript", ""), "people": ("list", "coming", ""), "media": ("now", "control", "search", "radio", ""),
+             "history": ("search", "day", "")}
 
 # what these say stays out of the activity list, the saved history and the audit log
 PRIVATE_TEXT = {"journal": ("text", "query"), "email": ("body", "subject", "query", "to", "cc"), "fitness": ("value", "note", "km", "what"),
-                "meetings": ("text", "summary", "decisions", "actions", "agenda", "people", "query"), "people": ("notes", "birthday", "relation", "query")}
+                "history": ("query",), "meetings": ("text", "summary", "decisions", "actions", "agenda", "people", "query"), "people": ("notes", "birthday", "relation", "query")}
 PRIVATE_KINDS = {"email", "email_draft", "after_email", "meeting"}          # approvals: only their first line is kept
 
 

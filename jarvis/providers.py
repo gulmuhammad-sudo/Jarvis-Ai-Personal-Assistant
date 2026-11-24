@@ -227,13 +227,14 @@ BIG_TOOLS = {"documents": r"pdf|docx?|word|excel|xlsx|sheet|powerpoint|pptx|slid
              "clock": r"stop ?watch|lap|focus|pomodoro|pause|resume|snooze|ring|time in|time is it|alarm|timer|waqt|baje|وقت|الارم", "news": r"news|headline|khabar|خبر",
              "media": r"play|music|song|radio|volume|video|album|playlist|pause|gaana|gana|awaz|nasheed|naat|quran|tilawat|گانا|آواز", "images": r"image|picture|photo|tasveer|tasvir|draw|paint|logo|wallpaper|تصویر",
              "travel": r"travel|trip|safar|journey|pack|itinerar|umrah|hajj|visa|flight|hotel|ticket|سفر", "meetings": r"meeting|minutes|agenda|transcript|conference|mulaqat|میٹنگ",
+             "history": r"yesterday|last (week|time|night)|earlier|before|asked|said|told|talked|history|kal|parson|pehle|pichl|poocha|kaha tha|baat|کل|پہلے|پوچھا",
              "people": r"birthday|saalgir|salgir|people|family|friend|wife|husband|brother|sister|mother|father|son\b|daughter|bhai|behen|ammi|abbu|dost|who is|سالگرہ|دوست|بھائی|بہن",
              "learn": r"flash|card|deck|quiz|learn|study|revis|yaad kar|parh|سبق|یاد", "fitness": r"weigh|wazan|water|paani|pani|glass|steps|qadam|sleep|slept|neend|soya|workout|exercise|gym|walk|\bran\b|\brun|fitness|bmi|وزن|پانی|نیند"}
 LOCAL_TOOLS = ("get_datetime", "system_status", "open_website", "search_web_in_browser", "open_application",
                "open_path", "find_files", "read_text_file", "save_note", "list_notes", "remember_fact",
                "recall_memories", "set_timer", "list_timers", "cancel_timer", "media_control", "clipboard",
                "web_search", "fetch_webpage", "get_weather", "play_youtube", "set_alarm", "list_alarms",
-               "close_app", "take_screenshot", "write_file", "tasks", "calendar", "notes", "documents", "goals", "money", "journal", "email", "clock", "news", "learn", "fitness", "travel", "meetings", "people", "media", "images")
+               "close_app", "take_screenshot", "write_file", "tasks", "calendar", "notes", "documents", "goals", "money", "journal", "email", "clock", "news", "learn", "fitness", "travel", "meetings", "people", "media", "images", "history")
 
 
 def prefer_local() -> bool:
@@ -332,7 +333,10 @@ def needs_vision(text: str) -> bool:
 
 
 def online(timeout: float = 1.5) -> bool:
-    """Is there an internet connection? (One quick TCP connect, remembered for 20 s.)"""
+    """Is there an internet connection? (One quick TCP connect, remembered for 20 s.) Local only counts as none."""
+    from . import netlog
+    if netlog.local_only():
+        return False
     if time.time() - _net["at"] < 20:
         return _net["up"]
     up = False
@@ -353,7 +357,8 @@ def route(backends: list[tuple[str, object]], text: str) -> tuple[list[tuple[str
     has_cloud = any(label != "Local AI" for label, _ in order)
     if has_cloud and not online():
         local = [(l, b) for l, b in order if l == "Local AI"]
-        return local, "no internet: using the AI on this PC"
+        from . import netlog
+        return local, ("Local only" if netlog.local_only() else "no internet") + ": using the AI on this PC"
     if order and needs_vision(text) and not getattr(order[0][1], "vision", False):
         seeing = [(l, b) for l, b in order if getattr(b, "vision", False)]
         if seeing:
@@ -495,7 +500,9 @@ class MultiBrain:
         failed: set[str] = set()
         order, why = route(self.backends, user_text)
         if not order:
-            msg = ("There's no internet connection, and there's no AI on this PC yet. Install Ollama and download a "
+            from . import netlog
+            msg = (("Local only is on (Privacy page), so nothing goes to an AI on the internet" if netlog.local_only() else "There's no internet connection")
+                   + ", and there's no AI on this PC yet. Install Ollama and download a "
                    "model on the AI Models page to use me offline.")
             self.on_text(msg)
             return msg

@@ -49,6 +49,7 @@ To update, run the newer Setup: your settings, memories and keys stay. Problems?
 - Travel: trips, packing lists, papers and budget; weather and time there
 - Meetings: notes, decisions, actions as tasks; writes down what is said (only if you start it and all agree)
 - People: birthdays and notes, a daily check-in, and how the assistant talks with you
+- Privacy page: what goes out, when the microphone was used, who may read what, what is kept; Local only; a timeline of everything
 - Music and video: what is playing, your own files, playlists, free radio
 - Screen recording, never silent: your button, Windows' own box, a red bar and a REC window
 - Pictures: edit them on your PC, make them online for free

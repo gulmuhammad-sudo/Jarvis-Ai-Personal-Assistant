@@ -20,7 +20,7 @@ import time
 import urllib.parse as _up
 import urllib.request as _ur
 import webbrowser
-from datetime import datetime, timedelta
+from datetime import date as _date, datetime, timedelta
 from pathlib import Path
 from typing import Any, Callable
 from urllib.parse import quote_plus
@@ -456,6 +456,11 @@ def look_at_screen(_: dict, ctx: ToolContext) -> list[dict] | str:
     ]
 
 
+def _local_only_note() -> str:
+    from . import netlog
+    return "\n\nLocal only is on, but it can't hold back what a command does online." if netlog.local_only() else ""
+
+
 def run_powershell(inp: dict, ctx: ToolContext) -> str:
     cmd = inp["command"]
     why = inp.get("reason", "")
@@ -464,7 +469,7 @@ def run_powershell(inp: dict, ctx: ToolContext) -> str:
         audit.record("blocked", tool="run_powershell", command=cmd, reason=blocked)
         return (f"I won't run that command: it means {blocked}, which is too risky to do automatically, even "
                 "with your OK. If you really need it, run it yourself in PowerShell.")
-    if not ctx.approve(kind="powershell", question=f"{_sched.agent_name()} wants to run this PowerShell command{f' ({why})' if why else ''}:\n    {cmd}"):
+    if not ctx.approve(kind="powershell", question=f"{_sched.agent_name()} wants to run this PowerShell command{f' ({why})' if why else ''}:\n    {cmd}{_local_only_note()}"):
         return "The user declined to run this command."
     try:
         r = _ps(cmd, timeout=int(inp.get("timeout_seconds", 120)))
@@ -639,7 +644,7 @@ def execute(name: str, tool_input: dict, ctx: ToolContext, from_ai: bool = False
             return "Not done: the user was asked, because an email or a meeting was read in this conversation, and didn't allow it. Don't try it another way.", True
     out, err = _execute(name, tool_input, ctx)
     # (email: every answer, since they name people; the journal: what was read)
-    shown = "(not kept)" if name in ("email", "fitness", "meetings", "people") or (name == "journal" and str(args.get("action")).lower() == "read" and not err) else out
+    shown = "(not kept)" if name in ("email", "fitness", "meetings", "people", "history") or (name == "journal" and str(args.get("action")).lower() == "read" and not err) else out
     audit.record("tool", tool=name, args=args, ok=not err,
                  result=(shown if isinstance(shown, str) else "[image]")[:120])
     if RESULT_HOOK:
@@ -650,6 +655,11 @@ def execute(name: str, tool_input: dict, ctx: ToolContext, from_ai: bool = False
     if not err and isinstance(out, str) and guard.is_untrusted(name, args):
         out = guard.wrap(name, out)
     return out, err
+
+
+# these go online in another program, where netlog can't hold them back
+_GOES_OUT = {"open_website", "search_web_in_browser", "play_youtube"}
+_GOES_OUT_IF = {("software", a) for a in ("", "search", "updates", "install", "update", "update_all")} | {("network", "check"), ("network", "speed"), ("network", "")}
 
 
 def _execute(name: str, tool_input: dict, ctx: ToolContext) -> tuple[Any, bool]:
@@ -667,6 +677,14 @@ def _execute(name: str, tool_input: dict, ctx: ToolContext) -> tuple[Any, bool]:
         only = ctx.limits.get(name)
         if only and str(tool_input.get("action") or "").lower() not in only:
             return f"This agent may only use {name} for: {', '.join(only)}.", True
+    action = str(tool_input.get("action") or "").lower()
+    from . import netlog, privacy
+    if netlog.local_only() and (name in _GOES_OUT or (name, action) in _GOES_OUT_IF):
+        return "Local only is on (Privacy page), so this PC doesn't go online: I didn't do that. Tell the user; don't try it another way.", True
+    if name in ("look_at_screen", "take_screenshot") or name == "read_screen_text" and str(tool_input.get("source") or "").lower() != "file":
+        privacy.look("screen", {"look_at_screen": "The assistant looked at the screen", "take_screenshot": "A screenshot was saved", "read_screen_text": "The text on the screen was read"}[name])
+    elif name == "clipboard" and action == "read":
+        privacy.look("clipboard", "The assistant read the clipboard")
     try:
         return fn(tool_input, ctx), False
     except KeyError as e:
@@ -2045,6 +2063,25 @@ def meetings_tool(inp: dict, ctx: ToolContext) -> str:
     return out
 
 
+def history_tool(inp: dict, ctx: ToolContext) -> str:
+    """What was said earlier (the saved conversation only)."""
+    from . import mail, timeline
+    words, when = str(inp.get("query") or "").strip(), str(inp.get("day") or "").strip()
+    try:
+        if when:
+            when = {"today": _date.today().isoformat(), "yesterday": (_date.today() - timedelta(days=1)).isoformat()}.get(when.lower()) or timeline.day(when)
+        if str(inp.get("action") or "").lower() == "search" and not words:
+            return "What should I look for?"
+        if not ctx.approve("Let the assistant read your saved conversations for an answer? What it finds goes to the AI.\n\n"
+                           + (f"Looking for: {words[:200]}" if words else f"The day: {when or _date.today().isoformat()}"), kind="history"):
+            return "Okay, I didn't read it."
+        text = timeline.for_ai(words, when)
+    except ValueError as e:
+        return str(e)
+    mail.seen_by_ai()                                             # old answers may hold what an email or a page said: nothing is carried out after them without asking
+    return text or "Nothing was found. (The history may be off or cleared.)"
+
+
 def people_tool(inp: dict, ctx: ToolContext) -> str:
     from . import people
     action = str(inp.get("action") or "list").lower()
@@ -2272,6 +2309,9 @@ PLANNER_TOOLS = [
       "input_schema": _obj({"action": {"type": "string", "enum": ["list", "show", "add", "note", "transcript", "save"]}, "meeting": _STR, "query": _STR, "title": _STR, "day": _STR, "time": _STR,
                             "people": _STR, "agenda": _STR, "text": _STR, "part": _INT, "summary": _STR, "decisions": _STR,
                             "actions": {"type": "array", "items": {"type": "object", "properties": {"text": _STR, "who": _STR, "due": _STR}, "required": ["text"]}}}, ["action"])}, meetings_tool),
+    ({"name": "history",
+      "description": "What the user and you said in earlier conversations. search (query: words), day (day: YYYY-MM-DD, today or yesterday). Asks the user first.",
+      "input_schema": _obj({"action": {"type": "string", "enum": ["search", "day"]}, "query": _STR, "day": _STR}, ["action"])}, history_tool),
     ({"name": "people",
       "description": "People who matter to the user. list (query), coming (days): birthdays, add / update (name, relation, birthday like 14 May or 14 May 2001, notes).",
       "input_schema": _obj({"action": {"type": "string", "enum": ["list", "coming", "add", "update"]}, "name": _STR, "relation": _STR, "birthday": _STR, "notes": _STR, "query": _STR, "days": _INT},

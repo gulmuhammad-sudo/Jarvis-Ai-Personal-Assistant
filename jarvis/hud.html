@@ -904,6 +904,20 @@ body.focus[data-face="mask"] .heroText { bottom: 98px; }
 .docbox { margin-bottom: 4px; } .docbox .agask { margin-bottom: 6px; } .dxnote { display: block; color: var(--dim); font-size: 12px; line-height: 1.5; }
 .dxfolders { display: flex; flex-wrap: wrap; gap: 6px; margin: 6px 0; } .dxfolders span { display: inline-flex; gap: 7px; align-items: center; font-size: 12px; padding: 3px 6px 3px 10px; border-radius: 999px; border: 1px solid var(--hair-2); color: var(--muted); max-width: 100%; overflow-wrap: anywhere; } .dxfolders em { font: 500 11px var(--mono); color: var(--dim); } .dxfolders button { border: 0; background: none; color: var(--dim); cursor: pointer; padding: 0 3px; } .dxfolders button:hover { color: var(--red); }
 .dxhit { display: block; width: 100%; text-align: left; border: 1px solid var(--hair); border-radius: 9px; background: none; color: var(--muted); font: inherit; font-size: 12.5px; padding: 7px 10px; margin-bottom: 4px; cursor: pointer; overflow-wrap: anywhere; } .dxhit:hover { border-color: rgba(var(--c-accent), .45); } .dxhit b { color: var(--text); font-weight: 500; } .dxhit em { font-style: normal; color: var(--cyan); font-size: 11.5px; } .dxhit small { display: block; line-height: 1.5; margin-top: 2px; } .dxhit mark { background: rgba(var(--c-accent), .22); color: var(--text); border-radius: 3px; }
+/* privacy and the timeline */
+.pvpill { display: none; align-items: center; gap: 6px; height: 24px; padding: 0 10px; margin-left: 8px; border-radius: 999px; border: 1px solid var(--hair-2); background: none; color: var(--muted); font: 600 11px var(--mono); letter-spacing: .04em; cursor: pointer; white-space: nowrap; } .pvpill.show { display: inline-flex; } .pvpill svg.ic { width: 13px; height: 13px; } .pvpill:hover { border-color: var(--cyan); color: var(--text); } .pvpill:focus-visible { outline: 2px solid var(--cyan); outline-offset: 2px; } #sensPill { color: var(--amber); border-color: rgba(var(--c-amber), .45); } #locPill { color: var(--green); border-color: rgba(74, 222, 128, .45); }
+.pv2 { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr); gap: 14px; align-items: start; } .pv2.half { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+.pvtiles { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; margin-bottom: 14px; } .pvtiles button { text-align: left; border: 1px solid var(--hair); border-radius: 14px; background: var(--row); box-shadow: var(--row-sheen); color: var(--text); font: inherit; padding: 11px 14px; cursor: pointer; min-width: 0; } .pvtiles button:hover { border-color: rgba(var(--c-accent), .5); } .pvtiles small { display: block; color: var(--muted); font-size: 12px; } .pvtiles b { display: block; font: 600 19px var(--mono); margin: 2px 0; overflow-wrap: anywhere; } .pvtiles b.hot { color: var(--amber); } .pvtiles em { font-style: normal; color: var(--dim); font-size: 12px; display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pvline { display: flex; gap: 12px; align-items: center; border-top: 1px solid var(--hair); padding: 8px 2px; font-size: 13.5px; } .pvline:first-of-type { border-top: 0; } .pvline > div { flex: 1; min-width: 0; overflow-wrap: anywhere; } .pvline small { display: block; color: var(--muted); font-size: 12.5px; line-height: 1.5; } .pvline em { font: 500 12px var(--mono); font-style: normal; color: var(--dim); flex: none; } .pvline .btn { flex: none; } .pvline .go { border: 0; background: none; color: var(--cyan); cursor: pointer; font: inherit; font-size: 12.5px; padding: 0 2px; flex: none; } .pvline.now em { color: var(--amber); } .pvline b { font-weight: 600; } .ckbox .btn.switch, .pvbig .btn.switch { font-size: 0; height: 28px !important; }
+.pvbig { display: flex; gap: 14px; align-items: center; border: 1px solid var(--hair); border-radius: 14px; padding: 12px 14px; margin-bottom: 14px; background: var(--row); box-shadow: var(--row-sheen); } .pvbig.on { border-color: rgba(74, 222, 128, .5); background: rgba(74, 222, 128, .07); } .pvbig > div { flex: 1; min-width: 0; } .pvbig b { font-size: 15px; } .pvbig small { display: block; color: var(--muted); font-size: 12.5px; line-height: 1.5; }
+.pvbars { display: flex; gap: 4px; align-items: flex-end; height: 64px; margin: 4px 0 2px; } .pvbars i { flex: 1; min-width: 0; border-radius: 4px 4px 0 0; background: rgba(var(--c-accent), .55); min-height: 2px; } .pvbars i.no { background: rgba(74, 222, 128, .6); } .pvbars i:hover { background: var(--cyan); } .pvends { display: flex; justify-content: space-between; color: var(--dim); font: 500 11px var(--mono); margin-bottom: 10px; }
+.pvsvc details { font-size: 12px; color: var(--dim); } .pvsvc summary { cursor: pointer; } .pvsvc details span { display: inline-block; margin: 2px 8px 0 0; font-family: var(--mono); font-size: 11.5px; overflow-wrap: anywhere; } .pvn { font: 600 14px var(--mono); flex: none; min-width: 58px; text-align: right; } .pvn small { font: 500 11px var(--mono); color: var(--green); }
+.pvscroll { max-height: 56vh; overflow: auto; padding-right: 4px; } .pvperm { flex-wrap: wrap; } .pvperm .btn { height: 30px; font-size: 12.5px; min-width: 54px; } .pvperm .btn:disabled { opacity: .3; cursor: not-allowed; } .pvset { display: grid; gap: 9px; font-size: 13.5px; } .pvset label { display: flex; gap: 10px; align-items: center; justify-content: space-between; } .pvset select, .pvday input, .pvsel { height: 32px; border-radius: 9px; border: 1px solid var(--hair-2); background-color: var(--field); color: var(--text); font: inherit; font-size: 13px; padding: 0 8px; color-scheme: dark; } [data-theme="light"] .pvday input { color-scheme: light; } .pvset small { color: var(--dim); font-size: 12px; line-height: 1.5; }
+.pvday { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-bottom: 8px; } .pvday .memsearch { flex: 1 1 220px; height: 34px; } .pvday .btn { height: 34px; }
+.tlchips { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 8px; } .tlchips button { border: 1px solid var(--hair-2); border-radius: 999px; background: none; color: var(--muted); font: inherit; font-size: 12.5px; padding: 3px 11px; cursor: pointer; } .tlchips button.on { color: var(--cyan); border-color: rgba(var(--c-accent), .6); background: rgba(var(--c-accent), .1); }
+.tlstrip { display: grid; grid-template-columns: repeat(35, minmax(0, 1fr)); gap: 3px; margin-bottom: 10px; } .tlstrip button { height: 22px; border: 1px solid transparent; border-radius: 5px; background: rgba(var(--c-accent), var(--a)); cursor: pointer; padding: 0; } .tlstrip button:hover { border-color: var(--cyan); } .tlstrip button.on { border-color: var(--cyan); box-shadow: 0 0 0 1px var(--cyan); }
+.tlrow { display: flex; gap: 10px; align-items: flex-start; border-top: 1px solid var(--hair); padding: 7px 2px; font-size: 13.5px; } .tlrow > em { font: 500 12px var(--mono); font-style: normal; color: var(--dim); flex: none; padding-top: 2px; min-width: 62px; } .tlrow > button.t { flex: 1; min-width: 0; text-align: left; border: 0; background: none; color: inherit; font: inherit; cursor: pointer; padding: 0; } .tlrow b { font-weight: 600; font-size: 12.5px; color: var(--cyan); } .tlrow.bad b { color: var(--red); } .tlrow.you b { color: var(--green); } .tlrow span { display: block; overflow-wrap: anywhere; unicode-bidi: plaintext; white-space: pre-wrap; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; } .tlrow.open span { display: block; } .tlrow pre { white-space: pre-wrap; overflow-wrap: anywhere; font: 500 12px var(--mono); color: var(--muted); margin: 5px 0 0; } .tlrow .x { border: 0; background: none; color: var(--dim); cursor: pointer; padding: 2px 5px; flex: none; font: inherit; font-size: 12px; } .tlrow .x:hover { color: var(--cyan); } .tlrow .x.del:hover { color: var(--red); }
+@media (max-width: 1000px) { .pv2, .pv2.half { grid-template-columns: minmax(0, 1fr); } .pvtiles { grid-template-columns: repeat(2, minmax(0, 1fr)); } .tlstrip { grid-template-columns: repeat(18, minmax(0, 1fr)); } }
 /* studio */
 .st2 { display: grid; grid-template-columns: minmax(0, 1.9fr) minmax(0, 1fr); gap: 14px; align-items: start; } .stbox .btn:disabled { opacity: .45; }
 .mdnow { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; } .mdnow > div:first-child { flex: 1; min-width: 180px; } .mdnow b { display: block; font-size: 15px; font-weight: 600; overflow-wrap: anywhere; unicode-bidi: plaintext; } .mdnow small { color: var(--muted); font-size: 12.5px; } .mdvol { display: flex; gap: 8px; align-items: center; } .mdvol input { width: 130px; accent-color: var(--cyan); } .mdvol em { font: 600 12.5px var(--mono); font-style: normal; width: 38px; text-align: right; }
@@ -1175,6 +1189,7 @@ body.focus .hero { background: none; box-shadow: none; }
       <button class="navi" data-view="auto"><i data-ic="tasks"></i><span>Automations</span><em class="badge" id="bAuto">0</em></button>
       <button class="navi" data-view="agents"><i data-ic="user"></i><span>Agents</span><em class="badge" id="bAgents">0</em></button>
       <button class="navi" data-view="models"><i data-ic="layers"></i><span>AI Models</span><em class="badge" id="bModels">0</em></button>
+      <button class="navi" data-view="privacy"><i data-ic="shield"></i><span>Privacy</span></button>
       <button class="navi" data-view="settings"><i data-ic="gear"></i><span>Settings</span></button>
     </nav>
     <section class="card voicecard">
@@ -1191,7 +1206,7 @@ body.focus .hero { background: none; box-shadow: none; }
 
   <!-- ===== top bar ===== -->
   <header class="top">
-    <div class="sysstat" id="sysstat"><span>SYSTEM STATUS</span><span class="dot"></span><b id="sysStatus">OPTIMAL</b></div>
+    <div class="sysstat" id="sysstat"><span>SYSTEM STATUS</span><span class="dot"></span><b id="sysStatus">OPTIMAL</b><button class="pvpill" id="sensPill"><i data-ic="mic"></i><span id="sensTxt">MICROPHONE</span></button><button class="pvpill" id="locPill" title="Nothing this app does goes online"><i data-ic="shield"></i>LOCAL ONLY</button></div>
     <div class="clockbox"><div id="date"></div><div id="clock">--:--:--</div></div>
     <div class="toolbar">
       <form class="search" id="form" autocomplete="off">
@@ -1290,7 +1305,7 @@ body.focus .hero { background: none; box-shadow: none; }
     <!-- Conversations -->
     <section class="view" data-view="conv">
       <section class="card page">
-        <h3>Conversations <button class="more" id="resetBtn2">New conversation ↺</button></h3>
+        <h3>Conversations <button class="more" id="tlFromConv">Timeline ›</button><button class="more" id="resetBtn2" style="margin-left:12px">New conversation ↺</button></h3>
         <div class="body" id="chatBody"><div id="chat" aria-live="polite"></div></div>
         <form class="composer" id="form2" autocomplete="off">
           <button type="button" class="btn" id="mic2" title="Speak"><i data-ic="mic"></i></button>
@@ -1446,6 +1461,41 @@ body.focus .hero { background: none; box-shadow: none; }
       </section>
     </section>
     <div id="mdMini" hidden><span id="mdMt"></span><button id="mdMg" aria-label="Play or pause">⏸</button><button id="mdMn" aria-label="Next">⏭</button><button id="mdMx" aria-label="Stop">✕</button></div>
+
+    <!-- Privacy -->
+    <section class="view" data-view="privacy">
+      <section class="card page">
+        <h3>Privacy <span class="more" style="cursor:default">What goes out, what listens, what is kept</span></h3>
+        <div class="body">
+          <div class="plbar"><div class="seg" id="pvTabs" role="tablist" aria-label="Privacy">
+              <button class="on" data-pv="over" role="tab" aria-selected="true"><i data-ic="shield"></i>Overview</button>
+              <button data-pv="net" role="tab" aria-selected="false"><i data-ic="globe"></i>Going out</button>
+              <button data-pv="use" role="tab" aria-selected="false"><i data-ic="mic"></i>Microphone &amp; screen</button>
+              <button data-pv="perm" role="tab" aria-selected="false"><i data-ic="check"></i>Permissions</button>
+              <button data-pv="kept" role="tab" aria-selected="false"><i data-ic="db"></i>Kept here</button>
+              <button data-pv="time" role="tab" aria-selected="false"><i data-ic="clock"></i>Timeline</button></div><span class="err" id="pvErr" role="alert"></span></div>
+          <div data-pvpane="over">
+            <div class="pvbig" id="pvLoc"><div><b>Local only</b><small id="pvLocS"></small></div><button class="btn switch" id="pvLocB" role="switch" aria-checked="false" aria-label="Local only">Off</button></div>
+            <div class="pvtiles" id="pvTiles"></div>
+            <section class="ckbox stbox"><h4 class="sec">WHO MAY READ WHAT</h4><div id="pvAcc"></div></section></div>
+          <div data-pvpane="net" hidden><div class="plbar"><div class="seg" id="pvDays"><button data-pvd="1">Today</button><button data-pvd="7">7 days</button><button data-pvd="30">30 days</button></div><span id="pvNetSum" style="color:var(--muted);font-size:13px"></span></div>
+            <div class="pv2"><section class="ckbox stbox"><h4 class="sec">WHERE IT WENT TO</h4><div class="pvsvc pvscroll" id="pvSvc"></div></section>
+              <div class="lncol"><section class="ckbox stbox"><h4 class="sec">THE LAST 14 DAYS</h4><div class="pvbars" id="pvBars" role="img"></div><div class="pvends" id="pvEnds"></div></section>
+                <section class="ckbox stbox"><h4 class="sec">ABOUT THIS LIST</h4><div class="pvset"><label><span>Keep this list</span><button class="btn switch" id="pvNetOn" role="switch" aria-label="Keep this list">On</button></label><small>Only the day, the address and how often; never what was said. It stays on this PC and is never given to the AI. Connections are counted; for the AI services, every message, with its size.</small><small>Not seen here: your browser, Windows and other programs, and this window itself (its letters come from Google Fonts at each start, radio from its station; Local only holds both back).</small></div></section></div></div></div>
+          <div data-pvpane="use" hidden><div class="pv2 half"><section class="ckbox stbox"><div class="lfhead" style="margin-top:0"><h4 class="sec">THIS APP</h4><select id="pvUseD" aria-label="How far back" class="pvsel"><option value="1">today</option><option value="7" selected>7 days</option><option value="30">30 days</option></select></div><div class="pvscroll" id="pvUse"></div>
+                <div class="pvset" style="margin-top:10px"><label><span>Keep this list</span><button class="btn switch" id="pvUseOn" role="switch" aria-label="Keep the list of uses">On</button></label><small>The app has no use of the camera. "Waiting" listens on this PC only, until its name or your voice is heard.</small></div></section>
+              <section class="ckbox stbox"><div class="lfhead" style="margin-top:0"><h4 class="sec">ALL PROGRAMS</h4><button class="btn" id="pvWinSet">Windows settings</button></div><div class="seg" id="pvWhat" style="margin-bottom:8px"><button data-pvw="mic">Microphone</button><button data-pvw="camera">Camera</button><button data-pvw="location">Location</button><button data-pvw="screen">Screen</button></div><div class="pvscroll" id="pvWin"></div><small class="dxnote" style="margin-top:6px">Windows' own list, only read here. Change it in Windows' settings.</small></section></div></div>
+          <div data-pvpane="perm" hidden><section class="ckbox stbox"><div class="lfhead" style="margin-top:0"><h4 class="sec">EACH KIND OF ACTION</h4><button class="btn" id="pvAskAll"><i data-ic="refresh"></i>Ask every time again (all)</button></div><div id="pvPerm"></div><small class="dxnote" style="margin-top:8px">Ask: you approve every time. Allow and 1 hour: done without asking, only for the safer kinds; an hour also ends with Stop. Never: refused without asking.</small></section></div>
+          <div data-pvpane="kept" hidden><div class="pv2"><section class="ckbox stbox"><div class="lfhead" style="margin-top:0"><h4 class="sec">WHAT IS KEPT</h4><button class="btn" id="pvDir"><i data-ic="note"></i>Folder</button></div><div class="pvscroll" id="pvKept"></div></section>
+              <div class="lncol"><section class="ckbox stbox"><h4 class="sec">HOW LONG</h4><div class="pvset" id="pvKeep"></div></section>
+                <section class="ckbox stbox"><h4 class="sec">RECORDINGS OF YOUR VOICE</h4><div class="pvset"><label><span>Keep the last five</span><button class="btn switch" id="pvVoice" role="switch" aria-label="Keep the last five recordings of your voice">Off</button></label><small>Only to find microphone problems. They stay on this PC. While off, nothing of your voice is kept.</small></div></section></div></div></div>
+          <div data-pvpane="time" hidden><div class="pvday"><button class="btn" id="tlPrev" aria-label="The day before">‹</button><input type="date" id="tlDate" aria-label="Day"><button class="btn" id="tlNext" aria-label="The day after">›</button><button class="btn" id="tlToday">Today</button><div class="memsearch"><i data-ic="search"></i><input id="tlQ" maxlength="200" placeholder="Search everything" aria-label="Search the timeline"></div><button class="btn" id="tlCsv"><i data-ic="download"></i>CSV</button></div>
+            <div class="tlstrip" id="tlStrip"></div><div class="tlchips" id="tlChips"></div>
+            <div class="pv2"><section class="ckbox stbox"><div class="lfhead" style="margin-top:0"><h4 class="sec">TIMELINE</h4><span id="tlSum" style="color:var(--muted);font-size:12.5px"></span><button class="btn danger" id="tlDayX">Take this day out</button></div><div id="tlRows"></div></section>
+              <section class="ckbox stbox"><h4 class="sec">YOU ASK OFTEN</h4><div id="tlOften"></div><small class="dxnote" style="margin-top:6px">Ask again sends it as if you typed it now.</small></section></div></div>
+        </div>
+      </section>
+    </section>
 
     <!-- Planner -->
     <section class="view" data-view="planner">
@@ -1718,9 +1768,8 @@ body.focus .hero { background: none; box-shadow: none; }
             <button class="btn" id="keepHistBtn">On</button><button class="btn" id="clearHistBtn">Clear saved history</button></div>
           <div class="setrow"><div class="lbl"><b>Suggest memories</b><small>When you tell it something about yourself ("mera naam…", "I work at…"), it asks "Remember this?" on the Memory page. Nothing is saved unless you press Save.</small></div>
             <button class="btn" id="suggestMemBtn">On</button></div>
-          <div class="setrow"><div class="lbl"><b>What it did on this PC</b><small>A permanent record of every action and every approval (keys, passwords and file contents are never written to it).</small></div>
-            <button class="btn" id="auditBtn">Show</button></div>
-          <div class="auditlist" id="auditList" hidden></div>
+          <div class="setrow"><div class="lbl"><b>Privacy page</b><small>What goes out, when the microphone was used, who may read what, what is kept and how long, and the timeline of everything it did.</small></div>
+            <button class="btn" data-go="privacy">Open</button></div>
 
           </div>
           <div class="setgroup" data-setgroup="permissions" role="tabpanel">
@@ -1964,6 +2013,7 @@ function go(view) {
   if (view === "tools") dxLoad();
   if (view === "daily") dyShow();
   if (view === "studio") stShow();
+  if (view === "privacy") pvShow();
   mdMini();
 }
 document.querySelectorAll(".navi").forEach(n => n.onclick = () => go(n.dataset.view));
@@ -2209,7 +2259,8 @@ function handle(ev) {
       addFeed({ title: "Something went wrong", sub: ev.text, tag: "ALERT", ic: "warn", time: ev.time });
       break;
     case "state": setState(ev.state); break;
-    case "settings": applySettings(ev); break;
+    case "settings": applySettings(ev); if ("local_only" in ev) pvLocalSet(ev.local_only); break;
+    case "sensors": pvSense(ev.sensors); if (pvOn() && !replaying && (pvTab === "over" || pvTab === "use")) { clearTimeout(pvTimer); pvTimer = setTimeout(pvShow, 400); } break;
     case "confirm":
       confirmQueue.push({ ...ev, until: Date.now() + (ev.timeout || 180) * 1000 }); showConfirm();
       if (!replaying && isSpeaker()) {
@@ -2610,10 +2661,10 @@ function chime(kind) {
 
 // ---------- voice output: Microsoft neural voices (Ryan by default), browser voice as backup ----------
 let defaultVoice = "en-GB-RyanNeural", neuralVoices = [], neuralOk = false, voiceId = storeGet("jarvis.voice3") || "";   // empty = default (Ryan)
-let sysVoices = [];
+let sysVoices = [], pvLocal = null;
 function storeGet(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
 function storeSet(k, v) { try { localStorage.setItem(k, v); } catch (e) {} }
-function loadSysVoices() { if ("speechSynthesis" in window) sysVoices = speechSynthesis.getVoices().filter(v => /^en/i.test(v.lang)); }
+function loadSysVoices() { if ("speechSynthesis" in window) sysVoices = speechSynthesis.getVoices().filter(v => /^en/i.test(v.lang) && (v.localService || !pvLocal)); }
 if ("speechSynthesis" in window) { speechSynthesis.onvoiceschanged = loadSysVoices; loadSysVoices(); }
 function sysVoice() {
   return sysVoices.find(v => /Ryan|Thomas/i.test(v.name) && /Natural/i.test(v.name))
@@ -2983,6 +3034,7 @@ async function poll() {
     hotFor.ram = s.ram > 92 ? hotFor.ram + 1 : 0; hotFor.cpu = s.cpu > 90 ? hotFor.cpu + 1 : 0;
     if (hotFor.ram >= 10) alertOnce("ram", { title: `Memory almost full (${Math.round(s.ram)}%)`, sub: "Close a few apps or browser tabs", tag: "WARN", ic: "warn" });
     if (hotFor.cpu >= 20) alertOnce("cpu", { title: `CPU running hot (${Math.round(s.cpu)}%) for 30 seconds`, sub: "Something is working hard. Ask me \"how's my PC doing?\" to see what", tag: "WARN", ic: "warn" });
+    pvLocalSet(s.local_only); pvSense(s.sensors);
     paintAlertSettings(s); paintStartup(s); paintPrivacy(s); paintStt(s); paintTts(s);
     renderTimeline(s.timers || []);
     if (!!s.meeting !== !!mtState) mtShow(s.meeting); if (!!s.screen !== !!scState) scShow(s.screen);
@@ -3795,6 +3847,125 @@ $("ppNew").onclick = () => ppForm(null); $("ppX").onclick = () => { $("ppForm").
 $("ppForm").onsubmit = async e => { e.preventDefault(); const j = await ppPost("save", { id: ppEdit || null, name: $("ppN").value, relation: $("ppR").value, birthday: $("ppB").value, phone: $("ppP").value, notes: $("ppT").value, remind: $("ppD").value }); if (!j.error) $("ppForm").hidden = true; };
 $("ppQ").oninput = () => { clearTimeout(ppTimer); ppTimer = setTimeout(ppLoad, 250); };
 $("ppHu").onchange = () => ppPost("settings", { humour: $("ppHu").value }); $("ppLe").onchange = () => ppPost("settings", { length: $("ppLe").value }); $("ppC").onchange = () => ppPost("settings", { checkin: $("ppC").value }); $("ppA").onchange = () => { if ($("ppA").value) ppPost("settings", { birthday_at: $("ppA").value }); }; $("ppU").onchange = () => ppPost("settings", { use_names: $("ppU").checked });
+
+// ---------- privacy ----------
+let pvTab = "over", pvDays = 1, pvWhat = "mic", pvO = null, pvP = null, pvK = null, pvNet = null, pvTimer = 0, tlD = null, tlDay = "", tlKinds = new Set(), tlTimer = 0, tlOpen = "";
+const pvOn = () => !!document.querySelector('.view.active[data-view="privacy"]'), pvTell = (t, good = false) => { $("pvErr").textContent = t || ""; $("pvErr").classList.toggle("ok", good); };
+async function pvPost(action, body = {}, page = "privacy") {
+  const r = await post(`/api/${page}/${action}`, body), j = r ? await r.json().catch(() => ({ error: "The app didn't answer." })) : { error: "The app didn't answer." };
+  if (j.error) pvTell(j.error); return j;
+}
+const pvSw = (b, on) => { b.classList.toggle("on", !!on); b.textContent = on ? "On" : "Off"; b.setAttribute("aria-checked", !!on); };
+const pvSize = n => !n ? "" : n < 1024 ? `${n} B` : n < 1048576 ? `${Math.round(n / 1024)} KB` : n < 1073741824 ? `${(n / 1048576).toFixed(1)} MB` : `${(n / 1073741824).toFixed(1)} GB`;
+const pvLong = s => s >= 3600 ? `${Math.floor(s / 3600)} h ${Math.floor(s % 3600 / 60)} min` : s >= 60 ? `${Math.floor(s / 60)} min` : s ? `${s} s` : "";
+const pvDate = d => new Date(d + "T12:00").toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short" });
+const pvAgo = t => { const d = (t || "").slice(0, 10), now = new Date(), loc = x => `${x.getFullYear()}-${String(x.getMonth() + 1).padStart(2, "0")}-${String(x.getDate()).padStart(2, "0")}`; const y = new Date(now); y.setDate(now.getDate() - 1); return !t ? "" : (d === loc(now) ? "today " : d === loc(y) ? "yesterday " : pvDate(d) + " ") + t.slice(11, 16); };
+function pvShow() {
+  document.querySelectorAll("#pvTabs [data-pv]").forEach(b => { const on = b.dataset.pv === pvTab; b.classList.toggle("on", on); b.setAttribute("aria-selected", on); });
+  document.querySelectorAll("[data-pvpane]").forEach(p => p.hidden = p.dataset.pvpane !== pvTab);
+  ({ over: pvOver, net: pvNetLoad, use: pvUseLoad, perm: pvPermLoad, kept: pvKeptLoad, time: tlLoad })[pvTab]();
+}
+function pvOpen(tab) { pvTab = tab; pvTell(""); go("privacy"); }
+document.querySelectorAll("#pvTabs [data-pv]").forEach(b => b.onclick = () => { pvTab = b.dataset.pv; pvTell(""); pvShow(); });
+// -- overview
+async function pvOver() { const j = await pvPost("overview"); if (j.error) return; pvO = j; pvOverDraw(); }
+function pvOverDraw() {
+  const d = pvO, n = d.net, mic = d.active.find(a => a.what === "mic"), scr = d.active.find(a => a.what === "screen"), asked = d.perms.reduce((a, p) => a + p.yes + p.no, 0), open = d.perms.filter(p => p.rule === "allow" || p.session || p.hour).length;
+  pvSw($("pvLocB"), d.local_only); $("pvLoc").classList.toggle("on", d.local_only);
+  $("pvLocS").textContent = d.local_only ? "On: nothing this app does goes online. AI and voices only from this PC; weather, news, email and web searches wait. Your browser and other programs are not held back." : "Off. When on, the app refuses every connection but this PC itself: AI, voices and speech only from this PC (Ollama, offline models), no Live call, no weather, news, email, web.";
+  setHTML($("pvTiles"), `<button data-pvgo="use"><small>Microphone</small><b class="${mic ? "hot" : ""}">${mic ? "in use" : "not in use"}</b><em>${mic ? esc(mic.why) : scr ? "Screen: " + esc(scr.why) : "by this app"}</em></button><button data-pvgo="net"><small>Went out today</small><b>${n.total}×</b><em>${n.services.filter(s => s.n).length} service${n.services.filter(s => s.n).length === 1 ? "" : "s"}${n.refused ? ` · ${n.refused} held back` : ""}</em></button><button data-pvgo="perm"><small>Allowed without asking</small><b>${open} kind${open === 1 ? "" : "s"}</b><em>${asked} question${asked === 1 ? "" : "s"} answered so far</em></button><button data-pvgo="kept"><small>Kept on this PC</small><b>see list</b><em>what, how big, how long</em></button>`);
+  setHTML($("pvAcc"), d.access.map(a => `<div class="pvline"><div>${esc(a.name)}<small>${"on" in a ? (a.on ? esc(a.state) : "not allowed") : esc(a.state)}</small></div>${a.go ? `<button class="go" data-pvview="${a.go}">Open ›</button>` : ""}${"on" in a ? `<button class="btn switch${a.on ? " on" : ""}" data-pva="${a.id}" role="switch" aria-checked="${a.on}" aria-label="The AI may read: ${esc(a.name)}">${a.on ? "On" : "Off"}</button>` : ""}</div>`).join(""));
+  document.querySelectorAll("[data-pvgo]").forEach(b => b.onclick = () => { pvTab = b.dataset.pvgo; pvShow(); });
+  document.querySelectorAll("[data-pvview]").forEach(b => b.onclick = () => go(b.dataset.pvview));
+  document.querySelectorAll("[data-pva]").forEach(b => b.onclick = async () => { const j = await pvPost("access", { id: b.dataset.pva, on: !b.classList.contains("on") }); if (!j.error) { pvO.access = j.access; pvOverDraw(); } });
+}
+$("pvLocB").onclick = async () => { const on = !$("pvLocB").classList.contains("on"), j = await pvPost("local_only", { on }); if (!j.error) { pvLocalSet(j.local_only); pvOver(); } };
+function pvLocalSet(on) {
+  on = !!on; if (pvLocal === on) return; const before = pvLocal; pvLocal = on;
+  $("locPill").classList.toggle("show", on);
+  if (on) {
+    if (!$("pvCsp")) { const m = document.createElement("meta"); m.id = "pvCsp"; m.httpEquiv = "Content-Security-Policy"; m.content = "default-src 'self' data: blob:; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; media-src 'self' data: blob:; connect-src 'self' data: blob:; font-src 'self' data:"; document.head.appendChild(m); }
+    if (mdSt) mdStopAll();
+    loadSysVoices();
+  } else if (before && !scMine && !(live && live.active)) location.reload();            // (the window may load its letters and radio again)
+}
+function pvSense(list) {
+  const mic = (list || []).find(a => a.what === "mic"); $("sensPill").classList.toggle("show", !!mic);
+  if (mic) { $("sensPill").title = `The microphone is in use: ${mic.why}`; $("sensTxt").textContent = mic.why.toUpperCase(); }
+}
+$("tlFromConv").onclick = () => pvOpen("time"); $("sensPill").onclick = () => pvOpen("use"); $("locPill").onclick = () => pvOpen("over");
+// -- what goes out
+async function pvNetLoad(body = {}) { const j = await pvPost("net", { days: pvDays, ...body }); if (j.error) return; pvNet = j; pvNetDraw(); }
+function pvNetDraw() {
+  const d = pvNet, top = Math.max(1, ...d.line.map(x => Math.max(x.n, x.refused)));
+  document.querySelectorAll("[data-pvd]").forEach(b => b.classList.toggle("on", +b.dataset.pvd === pvDays));
+  $("pvNetSum").textContent = `${d.total} time${d.total === 1 ? "" : "s"}${d.refused ? `, ${d.refused} held back by Local only` : ""}`; pvSw($("pvNetOn"), d.on);
+  let last = "";
+  setHTML($("pvSvc"), d.services.map(s => `${s.kind !== last ? (last = s.kind, `<h4 class="sec" style="margin:10px 0 2px">${esc(d.kinds[s.kind])}</h4>`) : ""}<div class="pvline"><div><b>${esc(s.name)}</b><small>${esc(s.what)}${s.off ? ` <span style="color:var(--dim)">Change: ${esc(s.off)}.</span>` : ""}</small>${s.hosts.length ? `<details><summary>${s.hosts.length} address${s.hosts.length === 1 ? "" : "es"}, last ${esc(pvAgo(s.last))}</summary>${s.hosts.map(h => `<span>${esc(h.host)} ${h.n || h.refused}×</span>`).join("")}</details>` : ""}</div><div class="pvn" style="flex:none">${s.n}×${s.bytes ? `<br><small style="color:var(--dim)">${pvSize(s.bytes)}</small>` : ""}${s.refused ? `<br><small>${s.refused} held back</small>` : ""}</div></div>`).join("") || `<div class="empty">${d.on ? "Nothing yet." : "The list is off."}</div>`);
+  setHTML($("pvBars"), d.line.map(x => `<i class="${x.refused > x.n ? "no" : ""}" style="height:${Math.round(Math.max(x.n, x.refused) / top * 100)}%" title="${esc(pvDate(x.day))}: ${x.n}×${x.refused ? `, ${x.refused} held back` : ""}"></i>`).join(""));
+  $("pvBars").setAttribute("aria-label", d.line.map(x => `${x.day}: ${x.n}`).join(", ")); setHTML($("pvEnds"), `<span>${esc(pvDate(d.line[0].day))}</span><span>most: ${top}×</span><span>today: ${d.line[13].n}×</span>`);
+}
+document.querySelectorAll("[data-pvd]").forEach(b => b.onclick = () => { pvDays = +b.dataset.pvd; pvNetLoad(); });
+$("pvNetOn").onclick = () => pvNetLoad({ on: !$("pvNetOn").classList.contains("on") });
+// -- microphone and screen
+async function pvUseLoad(body = {}) {
+  const j = await pvPost("uses", { days: +$("pvUseD").value, ...body }); if (j.error) return;
+  pvSw($("pvUseOn"), j.on);
+  const ic = { mic: "mic", screen: "pc", clipboard: "note" };
+  setHTML($("pvUse"), j.uses.map(u => `<div class="pvline${u.now ? " now" : ""}">${icon(ic[u.what] || "info")}<div>${esc(u.why)}<small>${esc(pvAgo(u.start))}${u.seconds ? ` · ${pvLong(u.seconds)}` : ""}</small></div>${u.now ? "<em>● now</em>" : ""}</div>`).join("") || `<div class="empty">${j.on ? "Nothing was used." : "The list is off."}</div>`);
+  pvWinLoad();
+}
+async function pvWinLoad() {
+  document.querySelectorAll("[data-pvw]").forEach(b => b.classList.toggle("on", b.dataset.pvw === pvWhat));
+  const j = await pvPost("windows", { what: pvWhat }); if (j.error || j.what !== pvWhat) return;
+  setHTML($("pvWin"), (j.allowed === false ? '<div class="pvline"><div>Windows has this turned off for all programs.</div></div>' : "") + (j.apps.map(a => `<div class="pvline${a.now ? " now" : ""}"><div title="${esc(a.path)}">${esc(a.name)}${a.allowed ? "" : ' <small style="display:inline">(not allowed)</small>'}<small>${esc(pvAgo(a.start))}${a.end ? ` · ${pvLong(Math.max(0, Math.round((new Date(a.end.replace(" ", "T")) - new Date(a.start.replace(" ", "T"))) / 1000))) || "under a second"}` : ""}</small></div>${a.now ? "<em>● now</em>" : ""}</div>`).join("") || '<div class="empty">No program used it, going by Windows.</div>') + (j.never ? `<small class="dxnote" style="margin-top:6px">${j.never} more may use it and never did.</small>` : ""));
+}
+$("pvUseD").onchange = () => pvUseLoad(); $("pvUseOn").onclick = () => pvUseLoad({ on: !$("pvUseOn").classList.contains("on") });
+document.querySelectorAll("[data-pvw]").forEach(b => b.onclick = () => { pvWhat = b.dataset.pvw; pvWinLoad(); }); $("pvWinSet").onclick = () => pvPost("windows_open", { what: pvWhat });
+// -- permissions
+async function pvPermLoad() { const j = await pvPost("perms"); if (!j.error) { pvP = j.perms; pvPermDraw(); } }
+function pvPermDraw() {
+  setHTML($("pvPerm"), pvP.map(p => { const b = (v, label, on, ok = true) => `<button class="btn${on ? " on" : ""}" data-pvk="${p.kind}" data-pvr="${v}"${ok ? "" : ' disabled title="Always asked, for safety"'}>${label}</button>`;
+    return `<div class="pvline pvperm"><div>${esc(p.label)}<small>${p.yes + p.no ? `asked ${p.yes + p.no}×: ${p.yes} allowed, ${p.no} not · last ${esc(pvAgo(p.last))}` : "never came up"}${p.session ? " · allowed until the restart" : ""}</small></div>${b("ask", "Ask", p.rule === "ask" && !p.hour)}${b("allow", "Allow", p.rule === "allow", p.can_allow)}${b("hour", p.hour ? `${Math.ceil(p.hour / 60)} min left` : "1 hour", p.hour, p.can_allow)}${b("never", "Never", p.rule === "never")}</div>`; }).join(""));
+  document.querySelectorAll("[data-pvk]").forEach(b => b.onclick = async () => { const j = await (b.dataset.pvr === "hour" ? pvPost("hour", { kind: b.dataset.pvk }) : pvPost("rule", { kind: b.dataset.pvk, rule: b.dataset.pvr })); if (!j.error) { pvP = j.perms; pvPermDraw(); pvTell(""); } });
+}
+$("pvAskAll").onclick = async () => { const j = await pvPost("ask_again"); if (!j.error) { pvP = j.perms; pvPermDraw(); pvTell("Everything is asked again.", true); } };
+// -- what is kept
+async function pvKeptLoad(body = {}) { const j = await pvPost("kept", body); if (!j.error) { pvK = j; pvKeptDraw(); } }
+function pvKeptDraw() {
+  const d = pvK, per = n => n === 0 ? "until I clear it" : n === 365 ? "one year" : `${n} days`;
+  setHTML($("pvKept"), `<div class="pvline"><div><b>${pvSize(d.total)}</b> in all<small style="overflow-wrap:anywhere">${esc(d.folder)} · the database is ${pvSize(d.database)}</small></div></div>` + d.items.map(i => `<div class="pvline"><div>${esc(i.name)}${i.note ? `<small>${esc(i.note)}</small>` : ""}</div><em>${i.n || "none"}${i.bytes ? ` · ${pvSize(i.bytes)}` : ""}</em>${i.go ? `<button class="go" data-pvkgo="${i.go}">Open ›</button>` : ""}${i.clear ? `<button class="btn danger" data-pvx="${i.id}"${i.n ? "" : " disabled"}>Clear</button>` : ""}</div>`).join(""));
+  document.querySelectorAll("[data-pvkgo]").forEach(b => b.onclick = () => go(b.dataset.pvkgo));
+  document.querySelectorAll("[data-pvx]").forEach(b => b.onclick = () => lnArm("pv" + b.dataset.pvx, b, async () => { const j = await pvPost("clear", { what: b.dataset.pvx }); if (!j.error) { pvK = j; pvKeptDraw(); pvTell(`Cleared: ${j.cleared}.`, true); } }));
+  const names = { conversations: "Conversations and activity", record: "Record of actions", screenshots: "Pictures of the screen", logs: "The lists of going out and uses" };
+  setHTML($("pvKeep"), Object.keys(names).map(k => `<label><span>${names[k]}</span><select data-pvkeep="${k}" aria-label="How long: ${names[k]}">${d.choices[k].map(n => `<option value="${n}"${d.keep[k] === n ? " selected" : ""}>${per(n)}</option>`).join("")}</select></label>`).join("") + `<label><span>Keep conversations at all</span><button class="btn switch${d.history ? " on" : ""}" id="pvHist" role="switch" aria-checked="${d.history}" aria-label="Keep conversations at all">${d.history ? "On" : "Off"}</button></label><small>Once a day, what is older goes by itself (pictures of the screen to the Recycle Bin). At first nothing goes by itself but the two lists, after 30 days.</small>`);
+  document.querySelectorAll("[data-pvkeep]").forEach(s => s.onchange = () => pvKeptLoad({ keep: { [s.dataset.pvkeep]: +s.value } }));
+  $("pvHist").onclick = async () => { await post("/api/settings", { keep_history: !d.history }); if (lastStats) lastStats.keep_history = !d.history; pvKeptLoad(); };
+  pvSw($("pvVoice"), d.voice_debug);
+}
+$("pvVoice").onclick = () => pvKeptLoad({ voice_debug: !$("pvVoice").classList.contains("on") }); $("pvDir").onclick = () => pvPost("folder");
+// -- timeline
+const tlBody = () => ({ day: tlDay, query: $("tlQ").value, kinds: [...tlKinds] });
+async function tlLoad() { const j = await pvPost("load", tlBody(), "time"); if (!j.error) { tlD = j; tlDay = j.day; tlDraw(); pvTell(""); } }
+function tlDraw() {
+  const d = tlD, top = Math.max(1, ...d.days.map(x => x.n)), all = d.query ? "" : d.day;
+  $("tlDate").value = d.day; $("tlDate").max = d.today; $("tlNext").disabled = d.day >= d.today; $("tlDayX").hidden = !!d.query;
+  setHTML($("tlStrip"), d.days.map(x => `<button class="${x.day === all ? "on" : ""}" style="--a:${x.n ? (.12 + .7 * x.n / top).toFixed(2) : .04}" data-tld="${x.day}" title="${esc(pvDate(x.day))}: ${x.n}" aria-label="${esc(pvDate(x.day))}: ${x.n}"></button>`).join(""));
+  setHTML($("tlChips"), Object.entries(d.kinds).map(([k, v]) => `<button class="${tlKinds.has(k) ? "on" : ""}" data-tlk="${k}" aria-pressed="${tlKinds.has(k)}">${esc(v)}</button>`).join(""));
+  $("tlSum").textContent = d.query ? `${d.rows.length}${d.rows.length >= d.most ? "+" : ""} found` : `${pvDate(d.day)}: ${d.rows.length}${d.rows.length >= d.most ? "+" : ""}`;
+  setHTML($("tlRows"), d.rows.map(r => `<div class="tlrow ${r.kind}${r.ok ? "" : " bad"}${tlOpen === r.id ? " open" : ""}"><em>${d.query ? esc(pvAgo(r.at)) : r.at.slice(11)}</em><button class="t" data-tlo="${r.id}" aria-expanded="${tlOpen === r.id}"><b>${esc(r.title)}</b><span>${esc(tlOpen === r.id ? r.text.slice(0, 6000) : r.text.slice(0, 400))}</span>${tlOpen === r.id && r.more ? `<pre>${esc(r.more.slice(0, 3000))}</pre>` : ""}</button>${r.kind === "you" ? `<button class="x" data-tla="${r.id}" title="Ask this again now">Ask again</button>` : ""}${r.id[0] === "e" ? `<button class="x del" data-tlx="${r.id}" aria-label="Take this out of the conversation" title="Take this out of the conversation">${icon("x")}</button>` : ""}</div>`).join("") || `<div class="empty">${d.query ? "Nothing with these words." : "Nothing on this day."}</div>`);
+  setHTML($("tlOften"), d.often.map((o, i) => `<div class="pvline"><div style="unicode-bidi:plaintext">${esc(o.text)}</div><em>${o.n}×</em><button class="btn" data-tlof="${i}">Ask again</button></div>`).join("") || '<div class="empty">Nothing twice yet.</div>');
+  const on = (k, fn) => document.querySelectorAll(`[data-${k}]`).forEach(b => b.onclick = () => fn(b.dataset[k], b)), row = id => d.rows.find(r => r.id === id);
+  on("tld", x => { tlDay = x; $("tlQ").value = ""; tlLoad(); }); on("tlk", k => { tlKinds.has(k) ? tlKinds.delete(k) : tlKinds.add(k); tlLoad(); }); on("tlo", id => { tlOpen = tlOpen === id ? "" : id; tlDraw(); });
+  on("tla", id => tlAgain(row(id).text)); on("tlof", i => tlAgain(d.often[+i].text)); on("tlx", (id, b) => lnArm("tl" + id, b, () => tlRemove({ id })));
+}
+function tlAgain(text) { post("/api/send", { text }); go("conv"); }
+async function tlRemove(body) { const j = await pvPost("remove", { ...tlBody(), ...body }, "time"); if (!j.error) { tlD = j; tlDraw(); pvTell(`Taken out: ${j.removed}. An open conversation forgets it with "New conversation".`, true); } }
+const tlStep = n => { const d = new Date((tlDay || tlD.today) + "T12:00"); d.setDate(d.getDate() + n); tlDay = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`; $("tlQ").value = ""; tlLoad(); };
+$("tlPrev").onclick = () => tlStep(-1); $("tlNext").onclick = () => tlStep(1); $("tlToday").onclick = () => { tlDay = ""; $("tlQ").value = ""; tlLoad(); }; $("tlDate").onchange = () => { if ($("tlDate").value) { tlDay = $("tlDate").value; $("tlQ").value = ""; tlLoad(); } };
+$("tlQ").oninput = () => { clearTimeout(tlTimer); tlTimer = setTimeout(tlLoad, 300); };
+$("tlDayX").onclick = () => lnArm("tlday", $("tlDayX"), () => tlRemove({ whole_day: tlDay }));
+$("tlCsv").onclick = async () => { const j = await pvPost("export", tlBody(), "time"); if (!j.error) pvTell(`${j.things} in ${j.path}`, true); };
 
 // ---------- studio ----------
 let stTab = "media", mdData = null, mdQueue = [], mdI = -1, mdShuf = false, mdRep = "off", mdSt = null, mdTimer = 0, mdNow = null, mdFound = null, mdAddTo = 0, scState = null, scAt = 0, scMine = null, rcData = null, imC = null, imUndoList = [], imFirst = null, imTool = "", imDrag = null, imData = null;
@@ -4968,7 +5139,9 @@ loadMics();
     "WATER": "drop", "STEPS": "pin", "SLEEP": "moon", "WEIGHT": "layers", "WORKOUTS": "zap", "LATEST": "clock", "TARGETS AND REMINDERS": "bell",
     "TRIPS": "pin", "MEETINGS": "chat", "PEOPLE": "user", "BIRTHDAYS": "bell", "HOW IT TALKS WITH YOU": "chat",
     "PLAYING ON THIS PC": "speaker", "PLAYER": "play", "MY LIBRARY": "layers", "PLAYLISTS": "tasks", "RADIO": "wifi", "FOLDERS": "note", "RECORD THE SCREEN": "pc", "RECORDINGS": "layers",
-    "MAKE A PICTURE": "zap", "MY PICTURES": "layers", "EDIT": "edit" };
+    "MAKE A PICTURE": "zap", "MY PICTURES": "layers", "EDIT": "edit",
+    "WHO MAY READ WHAT": "eye", "WHERE IT WENT TO": "globe", "THE LAST 14 DAYS": "clock", "ABOUT THIS LIST": "note", "THIS APP": "mic", "ALL PROGRAMS": "pc", "EACH KIND OF ACTION": "check", "WHAT IS KEPT": "db", "HOW LONG": "clock",
+    "RECORDINGS OF YOUR VOICE": "mic", "TIMELINE": "clock", "YOU ASK OFTEN": "chat" };
   document.querySelectorAll("h4.sec").forEach(h => { const n = SEC[(h.firstChild ? h.firstChild.textContent : "").trim().toUpperCase()]; if (n) h.insertAdjacentHTML("afterbegin", icon(n)); });
   const TAB = { general: "gear", voice: "mic", ai: "layers", privacy: "shield", permissions: "check", alerts: "bell" };
   document.querySelectorAll("[data-settab]").forEach(b => b.insertAdjacentHTML("afterbegin", icon(TAB[b.dataset.settab] || "info")));
@@ -5121,17 +5294,6 @@ $("suggestMemBtn").onclick = () => { const on = !(lastStats && lastStats.suggest
 $("clearHistBtn").onclick = async () => {
   if (!confirm("Delete the saved conversation and activity history from this PC? This can't be undone.")) return;
   await post("/api/history/clear", {});
-};
-$("auditBtn").onclick = async () => {
-  const box = $("auditList");
-  if (!box.hidden) { box.hidden = true; $("auditBtn").textContent = "Show"; return; }
-  const r = await fetch(`/api/audit?token=${TOKEN}`, { cache: "no-store" }).then(r => r.json()).catch(() => ({ events: [] }));
-  box.textContent = (r.events || []).slice().reverse().map(e => {
-    const what = e.event === "tool" ? `${e.tool} ${e.ok ? "ok" : "failed"}` : e.event === "approval" ? `asked (${e.kind || "action"}): ${e.granted ? "allowed" : "denied"}`
-      : e.event === "blocked" ? `refused ${e.tool}: ${e.reason}` : e.event.replace(/_/g, " ");
-    return `${e.time}  ${what}`;
-  }).join("\n") || "Nothing yet.";
-  box.hidden = false; $("auditBtn").textContent = "Hide";
 };
 
 // ---------- loud alerts ----------

@@ -1,5 +1,21 @@
 # Security review
 
+## 2026-11-24 — v1.31.0 (privacy, Local only, timeline)
+
+| Area | How | Where |
+|---|---|---|
+| Local only | refuses at Python's own audit events for lookups and connections, so no part of the app can forget it; messages over a connection that is open already are refused in `httpx2`, `httpx` and `requests`; only this PC itself (loopback, its own name) is let through, the home network isn't; tools that work through another program (browser, winget, ping, Ollama downloads) are refused; a Live call and the mail connection are ended | `netlog._hook`, `_note`, `tools._execute`, `hud.set_local_only` |
+| Not held back | your browser, Windows, other programs, a PowerShell command you approve (the question says so), WebView2's own traffic with Microsoft | stated on the page |
+| The window | in Local only: no Google Fonts, and a Content-Security-Policy for this PC only (also from the moment it is turned on) | `hud.LOCAL_CSP`, `pvLocalSet` |
+| The list of what goes out | day, address, numbers; no paths, no words; 30 days; off and clear; no AI tool reads it | `netlog` |
+| Who can turn things | the page's own requests with its token; no tool, agent or automation can change Local only, permissions, what is kept or who may read what | `hud._privacy` |
+| An hour's permission | only the kinds that may be allowed at all; ends with Stop, with any other rule, and with a restart | `hud.allow_hour` |
+| The record of actions | can't be changed line by line; clearing leaves a line; clearing by age only with a time the owner chose | `audit.clear`, `drop_before` |
+| Earlier conversations for the AI | asks each time (or the owner's rule), only what was said and answered, marked untrusted, then the same hold as after an email; its words and finds aren't kept; no agent or automation has it | `tools.history_tool`, `guard` |
+| Voice recordings | off unless turned on (before: the last five always) | `recorder._save_debug` |
+| Test copies | Windows' recogniser obeys JARVIS_NO_MIC too | `hud.listen_once` |
+| Database upgrades | one transaction each, locked; a fault leaves the old state | `storage.migrate` |
+
 ## 2026-11-24 — v1.30.0 (media, screen recording, pictures)
 
 | Area | How | Where |

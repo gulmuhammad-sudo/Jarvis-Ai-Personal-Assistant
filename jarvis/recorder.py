@@ -20,7 +20,7 @@ from typing import Callable
 import numpy as np
 import sounddevice as sd
 
-from . import schedule
+from . import privacy, schedule
 from .config import DATA_DIR
 
 
@@ -152,8 +152,9 @@ def list_mics() -> list[dict]:
 def _probe(dev: dict, seconds: float = 0.8) -> float:
     """RMS level a device hears, ignoring the first 0.15 s (start-up click/zeros). 0.0 = dead/muted."""
     try:
-        x = sd.rec(int(seconds * dev["rate"]), samplerate=dev["rate"], channels=1, dtype="float32", device=dev["index"])
-        sd.wait()
+        with privacy.using("mic", "Looking for a microphone that works", show=False):
+            x = sd.rec(int(seconds * dev["rate"]), samplerate=dev["rate"], channels=1, dtype="float32", device=dev["index"])
+            sd.wait()
         tail = x[int(0.15 * dev["rate"]):, 0]
         return float(np.sqrt(np.mean(tail * tail))) if tail.size else 0.0
     except Exception:
@@ -247,7 +248,9 @@ DEBUG_DIR = DATA_DIR / "voice_debug"
 
 
 def _save_debug(wav: bytes, meta: dict) -> None:
-    """Keep the last 5 recordings (data/voice_debug) so voice problems can be diagnosed."""
+    """Keep the last 5 recordings (data/voice_debug) so voice problems can be diagnosed: only if you turned it on (Privacy)."""
+    if schedule.get_setting("voice_debug") is not True:
+        return
     try:
         DEBUG_DIR.mkdir(exist_ok=True)
         stamp = time.strftime("%H%M%S")
@@ -343,8 +346,8 @@ class Recording:
         end_silence = float(schedule.get_setting("end_silence", 0.9))   # seconds of quiet that end your turn
         _recording.set()
         try:
-            with sd.InputStream(device=dev["index"], channels=1, samplerate=rate, dtype="float32",
-                                blocksize=block) as stream:
+            with privacy.using("mic", "You talked to it"), sd.InputStream(device=dev["index"], channels=1, samplerate=rate,
+                                                                          dtype="float32", blocksize=block) as stream:
                 while True:
                     data, _ = stream.read(block)
                     x = data[:, 0].copy()

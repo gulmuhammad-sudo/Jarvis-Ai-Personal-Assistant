@@ -328,12 +328,16 @@ class Mic:
         self._block = int(self.rate * 0.1)
         self._stream = sd.InputStream(device=dev["index"], channels=1, samplerate=self.rate, dtype="float32", blocksize=self._block)
         self._stream.start()
+        from . import privacy
+        self._noted = privacy.begin("mic", "Writing down a meeting")
 
     def read(self):
         data, _ = self._stream.read(self._block)
         return data[:, 0].copy()
 
     def close(self) -> None:
+        from . import privacy
+        privacy.end(self._noted)
         self._stream.stop()
         self._stream.close()
 

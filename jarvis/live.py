@@ -19,7 +19,7 @@ from typing import Callable
 
 import numpy as np
 
-from . import languages, memory, schedule, tools
+from . import languages, memory, netlog, privacy, schedule, tools
 from .brain import system_prompt
 
 try:
@@ -97,7 +97,7 @@ def _friendly(e: BaseException) -> str:
 
 
 def available() -> bool:
-    return genai is not None and bool(os.environ.get("GEMINI_API_KEY"))
+    return genai is not None and bool(os.environ.get("GEMINI_API_KEY")) and not netlog.local_only()
 
 
 def voice() -> str:
@@ -213,6 +213,7 @@ class LiveSession:
         self._hp_zi = signal.sosfilt_zi(self._hp) * 0
         self._resample: _Resampler | None = None
         self._streams: list = []
+        self._noted = 0
         self.thread: threading.Thread | None = None
 
     # ---------------- control (called from other threads) ----------------
@@ -276,6 +277,7 @@ class LiveSession:
             self._aec = aec.EchoCanceller(key=f"{self.mic}|{self._out_rate}")   # starts from what it learned last call
         inp.start()
         out.start()
+        self._noted = privacy.begin("mic", "Live call")
         print(f"[live] mic: {self.mic} @ {dev['rate']} Hz, speaker @ {self._out_rate} Hz, voice {self.voice}")
 
     def _close_audio(self) -> None:
@@ -286,6 +288,7 @@ class LiveSession:
             except Exception:
                 pass
         self._streams = []
+        privacy.end(self._noted)
         recorder._recording.clear()
 
     def _speaker_callback(self, outdata, frames, cb_time, _status) -> None:

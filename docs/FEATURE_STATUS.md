@@ -143,7 +143,7 @@ audio, installer, uninstaller, packaged-exe smoke test). They are being moved in
 | 95 | System restore and troubleshooting | PARTIALLY IMPLEMENTED | `jarvis.log`, mic diagnostics, Unmute/Boost | 99 | none | No "repair" actions |
 | 96 | No household management | NOT APPLICABLE | — | — | — | Excluded |
 | 97 | AI avatar and character studio | PARTIALLY IMPLEMENTED | faces Globe/Mask/Rings in `jarvis/hud.html` (Photo removed in 1.13.0 at the owner's request) | — | manual checks | No character editor, no lip sync |
-| 98 | Privacy and permission dashboard | PARTIALLY IMPLEMENTED | Settings › Privacy in `jarvis/hud.html` | 6, 26 | test_permissions, test_storage, test_guard_audit | Keep/clear history, audit record, per-action permissions (1.9.0–1.9.2). Missing: data-sent-to-cloud overview, mic/camera usage log |
+| 98 | Privacy and permission dashboard | IMPLEMENTED BUT NEEDS TESTING | `jarvis/privacy.py`, `jarvis/netlog.py`, page Privacy | 6, 26 | test_privacy, running app | 1.31.0: going out, Local only, microphone and screen uses, Windows' list, permissions with an hour, who may read what, kept and how long. Not tried with a real microphone or a real Live call |
 | 99 | Self-diagnostics and health monitoring | PARTIALLY IMPLEMENTED | AI Models status, mic probing, echo-canceller log | — | none | No diagnostics page |
 | 100 | Personal user understanding engine | PARTIALLY IMPLEMENTED | `jarvis/memory.py` (profile + top memories in every prompt) | 9 | test_memory_engine | Shared Personal Intelligence Engine with 9, 29, 40, 103, 104. 1.14.0: categories, importance, search. Missing: skills/custom instructions [103] |
 | 101 | Multi-agent command center | PARTIALLY IMPLEMENTED | Agents page, shared board, `delegate` | 20, 39 | test_agents | 1.19.0: give tasks, live state, results, shared board. One agent at a time, no parallel teams |
@@ -154,16 +154,16 @@ audio, installer, uninstaller, packaged-exe smoke test). They are being moved in
 | 106 | Universal device and app integration | NOT IMPLEMENTED | — | 91 | — | — |
 | 107 | Universal command and search bar | PARTIALLY IMPLEMENTED | top input box (Ctrl+K) in `jarvis/hud.html` | 109 | none | Sends to the assistant; doesn't search settings, memories or history |
 | 108 | Workflow marketplace and templates | PARTIALLY IMPLEMENTED | templates, export / import in `jarvis/automations.py` | 35 | test_automations | 1.18.0: 4 templates, sharing as text (imports are checked and arrive off). No online marketplace |
-| 109 | Command history and activity timeline | PARTIALLY IMPLEMENTED | `jarvis/storage.py` (SQLite), `jarvis/audit.py`, Conversations page, Settings › Privacy | — | test_storage 4, test_guard_audit | 1.9.0: conversation + activity survive restarts; permanent audit record viewable in Settings. Missing: timeline page with search and dates |
+| 109 | Command history and activity timeline | IMPLEMENTED BUT NEEDS TESTING | `jarvis/timeline.py`, tool `history`, Privacy › Timeline | — | test_privacy, running app | 1.31.0: days, search, kinds, take out, CSV, ask again, most used. Tool not tried with a real AI |
 | 110 | Modular expansion and upgrade system | NOT IMPLEMENTED | — | 13 | — | — |
 
-## Totals (after v1.30.0, 24 Nov 2026)
+## Totals (after v1.31.0, 24 Nov 2026)
 
 | Status | Count |
 |---|---|
 | IMPLEMENTED AND VERIFIED | 1 |
-| IMPLEMENTED BUT NEEDS TESTING | 35 |
-| PARTIALLY IMPLEMENTED | 40 |
+| IMPLEMENTED BUT NEEDS TESTING | 37 |
+| PARTIALLY IMPLEMENTED | 38 |
 | NOT IMPLEMENTED | 24 |
 | BLOCKED BY EXTERNAL DEPENDENCY | 0 |
 | NOT APPLICABLE | 10 |

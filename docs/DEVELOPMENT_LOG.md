@@ -2,6 +2,21 @@
 
 Newest first. Each entry: what was done, how it was tested, what is open, the next task.
 
+## 2026-11-24 — Session 2, part 21: Phase 9 part 1 — privacy and the timeline (v1.31.0)
+
+**Done** — `jarvis/netlog.py` (audit hook on lookups and connections, `httpx2`/`requests` watched for open connections, Local only),
+`jarvis/privacy.py`, `jarvis/timeline.py`, tool `history` (79 tools), permission kind `history`, page Privacy, database 14,
+`storage.migrate` all-or-nothing, `Hub.allow_hour`, `ask_again`, `set_local_only`.
+
+**Parts of Phase 9** — 1 privacy and timeline (this), 2 vault and privacy lock, 3 backup, diagnostics and repair, 4 other PCs, remote
+access, API and integrations.
+
+**Decided** — recordings of the voice are off unless turned on; the record of actions can't be cleared line by line, only as a whole
+(one line stays) or by age.
+
+**Next** — ask the owner: part 2 (vault and privacy lock). Ideas: bundle the letters (Inter, JetBrains Mono, Noto Nastaliq: free) so the
+window needs nothing from Google (a download: ask first).
+
 ## 2026-11-24 — Session 2, part 20: Phase 8 part 4 — media, recorder, pictures (v1.30.0)
 
 **Decided by the owner** — pictures are made with a free online service (not a local model: 11.8 GB of memory, no graphics card, 13 GB

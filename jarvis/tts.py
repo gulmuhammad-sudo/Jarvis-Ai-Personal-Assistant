@@ -122,7 +122,8 @@ def local_voice(text: str, lang: str | None = None, after_failure: bool = False)
     if not v:
         return None
     m = mode()
-    if m == "local" or after_failure:
+    from . import netlog
+    if m == "local" or after_failure or netlog.local_only():
         return v
     if m == "auto":
         from .providers import online

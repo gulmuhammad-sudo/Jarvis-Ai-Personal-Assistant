@@ -26,7 +26,7 @@ from urllib.parse import parse_qs, quote
 
 from . import __version__
 from . import live as live_mod
-from . import agents, alerts, approvals, audit, automations, clock, denoise, docindex, fit, gpu, guard, images, languages, learn, life, local_ai, mail, local_stt, local_tts, media, meet, memory, news, notes, people, planner, plans, schedule, screenrec, netcheck, skills, software, stt, storage, tools, travel, tts, urdu, wake, winmgr
+from . import agents, alerts, approvals, audit, automations, clock, denoise, docindex, fit, gpu, guard, images, languages, learn, life, local_ai, mail, local_stt, local_tts, media, meet, memory, netlog, news, notes, people, planner, plans, privacy, schedule, screenrec, netcheck, skills, software, stt, storage, timeline, tools, travel, tts, urdu, wake, winmgr
 from .brain import make_brain
 from .config import NOTES_DIR
 from .providers import provider_status
@@ -96,6 +96,9 @@ class Hub:
         self.voice_engine = schedule.get_setting("voice_engine", "live")
         self.last_source = "typed"          # how the last request came in (voice requests get voice approvals)
         self.trusted: set[str] = set()      # approval kinds you already allowed this session
+        self.hour: dict[str, float] = {}    # approval kinds allowed for an hour -> until when (monotonic)
+        privacy.CHANGED = lambda: self.emit("sensors", sensors=privacy.active())
+        self._screen_noted: list[int] = []
         self._ids, self._open_tools = 0, {} # Activity: tool id -> waiting for its result
         tools.RESULT_HOOK = self._tool_result
         tools.WORKSPACES_CHANGED = lambda: self.emit("workspaces_changed")
@@ -455,6 +458,12 @@ class Hub:
             threading.Thread(target=REC_HOOK, args=(bool(self.screen.state()) or self.meeting_on(),), daemon=True).start()
 
     def _screen_changed(self, state: dict | None) -> None:
+        if state and not self._screen_noted:
+            self._screen_noted = [privacy.begin("screen", "Screen recording")] + ([privacy.begin("mic", "Screen recording")] if state.get("mic") else [])
+        elif not state:
+            for n in self._screen_noted:
+                privacy.end(n)
+            self._screen_noted = []
         self.emit("screen_state", state=state)
         self._pill()
 
@@ -507,7 +516,8 @@ class Hub:
         done = threading.Event()                 # this wait is over (stops the mute watcher)
         recorder._recording.set()
         try:
-            with sd.InputStream(device=dev["index"], channels=1, samplerate=rate, dtype="float32", blocksize=block) as st:
+            with privacy.using("mic", "Waiting for its name" if use_wake else "Waiting for your voice"), \
+                    sd.InputStream(device=dev["index"], channels=1, samplerate=rate, dtype="float32", blocksize=block) as st:
                 def watch_mute() -> None:                # Teams or the mic key can mute it while we wait.
                     was_muted = False                    # (own thread: the check takes ~1.7 s and the mic
                     while not done.wait(3):              #  must never stop being read meanwhile)
@@ -743,6 +753,9 @@ class Hub:
         """Download a model in the background (you pressed Download, after seeing its size)."""
         if getattr(self, "_pulling", None):
             return
+        if netlog.local_only():                     # (Ollama would fetch it: another program, so it's stopped here)
+            self.emit("local_pull", model=model, status="failed: Local only is on (Privacy)", frac=None, done=True, error=True)
+            return
         self._pulling = model
         audit.record("local_model_download", model=model)
         try:
@@ -770,7 +783,7 @@ class Hub:
 
     CONFIRM_TIMEOUT = 180
     # once allowed, these aren't asked again until the app restarts; shutdown, deleting files etc. always ask
-    TRUSTABLE = {"powershell": "PowerShell commands", "lock": "locking the PC", "wifi_off": "turning Wi-Fi off", "email": "reading your email", "meeting": "reading what was said in a meeting", "image_online": "making pictures online"}
+    TRUSTABLE = {"powershell": "PowerShell commands", "lock": "locking the PC", "wifi_off": "turning Wi-Fi off", "email": "reading your email", "meeting": "reading what was said in a meeting", "image_online": "making pictures online", "history": "reading your saved conversations"}
     # Every kind of approval the tools ask for. Settings > Privacy keeps a rule per kind: "ask" (default),
     # "never" (refused without asking) or "allow" (only for the TRUSTABLE kinds: shutting down, deleting,
     # replacing files and closing apps with unsaved work are always asked).
@@ -789,6 +802,7 @@ class Hub:
         "after_email": "Going online after an email or a meeting was read",
         "meeting": "Reading what was said in a meeting, for an answer",
         "image_online": "Making a picture online (the words go to Pollinations.ai)",
+        "history": "Reading your saved conversations, for an answer",
     }
 
     def permission(self, kind: str | None) -> str:
@@ -810,12 +824,51 @@ class Hub:
                 rules.pop(kind, None)
             else:
                 rules[kind] = rule
+            self.hour.pop(kind, None)
             if rule != "allow":
                 self.trusted.discard(kind)     # "ask" / "never" also ends a yes given earlier in this session
             audit.record("permission_changed", kind=kind, rule=rule)
         schedule.set_setting("permissions", rules)
         self.emit("settings", permissions=self.permissions())
         return self.permissions()
+
+    def allow_hour(self, kind: str) -> None:
+        """Your button: no question for this kind for an hour (only the kinds that may be allowed at all)."""
+        if kind not in self.TRUSTABLE:
+            raise ValueError("That is always asked, for safety.")
+        if self.permission(kind) == "never":
+            self.set_permissions({kind: "ask"})
+        self.hour[kind] = time.monotonic() + 3600
+        audit.record("permission_hour", kind=kind)
+        self.emit("settings", permissions=self.permissions())
+
+    def hour_left(self, kind: str) -> int:
+        """Seconds an hour's permission still has."""
+        left = int(self.hour.get(kind, 0) - time.monotonic())
+        if left <= 0:
+            self.hour.pop(kind, None)
+        return max(0, left)
+
+    def ask_again(self) -> None:
+        """Everything asks again: all rules, what you allowed until the restart, and the hours."""
+        self.trusted.clear()
+        self.hour.clear()
+        schedule.set_setting("permissions", {})
+        meet.forget_yes()
+        audit.record("permissions_asked_again")
+        self.emit("settings", permissions=self.permissions())
+
+    def set_local_only(self, on: bool) -> None:
+        """Nothing this app does may leave the PC. A Live call, an email connection and the window's own loading end too."""
+        netlog.set_local_only(on)
+        audit.record("local_only", on=netlog.local_only())
+        if netlog.local_only():
+            self.live_stop("Local only")
+            mail.close()
+        elif self.standby_wanted():
+            self.standby_start(1)
+        self.emit("settings", local_only=netlog.local_only())
+        self.emit("notify", keep=True, kind="info", text="Local only is on: nothing this app does goes online." if netlog.local_only() else "Local only is off.")
 
     def permissions(self) -> dict:
         return {k: self.permission(k) for k in self.PERMISSION_KINDS}
@@ -824,6 +877,10 @@ class Hub:
         """Ask before something risky. Answered by the Allow / Deny buttons, or by voice ("yes" / "nahi")."""
         rule = self.permission(kind)
         kept = guard.question_for_logs(question, kind)          # what goes into the saved history
+        if rule == "ask" and kind in self.hour and self.hour_left(kind):
+            self.emit("tool", keep=True, name="approval", id=self._next_id(), detail=kept,
+                      args=f"allowed automatically: {self.TRUSTABLE.get(kind, kind)} is allowed for an hour (Privacy)")
+            return True
         if rule in ("never", "allow"):
             label = self.PERMISSION_KINDS.get(kind or "", kind)
             self.emit("tool", keep=True, name="approval", id=self._next_id(), detail=kept,
@@ -881,6 +938,7 @@ class Hub:
         if self.recording:
             self.recording.stop()
         self.ringer.stop()
+        self.hour.clear()                       # (an hour's permission ends with Stop)
         if self.meeting_on():
             self.meeting.stop("Stop was pressed")
         self.screen.stop("Stop was pressed")
@@ -1020,6 +1078,9 @@ class Hub:
                    quiet_room: bool = False) -> None:
         if os.environ.get("JARVIS_NO_MIC") == "1":      # tests and demo copies: not even when the mic button is pressed
             return
+        if netlog.local_only():
+            self.emit("notify", keep=True, text="Local only is on: a Live call would send your voice to Google. Turn it off on the Privacy page, or type.", kind="info")
+            return
         if self.meeting_on():                  # what is said there isn't for a call
             self.emit("notify", keep=True, text="A meeting is being written down. Stop that first, then start a call.", kind="info")
             return
@@ -1144,8 +1205,11 @@ class Hub:
 
     def listen_once(self) -> None:
         """Fallback when no Groq/Gemini key: the built-in Windows recognizer (less accurate)."""
+        if os.environ.get("JARVIS_NO_MIC") == "1":      # tests and demo copies: not this way either
+            return
         self.set_state("listening")
-        text = windows_listen()
+        with privacy.using("mic", "You talked to it (Windows' recogniser)"):
+            text = windows_listen()
         self.set_state("thinking" if self.busy else "idle")
         self.heard(text)
 
@@ -1203,7 +1267,8 @@ class Hub:
                "start_with_windows": schedule.get_setting("start_with_windows", True) is not False,
                "assistant_name": schedule.agent_name(), "theme": schedule.theme(),
                "version": __version__, "trusted": sorted(self.trusted), "languages": languages.choices(),
-               "permissions": self.permissions(),
+               "permissions": self.permissions(), "hour": {k: self.hour_left(k) for k in list(self.hour) if self.hour_left(k)},
+               "sensors": privacy.active(), "local_only": netlog.local_only(),
                "stt_mode": stt.mode(), "local_stt": {**local_stt.status(), "downloading": self._stt_downloading},
                "tts_mode": tts.mode(), "voice_speed": tts.speed_pct(), "voice_pitch": tts.pitch_hz(),
                "local_tts": {**local_tts.status(), "downloading": self._tts_downloading},
@@ -1244,6 +1309,7 @@ class Hub:
 
 
 HUB: Hub | None = None
+LOCAL_CSP = "default-src 'self' data: blob:; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; media-src 'self' data: blob:; connect-src 'self' data: blob:; font-src 'self' data:; frame-src 'none'; form-action 'self'"
 REC_HOOK = None                                # desktop.py: shows or hides the REC window above all others
 
 
@@ -1301,8 +1367,12 @@ class Handler(BaseHTTPRequestHandler):
                     .replace('"__AGENT__"', json.dumps(name)).replace("__AGENT__", _html.escape(name))
                     .replace("__THEME__", schedule.theme()).replace("__FACE__", schedule.get_setting("face") or "globe")
                     .replace("__USER__", memory.call_name()))
+            if netlog.local_only():                              # the window too: no letters from Google Fonts, and the page may load from this PC only
+                html = re.sub(r"<link[^>]+fonts\.g[^>]+>\s*", "", html)
             body = html.encode()
             self.send_response(200)
+            if netlog.local_only():
+                self.send_header("Content-Security-Policy", LOCAL_CSP)
             if os.environ.get("JARVIS_NO_MIC") == "1":          # demo copies: the page can't open the microphone either
                 self.send_header("Permissions-Policy", "microphone=()")
             self.send_header("Content-Type", "text/html; charset=utf-8")
@@ -1336,8 +1406,6 @@ class Handler(BaseHTTPRequestHandler):
             return self._send_file(*got) if got else self._json({"error": "not there"}, 404)
         if path == "/api/local":                            # AI Models page: Ollama status
             return self._json(HUB.local_info())
-        if path == "/api/audit":                            # Settings > Privacy: what it did on this PC
-            return self._json({"events": audit.recent(200)})
         if path == "/api/info":
             return self._json({
                 "tools": [{"name": d["name"], "description": d["description"].split(". ")[0].rstrip(".") + "."}
@@ -1687,7 +1755,7 @@ class Handler(BaseHTTPRequestHandler):
         """The Daily page's Travel, Meetings and People: your own clicks."""
         try:
             num = lambda k="id": int(data.get(k))                                        # noqa: E731
-            out = {"travel": self._travel, "meet": self._meet, "people": self._people, "media": self._media, "rec": self._rec, "images": self._images}[page](action, data, num)
+            out = {"travel": self._travel, "meet": self._meet, "people": self._people, "media": self._media, "rec": self._rec, "images": self._images, "privacy": self._privacy, "time": self._time}[page](action, data, num)
         except (ValueError, TypeError, KeyError, AttributeError) as e:
             return self._json({"error": str(e) if isinstance(e, ValueError) and str(e)[:1].isupper() else "Something is missing or wrong."}, 400)
         except OSError as e:
@@ -1856,6 +1924,124 @@ class Handler(BaseHTTPRequestHandler):
         if action != "load" and hasattr(HUB.brain, "refresh_system"):
             HUB.brain.refresh_system()
         return people.load(str(data.get("query") or ""))
+
+    # ---------- Privacy page ----------
+    @staticmethod
+    def _access() -> list[dict]:
+        """Who may read what: the things the AI can be given, and what it never gets."""
+        perm = lambda k: {"ask": "asks first", "allow": "allowed", "never": "never"}[HUB.permission(k)] + (" (allowed for an hour)" if HUB.hour_left(k) else " (allowed until the restart)" if k in HUB.trusted else "")      # noqa: E731
+        mem, fold, ag, au = len(memory.all_facts()), len(docindex.folders()), [a for a in agents.all_agents() if a.get("memory")], [a for a in automations.all_automations() if a.get("enabled")]
+        rules = [x for x in skills.all_skills() if x["mode"] == "always" and x["enabled"]]
+        return [
+            {"id": "memories", "name": "Profile and memories", "state": f"part of its instructions ({mem} memor{'y' if mem == 1 else 'ies'})", "go": "memory"},
+            {"id": "names", "name": "Names and birthdays of your people", "on": people.settings()["use_names"], "state": "in its instructions", "go": "daily"},
+            {"id": "journal", "name": "Journal", "on": life.settings()["journal_ai"], "state": "when you ask", "go": "planner"},
+            {"id": "fitness", "name": "Fitness notes", "on": fit.settings()["ai"], "state": "when you ask", "go": "daily"},
+            {"id": "history", "name": "Earlier conversations", "state": perm("history"), "go": "conv"},
+            {"id": "email", "name": "Email", "state": perm("email") if mail.account().get("connected") else "not connected", "go": "planner"},
+            {"id": "meeting", "name": "What was said in meetings", "state": perm("meeting"), "go": "daily"},
+            {"id": "docs", "name": "Documents", "state": f"{fold} folder{'' if fold == 1 else 's'} searched, read when you ask" if fold else "read when you ask", "go": "tools"},
+            {"id": "lists", "name": "Tasks, calendar, notes, goals, money, trips, cards", "state": "when you ask", "go": "planner"},
+            {"id": "screen", "name": "The screen and the clipboard", "state": "when you ask (listed under Microphone & screen)", "go": ""},
+            {"id": "agents", "name": "Agents that may see your memories", "state": ", ".join(a["name"] for a in ag) or "none", "go": "agents"},
+            {"id": "auto", "name": "Automations that are on", "state": ", ".join(a["name"] for a in au)[:200] or "none", "go": "auto"},
+            {"id": "rules", "name": "Your rules it always follows", "state": ", ".join(x["name"] for x in rules)[:200] or "none", "go": "tools"},
+            {"id": "never", "name": "AI keys, the Gmail password, phone numbers of your people, this page", "state": "never", "go": ""},
+        ]
+
+    @staticmethod
+    def _perms() -> list[dict]:
+        """Every kind of question: the rule, and how often it came up (from the record of actions)."""
+        seen: dict[str, list] = {}
+        for e in timeline._record():
+            if e.get("event") == "approval" and e.get("kind"):
+                r = seen.setdefault(str(e["kind"]), [0, 0, ""])
+                r[0 if e.get("granted") else 1] += 1
+                r[2] = e["time"]
+        return [{"kind": k, "label": v, "rule": HUB.permission(k), "can_allow": k in HUB.TRUSTABLE, "session": k in HUB.trusted, "hour": HUB.hour_left(k),
+                 "yes": seen.get(k, [0, 0, ""])[0], "no": seen.get(k, [0, 0, ""])[1], "last": seen.get(k, [0, 0, ""])[2]} for k, v in HUB.PERMISSION_KINDS.items()]
+
+    @staticmethod
+    def _privacy(action: str, data: dict, num) -> dict | None:
+        if action == "overview":
+            return {"active": privacy.active(), "local_only": netlog.local_only(), "net": netlog.report(1), "access": Handler._access(), "uses": privacy.uses(1)[:6], "perms": Handler._perms()}
+        if action == "local_only":
+            HUB.set_local_only(data.get("on") is True)
+            return {"local_only": netlog.local_only()}
+        if action == "access":
+            on = data.get("on") is True
+            if data.get("id") == "journal":
+                life.save_settings({"journal_ai": on})
+                audit.record("journal_ai", allowed=on)
+            elif data.get("id") == "fitness":
+                fit.save_settings({"ai": on})
+                audit.record("fitness_ai", allowed=on)
+            elif data.get("id") == "names":
+                people.save_settings({"use_names": on})
+                audit.record("people_names", allowed=on)
+                if hasattr(HUB.brain, "refresh_system"):
+                    HUB.brain.refresh_system()
+            else:
+                raise ValueError("That can't be changed here.")
+            return {"access": Handler._access()}
+        if action == "net":
+            if "on" in data:
+                schedule.set_setting("net_log", data["on"] is True)
+            return netlog.report(int(data.get("days") or 1))
+        if action == "uses":
+            if "on" in data:
+                schedule.set_setting("sensor_log", data["on"] is True)
+            return {"uses": privacy.uses(int(data.get("days") or 7), str(data.get("what") or "")), "active": privacy.active(), "on": privacy.logging()}
+        if action == "windows":
+            return privacy.windows_uses(str(data.get("what") or "mic"))
+        if action == "windows_open":
+            os.startfile(privacy.PAGES[str(data.get("what"))])
+            return {"ok": True}
+        if action == "rule":
+            HUB.set_permissions({str(data.get("kind")): str(data.get("rule"))})
+            return {"perms": Handler._perms()}
+        if action == "hour":
+            HUB.allow_hour(str(data.get("kind")))
+            return {"perms": Handler._perms()}
+        if action == "ask_again":
+            HUB.ask_again()
+            return {"perms": Handler._perms()}
+        if action == "perms":
+            return {"perms": Handler._perms(), "plan_mode": plans.mode()}
+        if action == "kept":
+            if "keep" in data:
+                privacy.set_keeping(data["keep"] if isinstance(data["keep"], dict) else {})
+            if "voice_debug" in data:
+                schedule.set_setting("voice_debug", data["voice_debug"] is True)
+                audit.record("voice_recordings_kept", on=data["voice_debug"] is True)
+            return privacy.kept()
+        if action == "clear":
+            n = privacy.clear(str(data.get("what")))
+            if data.get("what") == "conversations":
+                HUB.history = []
+                HUB.emit("history_cleared")
+            return {"cleared": n, **privacy.kept()}
+        if action == "folder":
+            from .config import DATA_DIR
+            os.startfile(str(DATA_DIR))
+            return {"ok": True}
+        return None
+
+    @staticmethod
+    def _time(action: str, data: dict, num) -> dict | None:
+        if action == "load":
+            return timeline.load(data)
+        if action == "remove":
+            gone = timeline.remove(data.get("id"), data.get("whole_day"))
+            went = {(g["type"], g["time"], g["text"]) for g in gone}
+            HUB.history = [h for h in HUB.history if (h.get("type"), h.get("time"), h.get("text")) not in went]
+            return {"removed": len(gone), **timeline.load(data)}
+        if action == "export":
+            d = timeline.load(data)
+            p = timeline.export(d["rows"], f"Timeline {'search' if d['query'] else d['day']}")
+            audit.record("timeline_export", things=len(d["rows"]))
+            return {"path": str(p), "things": len(d["rows"])}
+        return None
 
     def _news(self, action: str, data: dict) -> None:
         """The Daily page's News: your own clicks."""
@@ -2250,7 +2436,7 @@ class Handler(BaseHTTPRequestHandler):
             return self._learn(self.path.rsplit("/", 1)[1], data)
         elif self.path.startswith("/api/fit/"):        # Daily page: Fitness
             return self._fit(self.path.rsplit("/", 1)[1], data)
-        elif self.path.startswith(("/api/travel/", "/api/meet/", "/api/people/", "/api/media/", "/api/rec/", "/api/images/")):       # Daily and Studio pages
+        elif self.path.startswith(("/api/travel/", "/api/meet/", "/api/people/", "/api/media/", "/api/rec/", "/api/images/", "/api/privacy/", "/api/time/")):       # Daily, Studio and Privacy pages
             return self._daily_api(*self.path.split("/")[2:4], data)
         elif self.path.startswith("/api/news/"):       # Daily page: News
             return self._news(self.path.rsplit("/", 1)[1], data)
@@ -2261,6 +2447,8 @@ class Handler(BaseHTTPRequestHandler):
         elif self.path == "/api/plan/dismiss":
             plans.dismiss()
         elif self.path == "/api/software/updates":    # PC Care card: list (slow: winget asks the internet)
+            if netlog.local_only():
+                return self._json({"error": "Local only is on (Privacy)."}, 503)
             try:
                 return self._json({"updates": software.upgrades()})
             except (RuntimeError, subprocess.TimeoutExpired) as e:
@@ -2274,6 +2462,8 @@ class Handler(BaseHTTPRequestHandler):
                 HUB.emit("software_status", id=args.get("id", "*"), running=out.startswith("Updating"), text=out[:200])
             threading.Thread(target=_update, daemon=True).start()
         elif self.path == "/api/network/check":
+            if netlog.local_only():
+                return self._json({"error": "Local only is on (Privacy)."}, 503)
             try:
                 r = netcheck.speed() if data.get("speed") else netcheck.check()
             except Exception as e:
@@ -2458,6 +2648,7 @@ class Handler(BaseHTTPRequestHandler):
         if not 0 < length <= 15_000_000:
             return self._json({"error": "bad audio size"}, 400)
         wav = self.rfile.read(length)
+        privacy.look("mic", "You talked to it (the page's microphone)")
         try:
             text, engine = stt.transcribe(wav, HUB.language)
         except Exception as e:
@@ -2540,7 +2731,9 @@ def main(open_window: bool = True, watchdog: bool = True, ready: threading.Event
         server = QuietServer(("127.0.0.1", PORT), Handler)
     except OSError:
         sys.exit(f"Port {PORT} is busy - is Jarvis already running? (Set JARVIS_HUD_PORT in .env to change it.)")
+    netlog.install()                                # before anything goes online
     HUB = Hub()
+    privacy.start()
     threading.Thread(target=HUB.brain_worker, daemon=True).start()
     threading.Thread(target=HUB.cpu_sampler, daemon=True).start()
     gpu.monitor()                                   # GPU usage, sampled every 2 s

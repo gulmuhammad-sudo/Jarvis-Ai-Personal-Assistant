@@ -11,6 +11,7 @@ Tables
 from __future__ import annotations
 
 import json
+import re
 import sqlite3
 import threading
 from pathlib import Path
@@ -316,6 +317,24 @@ MIGRATIONS: list[str] = [
            name TEXT NOT NULL,
            url TEXT NOT NULL,
            country TEXT NOT NULL DEFAULT '');""",
+    # 14: privacy (what goes out: days and addresses only; when the microphone or screen was used)
+    """CREATE TABLE net_log (
+           day TEXT NOT NULL,
+           host TEXT NOT NULL,
+           opened INTEGER NOT NULL DEFAULT 0,              -- connections
+           sent INTEGER NOT NULL DEFAULT 0,                -- messages over them (AI services)
+           bytes INTEGER NOT NULL DEFAULT 0,
+           refused INTEGER NOT NULL DEFAULT 0,             -- stopped by Local only
+           last TEXT NOT NULL DEFAULT '',
+           PRIMARY KEY (day, host)) WITHOUT ROWID;
+       CREATE TABLE sensor_log (
+           id INTEGER PRIMARY KEY AUTOINCREMENT,
+           what TEXT NOT NULL,
+           why TEXT NOT NULL,
+           start TEXT NOT NULL,
+           end TEXT NOT NULL);
+       CREATE INDEX sensor_start ON sensor_log(start);
+       CREATE INDEX events_at ON events(at);""",
 ]
 
 # event types worth keeping across restarts (not live captions, levels, approval prompts...)
@@ -341,14 +360,36 @@ def conn() -> sqlite3.Connection:
         return _CONN
 
 
+def _statements(sql: str):
+    """One by one (executescript would commit halfway: an upgrade cut short could never be finished)."""
+    buf = ""
+    for piece in re.split(r"(?<=;)", sql):
+        buf += piece
+        if sqlite3.complete_statement(buf):
+            yield buf
+            buf = ""
+    if any(ln.split("--", 1)[0].strip() for ln in buf.splitlines()):
+        yield buf
+
+
 def migrate(c: sqlite3.Connection) -> int:
     """Apply any migrations this database hasn't had yet. Returns the schema version."""
-    version = c.execute("PRAGMA user_version").fetchone()[0]
-    for n, sql in enumerate(MIGRATIONS[version:], start=version + 1):
-        with c:                                   # each migration is all-or-nothing
-            c.executescript(sql)
-            c.execute(f"PRAGMA user_version = {n}")
-    return c.execute("PRAGMA user_version").fetchone()[0]
+    while True:
+        version = c.execute("PRAGMA user_version").fetchone()[0]
+        if version >= len(MIGRATIONS):
+            return version
+        c.execute("BEGIN EXCLUSIVE")              # each migration is all-or-nothing, and done by one at a time
+        try:
+            version = c.execute("PRAGMA user_version").fetchone()[0]
+            if version < len(MIGRATIONS):
+                for one in _statements(MIGRATIONS[version]):
+                    c.execute(one)
+                c.execute(f"PRAGMA user_version = {version + 1}")
+            c.execute("COMMIT")
+        except BaseException:
+            if c.in_transaction:
+                c.execute("ROLLBACK")
+            raise
 
 
 def close() -> None:
