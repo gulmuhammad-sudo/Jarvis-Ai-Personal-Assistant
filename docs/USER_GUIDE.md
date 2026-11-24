@@ -131,6 +131,8 @@ and its keys in `.env` next to the code).
 | "New meeting tomorrow at 10 with Ali" / "summarise my last meeting" | Daily › Meetings; only your button starts writing down what is said |
 | "My brother Ali's birthday is 14 May" / "whose birthday is next?" | Daily › People, where you also choose how it talks with you |
 | "What did I ask you yesterday?" | Asks first, then looks in your saved conversations |
+| (passwords, cards, CNIC, passport) | Vault page: only you; the assistant can't see it |
+| (lock the whole app) | The lock at the top or Ctrl+L, after choosing how to open it (Privacy › Lock) |
 | (what goes out, the microphone, what is kept) | Privacy page; "Local only" keeps everything on this PC |
 | "Play <song>" / "next song" / "volume 40" / "find a Quran radio" | Studio › Media |
 | "Make a picture of a red apple" / "make photo.jpg smaller" | Asks first, then Studio › Images; the original stays |

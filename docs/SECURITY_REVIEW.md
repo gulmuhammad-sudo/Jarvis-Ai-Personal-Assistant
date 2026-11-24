@@ -1,5 +1,23 @@
 # Security review
 
+## 2026-11-24 — v1.31.2 (vault, privacy lock)
+
+| Area | How | Where |
+|---|---|---|
+| Encryption | a random 256-bit key, AES-256-GCM with a fresh nonce each time; the key itself sealed with keys from the master password and the recovery code (160 bits), both through scrypt (2^17, 8, 1: 128 MB); every sealed part bound to this vault, its numbers and its use; files with a key each, in pieces bound to their place and count | `vault._seal`, `_stretch`, `_about`, `file_add` |
+| Windows Hello | a key in the PC's security chip signs one fixed random question, only after the gesture; the vault's key is sealed with that signature, which is kept nowhere. Using the recovery code turns it off | `hello.sign`, `vault.hello_on` |
+| Guessing | 10 letters or more and not too easy; after five wrong tries 30 s, doubling to an hour, kept over a restart; scrypt makes each try half a second | `vault._wrong`, `_may_try` |
+| Who may ask | every request needs the page's token and a secret given out at unlocking; a new unlocking ends the old one; lists and entries have no secrets, each is shown (20 s) or copied on its own | `vault.need`, `reveal` |
+| The AI | no tool, agent, automation or plan; no screen looks while it is open; clipboard refused while it holds something from here; nothing of it in events, history, record, database or log (the record says that something was shown, not what) | `tools._execute`, `hud._vault` |
+| The clipboard | out of Windows' history and cloud, cleared after 30 s only if it is still ours | `vault._put`, `clear_clipboard` |
+| Locking | by time, with Windows' lock, with sleep, with the privacy lock, when the app closes | `lock.look`, `vault.check_idle` |
+| Damage | written whole, the version before kept; a full disk changes nothing | `vault._write`, `save` |
+| Known outside | the days documents run out (for the reminder; can be off), that a vault exists, its size | `vault._due_days` |
+| What it can't do | protect from a program that already runs as you while the vault is open | — |
+| The privacy lock | the server refuses all but ten requests; a locked window gets no events, no names, no history; PIN as scrypt hash inside DPAPI, waiting after wrong tries; never by voice; can't be turned on without a way to open it | `hud.WHILE_LOCKED`, `lock` |
+| What the lock isn't | encryption: the app's files can be read by whoever uses this Windows account (the vault can't) | stated on the page |
+| Test copies | Windows Hello is never asked; the pretend answer works only with a data folder of their own | `hello._pretend` |
+
 ## 2026-11-24 — v1.31.0 (privacy, Local only, timeline)
 
 | Area | How | Where |

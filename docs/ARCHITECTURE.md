@@ -34,6 +34,9 @@ One Python process (`Personal Assistant.exe`, or `pythonw -m jarvis` from source
      ├── netlog.py                 what goes out, and Local only
      ├── privacy.py                microphone and screen uses, what is kept, how long
      ├── timeline.py               everything that happened, day by day
+     ├── vault.py                  passwords, cards, papers, notes, files: encrypted, no way in for the AI
+     ├── hello.py                  Windows Hello: is it you, and a key only it can use
+     ├── lock.py                   the privacy lock
      ├── documents.py, docindex.py reading and making Word, Excel, PowerPoint, PDF; the local index
      ├── planner.py, notes.py      tasks, calendar, agenda, reminders; the notes folder
      ├── agents.py                 specialists with hard tool limits and a shared board

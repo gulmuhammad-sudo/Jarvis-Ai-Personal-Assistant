@@ -11,6 +11,17 @@ set PA_TEST_NETWORK=1 && .venv\Scripts\python -m pytest tests   # also the onlin
 .venv\Scripts\python packaging\build.py              # then smoke-test the packaged exe (see below)
 ```
 
+## 2026-11-24 — The vault and the privacy lock (v1.31.2)
+
+| Suite | Result | Notes |
+|---|---|---|
+| `pytest tests` | 1282 passed, 4 skipped | new tests/test_vault_lock.py (90): nothing readable on disk, any change to the file or a file in it noticed, the version before, a full disk, waiting after wrong tries (also after a restart), recovery code used up, Hello off after it, 2-step codes as in RFC 6238, import, limits, names; no tool reaches it, screen and clipboard held back, the record names nothing; PIN, locks by themselves, a locked window told almost nothing, 20 requests refused, voice can't open it |
+| Running app (test copy, pretend Windows Hello, no mic, own home folder) | pass | every button of the Vault page and the Lock tab at 1534x787 (copying was caught: the owner's clipboard isn't touched), light theme, 620x760; locked: 13 requests answered 423, name and chat not in the page, an alarm rings without its name and stops |
+| The clipboard for real | pass | in a window station of its own: there, out of Windows' history and cloud, gone after the time, the owner's own copy stays |
+| Windows Hello for real | only whether it is there | "Available" on this PC; its box needs the owner's finger or PIN, so opening with it is for the owner to try |
+| Fixed while testing | — | the alarm button showed without an alarm; the recording bar was under the lock screen; a name without anything else was brought in as a password |
+| Not tested | — | Windows Hello's box, Windows' lock screen and sleep with a real app, the icon by the clock, the packaged exe |
+
 ## 2026-11-24 — Options that jumped back and forth (v1.31.1)
 
 | Suite | Result | Notes |

@@ -117,11 +117,11 @@ audio, installer, uninstaller, packaged-exe smoke test). They are being moved in
 | 74 | Local-only memory sync | NOT IMPLEMENTED | — | 28 | — | — |
 | 75 | Performance optimization center | PARTIALLY IMPLEMENTED | tools `system_status`, `clean_folder` | 27 | none | Shows heavy apps; clean-up to Recycle Bin |
 | 76 | Smart clipboard | PARTIALLY IMPLEMENTED | tool `clipboard` (read/write) | — | none | No history |
-| 77 | Encrypted password and identity manager | NOT IMPLEMENTED | — | secure storage | — | Must stay outside the AI's reach |
+| 77 | Encrypted password and identity manager | IMPLEMENTED BUT NEEDS TESTING | `jarvis/vault.py`, page Vault | secure storage | test_vault_lock, running app | 1.31.2: outside the AI's reach. Windows Hello with a pretend answer only (its box needs the owner's finger) |
 | 78 | Network and internet center | IMPLEMENTED BUT NEEDS TESTING | `jarvis/netcheck.py`, tools `network`, `wireless`, Tools & Skills › PC Care › Network | — | test_pccare (10 verdict cases), real check on this PC | 1.17.0: Wi-Fi signal, router, internet, DNS and a real web page (spots Wi-Fi sign-in pages) with a plain verdict; speed test (~10 MB, Cloudflare); flush DNS |
 | 79 | No separate background scheduling engine | NOT APPLICABLE | (`jarvis/schedule.py` stays the small built-in scheduler) | — | — | Excluded |
 | 80 | No separate hardware manager | NOT APPLICABLE | (hardware stats live in the dashboard, 27) | — | — | Excluded |
-| 81 | Document and identity vault | NOT IMPLEMENTED | — | secure storage | — | — |
+| 81 | Document and identity vault | IMPLEMENTED BUT NEEDS TESTING | `jarvis/vault.py`, page Vault | secure storage | test_vault_lock, running app | 1.31.2: documents with numbers, dates, reminders and encrypted files |
 | 82 | Weather intelligence | IMPLEMENTED BUT NEEDS TESTING | tool `get_weather`, `jarvis/schedule.py` | — | live test used it once | Unit test with a stubbed response |
 | 83 | Clock, stopwatch, countdown, alarms | IMPLEMENTED BUT NEEDS TESTING | `jarvis/clock.py`, `jarvis/schedule.py`, tool `clock`, Daily › Clock | — | test_clock, running app | 1.27.0: stopwatch, timers that survive a restart, focus rounds, ringing with snooze, world clock. The sound itself and voice commands not heard by a person yet |
 | 84 | Goals and habit tracker | IMPLEMENTED BUT NEEDS TESTING | `jarvis/life.py`, tables `goals`, `habits`, `habit_log`, tool `goals`, Planner › Goals | — | test_life, running app | 1.24.0: targets, steps, streaks, reminders |
@@ -157,13 +157,13 @@ audio, installer, uninstaller, packaged-exe smoke test). They are being moved in
 | 109 | Command history and activity timeline | IMPLEMENTED BUT NEEDS TESTING | `jarvis/timeline.py`, tool `history`, Privacy › Timeline | — | test_privacy, running app | 1.31.0: days, search, kinds, take out, CSV, ask again, most used. Tool not tried with a real AI |
 | 110 | Modular expansion and upgrade system | NOT IMPLEMENTED | — | 13 | — | — |
 
-## Totals (after v1.31.0, 24 Nov 2026)
+## Totals (after v1.31.2, 24 Nov 2026)
 
 | Status | Count |
 |---|---|
 | IMPLEMENTED AND VERIFIED | 1 |
-| IMPLEMENTED BUT NEEDS TESTING | 37 |
+| IMPLEMENTED BUT NEEDS TESTING | 39 |
 | PARTIALLY IMPLEMENTED | 38 |
-| NOT IMPLEMENTED | 24 |
+| NOT IMPLEMENTED | 22 |
 | BLOCKED BY EXTERNAL DEPENDENCY | 0 |
 | NOT APPLICABLE | 10 |

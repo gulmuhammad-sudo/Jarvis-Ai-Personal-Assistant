@@ -83,7 +83,7 @@ def runs_code(path: str) -> bool:
     return bool(_RUNS_CODE.search(p)) or bool(_RUNS_CODE.search(p[2:].split(":", 1)[0].rstrip(". "))) and ":" in p[2:]
 
 
-_SECRET = re.compile(r"(^|[\\/])(\.env[^\\/]*|keys\.dat|mail\.dat|id_(rsa|dsa|ecdsa|ed25519)[^\\/]*|\.netrc|\.pgpass|\.git-credentials|credentials(\.json)?|"
+_SECRET = re.compile(r"(^|[\\/])(\.env[^\\/]*|keys\.dat|mail\.dat|lock\.dat|vault\.json[^\\/]*|id_(rsa|dsa|ecdsa|ed25519)[^\\/]*|\.netrc|\.pgpass|\.git-credentials|credentials(\.json)?|"
                      r"login data|cookies|key4\.db|logins\.json|[^\\/]*\.(pem|key|pfx|p12|kdbx|ppk|ovpn|rdp))$|[\\/]\.(ssh|aws|gnupg|azure)[\\/]", re.I)
 
 # documents people keep them in, by name ("My Passwords 2024.xlsx", Windows' own "BitLocker Recovery Key ….txt", "backup-codes.txt")

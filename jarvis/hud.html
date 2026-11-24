@@ -904,6 +904,17 @@ body.focus[data-face="mask"] .heroText { bottom: 98px; }
 .docbox { margin-bottom: 4px; } .docbox .agask { margin-bottom: 6px; } .dxnote { display: block; color: var(--dim); font-size: 12px; line-height: 1.5; }
 .dxfolders { display: flex; flex-wrap: wrap; gap: 6px; margin: 6px 0; } .dxfolders span { display: inline-flex; gap: 7px; align-items: center; font-size: 12px; padding: 3px 6px 3px 10px; border-radius: 999px; border: 1px solid var(--hair-2); color: var(--muted); max-width: 100%; overflow-wrap: anywhere; } .dxfolders em { font: 500 11px var(--mono); color: var(--dim); } .dxfolders button { border: 0; background: none; color: var(--dim); cursor: pointer; padding: 0 3px; } .dxfolders button:hover { color: var(--red); }
 .dxhit { display: block; width: 100%; text-align: left; border: 1px solid var(--hair); border-radius: 9px; background: none; color: var(--muted); font: inherit; font-size: 12.5px; padding: 7px 10px; margin-bottom: 4px; cursor: pointer; overflow-wrap: anywhere; } .dxhit:hover { border-color: rgba(var(--c-accent), .45); } .dxhit b { color: var(--text); font-weight: 500; } .dxhit em { font-style: normal; color: var(--cyan); font-size: 11.5px; } .dxhit small { display: block; line-height: 1.5; margin-top: 2px; } .dxhit mark { background: rgba(var(--c-accent), .22); color: var(--text); border-radius: 3px; }
+/* the vault and the privacy lock */
+#lockscreen { position: fixed; inset: 0; z-index: 400; display: none; place-items: center; background: radial-gradient(ellipse at 50% 30%, var(--hero-glow) 0%, var(--bg) 70%); } body.locked #lockscreen { display: grid; } body.locked .shell, body.locked #mdMini, body.locked #alerts { visibility: hidden; } .lkbox { width: min(400px, calc(100vw - 40px)); text-align: center; display: grid; gap: 14px; justify-items: center; } .lkbox .lkic { width: 74px; height: 74px; border-radius: 50%; display: grid; place-items: center; color: var(--cyan); border: 1px solid rgba(var(--c-accent), .4); background: rgba(var(--c-accent), .08); } .lkbox .lkic svg.ic { width: 34px; height: 34px; } .lkbox h2 { margin: 0; font: 600 44px var(--mono); } .lkbox p { margin: 0; color: var(--muted); font-size: 14px; } .lkbox form { display: flex; gap: 8px; width: 100%; } .lkbox form[hidden] { display: none; } .lkbox input { flex: 1; min-width: 0; height: 44px; text-align: center; font: 600 18px var(--mono); letter-spacing: .2em; border-radius: 12px; border: 1px solid var(--hair-2); background: var(--field); color: var(--text); } .lkbox input:focus { outline: none; border-color: var(--cyan); } .lkbox .btn { height: 44px; } .lkbox [hidden] { display: none; } body.locked #recwrap { z-index: 401; } .lkbox .err { color: var(--red); font-size: 13px; min-height: 18px; }
+.vtop { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-bottom: 12px; } .vtop .memsearch { flex: 1 1 220px; } .vgate { max-width: 520px; margin: 4vh auto 0; display: grid; gap: 12px; } .vgate .lkic { width: 64px; height: 64px; border-radius: 18px; display: grid; place-items: center; color: var(--cyan); border: 1px solid rgba(var(--c-accent), .4); background: rgba(var(--c-accent), .08); margin: 0 auto; } .vgate .lkic svg.ic { width: 30px; height: 30px; } .vgate h4 { margin: 0; font-size: 20px; text-align: center; } .vgate p { margin: 0; color: var(--muted); font-size: 13.5px; line-height: 1.55; text-align: center; } .vgate form { display: grid; gap: 9px; } .vgate form > .btn { height: 40px; justify-content: center; } .vgate .row { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; }
+.vin { width: 100%; box-sizing: border-box; height: 40px; border-radius: 10px; border: 1px solid var(--hair-2); background: var(--field); color: var(--text); font: inherit; font-size: 14px; padding: 0 12px; } .vin:focus { outline: none; border-color: rgba(var(--c-accent), .6); } textarea.vin { height: auto; min-height: 84px; padding: 9px 12px; resize: vertical; unicode-bidi: plaintext; } select.vin { background-color: var(--field); }
+.vcode { font: 600 18px var(--mono); letter-spacing: .04em; text-align: center; border: 1px dashed rgba(var(--c-accent), .6); border-radius: 12px; padding: 14px; overflow-wrap: anywhere; user-select: all; }
+.vgrid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.25fr); gap: 14px; align-items: start; } .vlist { max-height: 60vh; overflow: auto; padding-right: 4px; } .vrow { display: flex; width: 100%; gap: 11px; align-items: center; text-align: left; border: 1px solid var(--hair); border-radius: 12px; background: var(--row); color: var(--text); font: inherit; padding: 8px 11px; margin-bottom: 6px; cursor: pointer; } .vrow:hover, .vrow.on { border-color: var(--cyan); } .vrow .ico { width: 34px; height: 34px; border-radius: 10px; flex: none; display: grid; place-items: center; background: rgba(var(--c-accent), .12); color: var(--cyan); font: 600 14px var(--mono); } .vrow > div { flex: 1; min-width: 0; } .vrow b { display: block; font-weight: 600; font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; unicode-bidi: plaintext; } .vrow small { display: block; color: var(--muted); font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; } .vrow em { font-style: normal; color: var(--amber); }
+.vf { border-top: 1px solid var(--hair); padding: 8px 2px; display: flex; gap: 10px; align-items: center; } .vf:first-of-type { border-top: 0; } .vf > div { flex: 1; min-width: 0; } .vf small { display: block; color: var(--muted); font-size: 12px; } .vf b { font-weight: 500; font-size: 14.5px; overflow-wrap: anywhere; unicode-bidi: plaintext; white-space: pre-wrap; } .vf b.sec { font-family: var(--mono); letter-spacing: .04em; } .vf .btn { height: 30px; font-size: 12.5px; flex: none; } .vhead { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-bottom: 6px; } .vhead h5 { margin: 0; font-size: 18px; font-weight: 600; flex: 1; min-width: 140px; overflow-wrap: anywhere; unicode-bidi: plaintext; }
+.vform { display: grid; gap: 9px; } .vform label { display: grid; gap: 4px; font-size: 12.5px; color: var(--muted); } .vform .two { display: grid; grid-template-columns: 1fr 1fr; gap: 9px; } .vpw { display: flex; gap: 6px; } .vpw .vin { flex: 1; min-width: 0; font-family: var(--mono); } .vbar { height: 5px; border-radius: 3px; background: rgba(var(--c-fill), .12); overflow: hidden; } .vbar i { display: block; width: 0; height: 100%; border-radius: 3px; background: var(--red); transition: width .2s; } .vbar i.s2 { background: var(--amber); } .vbar i.s3, .vbar i.s4 { background: var(--green); }
+.vview { margin-top: 8px; border: 1px solid var(--hair); border-radius: 12px; overflow: hidden; } .vview img { width: 100%; display: block; max-height: 52vh; object-fit: contain; background: #000; } .vview iframe { width: 100%; height: 52vh; border: 0; background: #fff; } .vview pre { margin: 0; padding: 10px 12px; max-height: 40vh; overflow: auto; white-space: pre-wrap; overflow-wrap: anywhere; font-size: 13px; }
+.lkset { max-width: 820px; } .lkset .pvset label { flex-wrap: wrap; }
+@media (max-width: 1000px) { .vgrid { grid-template-columns: minmax(0, 1fr); } .vlist { max-height: none; } }
 /* privacy and the timeline */
 .pvpill { display: none; align-items: center; gap: 6px; height: 24px; padding: 0 10px; margin-left: 8px; border-radius: 999px; border: 1px solid var(--hair-2); background: none; color: var(--muted); font: 600 11px var(--mono); letter-spacing: .04em; cursor: pointer; white-space: nowrap; } .pvpill.show { display: inline-flex; } .pvpill svg.ic { width: 13px; height: 13px; } .pvpill:hover { border-color: var(--cyan); color: var(--text); } .pvpill:focus-visible { outline: 2px solid var(--cyan); outline-offset: 2px; } #sensPill { color: var(--amber); border-color: rgba(var(--c-amber), .45); } #locPill { color: var(--green); border-color: rgba(74, 222, 128, .45); }
 .pv2 { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr); gap: 14px; align-items: start; } .pv2.half { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
@@ -1189,6 +1200,7 @@ body.focus .hero { background: none; box-shadow: none; }
       <button class="navi" data-view="auto"><i data-ic="tasks"></i><span>Automations</span><em class="badge" id="bAuto">0</em></button>
       <button class="navi" data-view="agents"><i data-ic="user"></i><span>Agents</span><em class="badge" id="bAgents">0</em></button>
       <button class="navi" data-view="models"><i data-ic="layers"></i><span>AI Models</span><em class="badge" id="bModels">0</em></button>
+      <button class="navi" data-view="vault"><i data-ic="lock"></i><span>Vault</span></button>
       <button class="navi" data-view="privacy"><i data-ic="shield"></i><span>Privacy</span></button>
       <button class="navi" data-view="settings"><i data-ic="gear"></i><span>Settings</span></button>
     </nav>
@@ -1214,6 +1226,7 @@ body.focus .hero { background: none; box-shadow: none; }
         <input id="input" placeholder="Ask Jarvis anything…  (Ctrl+K)" aria-label="Message Jarvis">
         <button type="submit" aria-label="Send"><i data-ic="send"></i></button>
       </form>
+      <button class="iconbtn" id="lockBtn" title="Lock the app (Ctrl+L)" aria-label="Lock the app"><i data-ic="lock"></i></button>
       <button class="iconbtn stop" id="stopBtn" title="Stop everything: the task, the call, speaking (Esc twice)" aria-label="Stop everything"><i data-ic="stop"></i></button>
       <button class="iconbtn" id="detailsBtn" title="Show the details around the face" aria-label="Show or hide details" aria-pressed="false"><i data-ic="grid"></i></button>
       <button class="iconbtn lang" id="langBtn" title="Language: English / Urdu (click to switch)" aria-label="Switch language">EN</button>
@@ -1462,6 +1475,23 @@ body.focus .hero { background: none; box-shadow: none; }
     </section>
     <div id="mdMini" hidden><span id="mdMt"></span><button id="mdMg" aria-label="Play or pause">⏸</button><button id="mdMn" aria-label="Next">⏭</button><button id="mdMx" aria-label="Stop">✕</button></div>
 
+    <!-- Vault -->
+    <section class="view" data-view="vault">
+      <section class="card page">
+        <h3>Vault <span class="more" style="cursor:default">Passwords, cards, papers and notes, encrypted; the AI can't get in</span></h3>
+        <div class="body">
+          <div class="plbar" style="margin-bottom:4px"><span class="err" id="vErr" role="alert"></span></div>
+          <div class="vgate" id="vGate" hidden></div>
+          <div id="vMain" hidden>
+            <div class="vtop"><div class="memsearch"><i data-ic="search"></i><input id="vQ" maxlength="100" placeholder="Search the vault" aria-label="Search the vault" autocomplete="off"></div>
+              <div class="seg" id="vKinds"><button data-vk="" class="on">All</button><button data-vk="login">Passwords</button><button data-vk="card">Cards</button><button data-vk="paper">Documents</button><button data-vk="note">Notes</button></div>
+              <button class="btn on" id="vNew"><i data-ic="edit"></i>New</button><button class="btn" id="vMore"><i data-ic="gear"></i>More</button><button class="btn" id="vLock"><i data-ic="lock"></i>Lock</button></div>
+            <div class="vgrid"><section class="ckbox stbox"><div class="vlist" id="vList"></div></section><section class="ckbox stbox" id="vPane"></section></div>
+          </div>
+        </div>
+      </section>
+    </section>
+
     <!-- Privacy -->
     <section class="view" data-view="privacy">
       <section class="card page">
@@ -1473,6 +1503,7 @@ body.focus .hero { background: none; box-shadow: none; }
               <button data-pv="use" role="tab" aria-selected="false"><i data-ic="mic"></i>Microphone &amp; screen</button>
               <button data-pv="perm" role="tab" aria-selected="false"><i data-ic="check"></i>Permissions</button>
               <button data-pv="kept" role="tab" aria-selected="false"><i data-ic="db"></i>Kept here</button>
+              <button data-pv="lock" role="tab" aria-selected="false"><i data-ic="lock"></i>Lock</button>
               <button data-pv="time" role="tab" aria-selected="false"><i data-ic="clock"></i>Timeline</button></div><span class="err" id="pvErr" role="alert"></span></div>
           <div data-pvpane="over">
             <div class="pvbig" id="pvLoc"><div><b>Local only</b><small id="pvLocS"></small></div><button class="btn switch" id="pvLocB" role="switch" aria-checked="false" aria-label="Local only">Off</button></div>
@@ -1489,6 +1520,7 @@ body.focus .hero { background: none; box-shadow: none; }
           <div data-pvpane="kept" hidden><div class="pv2"><section class="ckbox stbox"><div class="lfhead" style="margin-top:0"><h4 class="sec">WHAT IS KEPT</h4><button class="btn" id="pvDir"><i data-ic="note"></i>Folder</button></div><div class="pvscroll" id="pvKept"></div></section>
               <div class="lncol"><section class="ckbox stbox"><h4 class="sec">HOW LONG</h4><div class="pvset" id="pvKeep"></div></section>
                 <section class="ckbox stbox"><h4 class="sec">RECORDINGS OF YOUR VOICE</h4><div class="pvset"><label><span>Keep the last five</span><button class="btn switch" id="pvVoice" role="switch" aria-label="Keep the last five recordings of your voice">Off</button></label><small>Only to find microphone problems. They stay on this PC. While off, nothing of your voice is kept.</small></div></section></div></div></div>
+          <div data-pvpane="lock" hidden><section class="ckbox stbox lkset"><h4 class="sec">PRIVACY LOCK</h4><div class="pvset" id="lkSet"></div></section></div>
           <div data-pvpane="time" hidden><div class="pvday"><button class="btn" id="tlPrev" aria-label="The day before">‹</button><input type="date" id="tlDate" aria-label="Day"><button class="btn" id="tlNext" aria-label="The day after">›</button><button class="btn" id="tlToday">Today</button><div class="memsearch"><i data-ic="search"></i><input id="tlQ" maxlength="200" placeholder="Search everything" aria-label="Search the timeline"></div><button class="btn" id="tlCsv"><i data-ic="download"></i>CSV</button></div>
             <div class="tlstrip" id="tlStrip"></div><div class="tlchips" id="tlChips"></div>
             <div class="pv2"><section class="ckbox stbox"><div class="lfhead" style="margin-top:0"><h4 class="sec">TIMELINE</h4><span id="tlSum" style="color:var(--muted);font-size:12.5px"></span><button class="btn danger" id="tlDayX">Take this day out</button></div><div id="tlRows"></div></section>
@@ -1812,6 +1844,11 @@ body.focus .hero { background: none; box-shadow: none; }
   </footer>
 </div>
 
+<div id="lockscreen" role="dialog" aria-modal="true" aria-label="The app is locked"><div class="lkbox"><div class="lkic"><i data-ic="lock"></i></div><h2 id="lkClock"></h2><p id="lkWhy">Locked</p>
+  <button class="btn on" id="lkHello" hidden><i data-ic="shield"></i>Unlock with Windows Hello</button>
+  <form id="lkForm" autocomplete="off" hidden><input id="lkPin" type="password" maxlength="32" inputmode="text" aria-label="PIN" placeholder="PIN"><button class="btn" type="submit">Unlock</button></form>
+  <button class="btn danger" id="lkRing" hidden><i data-ic="bell"></i>Stop the alarm</button>
+  <div class="err" id="lkErr" role="alert"></div></div></div>
 <div class="modal" id="modal" role="dialog" aria-modal="true" aria-labelledby="mTitle" aria-describedby="mSummary">
   <div class="card approve" id="approveCard">
     <div class="ahead"><span class="aico"><i data-ic="shield"></i></span>
@@ -1939,6 +1976,7 @@ const ICONS = {
   refresh: "M20 11a8 8 0 1 0-2.3 5.7M20 4v7h-7",
   user: "M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM4 21a8 8 0 0 1 16 0",
   core: "M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8zM12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M5 19l2-2M17 7l2-2",
+  lock: "M7 11V8a5 5 0 0 1 10 0v3M5 11h14v9H5z", key: "M14 10a4 4 0 1 0-3.5 4L12 16h2v2h2v2h4v-3l-6.2-6.2", card: "M3 6h18v12H3zM3 10h18M7 15h4",
   shield: "M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z",
   zap: "M13 2 4 14h7l-1 8 9-12h-7z",
   pc: "M3 4h18v12H3zM8 20h8M12 16v4",
@@ -2030,6 +2068,7 @@ function go(view) {
   if (view === "daily") dyShow();
   if (view === "studio") stShow();
   if (view === "privacy") pvShow();
+  if (view === "vault") vShow();
   mdMini();
 }
 document.querySelectorAll(".navi").forEach(n => n.onclick = () => go(n.dataset.view));
@@ -2276,6 +2315,8 @@ function handle(ev) {
       break;
     case "state": setState(ev.state); break;
     case "settings": chgSeq++; applySettings(newsOnly(ev)); if ("local_only" in ev) pvLocalSet(ev.local_only); break;
+    case "lock": if (!replaying) lkNews(!!ev.locked); break;
+    case "vault_state": if (!ev.open && vS) { vForget(); if (vOn()) vShow(); } break;
     case "sensors": pvSense(ev.sensors); if (pvOn() && !replaying && (pvTab === "over" || pvTab === "use")) { clearTimeout(pvTimer); pvTimer = setTimeout(pvShow, 400); } break;
     case "confirm":
       confirmQueue.push({ ...ev, until: Date.now() + (ev.timeout || 180) * 1000 }); showConfirm();
@@ -2350,6 +2391,7 @@ function handle(ev) {
       if (!replaying) mtShow(ev.state);
       break;
     case "ringing":
+      lkRinging = ev.rings || []; if (lkS.locked) { $("lkRing").hidden = !lkRinging.length; break; }
       if (!replaying) showRinging(ev.rings);
       break;
     case "planner_changed":
@@ -2650,6 +2692,8 @@ document.querySelectorAll("[data-cmd]").forEach(b => b.onclick = () => send(b.da
 document.addEventListener("keydown", e => {
   if (e.key === "Escape" && confirmQueue.length) { answer(false); return; }
   if (e.key === "Escape" && $("alerts").firstChild) $("alerts").firstChild.remove();
+  if (lkS.locked) return;
+  if (e.ctrlKey && !e.shiftKey && !e.altKey && e.key.toLowerCase() === "l") { e.preventDefault(); $("lockBtn").click(); return; }
   if (e.ctrlKey && e.code === "Space") { e.preventDefault(); listen(); }
   if (e.ctrlKey && e.key.toLowerCase() === "k") {
     e.preventDefault();
@@ -2987,6 +3031,8 @@ async function pollOnce(no) {
     const r = await fetch(`/api/stats?token=${TOKEN}`, { cache: "no-store", signal: AbortSignal.timeout(20000) });
     if (r.status === 403) { location.reload(); return; }   // Jarvis restarted: pick up the new session
     const s = await r.json();
+    if (!!s.locked !== !!lkS.locked) { lkNews(!!s.locked); return; }
+    if (s.locked) { if (!!s.meeting !== !!mtState) mtShow(s.meeting); if (!!s.screen !== !!scState) scShow(s.screen); return; }      // what is recorded stays visible
     if (chgBusy || seq !== chgSeq) { pollMore = true; return; }        // older than your last choice
     if (no < pollSeen) return;                             // a newer one is painted already
     pollSeen = no;
@@ -3878,6 +3924,203 @@ $("ppForm").onsubmit = async e => { e.preventDefault(); const j = await ppPost("
 $("ppQ").oninput = () => { clearTimeout(ppTimer); ppTimer = setTimeout(ppLoad, 250); };
 $("ppHu").onchange = () => ppPost("settings", { humour: $("ppHu").value }); $("ppLe").onchange = () => ppPost("settings", { length: $("ppLe").value }); $("ppC").onchange = () => ppPost("settings", { checkin: $("ppC").value }); $("ppA").onchange = () => { if ($("ppA").value) ppPost("settings", { birthday_at: $("ppA").value }); }; $("ppU").onchange = () => ppPost("settings", { use_names: $("ppU").checked });
 
+// ---------- privacy lock ----------
+let lkS = "__LOCK__", lkRinging = [];
+function lkShow() {
+  document.body.classList.toggle("locked", !!lkS.locked);
+  if (!lkS.locked) return;
+  $("lkHello").hidden = !lkS.ways.includes("hello"); $("lkForm").hidden = !lkS.ways.includes("pin"); $("lkWhy").textContent = `${AGENT} is locked`;
+  $("lkRing").hidden = !lkRinging.length;
+  setTimeout(() => { if (!$("lkForm").hidden) $("lkPin").focus(); else $("lkHello").focus(); }, 100);
+}
+function lkNews(locked) {
+  if (locked === !!lkS.locked) return;
+  if (locked && scMine) { lkS = { ...lkS, locked: true }; post("/api/lock/state").then(r => r && r.json()).then(j => { if (j) { lkS = j; lkShow(); } }); stopSpeaking(); lkShow(); return; }       // a recording runs in this window: only covered
+  if (!locked && scMine) { lkS = { ...lkS, locked: false }; lkShow(); return; }
+  location.reload();
+}
+async function lkTry(action, body) {
+  $("lkErr").textContent = action === "hello" ? "Look for Windows' own box…" : "";
+  const r = await post(`/api/lock/${action}`, body), j = r ? await r.json().catch(() => ({})) : { error: "The app didn't answer." };
+  $("lkPin").value = ""; $("lkErr").textContent = j.error || "";
+  if (!j.error && !j.locked) lkNews(false);
+}
+$("lkHello").onclick = () => lkTry("hello", {}); $("lkForm").onsubmit = e => { e.preventDefault(); if ($("lkPin").value) lkTry("pin", { pin: $("lkPin").value }); };
+$("lkRing").onclick = () => { post("/api/clock/ring_stop", {}); $("lkRing").hidden = true; };
+setInterval(() => { if (lkS.locked) $("lkClock").textContent = nowT(); }, 1000);
+$("lockBtn").onclick = async () => { const r = await post("/api/lock/now", {}), j = r ? await r.json().catch(() => ({})) : {}; if (j.error) pvOpen("lock"); else lkNews(true); };
+async function lkLoad(body) {
+  const r = await post("/api/lock/settings", body || {}), j = r ? await r.json().catch(() => ({ error: "The app didn't answer." })) : { error: "The app didn't answer." };
+  if (j.error) { pvTell(j.error); if (body) lkLoad(); return; }
+  if (body) pvTell(""); lkDraw(j);
+}
+function lkDraw(s) {
+  const sw = (k, on, label) => `<button class="btn switch${on ? " on" : ""}" data-lk="${k}" role="switch" aria-checked="${on}" aria-label="${label}">${on ? "On" : "Off"}</button>`;
+  setHTML($("lkSet"), `<small>Covers the whole app: nothing is shown, said or done until it is opened again (alarms still ring, recordings go on). It keeps people at your keyboard out; the app's files stay as they are. It is never opened by voice.</small>
+    <label><span>Open with Windows Hello<small style="display:block">${s.hello_ready ? "Your finger, face or the PIN of this PC" : "Not set up on this PC"}</small></span>${sw("hello", s.ways.includes("hello"), "Open with Windows Hello")}</label>
+    <label><span>Open with the app's own PIN<small style="display:block">${s.has_pin ? "A PIN is set" : "Choose a PIN below first"}</small></span>${sw("pin", s.ways.includes("pin"), "Open with the app's own PIN")}</label>
+    <form class="agask" id="lkPinForm" autocomplete="off">${s.has_pin ? '<input id="lkOld" type="password" maxlength="32" placeholder="PIN now" aria-label="PIN now">' : ""}<input id="lkNew" type="password" maxlength="32" placeholder="${s.has_pin ? "New PIN" : "PIN (4 or more)"}" aria-label="New PIN"><input id="lkNew2" type="password" maxlength="32" placeholder="Once more" aria-label="New PIN once more"><button class="btn" type="submit">${s.has_pin ? "Change" : "Set"} PIN</button>${s.has_pin ? '<button class="btn danger" type="button" id="lkPinX">Remove PIN</button>' : ""}</form>
+    <label><span>Lock by itself when the PC isn't touched for</span><select data-lks="idle" aria-label="Lock by itself after">${[0, 1, 5, 15, 30, 60].map(n => `<option value="${n}"${s.idle === n ? " selected" : ""}>${n ? `${n} minute${n === 1 ? "" : "s"}` : "never"}</option>`).join("")}</select></label>
+    <label><span>Lock when Windows is locked or sleeps</span>${sw("windows", s.windows, "Lock when Windows is locked")}</label>
+    <label><span>Lock when the app starts</span>${sw("start", s.start, "Lock when the app starts")}</label>
+    <div><button class="btn on" id="lkNow"${s.on ? "" : " disabled"}>${icon("lock")}Lock now</button> <small style="margin-left:8px">Also: the lock at the top, Ctrl+L, or the icon by the clock.</small></div>`);
+  document.querySelectorAll("[data-lk]").forEach(b => b.onclick = () => { const on = !b.classList.contains("on"), k = b.dataset.lk; lkLoad(k === "hello" || k === "pin" ? { ways: on ? [...s.ways, k] : s.ways.filter(w => w !== k) } : { [k]: on }); });
+  document.querySelectorAll("[data-lks]").forEach(x => x.onchange = () => lkLoad({ [x.dataset.lks]: +x.value }));
+  $("lkPinForm").onsubmit = async e => { e.preventDefault(); const r = await post("/api/lock/set_pin", { pin: $("lkNew").value, again: $("lkNew2").value, old: $("lkOld") ? $("lkOld").value : null }), j = r ? await r.json() : { error: "The app didn't answer." }; if (j.error) return pvTell(j.error); pvTell("The PIN is set.", true); lkDraw(j); };
+  if ($("lkPinX")) $("lkPinX").onclick = async () => { const r = await post("/api/lock/remove_pin", { old: $("lkOld").value }), j = r ? await r.json() : { error: "The app didn't answer." }; if (j.error) return pvTell(j.error); pvTell("The PIN is removed.", true); lkDraw(j); };
+  $("lkNow").onclick = () => $("lockBtn").click();
+}
+
+// ---------- vault ----------
+let vS = null, vSt = null, vD = null, vOne = null, vEdit = null, vKind = "", vTimer = 0, vHide = 0, vPaneIs = "", vUrl = "", vShown = {};
+const vOn = () => !!document.querySelector('.view.active[data-view="vault"]'), vTell = (t, good = false) => { $("vErr").textContent = t || ""; $("vErr").classList.toggle("ok", good); };
+const vStr = ["very weak", "weak", "fair", "good", "strong"], vIc = { login: "key", card: "card", paper: "note", note: "edit" };
+async function vPost(action, body = {}) {
+  const r = await post(`/api/vault/${action}`, { session: vS, query: $("vQ").value, only: vKind, ...body }), j = r ? await r.json().catch(() => ({ error: "The app didn't answer." })) : { error: "The app didn't answer." };
+  if (j.error) { if (j.open === false && vS) { vForget(); vShow(); vTell("The vault is locked."); } else vTell(j.error); return j; }
+  if (j.session) vS = j.session;
+  if (j.status) vSt = j.status;
+  if (j.entries) { vD = j; vDraw(); }
+  return j;
+}
+function vForget() { vS = null; vD = vOne = vEdit = null; vPaneIs = ""; vShown = {}; clearTimeout(vHide); if (vUrl) { URL.revokeObjectURL(vUrl); vUrl = ""; } $("vPane").innerHTML = ""; $("vList").innerHTML = ""; $("vList")._h = $("vPane")._h = ""; $("vQ").value = ""; }
+async function vShow() {
+  const r = await post("/api/vault/status", {}), j = r ? await r.json().catch(() => null) : null; if (!j || j.error) return vTell(j ? j.error : "The app didn't answer.");
+  vSt = j; if (!j.open && vS) vForget();
+  const open = j.open && vS; $("vGate").hidden = !!open; $("vMain").hidden = !open;
+  if (open) { if (!vD) vPost("list"); else vDraw(); } else vGateDraw();
+}
+function vGateDraw(mode = "") {
+  const s = vSt, box = (title, text, form) => setHTML($("vGate"), `<div class="lkic">${icon("lock")}</div><h4>${title}</h4>${text ? `<p>${text}</p>` : ""}${form}`);
+  $("vGate").hidden = false; $("vMain").hidden = true;
+  const pw = (id, ph, auto = "off") => `<input class="vin" id="${id}" type="password" maxlength="300" placeholder="${ph}" aria-label="${ph}" autocomplete="${auto}">`;
+  if (s.damaged) return box("The vault can't be read", esc(s.damaged), "");
+  if (!s.exists) {
+    box("Make your vault", "Passwords, cards, papers (CNIC, passport…), notes and files, encrypted on this PC with your master password. Nobody can open it without it, not even this app; the AI has no way in.",
+      `<form id="vMake" autocomplete="off">${pw("vP1", "Master password (10 or more)", "new-password")}<div class="vbar"><i id="vPb"></i></div>${pw("vP2", "Master password once more", "new-password")}<button class="btn on" type="submit">Make the vault</button></form><p>A few words you will remember are good, for example four that don't belong together.</p>`);
+    $("vP1").oninput = () => { const v = $("vP1").value, sc = Math.min(4, Math.max(0, Math.floor(v.length / 5) - (new Set(v).size < 6 ? 1 : 0))); $("vPb").style.width = sc * 25 + "%"; $("vPb").className = "s" + sc; };
+    $("vMake").onsubmit = async e => { e.preventDefault(); vTell("Making it…", true); const j = await vPost("create", { password: $("vP1").value, again: $("vP2").value }); if (!j.error) { vTell(""); vCode(j.recovery); } };
+  } else if (mode === "recover") {
+    box("Open with the recovery code", "The code you wrote down when the vault was made. You choose a new master password, and get a new code.",
+      `<form id="vRec" autocomplete="off"><input class="vin" id="vC" maxlength="60" placeholder="XXXX-XXXX-…" aria-label="Recovery code" autocomplete="off" spellcheck="false">${pw("vP1", "New master password", "new-password")}${pw("vP2", "New master password once more", "new-password")}<button class="btn on" type="submit">Open</button></form><div class="row"><button class="btn" id="vBack">Back</button></div>`);
+    $("vBack").onclick = () => vGateDraw(); $("vRec").onsubmit = async e => { e.preventDefault(); vTell("Opening…", true); const j = await vPost("recover", { code: $("vC").value, password: $("vP1").value, again: $("vP2").value }); if (!j.error) { vTell(""); vCode(j.recovery); } };
+  } else if (mode === "remove") {
+    box("Remove the vault", "Everything in it goes to the Recycle Bin, still encrypted. Type DELETE to do it.", `<form id="vRm" autocomplete="off"><input class="vin" id="vW" maxlength="10" placeholder="DELETE" aria-label="Type DELETE"><button class="btn danger" type="submit">Remove the vault</button></form><div class="row"><button class="btn" id="vBack">Back</button></div>`);
+    $("vBack").onclick = () => vGateDraw(); $("vRm").onsubmit = async e => { e.preventDefault(); const j = await vPost("remove", { word: $("vW").value }); if (!j.error) { vTell("The vault is in the Recycle Bin.", true); vForget(); vShow(); } };
+  } else {
+    box("The vault is locked", "", `<form id="vOpen" autocomplete="off">${pw("vP", "Master password", "current-password")}<button class="btn on" type="submit">${icon("lock")}Open</button></form><div class="row">${s.hello ? `<button class="btn" id="vHello">${icon("shield")}Windows Hello</button>` : ""}<button class="btn" id="vForgot">Forgot the password</button><button class="btn danger" id="vRemove">Remove the vault</button></div>`);
+    $("vOpen").onsubmit = async e => { e.preventDefault(); const v = $("vP").value; $("vP").value = ""; vTell("Opening…", true); const j = await vPost("unlock", { password: v }); if (!j.error) { vTell(""); vEnter(); } else if ($("vP")) $("vP").focus(); };
+    if ($("vHello")) $("vHello").onclick = async () => { vTell("Look for Windows' own box…", true); const j = await vPost("unlock_hello"); if (!j.error) { vTell(""); vEnter(); } };
+    $("vForgot").onclick = () => vGateDraw("recover"); $("vRemove").onclick = () => vGateDraw("remove"); if (vOn()) setTimeout(() => $("vP") && $("vP").focus(), 50);
+  }
+}
+function vEnter() { $("vGate").hidden = true; setHTML($("vGate"), ""); $("vMain").hidden = false; vPaneIs = ""; vDraw(); }
+function vCode(code) {
+  $("vMain").hidden = true; $("vGate").hidden = false;
+  setHTML($("vGate"), `<div class="lkic">${icon("shield")}</div><h4>Write this down now</h4><p>Your recovery code. It opens the vault if you forget the master password, and is shown only this once. On paper, not on this PC. If both are lost, nobody can open the vault.</p><div class="vcode">${esc(code)}</div><div class="row"><button class="btn on" id="vDone">I wrote it down</button></div>`);
+  $("vDone").onclick = vEnter;
+}
+const vKindName = k => ({ login: "Password", card: "Card", paper: "Document", note: "Secure note" })[k];
+function vDraw() {
+  if (!vD || $("vMain").hidden) return;
+  document.querySelectorAll("[data-vk]").forEach(b => b.classList.toggle("on", b.dataset.vk === vKind));
+  const soon = new Date(Date.now() + 60 * 864e5).toISOString().slice(0, 10), today = new Date().toISOString().slice(0, 10);
+  setHTML($("vList"), vD.entries.map(e => `<button class="vrow${vOne && vOne.id === e.id ? " on" : ""}" data-ve="${e.id}"><span class="ico">${e.kind === "login" ? esc((e.title[0] || "?").toUpperCase()) : icon(vIc[e.kind])}</span><div><b>${e.fav ? "★ " : ""}${esc(e.title)}</b><small>${esc(e.sub || vKindName(e.kind))}${e.expires && e.kind === "paper" ? (e.expires < today ? " · <em>ran out</em>" : e.expires < soon ? ` · <em>until ${esc(pvDate(e.expires))}</em>` : "") : ""}</small></div>${e.files ? `<small style="flex:none">${icon("note")}${e.files}</small>` : ""}</button>`).join("") || `<div class="empty">${$("vQ").value || vKind ? "Nothing found." : "Nothing here yet. Press New, or More › bring in passwords from your browser."}</div>`);
+  document.querySelectorAll("[data-ve]").forEach(b => b.onclick = () => vOpenOne(b.dataset.ve));
+  if (!vPaneIs) vHome();
+}
+function vHome() { vPaneIs = "home"; vOne = null; setHTML($("vPane"), `<div class="empty">Choose something on the left.</div><small class="dxnote">While the vault is open, the assistant doesn't look at the screen. It locks after ${vSt.idle} minute${vSt.idle === 1 ? "" : "s"} without use, when Windows is locked, and when the app closes.</small>`); }
+async function vOpenOne(id) { const j = await vPost("get", { id }); if (j.error) return; vOne = j; vEdit = null; vShown = {}; vPaneIs = "one"; vDrawOne(); vDraw(); vTell(""); }
+const vLabel = { username: "User name", password: "Password", url: "Website", totp: "2-step code", notes: "Notes", holder: "Name on the card", number: "Number", expires: "Until", cvv: "CVV", pin: "PIN", paper: "Kind", name: "Name on it", issued: "Issued", title: "Name" };
+function vDrawOne() {
+  const e = vOne, F = { login: ["username", "password", "totp", "url", "notes"], card: ["holder", "number", "expires", "cvv", "pin", "notes"], paper: ["paper", "name", "number", "issued", "expires", "notes"], note: ["notes"] }[e.kind];
+  const row = f => {
+    const sec = f in e.has, val = sec ? e.has[f] : e[f]; if (!val) return "";
+    const shown = vShown[f];
+    if (f === "totp") return `<div class="vf"><div><small>${vLabel[f]}</small><b class="sec">${shown ? esc(shown) : "••• •••"}</b></div><button class="btn" data-vr="totp">${shown ? "Hide" : "Show"}</button><button class="btn" data-vc="code">Copy</button></div>`;
+    if (sec) return `<div class="vf"><div><small>${vLabel[f]}${f === "password" && e.strength !== undefined ? ` · ${vStr[e.strength]}` : ""}</small><b class="sec">${shown ? esc(shown) : "••••••••"}</b></div><button class="btn" data-vr="${f}">${shown ? "Hide" : "Show"}</button><button class="btn" data-vc="${f}">Copy</button></div>`;
+    const t = f === "issued" || f === "expires" && e.kind === "paper" ? pvDate(val) + " " + val.slice(0, 4) : val;
+    return `<div class="vf"><div><small>${vLabel[f]}</small><b>${esc(t)}</b></div>${f === "url" ? `<a class="btn" href="${esc(val)}" target="_blank" rel="noopener noreferrer">Open</a>` : f === "notes" ? "" : `<button class="btn" data-vc="${f}">Copy</button>`}</div>`;
+  };
+  setHTML($("vPane"), `<div class="vhead"><h5>${e.fav ? "★ " : ""}${esc(e.title)}</h5><button class="btn" id="vFav" aria-pressed="${e.fav}">${e.fav ? "★" : "☆"}</button><button class="btn" id="vEd">${icon("edit")}Change</button><button class="btn danger" id="vDel">Delete</button></div>${F.map(row).join("") || '<div class="empty">Nothing in it yet.</div>'}
+    ${e.was.map((w, i) => `<div class="vf"><div><small>Password until ${esc(pvAgo(w.until.replace("T", " ")))}</small><b class="sec">${vShown["was" + i] ? esc(vShown["was" + i]) : "••••••••"}</b></div><button class="btn" data-vr="was${i}">${vShown["was" + i] ? "Hide" : "Show"}</button><button class="btn" data-vc="was${i}">Copy</button></div>`).join("")}
+    <div class="lfhead" style="margin-top:10px"><h4 class="sec">FILES</h4><button class="btn" id="vAddF">${icon("note")}Add a file</button><input type="file" id="vFile" hidden></div>${e.files.map(f => `<div class="vf"><div><b>${esc(f.name)}</b><small>${pvSize(f.size)}, encrypted</small></div><button class="btn" data-vv="${f.id}">Show</button><button class="btn" data-vs="${f.id}" title="A copy outside the vault, not encrypted">Save a copy</button><button class="btn danger" data-vx="${f.id}" aria-label="Delete ${esc(f.name)}">${icon("x")}</button></div>`).join("") || '<small class="dxnote">Scans and photos of papers, up to 20 MB each.</small>'}<div id="vView"></div>
+    <small class="dxnote" style="margin-top:8px">${e.tags.length ? esc(e.tags.join(", ")) + " · " : ""}changed ${esc(pvAgo((e.changed || "").replace("T", " ")))}</small>`);
+  const P = $("vPane"), on = (k, fn) => P.querySelectorAll(`[data-${k}]`).forEach(b => b.onclick = () => fn(b.dataset[k], b));
+  on("vr", f => vReveal(f)); on("vc", async f => { const j = await vPost("copy", { id: e.id, field: f }); if (!j.error) vTell(`Copied. It leaves the clipboard in ${j.seconds} seconds.`, true); });
+  on("vv", id => vLook(id)); on("vs", (id, b) => lnArm2("vs" + id, b, "Not encrypted?", async () => { const j = await vPost("file_save", { id: e.id, file: id }); if (!j.error) vTell("A copy, not encrypted: " + j.path, true); }));
+  on("vx", (id, b) => lnArm("vx" + id, b, async () => { const j = await vPost("file_delete", { file: id }); if (!j.error) vOpenOne(e.id); }));
+  $("vFav").onclick = async () => { const j = await vPost("save", { id: e.id, fields: {}, fav: !e.fav }); if (!j.error) vOpenOne(e.id); };
+  $("vEd").onclick = () => vForm(e.kind, e); $("vDel").onclick = () => lnArm("vd" + e.id, $("vDel"), async () => { const j = await vPost("delete", { id: e.id }); if (!j.error) { vHome(); vDraw(); vTell("In the vault's bin for 30 days (More › Bin).", true); } });
+  $("vAddF").onclick = () => $("vFile").click();
+  $("vFile").onchange = async () => { const f = $("vFile").files[0]; if (!f) return; if (f.size > 20971520) return vTell("A file can be up to 20 MB."); vTell("Encrypting…", true); const r = await fetch(`/api/vault/file?entry=${e.id}&name=${encodeURIComponent(f.name)}`, { method: "POST", headers: { "X-Jarvis-Token": TOKEN, "X-Vault": vS, "Content-Type": "application/octet-stream" }, body: f }).catch(() => null), j = r ? await r.json().catch(() => ({ error: "That didn't work." })) : { error: "The app didn't answer." }; if (j.error) return vTell(j.error); vTell("In the vault. The original file is still where it was.", true); vOpenOne(e.id); };
+}
+function lnArm2(key, b, ask, again) { if (lnDel.key === key && Date.now() - lnDel.at < 4000) { lnDel = { key: "", at: 0 }; again(); return; } lnDel = { key, at: Date.now() }; const old = b.innerHTML; b.textContent = ask; setTimeout(() => { if (b.isConnected) b.innerHTML = old; }, 4000); }
+async function vReveal(f) {
+  if (vShown[f]) { delete vShown[f]; return vDrawOne(); }
+  const j = await vPost("reveal", { id: vOne.id, field: f === "totp" ? "code" : f }); if (j.error) return;
+  vShown = { [f]: f === "totp" ? `${j.value.slice(0, 3)} ${j.value.slice(3)}` : j.value }; vDrawOne();
+  clearTimeout(vHide); vHide = setTimeout(() => { vShown = {}; if (vPaneIs === "one") vDrawOne(); }, f === "totp" ? j.left * 1000 : 20000);
+}
+async function vLook(id) {
+  const f = vOne.files.find(x => x.id === id), r = await post("/api/vault/view", { session: vS, file: id }); if (!r || !r.ok) { const j = r ? await r.json().catch(() => ({})) : {}; return vTell(j.error || "The app didn't answer."); }
+  const b = await r.blob(), t = b.type.split(";")[0]; if (vUrl) URL.revokeObjectURL(vUrl); vUrl = "";
+  if (t === "text/plain") { const pre = document.createElement("pre"); pre.textContent = (await b.text()).slice(0, 200000); $("vView").replaceChildren(pre); $("vView").className = "vview"; return; }
+  if (!t.startsWith("image/") && t !== "application/pdf") { $("vView").className = ""; return vTell(`${f.name} can't be shown here. Save a copy to open it.`); }
+  vUrl = URL.createObjectURL(b); const el = document.createElement(t === "application/pdf" ? "iframe" : "img"); el.src = vUrl; el.title = el.alt = f.name; $("vView").replaceChildren(el); $("vView").className = "vview";
+}
+function vForm(kind, e = null) {
+  vPaneIs = "form"; vEdit = { kind, id: e && e.id }; const v = f => esc(e && e[f] || ""), has = f => e && e.has && e.has[f];
+  const inp = (f, label, type = "text", extra = "") => `<label>${label}<input class="vin" id="vf_${f}" type="${type}" value="${f in (e && e.has || {}) ? "" : v(f)}" maxlength="${f === "title" ? 120 : 500}" autocomplete="off" spellcheck="false" ${has(f) ? 'placeholder="unchanged"' : ""} ${extra}></label>`;
+  const sec = (f, label, extra = "") => `<label>${label}<span class="vpw"><input class="vin" id="vf_${f}" type="password" maxlength="500" autocomplete="new-password" spellcheck="false" ${has(f) ? 'placeholder="unchanged"' : ""} ${extra}><button class="btn" type="button" data-veye="vf_${f}">Show</button>${f === "password" ? '<button class="btn" type="button" id="vGen">Make one</button>' : ""}</span></label>`;
+  const notes = `<label>Notes<textarea class="vin" id="vf_notes" maxlength="20000">${v("notes")}</textarea></label>`;
+  const body = { login: inp("title", "Name") + inp("username", "User name or email") + sec("password", "Password") + '<div class="vbar"><i id="vSb"></i></div><div id="vGenBox" hidden></div>' + inp("url", "Website") + sec("totp", "2-step setup key (optional)") + notes,
+    card: inp("title", "Name") + inp("holder", "Name on the card") + sec("number", "Card number", 'inputmode="numeric"') + `<div class="two">${inp("expires", "Until (MM/YY)")}${sec("cvv", "CVV")}</div>` + sec("pin", "PIN") + notes,
+    paper: inp("title", "Name") + `<label>Kind<select class="vin" id="vf_paper">${vD.papers.map(p => `<option${e && e.paper === p ? " selected" : ""}>${esc(p)}</option>`).join("")}</select></label>` + inp("name", "Name on it") + sec("number", "Number") + `<div class="two">${inp("issued", "Issued", "date")}${inp("expires", "Until", "date")}</div>` + notes,
+    note: inp("title", "Name") + notes }[kind];
+  setHTML($("vPane"), `<form class="vform" id="vF" autocomplete="off"><div class="vhead"><h5>${e ? "Change" : "New"}: ${vKindName(kind)}</h5></div>${e ? "" : `<div class="seg" style="justify-self:start">${["login", "card", "paper", "note"].map(k => `<button type="button" data-vnk="${k}" class="${k === kind ? "on" : ""}">${vKindName(k)}</button>`).join("")}</div>`}${body}<label>Tags (with commas)<input class="vin" id="vf_tags" maxlength="200" value="${esc((e && e.tags || []).join(", "))}"></label><div class="ckrow" style="justify-content:flex-start"><button class="btn on" type="submit">${icon("check")}Save</button><button class="btn" type="button" id="vCan">Cancel</button></div></form>`);
+  const P = $("vPane");
+  P.querySelectorAll("[data-veye]").forEach(b => b.onclick = () => { const i = $(b.dataset.veye), on = i.type === "password"; i.type = on ? "text" : "password"; b.textContent = on ? "Hide" : "Show"; });
+  P.querySelectorAll("[data-vnk]").forEach(b => b.onclick = () => vForm(b.dataset.vnk));
+  $("vCan").onclick = () => e ? vOpenOne(e.id) : (vHome(), vDraw());
+  if ($("vGen")) { $("vGen").onclick = () => vGenBox(); $("vf_password").oninput = () => { clearTimeout(vTimer); vTimer = setTimeout(async () => { const p = $("vf_password"); if (!p) return; const j = p.value ? await vPost("strength", { password: p.value }) : { strength: 0 }; if ($("vSb") && !j.error) { $("vSb").style.width = (p.value ? (j.strength + 1) * 20 : 0) + "%"; $("vSb").className = "s" + j.strength; } }, 250); }; }
+  $("vF").onsubmit = async ev => {
+    ev.preventDefault(); const fields = {}; P.querySelectorAll("[id^=vf_]").forEach(i => { const f = i.id.slice(3); if (f === "tags") return; if (has(f) && i.value === "" ) return; fields[f] = i.value; });
+    const j = await vPost("save", { kind, id: e ? e.id : null, fields, tags: $("vf_tags").value }); if (!j.error) { vTell("Saved.", true); vOpenOne(j.saved); }
+  };
+  $("vf_title").focus();
+}
+async function vGenBox() {
+  const b = $("vGenBox"); b.hidden = false;
+  b.innerHTML = `<div class="ckrow" style="justify-content:flex-start"><label style="display:flex;gap:6px;align-items:center">Length <input type="range" id="vgL" min="8" max="64" value="20" style="accent-color:var(--cyan)"><em id="vgN" style="font-style:normal">20</em></label>${[["vgU", "ABC"], ["vgD", "123"], ["vgS", "!@#"], ["vgC", "no l/1/O/0"]].map(([i, t]) => `<label style="display:flex;gap:5px;align-items:center"><input type="checkbox" id="${i}" checked>${t}</label>`).join("")}<button class="btn" type="button" id="vgR">Again</button></div>`;
+  const make = async () => { $("vgN").textContent = $("vgL").value; const j = await vPost("generate", { length: +$("vgL").value, upper: $("vgU").checked, digits: $("vgD").checked, signs: $("vgS").checked, clear: $("vgC").checked }); if (j.error || !$("vf_password")) return; $("vf_password").value = j.password; $("vf_password").type = "text"; $("vf_password").oninput(); };
+  for (const i of ["vgL", "vgU", "vgD", "vgS", "vgC"]) $(i).onchange = make; $("vgR").onclick = make; make();
+}
+async function vMoreDraw() {
+  vPaneIs = "more"; vOne = null; vDraw(); const h = await vPost("health"), t = await vPost("trash"); if (h.error || t.error) return;
+  const list = (name, rows) => rows.length ? `<div class="vf"><div><small>${name}</small>${rows.slice(0, 12).map(r => `<button class="go" style="border:0;background:none;color:var(--cyan);cursor:pointer;font:inherit;font-size:13px;padding:2px 10px 2px 0" data-vh="${r.id}">${esc(r.title)}</button>`).join("")}${rows.length > 12 ? ` and ${rows.length - 12} more` : ""}</div></div>` : "";
+  setHTML($("vPane"), `<div class="vhead"><h5>More</h5><button class="btn" id="vmX">Close</button></div>
+    <h4 class="sec">HOW GOOD THE PASSWORDS ARE</h4>${h.logins ? `<div class="vf"><div><b>${h.score}%</b><small>${h.logins} passwords: ${h.weak.length} weak, ${h.again.length} used more than once, ${h.old.length} older than a year. Looked at on this PC only.</small></div></div>${list("Weak", h.weak)}${list("Used more than once", h.again)}${list("Older than a year", h.old)}` : '<div class="empty">No passwords yet.</div>'}
+    <h4 class="sec">OPENING</h4><div class="pvset"><label><span>Lock after</span><select class="pvsel" id="vmI" aria-label="Lock after">${[1, 5, 15, 30].map(n => `<option value="${n}"${vSt.idle === n ? " selected" : ""}>${n} minute${n === 1 ? "" : "s"}</option>`).join("")}</select></label><label><span>Remind me before documents run out<small style="display:block">Only the days are known outside the vault, not what</small></span><button class="btn switch${vSt.remind ? " on" : ""}" id="vmR" role="switch" aria-checked="${vSt.remind}" aria-label="Remind me before documents run out">On</button></label></div>
+    <form class="vform" id="vmH" style="margin-top:9px"><label>Windows Hello: ${vSt.hello ? "on" : vSt.hello_ready ? "off" : "not set up on this PC"}<span class="vpw">${vSt.hello ? "" : '<input class="vin" id="vmHp" type="password" placeholder="Master password" aria-label="Master password" autocomplete="off">'}<button class="btn" type="submit"${vSt.hello || vSt.hello_ready ? "" : " disabled"}>${vSt.hello ? "Turn off" : "Turn on"}</button></span></label></form>
+    <form class="vform" id="vmP" style="margin-top:9px"><label>New master password<span class="vpw"><input class="vin" id="vmP0" type="password" placeholder="Now" aria-label="Master password now" autocomplete="off"><input class="vin" id="vmP1" type="password" placeholder="New" aria-label="New master password" autocomplete="new-password"><input class="vin" id="vmP2" type="password" placeholder="Once more" aria-label="New master password once more" autocomplete="new-password"><button class="btn" type="submit">Change</button></span></label></form>
+    <form class="vform" id="vmC" style="margin-top:9px"><label>New recovery code (the old one stops working)<span class="vpw"><input class="vin" id="vmCp" type="password" placeholder="Master password" aria-label="Master password" autocomplete="off"><button class="btn" type="submit">Make one</button></span></label></form>
+    <h4 class="sec">BRING IN, TAKE OUT</h4><div class="vf"><div><b>From your browser or another password manager</b><small>Export a CSV there (Chrome: Settings › Passwords › Export), choose it here, then delete the CSV: it isn't encrypted.</small></div><button class="btn" id="vmI1">Choose a CSV</button><input type="file" id="vmF" accept=".csv,text/csv" hidden></div>
+    <form class="vform" id="vmE"><label>Passwords as a CSV, not encrypted<span class="vpw"><input class="vin" id="vmEp" type="password" placeholder="Master password" aria-label="Master password" autocomplete="off"><button class="btn danger" type="submit">Export</button></span></label></form>
+    <div class="lfhead" style="margin-top:10px"><h4 class="sec">BIN (30 DAYS)</h4>${t.trash.length ? '<button class="btn danger" id="vmB">Empty</button>' : ""}</div>${t.trash.map(x => `<div class="vf"><div><b>${esc(x.title)}</b><small>${vKindName(x.kind)}</small></div><button class="btn" data-vre="${x.id}">Put back</button></div>`).join("") || '<div class="empty">Empty.</div>'}`);
+  $("vmX").onclick = () => { vHome(); vDraw(); }; document.querySelectorAll("[data-vh]").forEach(b => b.onclick = () => vOpenOne(b.dataset.vh));
+  $("vmI").onchange = async () => { await vPost("settings", { idle: +$("vmI").value }); vMoreDraw(); }; $("vmR").onclick = async () => { await vPost("settings", { remind: !vSt.remind }); vMoreDraw(); };
+  const sub = (id, fn) => $(id).onsubmit = e => { e.preventDefault(); fn(); };
+  sub("vmH", async () => { const on = !vSt.hello; vTell(on ? "Look for Windows' own box (twice)…" : "", true); const j = await vPost("hello", { on, password: on ? $("vmHp").value : "" }); if (!j.error) { vTell(on ? "Windows Hello opens the vault now too." : "Windows Hello is off.", true); vMoreDraw(); } });
+  sub("vmP", async () => { const j = await vPost("password", { old: $("vmP0").value, password: $("vmP1").value, again: $("vmP2").value }); if (!j.error) { vTell("The master password is changed.", true); vMoreDraw(); } });
+  sub("vmC", async () => { const j = await vPost("recovery", { password: $("vmCp").value }); if (!j.error) vCode(j.recovery); });
+  sub("vmE", async () => { const j = await vPost("export", { password: $("vmEp").value }); if (!j.error) { $("vmEp").value = ""; vTell("Not encrypted: " + j.path, true); } });
+  $("vmI1").onclick = () => $("vmF").click(); $("vmF").onchange = async () => { const f = $("vmF").files[0]; if (!f) return; if (f.size > 4194304) return vTell("That file is too big (4 MB at most)."); const j = await vPost("import", { text: await f.text() }); if (!j.error) { vTell(`${j.imported.added} added${j.imported.same ? `, ${j.imported.same} were here already` : ""}${j.imported.bad ? `, ${j.imported.bad} couldn't be read` : ""}. Now delete the CSV: it isn't encrypted.`, true); vMoreDraw(); } };
+  if ($("vmB")) $("vmB").onclick = () => lnArm("vmB", $("vmB"), async () => { const j = await vPost("empty"); if (!j.error) vMoreDraw(); }); document.querySelectorAll("[data-vre]").forEach(b => b.onclick = async () => { const j = await vPost("restore", { id: b.dataset.vre }); if (!j.error) vMoreDraw(); });
+}
+$("vQ").oninput = () => { clearTimeout(vTimer); vTimer = setTimeout(() => vPost("list"), 200); }; document.querySelectorAll("[data-vk]").forEach(b => b.onclick = () => { vKind = b.dataset.vk; vPost("list"); });
+$("vNew").onclick = () => vForm(vKind || "login"); $("vMore").onclick = vMoreDraw; $("vLock").onclick = async () => { await vPost("lock"); vForget(); vShow(); };
+
 // ---------- privacy ----------
 let pvTab = "over", pvDays = 1, pvWhat = "mic", pvO = null, pvP = null, pvK = null, pvNet = null, pvTimer = 0, tlD = null, tlDay = "", tlKinds = new Set(), tlTimer = 0, tlOpen = "";
 const pvOn = () => !!document.querySelector('.view.active[data-view="privacy"]'), pvTell = (t, good = false) => { $("pvErr").textContent = t || ""; $("pvErr").classList.toggle("ok", good); };
@@ -3893,7 +4136,7 @@ const pvAgo = t => { const d = (t || "").slice(0, 10), now = new Date(), loc = x
 function pvShow() {
   document.querySelectorAll("#pvTabs [data-pv]").forEach(b => { const on = b.dataset.pv === pvTab; b.classList.toggle("on", on); b.setAttribute("aria-selected", on); });
   document.querySelectorAll("[data-pvpane]").forEach(p => p.hidden = p.dataset.pvpane !== pvTab);
-  ({ over: pvOver, net: pvNetLoad, use: pvUseLoad, perm: pvPermLoad, kept: pvKeptLoad, time: tlLoad })[pvTab]();
+  ({ over: pvOver, net: pvNetLoad, use: pvUseLoad, perm: pvPermLoad, kept: pvKeptLoad, time: tlLoad, lock: () => lkLoad() })[pvTab]();
 }
 function pvOpen(tab) { pvTab = tab; pvTell(""); go("privacy"); }
 document.querySelectorAll("#pvTabs [data-pv]").forEach(b => b.onclick = () => { pvTab = b.dataset.pv; pvTell(""); pvShow(); });
@@ -5172,7 +5415,7 @@ loadMics();
     "TRIPS": "pin", "MEETINGS": "chat", "PEOPLE": "user", "BIRTHDAYS": "bell", "HOW IT TALKS WITH YOU": "chat",
     "PLAYING ON THIS PC": "speaker", "PLAYER": "play", "MY LIBRARY": "layers", "PLAYLISTS": "tasks", "RADIO": "wifi", "FOLDERS": "note", "RECORD THE SCREEN": "pc", "RECORDINGS": "layers",
     "MAKE A PICTURE": "zap", "MY PICTURES": "layers", "EDIT": "edit",
-    "WHO MAY READ WHAT": "eye", "WHERE IT WENT TO": "globe", "THE LAST 14 DAYS": "clock", "ABOUT THIS LIST": "note", "THIS APP": "mic", "ALL PROGRAMS": "pc", "EACH KIND OF ACTION": "check", "WHAT IS KEPT": "db", "HOW LONG": "clock",
+    "PRIVACY LOCK": "lock", "WHO MAY READ WHAT": "eye", "WHERE IT WENT TO": "globe", "THE LAST 14 DAYS": "clock", "ABOUT THIS LIST": "note", "THIS APP": "mic", "ALL PROGRAMS": "pc", "EACH KIND OF ACTION": "check", "WHAT IS KEPT": "db", "HOW LONG": "clock",
     "RECORDINGS OF YOUR VOICE": "mic", "TIMELINE": "clock", "YOU ASK OFTEN": "chat" };
   document.querySelectorAll("h4.sec").forEach(h => { const n = SEC[(h.firstChild ? h.firstChild.textContent : "").trim().toUpperCase()]; if (n) h.insertAdjacentHTML("afterbegin", icon(n)); });
   const TAB = { general: "gear", voice: "mic", ai: "layers", privacy: "shield", permissions: "check", alerts: "bell" };
@@ -5617,13 +5860,14 @@ brand();
 requestAnimationFrame(placeClock); setTimeout(placeClock, 600);
 applyTheme();
 applyFace(faceMode);
-openSetup();          // first run: the welcome setup
+lkShow();
+if (!lkS.locked) openSetup();          // first run: the welcome setup
 sizeCanvases(); drawConstel();
 requestAnimationFrame(frame);
 setInterval(tick, 1000); tick();
 connect();
 setInterval(poll, 1500); poll();
-loadInfo();
+if (!lkS.locked) loadInfo();
 </script>
 </body>
 </html>

@@ -681,7 +681,13 @@ def _execute(name: str, tool_input: dict, ctx: ToolContext) -> tuple[Any, bool]:
     from . import netlog, privacy
     if netlog.local_only() and (name in _GOES_OUT or (name, action) in _GOES_OUT_IF):
         return "Local only is on (Privacy page), so this PC doesn't go online: I didn't do that. Tell the user; don't try it another way.", True
-    if name in ("look_at_screen", "take_screenshot") or name == "read_screen_text" and str(tool_input.get("source") or "").lower() != "file":
+    from . import vault
+    looks = name in ("look_at_screen", "take_screenshot") or name == "read_screen_text" and str(tool_input.get("source") or "").lower() != "file"
+    if looks and vault.is_open():
+        return "The user's vault is open, so the assistant doesn't look at the screen until it's locked. Tell the user.", True
+    if name == "clipboard" and action == "read" and vault.on_clipboard():
+        return "What is on the clipboard comes from the user's vault: the assistant can't read it.", True
+    if looks:
         privacy.look("screen", {"look_at_screen": "The assistant looked at the screen", "take_screenshot": "A screenshot was saved", "read_screen_text": "The text on the screen was read"}[name])
     elif name == "clipboard" and action == "read":
         privacy.look("clipboard", "The assistant read the clipboard")

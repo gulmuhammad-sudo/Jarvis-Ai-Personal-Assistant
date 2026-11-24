@@ -31,7 +31,9 @@ _WORDS = {
     "mail_disconnected": "Gmail was disconnected", "journal_ai": "Who may read the journal was changed", "fitness_ai": "Who may read the fitness notes was changed", "meeting_writing_started": "A meeting is written down",
     "meeting_writing_ended": "A meeting isn't written down any more", "screen_recording_started": "A screen recording started", "screen_recording_ended": "The screen recording ended", "image_made_online": "A picture was made online",
     "agent_start": "An agent started", "agent_end": "An agent finished", "automation_start": "An automation started", "automation_end": "An automation finished", "timeline_removed": "Taken out of the conversation history",
-    "permission_hour": "A permission was given for an hour", "permissions_asked_again": "All permissions ask again",
+    "vault_created": "The vault was made", "vault_unlocked": "The vault was opened", "vault_locked": "The vault was locked", "vault_wrong": "A wrong password at the vault", "vault_secret_shown": "A secret of the vault was shown",
+    "vault_secret_copied": "A secret of the vault was copied", "app_locked": "The app was locked", "app_unlocked": "The app was opened again", "lock_wrong": "A wrong PIN at the lock", "lock_settings": "The lock's settings were changed",
+    "lock_pin_set": "The lock's PIN was set", "permission_hour": "A permission was given for an hour", "permissions_asked_again": "All permissions ask again",
 }
 
 

@@ -314,6 +314,9 @@ def kept() -> dict:
     add("pictures", "Pictures you made or edited", *_size(_home("Pictures")), "studio", note="In Pictures › Personal Assistant.")
     add("keys", "AI keys", len(keystore.load()), 0, "models", note="Locked with your Windows account. Only how many is known here.")
     add("mail", "Gmail sign-in", 1 if mail._file().exists() else 0, 0, "planner", note="Locked with your Windows account.")
+    from . import vault
+    files, size = _size(vault.folder())
+    add("vault", "The vault (encrypted)", 1 if vault.exists() else 0, size, "vault", note="Nobody but you can open it; not even this list knows what is in it.")
     add("models", "Voices and speech models", *_size(local_stt.models_dir()), "settings")
     web = _size(DATA_DIR / "webview", 12)[1]
     add("web", "The window's own storage", 1 if web else 0, web, note="Its cache.")

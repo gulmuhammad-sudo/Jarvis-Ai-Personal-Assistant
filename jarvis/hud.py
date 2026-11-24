@@ -26,7 +26,7 @@ from urllib.parse import parse_qs, quote
 
 from . import __version__
 from . import live as live_mod
-from . import agents, alerts, approvals, audit, automations, clock, denoise, docindex, fit, gpu, guard, images, languages, learn, life, local_ai, mail, local_stt, local_tts, media, meet, memory, netlog, news, notes, people, planner, plans, privacy, schedule, screenrec, netcheck, skills, software, stt, storage, timeline, tools, travel, tts, urdu, wake, winmgr
+from . import agents, alerts, approvals, audit, automations, clock, denoise, docindex, fit, gpu, guard, hello, images, languages, learn, life, local_ai, lock, mail, local_stt, local_tts, media, meet, memory, netlog, news, notes, people, planner, plans, privacy, schedule, screenrec, netcheck, skills, software, stt, storage, timeline, tools, travel, tts, urdu, vault, wake, winmgr
 from .brain import make_brain
 from .config import NOTES_DIR
 from .providers import provider_status
@@ -101,6 +101,8 @@ class Hub:
         self.hour: dict[str, float] = {}    # approval kinds allowed for an hour -> until when (monotonic)
         privacy.CHANGED = lambda: self.emit("sensors", sensors=privacy.active())
         self._screen_noted: list[int] = []
+        lock.CHANGED = self._lock_changed
+        vault.CHANGED = lambda: self.emit("vault_state", open=vault.is_open())
         self._ids, self._open_tools = 0, {} # Activity: tool id -> waiting for its result
         tools.RESULT_HOOK = self._tool_result
         tools.WORKSPACES_CHANGED = lambda: self.emit("workspaces_changed")
@@ -156,9 +158,30 @@ class Hub:
             self.history = self.history[-200:]
             if self.keep_history():
                 storage.add_event(ev)             # kept across restarts (only chat / activity types)
+        if lock.is_locked():                      # nothing is told to a locked window but this
+            if event_type == "ringing":
+                ev = {"type": "ringing", "time": ev["time"], "rings": [{**r, "label": "Alarm"} for r in data.get("rings") or []]}
+            elif event_type == "meeting_state":
+                ev = {"type": "meeting_state", "time": ev["time"], "state": {**data["state"], "title": "A meeting"} if data.get("state") else None}
+            elif event_type not in ("lock", "speaker", "screen_state"):
+                return
         with self.sub_lock:
             for q in self.subscribers:
                 q.put(ev)
+
+    def _lock_changed(self, locked: bool, why: str) -> None:
+        """The app was locked or opened."""
+        if locked:
+            vault.lock("the app was locked")
+            for cid in list(self.pending):
+                self.answer_confirm(cid, False, how="the lock")
+            self.live_stop("locked")
+            self.standby_halt()
+            if self.recording:
+                self.recording.stop()
+        self.emit("lock", locked=locked)
+        if not locked and self.standby_wanted():
+            self.standby_start(1)
 
     def set_state(self, state: str) -> None:
         self.state = state
@@ -252,6 +275,8 @@ class Hub:
         """Beep loudly for a warning/alarm (the page asks for this when it shows an alert)."""
         if os.environ.get("JARVIS_NO_SPEAK") == "1":        # demo copies stay quiet
             return
+        if lock.is_locked():
+            text = ""                                        # it rings; what for is for you
         def hold_mic() -> None:          # a live call shouldn't send the beep to Gemini as if you spoke
             self.quiet_for(alerts.duration(kind) + 0.8)
             if self.live:
@@ -294,7 +319,7 @@ class Hub:
             planner.tick(now, self.notify)
         except Exception as e:
             print(f"[planner] {type(e).__name__}: {e}")
-        for part in (life, learn, fit, travel, people):
+        for part in (life, learn, fit, travel, people, vault):
             try:
                 part.tick(now, self.notify)
             except Exception as e:
@@ -306,7 +331,8 @@ class Hub:
                     docindex.start()
         except Exception as e:
             print(f"[documents] {type(e).__name__}: {e}")
-        self.runner.tick(now)
+        if not lock.is_locked():                       # timed automations wait while the app is locked
+            self.runner.tick(now)
 
     def _upcoming(self) -> list[dict]:
         try:
@@ -416,7 +442,7 @@ class Hub:
 
     # ---------- hands-free in Live mode: wait for your voice locally, then start the call ----------
     def standby_wanted(self) -> bool:
-        return bool(self.voice_mode and self.voice_engine == "live" and recorder and live_mod.available()
+        return bool(not lock.is_locked() and self.voice_mode and self.voice_engine == "live" and recorder and live_mod.available()
                     and os.environ.get("JARVIS_HANDSFREE", "on") != "off"      # test copies don't grab the mic
                     and bool(schedule.get_setting("setup_done"))                # not while the welcome setup is open
                     and not (self.live and self.live.active) and not self.recording and not self.meeting_on()
@@ -1010,6 +1036,10 @@ class Hub:
         text = text.strip()
         if not text:
             return
+        if lock.is_locked():
+            if source == "scheduled":
+                self.emit("notify", keep=True, kind="info", text=f"Not done, because the app was locked: {text[:120]}")
+            return
         if source != "scheduled":
             tools.STOP.clear()                 # a new instruction: Stop is over
             plans.new_message("" if source in ("typed", "skill") else text)
@@ -1043,6 +1073,8 @@ class Hub:
         self.emit("speaker", id=cid)
 
     def heard(self, text: str, hands_free: bool = False) -> None:
+        if lock.is_locked():
+            return
         if self.pending and self.voice_answer(text):     # "yes" / "nahi" to the open approval
             return
         if hands_free and self.wake_on() and time.time() > self._awake_until:
@@ -1079,6 +1111,8 @@ class Hub:
     def live_start(self, preroll=None, greet: str | None = None, idle_stop: float | None = None,
                    quiet_room: bool = False) -> None:
         if os.environ.get("JARVIS_NO_MIC") == "1":      # tests and demo copies: not even when the mic button is pressed
+            return
+        if lock.is_locked():
             return
         if netlog.local_only():
             self.emit("notify", keep=True, text="Local only is on: a Live call would send your voice to Google. Turn it off on the Privacy page, or type.", kind="info")
@@ -1265,8 +1299,12 @@ class Hub:
         finally:
             self._mic_busy = False
 
+    def locked_stats(self) -> dict:
+        """All a locked window learns: that it is locked, and what is being recorded (never silent)."""
+        return {"locked": True, "meeting": {**self.meeting.state(), "title": "A meeting"} if self.meeting_on() else None, "screen": self.screen.state()}
+
     def stats(self) -> dict:
-        out = {"state": self.state, "voice_mode": self.voice_mode, "stt": (stt.engines() or ["windows"])[0],
+        out = {"lock_on": lock.settings()["on"], "vault_open": vault.is_open(), "state": self.state, "voice_mode": self.voice_mode, "stt": (stt.engines() or ["windows"])[0],
                "speak": self.speak, "memories": len(memory.all_facts()),
                "provider": getattr(self.brain, "current", "") or (getattr(self.brain, "names", None) or ["none"])[0],
                "providers": getattr(self.brain, "names", []),
@@ -1327,7 +1365,9 @@ class Hub:
 
 
 HUB: Hub | None = None
-LOCAL_CSP = "default-src 'self' data: blob:; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; media-src 'self' data: blob:; connect-src 'self' data: blob:; font-src 'self' data:; frame-src 'none'; form-action 'self'"
+# what a locked app still does: opening it, stopping, silencing an alarm, showing its window, and ending or finishing a recording
+WHILE_LOCKED = {"/api/lock/state", "/api/lock/hello", "/api/lock/pin", "/api/stop", "/api/window", "/api/clock/ring_stop", "/api/rec/piece", "/api/rec/stop", "/api/rec/stop_any", "/api/meet/stop"}
+LOCAL_CSP = "default-src 'self' data: blob:; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; media-src 'self' data: blob:; connect-src 'self' data: blob:; font-src 'self' data:; frame-src blob:; form-action 'self'"
 REC_HOOK = None                                # desktop.py: shows or hides the REC window above all others
 
 
@@ -1384,7 +1424,8 @@ class Handler(BaseHTTPRequestHandler):
             html = (HTML_FILE.read_text(encoding="utf-8").replace("__TOKEN__", TOKEN)
                     .replace('"__AGENT__"', json.dumps(name)).replace("__AGENT__", _html.escape(name))
                     .replace("__THEME__", schedule.theme()).replace("__FACE__", schedule.get_setting("face") or "globe")
-                    .replace("__USER__", memory.call_name()))
+                    .replace('"__LOCK__"', json.dumps(lock.state()))
+                    .replace("__USER__", "" if lock.is_locked() else memory.call_name()))
             if netlog.local_only():                              # the window too: no letters from Google Fonts, and the page may load from this PC only
                 html = re.sub(r"<link[^>]+fonts\.g[^>]+>\s*", "", html)
             body = html.encode()
@@ -1401,6 +1442,8 @@ class Handler(BaseHTTPRequestHandler):
             return
         if not self._token_ok((parse_qs(query).get("token") or [""])[0]):
             return self._json({"error": "forbidden"}, 403)
+        if lock.is_locked() and path not in ("/events", "/recpill"):
+            return self._json(HUB.locked_stats()) if path == "/api/stats" else self._json({"error": "locked"}, 423)
         if path == "/api/stats":
             return self._json(HUB.stats())
         if path == "/recpill":                               # the small REC window above all others
@@ -1472,7 +1515,9 @@ class Handler(BaseHTTPRequestHandler):
             HUB.clients.append(cid)
         HUB.set_speaker(cid)  # the newest window becomes the voice; the others stay silent
         try:
-            self.wfile.write(f"data: {json.dumps({'type': 'replay', 'client': cid, 'speaker': HUB.speaker, 'events': HUB.history, 'state': HUB.state, 'voice_mode': HUB.voice_mode, 'speak': HUB.speak, 'language': HUB.language, 'pending': [{'id': k, 'question': v['question']} for k, v in list(HUB.pending.items())]})}\n\n".encode())
+            shut = lock.is_locked()
+            first = {"type": "replay", "client": cid, "speaker": HUB.speaker, "events": [], "state": "idle", "voice_mode": False, "speak": False, "language": HUB.language, "pending": []}
+            self.wfile.write(f"data: {json.dumps(first if shut else {'type': 'replay', 'client': cid, 'speaker': HUB.speaker, 'events': HUB.history, 'state': HUB.state, 'voice_mode': HUB.voice_mode, 'speak': HUB.speak, 'language': HUB.language, 'pending': [{'id': k, 'question': v['question']} for k, v in list(HUB.pending.items())]})}\n\n".encode())
             self.wfile.flush()
             while True:
                 try:
@@ -1773,7 +1818,7 @@ class Handler(BaseHTTPRequestHandler):
         """The Daily page's Travel, Meetings and People: your own clicks."""
         try:
             num = lambda k="id": int(data.get(k))                                        # noqa: E731
-            out = {"travel": self._travel, "meet": self._meet, "people": self._people, "media": self._media, "rec": self._rec, "images": self._images, "privacy": self._privacy, "time": self._time}[page](action, data, num)
+            out = {"travel": self._travel, "meet": self._meet, "people": self._people, "media": self._media, "rec": self._rec, "images": self._images, "privacy": self._privacy, "time": self._time, "lock": self._lock_api}[page](action, data, num)
         except (ValueError, TypeError, KeyError, AttributeError) as e:
             return self._json({"error": str(e) if isinstance(e, ValueError) and str(e)[:1].isupper() else "Something is missing or wrong."}, 400)
         except OSError as e:
@@ -1964,7 +2009,7 @@ class Handler(BaseHTTPRequestHandler):
             {"id": "agents", "name": "Agents that may see your memories", "state": ", ".join(a["name"] for a in ag) or "none", "go": "agents"},
             {"id": "auto", "name": "Automations that are on", "state": ", ".join(a["name"] for a in au)[:200] or "none", "go": "auto"},
             {"id": "rules", "name": "Your rules it always follows", "state": ", ".join(x["name"] for x in rules)[:200] or "none", "go": "tools"},
-            {"id": "never", "name": "AI keys, the Gmail password, phone numbers of your people, this page", "state": "never", "go": ""},
+            {"id": "never", "name": "The vault, AI keys, the Gmail password, phone numbers of your people, this page", "state": "never", "go": ""},
         ]
 
     @staticmethod
@@ -2044,6 +2089,128 @@ class Handler(BaseHTTPRequestHandler):
             os.startfile(str(DATA_DIR))
             return {"ok": True}
         return None
+
+    # ---------- privacy lock and vault ----------
+    @staticmethod
+    def _lock_api(action: str, data: dict, num) -> dict | None:
+        if action == "state":
+            return lock.state()
+        if action == "hello":
+            lock.unlock_hello()
+            return lock.state()
+        if action == "pin":
+            lock.unlock_pin(data.get("pin"))
+            return lock.state()
+        if action == "now":
+            if not lock.lock("you locked it"):
+                raise ValueError("Choose first how to open it again (Privacy › Lock).")
+            return lock.state()
+        if action == "settings":
+            return lock.set_settings(data) if data else lock.settings()
+        if action == "set_pin":
+            lock.set_pin(data.get("pin"), data.get("again"), data.get("old"))
+            return lock.settings()
+        if action == "remove_pin":
+            lock.remove_pin(data.get("old"))
+            return lock.settings()
+        return None
+
+    def _vault(self, action: str, data: dict) -> None:
+        """The Vault page: the owner's own clicks. Nothing here goes to the AI, the Activity list, the history or a log."""
+        s, i = data.get("session"), data.get("id")
+        try:
+            out: dict = {}
+            if action == "status":
+                return self._json(vault.status())
+            if action == "create":
+                out = vault.create(data.get("password"), data.get("again"))
+                audit.record("vault_created")
+            elif action == "unlock":
+                out = {"session": vault.unlock(data.get("password"))}
+                audit.record("vault_unlocked", how="password")
+            elif action == "unlock_hello":
+                out = {"session": vault.unlock_hello()}
+                audit.record("vault_unlocked", how="Windows Hello")
+            elif action == "recover":
+                out = vault.unlock_recovery(data.get("code"), data.get("password"), data.get("again"))
+                audit.record("vault_unlocked", how="recovery code")
+            elif action == "lock":
+                vault.lock("you locked it")
+                return self._json(vault.status())
+            elif action == "remove":
+                vault.remove(data.get("word"))
+                audit.record("vault_removed")
+                return self._json(vault.status())
+            else:
+                vault.need(s)
+            if action == "view":                          # a file, to look at on the page
+                name, body = vault.file_get(s, data.get("file"))
+                return self._bytes(body, {".png": "image/png", ".jpg": "image/jpeg", ".jpeg": "image/jpeg", ".webp": "image/webp", ".gif": "image/gif", ".bmp": "image/bmp", ".pdf": "application/pdf",
+                                          ".txt": "text/plain; charset=utf-8"}.get(os.path.splitext(name)[1].lower(), "application/octet-stream"))
+            if action == "get":
+                return self._json(vault.get(s, i))
+            if action == "reveal":
+                audit.record("vault_secret_shown")
+                return self._json(vault.reveal(s, i, data.get("field")))
+            if action == "copy":
+                audit.record("vault_secret_copied")
+                return self._json({"seconds": vault.copy(s, i, data.get("field"))})
+            if action == "generate":
+                pw = vault.generate(data.get("length"), data.get("upper"), data.get("digits"), data.get("signs"), data.get("clear"))
+                return self._json({"password": pw, "strength": vault.strength(pw)})
+            if action == "strength":
+                return self._json({"strength": vault.strength(data.get("password"))})
+            if action == "trash":
+                return self._json({"trash": vault.trash(s)})
+            if action == "health":
+                return self._json(vault.health(s))
+            if action == "save":
+                out["saved"] = vault.save(s, data.get("kind"), data.get("fields"), i, data.get("fav"), data.get("tags"))["id"]
+            elif action == "delete":
+                vault.delete(s, i)
+            elif action == "restore":
+                vault.restore(s, i)
+            elif action == "empty":
+                out["emptied"] = vault.empty_trash(s)
+            elif action == "file_delete":
+                vault.file_delete(s, data.get("file"))
+            elif action == "file_save":
+                out["path"] = str(vault.file_save(s, data.get("file")))
+                audit.record("vault_file_saved_outside")
+            elif action == "import":
+                out["imported"] = vault.import_csv(s, data.get("text"))
+                audit.record("vault_imported", things=out["imported"]["added"])
+            elif action == "export":
+                out["path"] = str(vault.export_csv(s, data.get("password")))
+                audit.record("vault_exported_unencrypted")
+            elif action == "password":
+                vault.change_password(s, data.get("old"), data.get("password"), data.get("again"))
+                audit.record("vault_password_changed")
+            elif action == "recovery":
+                out["recovery"] = vault.new_recovery(s, data.get("password"))
+                audit.record("vault_recovery_changed")
+            elif action == "hello":
+                vault.hello_on(s, data.get("password")) if data.get("on") is True else vault.hello_off(s)
+                audit.record("vault_hello", on=data.get("on") is True)
+            elif action == "settings":
+                vault.settings(data)
+            elif action not in ("list", "create", "unlock", "unlock_hello", "recover"):
+                return self._json({"error": "unknown action"}, 404)
+            s = out.get("session") or s
+            return self._json({**out, "status": vault.status(), "entries": vault.listing(s, data.get("query"), data.get("only"), data.get("fav_only")), "kinds": vault.KINDS, "papers": vault.PAPERS})
+        except (ValueError, TypeError, KeyError, AttributeError) as e:
+            return self._json({"error": str(e) if isinstance(e, ValueError) and str(e)[:1].isupper() else "Something is missing or wrong.", "open": vault.is_open()}, 400)
+        except OSError as e:
+            return self._json({"error": f"Windows said: {e.strerror or e}"}, 500)
+
+    def _bytes(self, body: bytes, kind: str) -> None:
+        self.send_response(200)
+        self.send_header("Content-Type", kind)
+        self.send_header("Content-Length", str(len(body)))
+        self.send_header("Cache-Control", "no-store")
+        self.send_header("X-Content-Type-Options", "nosniff")
+        self.end_headers()
+        self.wfile.write(body)
 
     @staticmethod
     def _time(action: str, data: dict, num) -> dict | None:
@@ -2204,9 +2371,11 @@ class Handler(BaseHTTPRequestHandler):
     def do_POST(self) -> None:
         if not self._host_ok() or not self._token_ok(self.headers.get("X-Jarvis-Token")):
             return self._json({"error": "forbidden"}, 403)
+        if lock.is_locked() and self.path.partition("?")[0] not in WHILE_LOCKED:
+            return self._json({"error": "locked"}, 423)
         if self.path == "/api/transcribe":
             return self._transcribe()
-        if self.path.partition("?")[0] in ("/api/rec/piece", "/api/images/keep"):
+        if self.path.partition("?")[0] in ("/api/rec/piece", "/api/images/keep", "/api/vault/file"):
             return self._binary(self.path.partition("?")[0], parse_qs(self.path.partition("?")[2]))
         if self.path == "/api/tts":
             return self._tts()
@@ -2457,10 +2626,12 @@ class Handler(BaseHTTPRequestHandler):
             return self._learn(self.path.rsplit("/", 1)[1], data)
         elif self.path.startswith("/api/fit/"):        # Daily page: Fitness
             return self._fit(self.path.rsplit("/", 1)[1], data)
-        elif self.path.startswith(("/api/travel/", "/api/meet/", "/api/people/", "/api/media/", "/api/rec/", "/api/images/", "/api/privacy/", "/api/time/")):       # Daily, Studio and Privacy pages
+        elif self.path.startswith(("/api/travel/", "/api/meet/", "/api/people/", "/api/media/", "/api/rec/", "/api/images/", "/api/privacy/", "/api/time/", "/api/lock/")):       # Daily, Studio and Privacy pages
             return self._daily_api(*self.path.split("/")[2:4], data)
         elif self.path.startswith("/api/news/"):       # Daily page: News
             return self._news(self.path.rsplit("/", 1)[1], data)
+        elif self.path.startswith("/api/vault/"):      # Vault page
+            return self._vault(self.path.rsplit("/", 1)[1], data)
         elif self.path.startswith("/api/mail/"):       # Planner page: Email
             return self._mail(self.path.rsplit("/", 1)[1], data)
         elif self.path.startswith("/api/agents/"):     # Agents page
@@ -2632,6 +2803,9 @@ class Handler(BaseHTTPRequestHandler):
             if path == "/api/rec/piece":
                 HUB.screen.piece(one("id"), one("n"), self._body(screenrec.MAX_PIECE))
                 return self._json({"ok": True})
+            if path == "/api/vault/file":
+                vault.need(self.headers.get("X-Vault"))
+                return self._json(vault.file_add(self.headers.get("X-Vault"), one("entry"), one("name"), self._body(vault.MAX_FILE)))
             p = images.keep(self._body(images.MAX_IN), one("name"), one("fmt") or "png", one("quality") or 90)
             HUB.emit("studio_changed", what="images")
             return self._json({"ok": True, "name": p.name, "path": str(p)})
@@ -2758,6 +2932,7 @@ def main(open_window: bool = True, watchdog: bool = True, ready: threading.Event
     netlog.install()                                # before anything goes online
     HUB = Hub()
     privacy.start()
+    lock.start()
     threading.Thread(target=HUB.brain_worker, daemon=True).start()
     threading.Thread(target=HUB.cpu_sampler, daemon=True).start()
     gpu.monitor()                                   # GPU usage, sampled every 2 s

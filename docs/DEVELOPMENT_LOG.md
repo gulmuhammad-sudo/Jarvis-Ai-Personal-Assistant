@@ -2,6 +2,17 @@
 
 Newest first. Each entry: what was done, how it was tested, what is open, the next task.
 
+## 2026-11-24 — Session 2, part 22: Phase 9 part 2 — vault and privacy lock (v1.31.2)
+
+**Decided by the owner** — the vault opens with the master password and, if turned on, Windows Hello; the lock with Windows Hello, the
+app's PIN, or either.
+
+**Done** — `jarvis/vault.py`, `jarvis/hello.py` (UserConsentVerifier for the lock; a KeyCredential signature as the vault's third key),
+`jarvis/lock.py`, page Vault, Privacy › Lock, lock screen, `WHILE_LOCKED`, `Hub._lock_changed`, `locked_stats`, `cryptography` in the
+requirements. 1.31.1 was pushed and released before ("Theme glitch fix").
+
+**Next** — ask the owner: part 3 (backup and restore, diagnostics, repair). The vault folder must be part of a backup (it is encrypted).
+
 ## 2026-11-24 — Session 2, part 21b: options that jumped (v1.31.1)
 
 **Reported by the owner** — every option flickers between old and new after a change. **Cause** — overlapping, slow `/api/stats` polls

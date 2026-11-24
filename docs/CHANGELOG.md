@@ -2,6 +2,19 @@
 
 Each version is also a git tag (`git tag -n20 vX.Y.Z` shows its notes). Newest first.
 
+## 1.31.2 — 2026-11-24 (not pushed yet)
+The vault and the privacy lock (Phase 9 part 2).
+- Vault: passwords, cards, documents (CNIC, passport…), notes and files, encrypted on this PC (AES-256-GCM; the key from your master
+  password with scrypt). Opens with the master password, with Windows Hello if you turn it on, or with the recovery code shown once.
+  Password maker, 2-step codes, weak / repeated / old passwords, old versions, a bin, bringing in a CSV from any browser, reminders
+  before a document runs out (only the day is known outside). Copies leave the clipboard after 30 seconds and stay out of Windows'
+  clipboard history. Locks by itself, with Windows, with sleep.
+- The AI has no way in: no tool, agent or automation; it doesn't look at the screen while the vault is open and can't read the
+  clipboard while something from the vault is on it.
+- Privacy lock: covers the whole app (the app itself refuses everything, not only a cover), opened with Windows Hello, the app's own PIN
+  or either. By the button at the top, Ctrl+L, the icon by the clock, when the PC isn't touched, when Windows is locked, at the start.
+  Alarms still ring (without saying what for), recordings go on and stay visible, timed automations wait. Never opened by voice.
+
 ## 1.31.1 — 2026-11-24 (Theme glitch fix)
 Every option stays where you put it.
 - Fixed: after changing an option (theme, voice, model, any switch) it jumped back to the old value and forth again, once or twice.

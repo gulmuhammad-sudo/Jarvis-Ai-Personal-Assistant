@@ -93,7 +93,7 @@ class Tray:
         try:
             import System.Windows.Forms as WF  # type: ignore
             from System.Drawing import Font, FontStyle, Icon, SystemIcons  # type: ignore
-            from . import hud, live as live_mod, schedule
+            from . import hud, live as live_mod, lock as lock_mod, schedule
 
             def later(fn):                             # never block the tray's own thread
                 return lambda *_: threading.Thread(target=fn, daemon=True).start()
@@ -128,6 +128,8 @@ class Tray:
             live_item.Click += later(toggle_live)
             stop_item = menu.Items.Add("Stop everything")
             stop_item.Click += later(lambda: hud.HUB and hud.HUB.emergency_stop("tray menu"))
+            lock_item = menu.Items.Add("Lock the app")
+            lock_item.Click += later(lambda: lock_mod.lock("you locked it"))
             menu.Items.Add(WF.ToolStripSeparator())
             boot_item = WF.ToolStripMenuItem("Start with Windows")
             boot_item.Click += later(toggle_startup)
@@ -138,7 +140,8 @@ class Tray:
 
             def opening(*_):
                 live_item.Text = "End live call" if live_active() else "Start live call"
-                live_item.Enabled = live_active() or live_mod.available()
+                live_item.Enabled = (live_active() or live_mod.available()) and not lock_mod.is_locked()
+                lock_item.Enabled = lock_mod.settings()["on"] and not lock_mod.is_locked()
                 boot_item.Checked = schedule.get_setting("start_with_windows", True) is not False
             menu.Opening += opening
 
