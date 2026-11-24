@@ -2,7 +2,7 @@
 
 Each version is also a git tag (`git tag -n20 vX.Y.Z` shows its notes). Newest first.
 
-## 1.30.0 — 2026-11-24 (not pushed yet)
+## 1.30.0 — 2026-11-24
 Media, screen recording and pictures: a new Studio page (Phase 8 part 4; Phase 8 is complete).
 - Media: what is playing on this PC, in any app, with its controls and the volume; your own music and videos from folders you choose
   (search, playlists, mixed order, repeat), free internet radio with your own stations. It gets quieter by itself while someone

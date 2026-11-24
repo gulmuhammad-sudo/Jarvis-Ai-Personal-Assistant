@@ -1,4 +1,4 @@
-# Personal Assistant 1.29.0
+# Personal Assistant 1.30.0
 
 A personal AI assistant for Windows: it talks, listens and gets things done on your PC, in English, Urdu or almost any language. Free.
 
@@ -7,7 +7,7 @@ A personal AI assistant for Windows: it talks, listens and gets things done on y
 | File | For whom |
 |---|---|
 | **`Personal-Assistant-Setup.exe`** | everyone: the one file you need |
-| `Personal-Assistant-1.29.0.zip` | the same Setup in a folder with the instructions (if your browser blocks `.exe` files) |
+| `Personal-Assistant-1.30.0.zip` | the same Setup in a folder with the instructions (if your browser blocks `.exe` files) |
 | `SHA256.txt` | to check the download (optional) |
 | *Source code (zip / tar.gz)* | developers only: **there is no app inside** |
 
@@ -18,6 +18,14 @@ A personal AI assistant for Windows: it talks, listens and gets things done on y
 Windows 10 (1809 or newer) or 11, 64-bit. Updating: run this Setup; your settings, memories and keys stay. Problems: [Install help](https://github.com/gulmuhammad-sudo/Jarvis-Ai-Personal-Assistant/blob/main/docs/INSTALL.md).
 
 **Urdu:** `Personal-Assistant-Setup.exe` download karke kholein. Windows roke to **More info → Run anyway**. Phir Next dabate jayen. *Source code* wali file mein app nahi hoti.
+
+## New in 1.30.0
+
+A new **Studio** page:
+
+- **Media:** what is playing on your PC, its controls and the volume; your own music and videos with playlists; free internet radio. It gets quieter by itself while someone speaks or something rings.
+- **Recorder:** record the screen, a window or a tab, with the computer's sound and your microphone if you want. Never silent: only its button starts it, Windows asks what to share, a red bar and a small REC window stay visible.
+- **Images:** crop, turn, size, colours, text (Urdu too), see-through background, on your PC; and make pictures online for free.
 
 ## New in 1.29.0
 

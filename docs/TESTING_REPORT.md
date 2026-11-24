@@ -19,7 +19,9 @@ set PA_TEST_NETWORK=1 && .venv\Scripts\python -m pytest tests   # also the onlin
 | Running app (test copy, own home folder, no mic; real radio and one real picture) | pass | every button of the three tabs at 1534x787 (the PC's volume and other apps' music were caught, not changed), light theme, 620x760. Fixed: a folder offered twice, the position left after Stop |
 | The recorder for real | pass | hidden Edge, its own getDisplayMedia limited to the test page's own tab, with sound: 0.6 MB, plays. A pretend screen: start, pause, stop, Emergency Stop, "stop sharing", nothing chosen |
 | The REC window for real | pass | the app's window (WebView2) can record; the window is above all others, says the time, its Stop works, it goes away |
-| Not tested | — | a real screen with Windows' box in the app's own window, sound and microphone together, other apps' music, the packaged exe |
+| Packaged exe 1.30.0 (built from 62836f2) | 80 / 80 and 137 / 137 | 21 new checks: Windows is asked what plays from inside the exe, the library and parts of files, nothing without the token, playing by the AI, real radio list; a recording doesn't start without the button's word, pieces in order, Emergency Stop keeps it, to the Recycle Bin; pictures without metadata, a smaller copy by the AI, online only after a yes; kept after a restart |
+| What a new user gets (the release files) | 15 / 15 | as before |
+| Not tested | — | a real screen with Windows' box in the app's own window, sound and microphone together, other apps' music |
 
 ## 2026-11-24 — Travel, meetings, people (v1.29.0)
 
