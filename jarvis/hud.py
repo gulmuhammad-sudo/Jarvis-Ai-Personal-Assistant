@@ -91,6 +91,8 @@ class Hub:
         tools.STUDIO_CHANGED = lambda what: self.emit("studio_changed", what=what)
         self._listen_lock = threading.Lock()
         self._mic_cache: tuple[float, dict] = (0.0, {})
+        self._mic_known: dict = {}
+        self._mic_busy, self._mic_asking = False, threading.Lock()
         self.live: live_mod.LiveSession | None = None     # the live conversation in progress
         self._live_user = ""
         self.voice_engine = schedule.get_setting("voice_engine", "live")
@@ -1236,16 +1238,32 @@ class Hub:
         self.emit("settings", voice_mode=self.voice_mode, speak=self.speak, language=self.language)
 
     def mic_status(self) -> dict:
-        """Chosen mic, Windows mute state and input level (cached briefly: asking Windows is slow)."""
+        """Chosen mic, Windows mute state and input level. Asking Windows takes seconds: it happens in the background, and
+        what was known last is given meanwhile (the page's other settings never wait for it)."""
         if not recorder or not recorder._chosen:
             return {"mic": None, "mic_muted": False, "mic_level": None}
         at, cached = self._mic_cache
-        if time.time() - at < 3 and cached.get("mic") == recorder._chosen["name"]:
-            return cached
         name = recorder._chosen["name"]
-        status = {"mic": name, "mic_muted": bool(recorder.is_muted(name)), "mic_level": recorder.level(name)}
-        self._mic_cache = (time.time(), status)
-        return status
+        if time.time() - at >= 3 or cached.get("mic") != name:
+            with self._mic_asking:
+                ask = not self._mic_busy
+                self._mic_busy = True
+            if ask:
+                threading.Thread(target=self._mic_ask, args=(name,), name="jarvis-mic-status", daemon=True).start()
+        if cached.get("mic") == name:
+            return cached
+        return self._mic_known if self._mic_known.get("mic") == name else {"mic": name, "mic_muted": False, "mic_level": None}
+
+    def _mic_ask(self, name: str) -> None:
+        try:
+            status = {"mic": name, "mic_muted": bool(recorder.is_muted(name)), "mic_level": recorder.level(name)}
+            self._mic_known = status                 # (stays known when the cache is emptied to ask again)
+            self._mic_cache = (time.time(), status)
+        except Exception as e:
+            print(f"[voice] the microphone's state: {type(e).__name__}: {e}")
+            self._mic_cache = (time.time(), self._mic_cache[1])
+        finally:
+            self._mic_busy = False
 
     def stats(self) -> dict:
         out = {"state": self.state, "voice_mode": self.voice_mode, "stt": (stt.engines() or ["windows"])[0],
@@ -2204,6 +2222,7 @@ class Handler(BaseHTTPRequestHandler):
             if action == "rescan":
                 local_ai._cache["models"] = None
                 local_ai.start()
+                local_ai._ask()
                 HUB.rebuild_brain()
             elif action == "use" and data.get("model") in [m["name"] for m in local_ai.models(refresh=True)]:
                 schedule.set_setting("local_model", data["model"])
@@ -2345,6 +2364,8 @@ class Handler(BaseHTTPRequestHandler):
         elif self.path == "/api/mic_unmute":
             name = (recorder.choose_mic() or {}).get("name") if recorder else None
             ok = bool(name) and recorder.unmute(name)
+            if ok:
+                HUB._mic_known = {**HUB._mic_known, "mic_muted": False}
             HUB.emit("tool", keep=True, name="microphone", args=f"unmuted {name}" if ok else "couldn't unmute")
             HUB._mic_cache = (0.0, {})
             return self._json({"ok": ok, "mic": name})
@@ -2505,6 +2526,9 @@ class Handler(BaseHTTPRequestHandler):
         text = (q.get("text") or [""])[0][:1200]
         voice = (q.get("voice") or [None])[0]
         t0 = time.time()
+        trying = (q.get("try") or [""])[0]
+        if trying:                             # the Test button of a voice on this PC: that voice, once
+            return self._send_local_voice(text, trying) if trying in local_tts.installed() else self._json({"error": "not there"}, 404)
         local = tts.local_voice(text, HUB.language)
         if local:                              # Settings › Voices: this PC (or offline in Auto)
             return self._send_local_voice(text, local)

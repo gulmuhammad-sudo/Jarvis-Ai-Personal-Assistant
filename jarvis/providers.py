@@ -563,9 +563,9 @@ def provider_status(brain) -> list[dict]:
                 model = next((getattr(b, "model", "") for l, b in getattr(brain, "backends", []) if l == label), "")
                 status = "active" if label == current else ("limited" if label in limited else "connected")
                 out.append({"label": label, "status": status, "detail": limited.get(label, f"{model} (on this PC)")})
-            elif not local_ai.installed():
+            elif not local_ai.known()[0]:
                 out.append({"label": label, "status": "not set up", "detail": "install Ollama (free) to use AI offline"})
-            elif not local_ai.running():
+            elif not local_ai.known()[1]:
                 out.append({"label": label, "status": "offline", "detail": "Ollama isn't running"})
             else:
                 out.append({"label": label, "status": "not set up", "detail": "download a model on the AI Models page"})

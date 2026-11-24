@@ -11,6 +11,16 @@ set PA_TEST_NETWORK=1 && .venv\Scripts\python -m pytest tests   # also the onlin
 .venv\Scripts\python packaging\build.py              # then smoke-test the packaged exe (see below)
 ```
 
+## 2026-11-24 — Options that jumped back and forth (v1.31.1)
+
+| Suite | Result | Notes |
+|---|---|---|
+| Before, in the running app (status answers 2.6 s late) | 13 of 13 options jumped | "light > dark > light > dark", "Off > On > Off > On" |
+| After | 20 of 20 changed once | at normal speed, 2.6 s late, and 0 to 6.5 s late in mixed order; six quick theme clicks in a row |
+| Status answer | 1550 ms → 45 ms | without Ollama; the microphone's state in the background |
+| `pytest tests` | 1192 passed, 4 skipped | new tests/test_steady.py (13) |
+| Not tested | — | with a real microphone and real AI models (none in the test copy); the packaged exe |
+
 ## 2026-11-24 — Privacy and the timeline (v1.31.0)
 
 | Suite | Result | Notes |

@@ -1991,10 +1991,26 @@ function md(s) {
     .replace(/\n/g, "<br>");
   return s.replace(/\u0000(\d+)\u0000/g, (_, i) => `<pre><code>${esc(blocks[+i])}</code></pre>`);
 }
+// What you choose wins over older news: an answer about the settings that was asked for before your click (or while it is on its way) is never painted.
+const CHANGES = /^\/api\/(settings|live|mic|mic_unmute|mic_boost|local|setup|profile|approvals\/reset|history\/clear|privacy\/(local_only|access|rule|hour|ask_again|kept|clear))$/;
+let chgSeq = 0, chgBusy = 0, chgTimer = 0;
+const chosen = {};                                       // key -> { v, until }: what you just chose; an older echo of it isn't painted either
 async function post(path, body = {}) {
+  const change = CHANGES.test(path);
+  if (change) {
+    chgBusy++; chgSeq++;
+    if (path === "/api/settings") for (const [k, v] of Object.entries(body)) if (v === null || typeof v !== "object") chosen[k] = { v, until: Date.now() + 2500 };
+  }
   try {
     return await fetch(path, { method: "POST", headers: { "Content-Type": "application/json", "X-Jarvis-Token": TOKEN }, body: JSON.stringify(body) });
-  } catch (e) { console.warn(e); }
+  } catch (e) { console.warn(e); } finally {
+    if (change) { chgBusy--; chgSeq++; clearTimeout(chgTimer); chgTimer = setTimeout(poll, 250); }
+  }
+}
+function newsOnly(ev) {                                  // without what is older than your last choice
+  const out = { ...ev };
+  for (const k of Object.keys(out)) { const c = chosen[k]; if (c && Date.now() < c.until && out[k] !== c.v) delete out[k]; }
+  return out;
 }
 function isUrdu(t) { return /[\u0600-\u06FF]/.test(t || ""); }
 function nowT() { return new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", hour12: false }); }
@@ -2259,7 +2275,7 @@ function handle(ev) {
       addFeed({ title: "Something went wrong", sub: ev.text, tag: "ALERT", ic: "warn", time: ev.time });
       break;
     case "state": setState(ev.state); break;
-    case "settings": applySettings(ev); if ("local_only" in ev) pvLocalSet(ev.local_only); break;
+    case "settings": chgSeq++; applySettings(newsOnly(ev)); if ("local_only" in ev) pvLocalSet(ev.local_only); break;
     case "sensors": pvSense(ev.sensors); if (pvOn() && !replaying && (pvTab === "over" || pvTab === "use")) { clearTimeout(pvTimer); pvTimer = setTimeout(pvShow, 400); } break;
     case "confirm":
       confirmQueue.push({ ...ev, until: Date.now() + (ev.timeout || 180) * 1000 }); showConfirm();
@@ -2626,7 +2642,7 @@ function paintLive() {
 }
 $("engLive").onclick = async () => { live.engine = "live"; paintLive(); renderLabel(); await post("/api/live", { engine: "live" }); };
 $("engClassic").onclick = async () => { live.engine = "classic"; if (live.active) await post("/api/live", { on: false }); paintLive(); renderLabel(); await post("/api/live", { engine: "classic" }); };
-$("liveVoiceSel").onchange = () => post("/api/live", { voice: $("liveVoiceSel").value });
+$("liveVoiceSel").onchange = () => { live.voice = $("liveVoiceSel").value; if (lastStats && lastStats.live) lastStats.live.voice = live.voice; post("/api/live", { voice: live.voice }); };
 $("speakBtn").onclick = $("speakBtn2").onclick = () => post("/api/settings", { speak: !settings.speak });
 $("resetBtn").onclick = $("resetBtn2").onclick = $("resetBtn3").onclick = () => post("/api/reset");
 $("briefing").onclick = () => send("Give me my daily briefing.");
@@ -2955,12 +2971,26 @@ function fmtRate(b) { return b > 1048576 ? (b / 1048576).toFixed(1) + " MB/s" : 
 let lastNet = null, lastNetT = 0, alertAt = {};
 const hotFor = { cpu: 0, ram: 0 };
 function alertOnce(key, item) { if (Date.now() - (alertAt[key] || 0) > 5 * 60000) { alertAt[key] = Date.now(); addFeed(item); } }
+let pollBusy = 0, pollMore = false, pollNo = 0, pollSeen = 0;
 async function poll() {
+  if (pollBusy && Date.now() - pollBusy < 4000) { pollMore = true; return; }        // one question at a time (unless one got stuck): answers can't overtake each other
+  const mine = pollBusy = Date.now();
+  try { await pollOnce(++pollNo); } finally {
+    if (pollBusy === mine) pollBusy = 0;
+    if (pollMore) { pollMore = false; clearTimeout(chgTimer); chgTimer = setTimeout(poll, 250); }
+  }
+}
+async function pollOnce(no) {
   try {
-    const asked = Date.now();
-    const r = await fetch(`/api/stats?token=${TOKEN}`, { cache: "no-store" });
+    const asked = Date.now(), seq = chgSeq;
+    if (chgBusy) { pollMore = true; return; }              // a choice of yours is on its way: ask after it
+    const r = await fetch(`/api/stats?token=${TOKEN}`, { cache: "no-store", signal: AbortSignal.timeout(20000) });
     if (r.status === 403) { location.reload(); return; }   // Jarvis restarted: pick up the new session
-    const s = await r.json(); lastStats = s;
+    const s = await r.json();
+    if (chgBusy || seq !== chgSeq) { pollMore = true; return; }        // older than your last choice
+    if (no < pollSeen) return;                             // a newer one is painted already
+    pollSeen = no;
+    lastStats = s;
     if (s.assistant_name && s.assistant_name !== AGENT) { location.reload(); return; }
     if (s.theme && s.theme !== themeMode && document.activeElement && !document.activeElement.dataset.themeBtn) applyTheme(s.theme);
     setGauge("gpu", s.gpu);
@@ -3069,7 +3099,7 @@ function renderModels() {
 let localInfo = null;
 async function loadLocal(action) {
   try {
-    localInfo = action ? await post("/api/local", action)
+    localInfo = action ? await (await post("/api/local", action)).json()
                        : await (await fetch(`/api/local?token=${TOKEN}`, { cache: "no-store" })).json();
   } catch { localInfo = null; }
   renderLocal();
@@ -5107,7 +5137,8 @@ async function loadMics() {
     const j = await (await fetch(`/api/mics?token=${TOKEN}`)).json();
     $("micSel").innerHTML = `<option value="">Automatic (${esc(j.chosen || "none")})</option>`
       + j.mics.map(m => `<option value="${esc(m.name)}">${esc(m.name)}</option>`).join("");
-    $("micSel").value = j.saved || "";
+    const opts = [...$("micSel").options], want = micWant && Date.now() < micWant.until && opts.some(o => o.value === micWant.v) ? micWant.v : null;
+    $("micSel").value = want ?? (opts.some(o => o.value === (j.saved || "")) ? j.saved || "" : (opts.find(o => o.value && String(j.saved).startsWith(o.value.slice(0, 28))) || { value: "" }).value);
   } catch (e) { /* older server */ }
 }
 $("unmuteBtn").onclick = async () => {
@@ -5125,7 +5156,8 @@ $("micBoost").onclick = async () => {
 function paintFollow() { $("followBtn").textContent = convo.on ? "On" : "Off"; $("followBtn").classList.toggle("on", convo.on); }
 $("followBtn").onclick = () => { convo.on = !convo.on; storeSet("jarvis.followup", convo.on ? "on" : "off"); paintFollow(); };
 paintFollow();
-$("micSel").onchange = async () => { await post("/api/mic", { name: $("micSel").value || null }); loadMics(); };
+let micWant = null;                                        // switching takes a moment: until then the list shows what you chose
+$("micSel").onchange = async () => { micWant = { v: $("micSel").value, until: Date.now() + 6000 }; await post("/api/mic", { name: $("micSel").value || null }); setTimeout(loadMics, 2500); };
 loadMics();
 
 // ---------- settings polish: icons, aligned rows, switches, row animation ----------
@@ -5209,20 +5241,20 @@ function paintTts(s) {
     const v = L.voices.find(x => x.id === b.dataset.ttsTry);
     await post("/api/settings", { local_voice: v.id });
     const sample = v.lang === "ur" ? `جی، میں آپ کی کیا مدد کر ${/\(female\)/.test(v.label) ? "سکتی" : "سکتا"} ہوں؟` : v.lang === "hi" ? "नमस्ते, मैं आपकी क्या मदद कर सकता हूँ?" : `Hello, I'm ${AGENT}. This voice runs on your PC.`;
-    const prev = (lastStats && lastStats.tts_mode) || "auto";
-    await post("/api/settings", { tts_engine: "local" });
-    speak(sample, true);
-    setTimeout(() => post("/api/settings", { tts_engine: prev }), 1500);
+    if (lastStats && lastStats.silent) return;
+    stopSpeaking();                                        // only this sentence: no setting changes for a test
+    player.src = `/api/tts_stream?token=${TOKEN}&try=${encodeURIComponent(v.id)}&text=${encodeURIComponent(sample)}`;
+    player.onended = player.onerror = null; player.play().catch(() => {});
   });
 }
 document.querySelectorAll("[data-tts]").forEach(b => b.onclick = async () => {
-  await post("/api/settings", { tts_engine: b.dataset.tts });
   if (lastStats) lastStats.tts_mode = b.dataset.tts;
   paintTts(lastStats || { tts_mode: b.dataset.tts });
+  await post("/api/settings", { tts_engine: b.dataset.tts });
 });
 for (const [id, key] of [["speedRange", "voice_speed"], ["pitchRange", "voice_pitch"]]) {
   $(id).oninput = () => { if (lastStats) lastStats[key] = +$(id).value; paintTts({ ...(lastStats || {}), [key]: +$(id).value }); };
-  $(id).onchange = () => post("/api/settings", { [key]: +$(id).value });
+  $(id).onchange = () => { if (lastStats) lastStats[key] = +$(id).value; post("/api/settings", { [key]: +$(id).value }); };
 }
 
 // ---------- local speech-to-text ----------
@@ -5256,9 +5288,9 @@ function paintStt(s) {
   });
 }
 document.querySelectorAll("[data-stt]").forEach(b => b.onclick = async () => {
-  await post("/api/settings", { stt_engine: b.dataset.stt });
   if (lastStats) lastStats.stt_mode = b.dataset.stt;
   paintStt(lastStats || { stt_mode: b.dataset.stt });
+  await post("/api/settings", { stt_engine: b.dataset.stt });
 });
 
 // ---------- emergency stop + privacy ----------
@@ -5284,9 +5316,9 @@ function paintPermissions(s) {
     return `<div class="permrow"><span>${esc(k.label)}</span>${b("ask", "Ask")}${b("allow", "Allow", k.can_allow)}${b("never", "Never")}</div>`;
   }).join("");
   $("permList").querySelectorAll("[data-perm]").forEach(x => x.onclick = async () => {
-    const r = await post("/api/settings", { permissions: { [x.dataset.perm]: x.dataset.rule } });
     if (lastStats) lastStats.permissions = { ...(lastStats.permissions || {}), [x.dataset.perm]: x.dataset.rule };
     paintPermissions(lastStats || {});
+    await post("/api/settings", { permissions: { [x.dataset.perm]: x.dataset.rule } });
   });
 }
 $("keepHistBtn").onclick = () => toggleSetting("keep_history");
@@ -5319,7 +5351,7 @@ function paintStartup(s) {
 function toggleSetting(key) {
   const on = !(lastStats && lastStats[key] !== false);
   if (lastStats) lastStats[key] = on;
-  paintStartup(lastStats || { [key]: on });
+  paintStartup(lastStats || { [key]: on }); paintPrivacy(lastStats || { [key]: on });
   post("/api/settings", { [key]: on });
 }
 $("bootBtn").onclick = () => toggleSetting("start_with_windows");
@@ -5335,7 +5367,7 @@ function paintTone(s) {
   if (s.tones && !sel.options.length) sel.innerHTML = Object.entries(s.tones).map(([k, v]) => `<option value="${esc(k)}">${esc(v)}</option>`).join("");
   if (s.alert_tone && document.activeElement !== sel) sel.value = s.alert_tone;
 }
-$("toneSel").onchange = () => { post("/api/settings", { alert_tone: $("toneSel").value }); $("alertTest").click(); };
+$("toneSel").onchange = () => { if (lastStats) lastStats.alert_tone = $("toneSel").value; post("/api/settings", { alert_tone: $("toneSel").value }); $("alertTest").click(); };
 
 // ---------- AI model: who answers ----------
 function paintBrain(s) {
@@ -5477,7 +5509,7 @@ $("wakeBtn").onclick = async () => {
   paintWake(lastStats || { wake_word: on }); paintLive(); renderLabel();
   await post("/api/settings", { wake_word: on });
 };
-$("noiseSel").onchange = () => post("/api/settings", { noise_reduction: $("noiseSel").value });
+$("noiseSel").onchange = () => { if (lastStats) lastStats.noise_reduction = $("noiseSel").value; post("/api/settings", { noise_reduction: $("noiseSel").value }); };
 function paintWake(s) {
   const on = s.wake_word !== false;
   $("wakeBtn").textContent = on ? "On" : "Off"; $("wakeBtn").classList.toggle("on", on);

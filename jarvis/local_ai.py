@@ -14,6 +14,7 @@ import json
 import os
 import shutil
 import subprocess
+import threading
 import time
 import urllib.error
 import urllib.request
@@ -60,6 +61,34 @@ def running() -> bool:
         return "version" in _req("/api/version", timeout=1.5)
     except (OSError, ValueError, urllib.error.URLError):
         return False
+
+
+_KNOWN: dict = {"at": 0.0, "installed": None, "running": False, "asking": False}
+_KNOWN_LOCK = threading.Lock()
+
+
+def known() -> tuple[bool, bool]:
+    """(installed, running) as far as known, at once: asking takes a second and a half when Ollama isn't there, so it
+    happens in the background (the page asks for the status all the time)."""
+    with _KNOWN_LOCK:
+        ask = not _KNOWN["asking"] and time.time() - _KNOWN["at"] > 10
+        if ask:
+            _KNOWN["asking"] = True
+    if ask:
+        threading.Thread(target=_ask, name="jarvis-ollama-status", daemon=True).start()
+    if _KNOWN["installed"] is None:
+        return exe() is not None, False
+    return _KNOWN["installed"], _KNOWN["running"]
+
+
+def _ask() -> None:
+    try:
+        up = running()
+        _KNOWN.update(running=up, installed=up or exe() is not None)
+    except Exception as e:
+        print(f"[local-ai] {type(e).__name__}: {e}")
+    finally:
+        _KNOWN.update(at=time.time(), asking=False)
 
 
 def start() -> bool:

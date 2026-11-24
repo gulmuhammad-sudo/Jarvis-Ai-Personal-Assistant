@@ -2,6 +2,12 @@
 
 Newest first. Each entry: what was done, how it was tested, what is open, the next task.
 
+## 2026-11-24 — Session 2, part 21b: options that jumped (v1.31.1)
+
+**Reported by the owner** — every option flickers between old and new after a change. **Cause** — overlapping, slow `/api/stats` polls
+painted over newer choices. **Done** — `CHANGES`, `chgSeq`, `newsOnly`, one poll at a time in `hud.html`; `local_ai.known()`,
+`Hub._mic_ask` in the background; `/api/tts_stream?try=`. Rule: anything new that changes a setting must be in `CHANGES`.
+
 ## 2026-11-24 — Session 2, part 21: Phase 9 part 1 — privacy and the timeline (v1.31.0)
 
 **Done** — `jarvis/netlog.py` (audit hook on lookups and connections, `httpx2`/`requests` watched for open connections, Local only),
