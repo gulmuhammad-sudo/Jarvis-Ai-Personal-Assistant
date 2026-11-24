@@ -63,13 +63,13 @@ def test_glass_is_not_paid_for_with_blur():
     assert "prefers-reduced-transparency: reduce" in css and "select option, select optgroup { background: var(--solid)" in css
 
 
-def test_voice_panel_fits_itself_to_its_room():
-    """Two more menu items once squeezed it until its text lay over the mic. The compact rules need the .vbody prefix:
-    without it the plain #wave / #vLabel rules further down win."""
+def test_voice_panel_is_the_same_at_every_height():
+    """Its text once lay over the mic, and its layout kept changing with the window: now one layout, of one height.
+    The rules need the .vbody prefix: without it the plain #wave / #vLabel / .mic rules further down win."""
     html = (ROOT / "jarvis/hud.html").read_text(encoding="utf-8")
-    assert "container: voice / size" in html and ".side > nav { flex: 0 1 auto; min-height: 90px; overflow-y: auto;" in html
-    rules = re.findall(r"@container voice .*?\n(?=@container|\.unmute)", html, re.S)
-    assert len(rules) == 3 and not re.search(r"(?<!vbody )#(wave|vLabel)\b", "".join(r.replace(":not([hidden])) #vLabel", "") for r in rules))
+    assert "container: voice" not in html and ".voicecard { flex: none; height: 122px; }" in html
+    for part in (".vbody .mic { grid-column: 1; grid-row: 1 / span 2; width: 52px;", ".vbody #vLabel { grid-column: 2; grid-row: 1;", ".vbody #wave { grid-column: 2; grid-row: 2;", ".vbody .unmute { grid-column: 2; grid-row: 2;"):
+        assert part in html, part
 
 
 def test_page_lookups_never_find_the_menu_button():

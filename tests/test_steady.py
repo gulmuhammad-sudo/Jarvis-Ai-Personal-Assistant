@@ -178,3 +178,55 @@ def test_only_a_voice_on_this_pc_can_be_tried(monkeypatch):
     h._tts_stream("text=hello&try=amy")
     h._tts_stream("text=hello&try=../x")
     assert got[0] == ("hello", "amy") and got[1][0] == 404
+
+
+# ---------------- nothing the page asks for waits for the internet ----------------
+@pytest.fixture
+def sched(tmp_path, monkeypatch):
+    from jarvis import schedule
+    monkeypatch.setattr(schedule, "LOCATION_FILE", tmp_path / "location.json")
+    monkeypatch.setattr(schedule, "_loc_cache", None)
+    monkeypatch.setattr(schedule, "_prayer_cache", {})
+    monkeypatch.setattr(schedule, "_BACK", {})
+    monkeypatch.delenv("JARVIS_CITY", raising=False)
+    return schedule
+
+
+def test_location_and_prayers_come_later_on_a_bad_line(sched, monkeypatch):
+    from datetime import date
+    asked = []
+
+    def slow(url, **k):
+        if threading.current_thread().name.startswith("fetch-"):          # (reminders of another test's Hub may ask too)
+            asked.append(url)
+        time.sleep(0.4)
+        if "wttr" in url:
+            return {"nearest_area": [{"region": [{"value": "Sindh"}], "areaName": [{"value": "Karachi"}], "country": [{"value": "Pakistan"}], "latitude": "24.9", "longitude": "67.1"}]}
+        return {"data": {"timings": {p: "05:00 (PKT)" for p in (*sched.PRAYERS, "Sunrise")}}}
+    monkeypatch.setattr(sched, "_get_json", slow)
+    t = time.perf_counter()
+    for _ in range(30):
+        assert sched.known_location() in ({}, {"city": "Sindh", "country": "Pakistan", "lat": 24.9, "lon": 67.1, "source": "auto"})
+        sched.known_prayers(date.today())
+    assert time.perf_counter() - t < 0.3
+    assert wait(lambda: sched.known_location().get("city") == "Sindh") and len([u for u in asked if "wttr" in u]) == 1
+    assert wait(lambda: sched.known_prayers(date.today())) and len([u for u in asked if "aladhan" in u]) == 1
+
+
+def test_a_failure_is_not_asked_again_and_again(sched, monkeypatch):
+    from datetime import date
+    asked = []
+    sched.write_json(sched.LOCATION_FILE, {"city": "Karachi", "country": "Pakistan", "lat": 1.0, "lon": 2.0, "source": "saved"})
+
+    def broken(url, **k):
+        if threading.current_thread().name.startswith("fetch-"):
+            asked.append(url)
+        raise OSError("no line")
+    monkeypatch.setattr(sched, "_get_json", broken)
+    for _ in range(20):
+        assert sched.known_prayers(date.today()) is None
+        time.sleep(0.01)
+    assert len(asked) == 1
+    sched._BACK.clear()                                   # a minute later
+    sched.known_prayers(date.today())
+    assert wait(lambda: len(asked) == 2)

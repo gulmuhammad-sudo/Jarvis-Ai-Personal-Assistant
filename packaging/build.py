@@ -38,6 +38,23 @@ HIDE = (".venv", ".git", ".claude", ".pytest_cache", "data", "build", "__pycache
 EXCLUDE = ["tkinter", "matplotlib", "IPython", "pytest", "PyInstaller"]
 
 
+# Python 3.15 keeps this one apart; the encryption library (cryptography) needs it, and PyInstaller doesn't know that yet
+PYTHON_T = [Path(sys.base_prefix) / "abi3t-compat" / "python3t.dll"]
+
+
+def missing_python_dlls(app: Path) -> list[str]:
+    """Parts of the app that would not load on another PC because a python*.dll they ask for isn't there (found only when used)."""
+    import pefile
+    inside = {f.name.lower() for f in (app / "_internal").glob("*.dll")}
+    out = []
+    for f in app.rglob("*.pyd"):
+        pe = pefile.PE(str(f), fast_load=True)
+        pe.parse_data_directories([pefile.DIRECTORY_ENTRY["IMAGE_DIRECTORY_ENTRY_IMPORT"]])
+        out += [f"{f.name}: {e.dll.decode()}" for e in getattr(pe, "DIRECTORY_ENTRY_IMPORT", []) if e.dll.decode().lower().startswith("python") and e.dll.decode().lower() not in inside]
+        pe.close()
+    return sorted(out)
+
+
 def version_file(desc: str, exe: str) -> Path:
     """The Details tab of the .exe's Properties (name, version, description)."""
     v = tuple(int(x) for x in (VERSION.split(".") + ["0", "0", "0"])[:4])
@@ -119,7 +136,10 @@ def main() -> None:
                 "--collect-all=pywhispercpp",          # local speech-to-text: native whisper.cpp library
                 "--collect-data=docx", "--collect-data=pptx",             # Word / PowerPoint templates
                 "--collect-all=sherpa_onnx", "--collect-all=espeakng_loader",   # voices on this PC + espeak data
+                *[f"--add-binary={f}{SEP}." for f in PYTHON_T if f.is_file()],
                 str(PKG / "app.py"))
+    if gone := missing_python_dlls(app_dir):
+        raise SystemExit("These need a Python library that isn't in the app: " + "; ".join(gone))
 
     # 2) the app folder, zipped, goes inside the installer
     payload = BUILD / "payload" / "app.zip"

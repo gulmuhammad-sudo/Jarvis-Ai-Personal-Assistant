@@ -1,5 +1,11 @@
 # Security review
 
+## 2026-11-24 — v1.31.3 (look)
+
+| Area | How | Where |
+|---|---|---|
+| Taking things out of Activity | only the page's own request with its token; only actions, results, reminders and problems; never the conversation or the record of actions, which notes that it was done | `storage.remove_activity`, `hud.remove_activity` |
+
 ## 2026-11-24 — v1.31.2 (vault, privacy lock)
 
 | Area | How | Where |

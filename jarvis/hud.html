@@ -140,22 +140,18 @@ nav { display: flex; flex-direction: column; gap: 2px; padding: 6px; border: 1px
 .navi .badge { margin-left: auto; font-family: var(--mono); font-style: normal; font-size: 11.5px; color: var(--dim); }
 /* the menu takes what it needs and scrolls if the window is very low; the voice card gets the rest and rearranges itself to fit
    (a container: its own height decides, not the window's) */
-.side > nav { flex: 0 1 auto; min-height: 90px; overflow-y: auto; overflow-x: hidden; scrollbar-width: thin; }
+.side > nav { flex: 1 1 auto; min-height: 90px; overflow-y: auto; overflow-x: hidden; scrollbar-width: thin; }
 .side > .logo, .side > .focusbtn { flex: none; }
-.voicecard { flex: 1 1 0; min-height: 96px; text-align: center; container: voice / size; }
+/* one layout at every height: microphone on the left, words and wave on the right */
+.voicecard { flex: none; height: 122px; }
 .voicecard h3 { width: 100%; flex: none; white-space: nowrap; }
 .voicecard .pill { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
-.vbody { flex: 1; min-height: 0; display: flex; flex-direction: column; align-items: center; justify-content: space-evenly; gap: 6px; }
-.vbody > * { flex: none; }
-.vbody .mic::before { inset: -6px; }
-@container voice (max-height: 235px) { .vbody #wave { height: 28px; } .vbody .mic { width: 56px; height: 56px; } .vbody .mic svg.ic { width: 22px; height: 22px; } .vbody { gap: 4px; } }
-@container voice (max-height: 205px) { .vbody #wave { display: none; } }
-@container voice (max-height: 160px) {
-  .vbody { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: center; justify-content: stretch; gap: 4px 14px; padding-left: 8px; text-align: left; }
-  .vbody .mic { width: 44px; height: 44px; grid-row: 1 / span 2; grid-column: 1; } .vbody .mic::before { inset: -4px; }
-  .vbody #vLabel { grid-column: 2; text-align: left; } .vbody .unmute { grid-column: 2; justify-self: start; max-width: 100%; height: 26px; padding: 0 7px; gap: 5px; font-size: 11.5px; white-space: nowrap; overflow: hidden; }
-  .vbody:has(.unmute:not([hidden])) #vLabel { -webkit-line-clamp: 1; }
-}
+.vbody { flex: 1; min-height: 0; display: grid; grid-template-columns: 52px minmax(0, 1fr); grid-template-rows: minmax(0, 1fr) 24px; align-items: center; gap: 3px 16px; padding: 0 2px 2px 7px; text-align: left; }
+.vbody .mic { grid-column: 1; grid-row: 1 / span 2; width: 52px; height: 52px; align-self: center; } .vbody .mic svg.ic { width: 21px; height: 21px; } .vbody .mic::before { inset: -5px; }
+.vbody #vLabel { grid-column: 2; grid-row: 1; align-self: center; text-align: start; unicode-bidi: plaintext; }
+.vbody #wave { grid-column: 2; grid-row: 2; width: 100%; height: 24px; }
+.vbody .unmute { grid-column: 2; grid-row: 2; justify-self: start; max-width: 100%; height: 26px; padding: 0 8px; gap: 5px; font-size: 11.5px; white-space: nowrap; overflow: hidden; }
+.vbody:has(.unmute:not([hidden])) #wave { visibility: hidden; } .vbody:has(.unmute:not([hidden])) #vLabel { -webkit-line-clamp: 1; }
 .unmute { margin-top: 0; height: 34px; font-size: 12.5px; animation: blink 1.6s infinite; }
 .unmute[hidden] { display: none; }
 #wave { width: 100%; height: 40px; display: block; }
@@ -565,9 +561,7 @@ body[data-face="mask"] .heroText .t1 { font-size: clamp(18px, 1.6vw, 24px); lett
 .talkwrap { display: flex; align-items: center; gap: 12px; }
 .wv { display: flex; gap: 3px; align-items: center; height: 20px; color: var(--dim); opacity: .5; transition: opacity .3s, color .3s; }
 .wv i { width: 2px; height: 15%; border-radius: 2px; background: currentColor; }
-body.speaking .wv i, body[data-state="listening"] .wv i { animation: eq .7s ease-in-out infinite alternate; }
-body[data-state="listening"] .wv { color: var(--green); opacity: 1; } body.speaking .wv { color: var(--cyan); opacity: 1; }
-.wv i:nth-child(2n) { animation-delay: .15s; } .wv i:nth-child(3n) { animation-delay: .3s; } .wv i:nth-child(5n) { animation-delay: .45s; }
+.wv.hot { color: var(--green); opacity: 1; } .wv i { transition: height .06s linear; }      /* they move with your voice only (wvFrame) */
 .talk {
   min-width: 230px; height: 42px; border-radius: 99px; border: 1px solid rgba(var(--c-accent), .45); color: var(--text); padding: 0 22px;
   background: linear-gradient(180deg, rgba(var(--c-accent), .14), rgba(var(--c-accent), .05)); line-height: 1.15;
@@ -641,7 +635,7 @@ body[data-state="listening"] .talk { border-color: var(--green); background: lin
 
 /* ---------- smaller screens ---------- */
 @media (max-height: 820px) and (min-width: 1101px) {
-  .card { padding: 10px 13px; }
+  .card { padding: 10px 13px; } .voicecard { height: 106px; }
   .card h3 { margin-bottom: 8px; }
   .ov { padding: 4px 2px; } .ov .ico { width: 24px; height: 24px; } .ov .ico svg.ic { width: 14px; height: 14px; }
   .fi { padding: 5px 2px; } .fi .ico { width: 24px; height: 24px; }
@@ -810,28 +804,13 @@ svg.ic { transition: transform .28s cubic-bezier(.3, 1.5, .5, 1), color .2s, fil
 .seg button + button { border-left: 1px solid var(--hair-2); }
 .seg button:hover { color: var(--text); }
 .seg button.on { color: var(--cyan); background: rgba(var(--c-accent), .12); }
-.memgraph { position: relative; margin-top: 10px; border: 1px solid var(--hair); border-radius: 12px; overflow: hidden;
-  background: radial-gradient(circle at 50% 50%, rgba(var(--c-accent), .06), transparent 65%); animation: rowIn .4s cubic-bezier(.2, .8, .2, 1) both; }
-.memgraph svg { display: block; width: 100%; height: 480px; touch-action: none; }
-.memgraph line { stroke: rgba(var(--c-fill), .14); stroke-width: 1; transition: opacity .2s, stroke .2s; }
-.memgraph line.nm { stroke: rgba(251, 191, 36, .35); stroke-dasharray: 3 3; }
-.memgraph .gn { cursor: pointer; transition: opacity .2s; }
-.memgraph .gn circle { stroke: var(--bg); stroke-width: 1.5; transition: r .2s; }
-.memgraph .gn:hover circle, .memgraph .gn:focus circle { stroke: var(--text); }
-.memgraph .gn:focus { outline: none; }
-.memgraph .gn.you circle { fill: var(--cyan); filter: drop-shadow(0 0 10px rgba(var(--c-accent), .75)); }
-.memgraph .gn.name circle { fill: var(--bg); stroke: var(--amber); stroke-width: 2; }
-.memgraph text { font-size: 11.5px; fill: var(--muted); pointer-events: none; paint-order: stroke; stroke: var(--bg); stroke-width: 3px; }
-.memgraph .gn.you text { fill: var(--text); font-weight: 600; font-size: 12.5px; }
-.memgraph .gn.category text { fill: var(--text); }
-.memgraph.focus .gn:not(.hi), .memgraph.focus line:not(.hi) { opacity: .12; }
-.memgraph.focus line.hi { stroke: rgba(var(--c-accent), .6); }
-.mgtip { position: absolute; max-width: 320px; padding: 8px 10px; border-radius: 8px; background: var(--surface-2); border: 1px solid var(--hair-2);
-  color: var(--text); font-size: 12.5px; line-height: 1.45; pointer-events: none; box-shadow: 0 8px 24px rgba(0, 0, 0, .35); z-index: 2; }
-.mgtip small { display: block; color: var(--muted); margin-top: 3px; }
-.mglegend { position: absolute; left: 10px; bottom: 8px; right: 10px; display: flex; gap: 12px; flex-wrap: wrap; font-size: 11px; color: var(--dim); pointer-events: none; }
-.mglegend i { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 5px; vertical-align: 0; }
-.memgraph .gempty { position: absolute; inset: 0; display: grid; place-items: center; color: var(--muted); font-size: 13px; text-align: center; padding: 20px; }
+.memgraph { position: relative; margin-top: 10px; height: clamp(400px, 60vh, 660px); border: 1px solid var(--hair); border-radius: 16px; overflow: hidden; background: radial-gradient(circle at 50% 45%, rgba(var(--c-accent), .1), transparent 62%), var(--row); animation: rowIn .4s cubic-bezier(.2, .8, .2, 1) both; }
+.memgraph canvas { position: absolute; inset: 0; width: 100%; height: 100%; cursor: grab; touch-action: none; } .memgraph canvas.node { cursor: pointer; } .memgraph canvas.drag { cursor: grabbing; } .memgraph canvas:focus-visible { outline: 2px solid var(--cyan); outline-offset: -3px; border-radius: 16px; }
+.mgbar { position: absolute; left: 12px; top: 12px; display: flex; gap: 6px; } .mgbar button, .mgpanel .mgx { width: 34px; height: 34px; border-radius: 10px; border: 1px solid var(--hair-2); background: var(--solid); color: var(--muted); font: 600 15px var(--sans); cursor: pointer; display: grid; place-items: center; transition: color .15s, border-color .15s, transform .12s; } .mgbar button:hover, .mgpanel .mgx:hover { color: var(--cyan); border-color: rgba(var(--c-accent), .5); } .mgbar button:active { transform: scale(.93); }
+.mglegend { position: absolute; left: 12px; right: 12px; bottom: 10px; display: flex; gap: 6px; flex-wrap: wrap; pointer-events: none; } .mglegend button { pointer-events: auto; display: inline-flex; gap: 6px; align-items: center; height: 26px; padding: 0 10px; border-radius: 999px; border: 1px solid var(--hair-2); background: var(--solid); color: var(--muted); font: inherit; font-size: 12px; cursor: pointer; transition: opacity .2s, color .15s; } .mglegend button:hover { color: var(--text); } .mglegend button.off { opacity: .4; text-decoration: line-through; } .mglegend i { width: 9px; height: 9px; border-radius: 50%; }
+.mgpanel { position: absolute; top: 12px; right: 12px; bottom: 46px; width: min(310px, calc(100% - 24px)); padding: 14px 16px; border-radius: 14px; border: 1px solid var(--hair-2); background: var(--solid); box-shadow: 0 14px 40px var(--shadow); overflow: auto; display: grid; align-content: start; gap: 9px; transform: translateX(16px); opacity: 0; pointer-events: none; transition: transform .28s cubic-bezier(.2, .9, .25, 1), opacity .25s; } .mgpanel.on { transform: none; opacity: 1; pointer-events: auto; }
+.mgpanel .mgx { position: absolute; top: 10px; right: 10px; width: 28px; height: 28px; } .mgpanel .mgk { display: inline-flex; gap: 7px; align-items: center; font-size: 12px; color: var(--muted); padding-right: 34px; } .mgpanel .mgk i { width: 9px; height: 9px; border-radius: 50%; } .mgpanel b.mgt { font-size: 15px; font-weight: 500; line-height: 1.5; overflow-wrap: anywhere; unicode-bidi: plaintext; } .mgpanel .ckrow { justify-content: flex-start; } .mgpanel .btn { height: 30px; font-size: 12.5px; } .mgpanel .mgl { display: grid; gap: 4px; } .mgpanel .mgl button { text-align: left; border: 1px solid var(--hair); border-radius: 9px; background: var(--row); color: var(--text); font: inherit; font-size: 12.5px; line-height: 1.45; padding: 6px 9px; cursor: pointer; overflow-wrap: anywhere; } .mgpanel .mgl button:hover { border-color: var(--cyan); }
+.memgraph .gempty { position: absolute; inset: 0; display: grid; place-items: center; color: var(--muted); font-size: 13px; text-align: center; padding: 20px; } .mghint { position: absolute; right: 14px; top: 16px; color: var(--dim); font-size: 11.5px; pointer-events: none; transition: opacity .3s; } .mgpanel.on ~ .mghint { opacity: 0; }
 .memitem.flash { animation: memFlash 1.6s ease-out; }
 @keyframes memFlash { 0%, 30% { border-color: var(--cyan); box-shadow: 0 0 0 3px rgba(var(--c-accent), .25); } }
 /* skills */
@@ -904,6 +883,26 @@ body.focus[data-face="mask"] .heroText { bottom: 98px; }
 .docbox { margin-bottom: 4px; } .docbox .agask { margin-bottom: 6px; } .dxnote { display: block; color: var(--dim); font-size: 12px; line-height: 1.5; }
 .dxfolders { display: flex; flex-wrap: wrap; gap: 6px; margin: 6px 0; } .dxfolders span { display: inline-flex; gap: 7px; align-items: center; font-size: 12px; padding: 3px 6px 3px 10px; border-radius: 999px; border: 1px solid var(--hair-2); color: var(--muted); max-width: 100%; overflow-wrap: anywhere; } .dxfolders em { font: 500 11px var(--mono); color: var(--dim); } .dxfolders button { border: 0; background: none; color: var(--dim); cursor: pointer; padding: 0 3px; } .dxfolders button:hover { color: var(--red); }
 .dxhit { display: block; width: 100%; text-align: left; border: 1px solid var(--hair); border-radius: 9px; background: none; color: var(--muted); font: inherit; font-size: 12.5px; padding: 7px 10px; margin-bottom: 4px; cursor: pointer; overflow-wrap: anywhere; } .dxhit:hover { border-color: rgba(var(--c-accent), .45); } .dxhit b { color: var(--text); font-weight: 500; } .dxhit em { font-style: normal; color: var(--cyan); font-size: 11.5px; } .dxhit small { display: block; line-height: 1.5; margin-top: 2px; } .dxhit mark { background: rgba(var(--c-accent), .22); color: var(--text); border-radius: 3px; }
+/* every page: one column in the middle, its tabs across it, like Settings */
+.view:not(.dash) { --col: 980px; } .view:is([data-view="planner"], [data-view="daily"], [data-view="studio"], [data-view="vault"], [data-view="privacy"]) { --col: 1160px; } .view[data-view="conv"] { --col: 900px; } .view[data-view="settings"], .view[data-view="profile"] { --col: 860px; }
+.view:not(.dash) > .page > .body { padding-inline: max(2px, calc((100% - var(--col)) / 2)); } .view[data-view="conv"] .composer { width: min(100%, var(--col)); margin-inline: auto; } .view:not(.dash) > .page > .body > * { max-width: 100%; }
+.plbar { justify-content: center; } .plbar > .seg[role="tablist"] { display: flex; flex: 1 1 100%; flex-wrap: wrap; height: auto; gap: 6px; padding: 4px; border-radius: 12px; overflow: visible; } .plbar > .seg[role="tablist"] button { flex: 1 1 auto; justify-content: center; min-height: 36px; border-radius: 9px; border: 1px solid transparent; } .plbar > .seg[role="tablist"] button.on { border-color: rgba(var(--c-accent), .4); }
+.ptabs { margin-bottom: 14px; } .ptab { display: none; } .ptab.on { display: block; animation: ptabIn .32s cubic-bezier(.2, .8, .2, 1) both; } @keyframes ptabIn { from { opacity: 0; transform: translateY(8px); } }
+.ptab > h4.sec:first-child { margin-top: 2px; } .ptab .skillbar { justify-content: center; } .memtools { justify-content: center; } .memtools [hidden], .ptab [hidden] { display: none !important; }
+.view:not(.dash) > .page > h3 { justify-content: center; position: relative; min-height: 18px; } .view:not(.dash) > .page > h3 > .more { position: absolute; right: 0; } .view[data-view="conv"] > .page > h3 > .more { position: static; } .view[data-view="conv"] > .page > h3 > #tlFromConv { margin-left: auto; } .view[data-view="conv"] > .page > h3 { justify-content: flex-start; padding-inline: max(2px, calc((100% - var(--col)) / 2)); }
+@media (max-width: 900px) { .view:not(.dash) > .page > h3 > .more { position: static; } .view:not(.dash) > .page > h3 { justify-content: space-between; } }
+@media (min-width: 1101px) { .side > nav > .navi { flex: 1 1 31px; min-height: 31px; max-height: 44px; padding-block: 0; } }      /* the menu shares its room evenly: no scrolling in a usual window */
+/* activity: take out */
+.fi { position: relative; } .fi .fx { width: 24px; height: 24px; flex: none; margin-left: -6px; border: 0; border-radius: 7px; background: none; color: var(--dim); display: grid; place-items: center; opacity: 0; transition: opacity .15s, color .15s, background .15s; } .fi .fx svg.ic { width: 13px; height: 13px; } .fi:hover .fx, .fi .fx:focus-visible { opacity: 1; } .fi .fx:hover { color: var(--red); background: rgba(var(--c-red), .12); } .fi.out { animation: fiOut .26s ease forwards; pointer-events: none; } @keyframes fiOut { to { opacity: 0; transform: translateX(26px); height: 0; padding-block: 0; border-width: 0; } }
+#feedClear { margin-left: auto; } #feedClear + .pill { margin-left: 2px; }
+/* a panel opened large */
+.card h3 .xpb { width: 24px; height: 24px; flex: none; margin: -6px -4px -6px 4px; border: 0; border-radius: 7px; background: none; color: var(--dim); display: grid; place-items: center; padding: 0; transition: color .15s, background .15s, transform .2s; } .card h3 .xpb svg.ic { width: 14px; height: 14px; } .card h3 .xpb:hover { color: var(--cyan); background: rgba(var(--c-accent), .12); transform: scale(1.12); } .dash .card h3 > :nth-child(1):not(.xpb), .card.xp h3 > :nth-child(1):not(.xpb) { margin-left: auto; } .dash .card h3 > .xpb:first-child, .card.xp h3 > .xpb:first-child { margin-left: auto; }
+#xpBack { position: fixed; inset: 0; z-index: 57; background: rgba(2, 6, 12, .58); backdrop-filter: blur(7px); -webkit-backdrop-filter: blur(7px); opacity: 0; pointer-events: none; transition: opacity .32s ease; } #xpBack.on { opacity: 1; pointer-events: auto; } :root[data-theme="light"] #xpBack { background: rgba(30, 45, 70, .3); }
+.xp { position: fixed !important; inset: 0; margin: auto !important; z-index: 58; width: min(1080px, calc(100vw - 40px)); height: min(680px, calc(100vh - 80px)) !important; min-height: 0 !important; box-shadow: 0 30px 90px rgba(0, 0, 0, .5); transform-origin: 0 0; background: linear-gradient(180deg, rgba(var(--c-accent), .07), transparent 45%), var(--solid) !important; } .card.xp { padding: 20px 24px; height: fit-content !important; min-height: min(340px, 70vh) !important; max-height: min(680px, calc(100vh - 80px)); } .card.xp h3 { font-size: 14px; margin-bottom: 16px; } .card.xp h3 .xpb, .card.xp h3 .xpb svg.ic { width: 18px; height: 18px; } .card.xp h3 .xpb { width: 32px; height: 32px; }
+.xp .agents { gap: 14px; grid-auto-rows: minmax(104px, auto); } .xp .ag { padding: 16px 18px; } .xp .ag .ico { width: 46px; height: 46px; } .xp .ag b { font-size: 16.5px; } .xp .ag small { font-size: 13.5px; } .xp .tli { font-size: 15.5px; padding: 11px 4px; grid-template-columns: 56px 11px minmax(0, 1fr) auto; } .xp .tli .tm { font-size: 13px; } .xp .fi { padding: 11px 8px; } .xp .fi .ico { width: 36px; height: 36px; } .xp .fi .tx b { font-size: 15px; white-space: normal; } .xp .fi .tx small { font-size: 13px; white-space: normal; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; } .xp .fi .fx { opacity: .7; }
+.xp .quick { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 12px; align-content: start; } .xp .qbtn { padding: 18px 18px; font-size: 15px; } .qbtn.xonly { display: none; } .xp .qbtn.xonly { display: flex; } .xp .qbtn svg.ic { width: 20px; height: 20px; } .xp .gauges { gap: 22px; padding: 26px 10px; } .xp .memwrap { min-height: 360px; } .xp .gauge svg { max-width: 150px; } .xp .ovlist { display: grid; grid-template-columns: 1fr 1fr; gap: 4px 34px; align-content: start; } .xp .ov { padding: 14px 4px; } .xp .ov .ico { width: 40px; height: 40px; } .xp .ov b, .xp .ov small { font-size: 15.5px; } .xp .llms { gap: 12px; } .xp .llm { padding: 14px 16px; } .xp .llm .ico { width: 38px; height: 38px; } .xp .llm b { font-size: 15px; } .xp .memstats { font-size: 15px; }
+.xphold { min-height: 0; border: 1px dashed var(--hair); border-radius: var(--r); }
+@media (max-width: 760px) { .xp .ovlist { grid-template-columns: 1fr; } }
 /* the vault and the privacy lock */
 #lockscreen { position: fixed; inset: 0; z-index: 400; display: none; place-items: center; background: radial-gradient(ellipse at 50% 30%, var(--hero-glow) 0%, var(--bg) 70%); } body.locked #lockscreen { display: grid; } body.locked .shell, body.locked #mdMini, body.locked #alerts { visibility: hidden; } .lkbox { width: min(400px, calc(100vw - 40px)); text-align: center; display: grid; gap: 14px; justify-items: center; } .lkbox .lkic { width: 74px; height: 74px; border-radius: 50%; display: grid; place-items: center; color: var(--cyan); border: 1px solid rgba(var(--c-accent), .4); background: rgba(var(--c-accent), .08); } .lkbox .lkic svg.ic { width: 34px; height: 34px; } .lkbox h2 { margin: 0; font: 600 44px var(--mono); } .lkbox p { margin: 0; color: var(--muted); font-size: 14px; } .lkbox form { display: flex; gap: 8px; width: 100%; } .lkbox form[hidden] { display: none; } .lkbox input { flex: 1; min-width: 0; height: 44px; text-align: center; font: 600 18px var(--mono); letter-spacing: .2em; border-radius: 12px; border: 1px solid var(--hair-2); background: var(--field); color: var(--text); } .lkbox input:focus { outline: none; border-color: var(--cyan); } .lkbox .btn { height: 44px; } .lkbox [hidden] { display: none; } body.locked #recwrap { z-index: 401; } .lkbox .err { color: var(--red); font-size: 13px; min-height: 18px; }
 .vtop { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-bottom: 12px; } .vtop .memsearch { flex: 1 1 220px; } .vgate { max-width: 520px; margin: 4vh auto 0; display: grid; gap: 12px; } .vgate .lkic { width: 64px; height: 64px; border-radius: 18px; display: grid; place-items: center; color: var(--cyan); border: 1px solid rgba(var(--c-accent), .4); background: rgba(var(--c-accent), .08); margin: 0 auto; } .vgate .lkic svg.ic { width: 30px; height: 30px; } .vgate h4 { margin: 0; font-size: 20px; text-align: center; } .vgate p { margin: 0; color: var(--muted); font-size: 13.5px; line-height: 1.55; text-align: center; } .vgate form { display: grid; gap: 9px; } .vgate form > .btn { height: 40px; justify-content: center; } .vgate .row { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; }
@@ -1264,14 +1263,14 @@ body.focus .hero { background: none; box-shadow: none; }
         </section>
 
         <section class="card">
-          <h3>Activity <span class="pill live">LIVE</span></h3>
+          <h3>Activity <button class="more" id="feedClear" title="Take everything out of this list">Clear</button><span class="pill live">LIVE</span></h3>
           <div class="feed" id="feed"><div class="empty">Waiting for activity…</div></div>
         </section>
       </div>
 
       <div class="row row2">
         <section class="card">
-          <h3>Agents <button class="more" data-go="tools">View all ›</button></h3>
+          <h3>Agents <button class="more" data-go="agents">View all ›</button></h3>
           <div class="agents" id="agents"></div>
         </section>
         <section class="card">
@@ -1285,6 +1284,14 @@ body.focus .hero { background: none; box-shadow: none; }
             <button class="qbtn" data-cmd="What are today's prayer times?"><i data-ic="moon"></i>Prayer times</button>
             <button class="qbtn" data-cmd="Look at my screen and tell me what you see."><i data-ic="eye"></i>Scan my screen</button>
             <button class="qbtn" id="qVoice"><i data-ic="mic"></i>Start voice chat</button>
+            <button class="qbtn xonly" data-cmd="What is on my calendar and task list today?"><i data-ic="tasks"></i>My day</button>
+            <button class="qbtn xonly" data-cmd="What's the weather today?"><i data-ic="sun"></i>Weather</button>
+            <button class="qbtn xonly" data-cmd="Give me today's top news."><i data-ic="globe"></i>Top news</button>
+            <button class="qbtn xonly" data-cmd="Start a 25 minute focus timer."><i data-ic="clock"></i>Focus, 25 minutes</button>
+            <button class="qbtn xonly" data-cmd="How is my PC doing?"><i data-ic="pc"></i>PC check</button>
+            <button class="qbtn xonly" data-go="vault"><i data-ic="lock"></i>Vault</button>
+            <button class="qbtn xonly" data-go="studio"><i data-ic="play"></i>Music and radio</button>
+            <button class="qbtn xonly" data-go="privacy"><i data-ic="shield"></i>Privacy</button>
 
           </div>
         </section>
@@ -1342,8 +1349,9 @@ body.focus .hero { background: none; box-shadow: none; }
           <div class="memcats" id="memCats"></div>
           <div class="list memlist" id="memList"></div>
           <div class="memgraph" id="memGraph" hidden>
-            <svg id="memSvg" role="img" aria-label="Graph of your memories: you in the middle, categories around you, names that link memories"></svg>
-            <div class="mgtip" id="mgTip" hidden></div>
+            <canvas id="memCv" tabindex="0" role="img" aria-label="Graph of your memories: you in the middle, categories around you, names that link memories. Arrow keys go from one to the next, Enter opens it."></canvas>
+            <div class="mgbar"><button data-mg="in" title="Closer" aria-label="Closer">+</button><button data-mg="out" title="Farther" aria-label="Farther">−</button><button data-mg="fit" title="Show everything" aria-label="Show everything"><i data-ic="refresh"></i></button><button data-mg="big" title="Open large" aria-label="Open large"><i data-ic="expand"></i></button></div>
+            <div class="mgpanel" id="mgPanel" aria-live="polite"></div><div class="mghint">drag · scroll to zoom · click a dot</div>
             <div class="mglegend" id="mgLegend"></div>
           </div>
           <h4 class="sec">NOTES</h4>
@@ -1849,6 +1857,7 @@ body.focus .hero { background: none; box-shadow: none; }
   <form id="lkForm" autocomplete="off" hidden><input id="lkPin" type="password" maxlength="32" inputmode="text" aria-label="PIN" placeholder="PIN"><button class="btn" type="submit">Unlock</button></form>
   <button class="btn danger" id="lkRing" hidden><i data-ic="bell"></i>Stop the alarm</button>
   <div class="err" id="lkErr" role="alert"></div></div></div>
+<div id="xpBack"></div><div id="xpHost"></div>
 <div class="modal" id="modal" role="dialog" aria-modal="true" aria-labelledby="mTitle" aria-describedby="mSummary">
   <div class="card approve" id="approveCard">
     <div class="ahead"><span class="aico"><i data-ic="shield"></i></span>
@@ -1976,6 +1985,7 @@ const ICONS = {
   refresh: "M20 11a8 8 0 1 0-2.3 5.7M20 4v7h-7",
   user: "M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM4 21a8 8 0 0 1 16 0",
   core: "M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8zM12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M5 19l2-2M17 7l2-2",
+  expand: "M9 4H4v5M15 4h5v5M9 20H4v-5M15 20h5v-5M4 4l6 6M20 4l-6 6M4 20l6-6M20 20l-6-6", shrink: "M10 4v6H4M14 4v6h6M10 20v-6H4M14 20v-6h6",
   lock: "M7 11V8a5 5 0 0 1 10 0v3M5 11h14v9H5z", key: "M14 10a4 4 0 1 0-3.5 4L12 16h2v2h2v2h4v-3l-6.2-6.2", card: "M3 6h18v12H3zM3 10h18M7 15h4",
   shield: "M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z",
   zap: "M13 2 4 14h7l-1 8 9-12h-7z",
@@ -2013,6 +2023,7 @@ let state = "idle", settings = { voice_mode: false, speak: true, language: "en" 
 // Live conversation (Gemini Live): Jarvis listens and talks at the same time; audio runs in Jarvis itself.
 const live = { available: false, engine: "live", active: false, phase: "", voices: {}, voice: "", eventAt: 0 };
 const useLive = () => live.available && live.engine === "live";
+let xpEl = null, xpHold = null, xpBusy = false;          // the panel that is open large
 let replaying = false, greeted = false, sttEngine = "whisper", msgCount = 0, lastStats = null;
 let myId = null, speakerId = null;               // only the "speaker" window talks and listens
 const isSpeaker = () => myId !== null && myId === speakerId;
@@ -2055,6 +2066,7 @@ function nowT() { return new Date().toLocaleTimeString([], { hour: "2-digit", mi
 
 // ---------- navigation ----------
 function go(view) {
+  if (xpEl) xpClose(true);
   if (view !== "dash") $("subs").classList.remove("show");
   document.querySelectorAll(".view").forEach(v => v.classList.toggle("active", v.dataset.view === view));
   document.querySelectorAll(".navi").forEach(n => n.classList.toggle("active", n.dataset.view === view));
@@ -2165,14 +2177,25 @@ function raiseAlert(title, sub, tag, kind) {
   if (isSpeaker()) post("/api/alert", { kind: kind || "warn", text: title });
 }
 const feedInfo = {}; let feedSeq = 0;
+let feedEv = null, feedEvN = 0;                          // the event being shown: its number lets the item be taken out for good
+function feedOut(el) { el.classList.add("out"); setTimeout(() => { el.remove(); feedNone(); }, 260); }
+function feedNone() { const f = $("feed"); if (![...f.children].some(x => x.dataset.id !== "load" && !x.classList.contains("out")) && !f.querySelector(".empty")) f.insertAdjacentHTML("beforeend", '<div class="empty">Nothing here.</div>'); }
+function feedGone(ids) {                                  // null: all
+  const gone = ids && new Set(ids);
+  document.querySelectorAll("#feed .fi").forEach(el => { if (el.dataset.id !== "load" && (!gone || gone.has((feedInfo[el.dataset.id] || {}).ev))) { if (detailId === el.dataset.id) closeDetail(); feedOut(el); } });
+  for (let i = doneReminders.length - 1; i >= 0; i--) if (!gone || gone.has(doneReminders[i].ev)) doneReminders.splice(i, 1);
+  renderTimeline((lastStats || {}).timers || []);
+}
+$("feedClear").onclick = () => lnArm("feed", $("feedClear"), () => post("/api/activity/remove", { all: true }));
 function addFeed({ title, sub = "", tag = "INFO", ic = "info", time = nowT(), id = null, quiet = false, kind = "warn", info = null }) {
   if ((tag === "ALERT" || tag === "WARN") && !quiet && !replaying) raiseAlert(title, sub, tag, kind);
   const feed = $("feed");
   const empty = feed.querySelector(".empty"); if (empty) empty.remove();
   let el = id ? feed.querySelector(`[data-id="${id}"]`) : null;
-  const fid = id || `f${++feedSeq}`;
-  feedInfo[fid] = { ...(feedInfo[fid] || {}), title, sub, tag, ic, time, ...(info || {}) };
-  const html = `<span class="ico">${icon(ic)}</span><div class="tx"><b>${esc(title)}</b><small>${esc(sub)}</small></div><span class="tag ${tag}">${tag}</span>`;
+  const evId = feedEv && feedEv.id || null, fid = id || (evId && feedEvN++ === 0 ? evId : `f${++feedSeq}`);
+  if (!id && evId === fid) el = feed.querySelector(`[data-id="${CSS.escape(fid)}"]`);
+  feedInfo[fid] = { ...(feedInfo[fid] || {}), title, sub, tag, ic, time, ev: evId || (feedInfo[fid] || {}).ev || null, ...(info || {}) };
+  const html = `<span class="ico">${icon(ic)}</span><div class="tx"><b>${esc(title)}</b><small>${esc(sub)}</small></div><span class="tag ${tag}">${tag}</span>${fid === "load" ? "" : `<button class="fx" title="Take out" aria-label="Take out: ${esc(title)}">${icon("x")}</button>`}`;
   if (el) { if (el._h !== html) { el.innerHTML = html; el._h = html; } el.className = `fi ${tag}`; return; }
   el = document.createElement("div");
   el.className = `fi ${tag}`; el.dataset.id = fid; el._h = html;
@@ -2204,7 +2227,11 @@ function openDetail(id) {
   $("detail").classList.add("open"); $("detail").setAttribute("aria-hidden", "false");
 }
 function closeDetail() { detailId = null; $("detail").classList.remove("open"); $("detail").setAttribute("aria-hidden", "true"); }
-$("feed").addEventListener("click", e => { const el = e.target.closest(".fi"); if (el) (detailId === el.dataset.id ? closeDetail() : openDetail(el.dataset.id)); });
+$("feed").addEventListener("click", e => {
+  const el = e.target.closest(".fi"); if (!el) return;
+  if (e.target.closest(".fx")) { const ev = (feedInfo[el.dataset.id] || {}).ev; if (detailId === el.dataset.id) closeDetail(); feedOut(el); if (ev) post("/api/activity/remove", { ids: [ev] }); return; }
+  (detailId === el.dataset.id ? closeDetail() : openDetail(el.dataset.id));
+});
 $("dClose").onclick = closeDetail;
 $("dCopy").onclick = () => {
   const d = feedInfo[detailId]; if (!d) return;
@@ -2247,7 +2274,7 @@ function fmtLeft(s) { return s >= 3600 ? `In ${Math.floor(s / 3600)}h ${Math.flo
 function setHTML(el, html) { if (el._h !== html) { el.innerHTML = html; el._h = html; } }   // redraw only when it changed
 function renderTimeline(timers = []) {
   const items = [
-    ...doneReminders.slice(-3).map(d => ({ tm: d.time, nm: d.text, st: "Done", cls: "done" })),
+    ...doneReminders.slice(xpEl && xpEl.querySelector("#timeline") ? -40 : -3).map(d => ({ tm: d.time, nm: d.text, st: "Done", cls: "done" })),
     ...timers.slice().sort((a, b) => a.left - b.left).map(t => ({ tm: t.due.slice(0, 5), nm: t.message, rp: t.repeat || "",
       st: fmtLeft(t.left), cls: `${t.kind || "timer"} ${t.left < 300 ? "soon" : ""}` })),
   ];
@@ -2259,7 +2286,12 @@ renderTimeline();
 
 // ---------- event handling ----------
 function handle(ev) {
+  const was = [feedEv, feedEvN]; feedEv = ev.type === "replay" ? null : ev; feedEvN = 0;
+  try { handleOne(ev); } finally { [feedEv, feedEvN] = was; }
+}
+function handleOne(ev) {
   switch (ev.type) {
+    case "activity_removed": feedGone(ev.ids); break;
     case "user":
       addMsg("user", ev.text, ev.source === "live" ? "YOU · LIVE" : ev.source === "voice" ? "YOU · VOICE" : "YOU", ev.id);
       if (!replaying) convo.lastWasVoice = ev.source === "voice";
@@ -2305,7 +2337,7 @@ function handle(ev) {
                 tag: kind === "prayer" || good ? "LIVE" : kind === "battery" ? "WARN" : "ALERT", kind: kind === "battery" ? "warn" : "alarm",
                 ic: kind === "prayer" ? "moon" : kind === "battery" ? "battery" : "bell", time: ev.time, quiet: !!ev.ring });      // what rings has its own popup with Stop and Snooze
       if (!replaying && isSpeaker() && !ev.ring && (kind === "prayer" || good || !loudOn)) chime(kind);   // alerts beep loudly instead
-      doneReminders.push({ time: (ev.time || nowT()).slice(0, 5), text: ev.text.replace(/^Reminder:\s*/, "") });
+      doneReminders.push({ time: (ev.time || nowT()).slice(0, 5), text: ev.text.replace(/^Reminder:\s*/, ""), ev: ev.id });
       if (!replaying) setTimeout(() => speak(ev.text, kind !== "info"), kind === "prayer" || good ? 900 : kind === "battery" ? 1400 : 2300);
       break;
     }
@@ -2336,7 +2368,7 @@ function handle(ev) {
       chat.innerHTML = ""; msgCount = 0; $("bConv").textContent = 0; lastUser = lastJarvis = ""; renderSubs();
       addMsg("jarvis", "Conversation cleared. Fresh start, " + USER + ".", AGENT_UP);
       break;
-    case "level": rec.level = ev.v; break;
+    case "level": rec.level = ev.v; wvKick(); break;
     case "live":
       if (!replaying) {
         live.active = !!ev.active; live.phase = ev.active ? (ev.phase || "listening") : ""; live.eventAt = Date.now();
@@ -3272,125 +3304,164 @@ function showMemSuggest() {
 // ---------- memory graph: you, your categories, memories, and the names that link them ----------
 const CAT_COLOR = { personal: "var(--cyan)", family: "var(--violet)", people: "#f472b6", work: "var(--amber)", study: "#60a5fa",
   health: "var(--green)", preferences: "#fb923c", routine: "#2dd4bf", other: "var(--muted)" };
-let memGraphData = null, memViewMode = "list", mgAnim = 0;
+let memGraphData = null, memViewMode = "list";
 function setMemView(mode) {
   memViewMode = mode;
   document.querySelectorAll("#memView [data-mv]").forEach(b => { const on = b.dataset.mv === mode; b.classList.toggle("on", on); b.setAttribute("aria-selected", on); });
-  $("memList").hidden = mode === "graph"; $("memCats").hidden = mode === "graph"; $("memGraph").hidden = mode !== "graph";
-  $("memQ").closest(".memsearch").style.visibility = mode === "graph" ? "hidden" : "";
-  if (mode === "graph") renderGraph(); else cancelAnimationFrame(mgAnim);
+  $("memList").hidden = mode === "graph"; $("memCats").hidden = mode === "graph"; $("memGraph").hidden = mode !== "graph"; $("memMerge").hidden = mode === "graph";
+  $("memQ").placeholder = mode === "graph" ? "Find in the graph…" : "Search memories…";
+  if (mode === "graph") { renderGraph(); mgWake(); }
+  if (typeof ptMark === "function") ptMark("memory", mode === "graph" ? 1 : 0);
 }
 document.querySelectorAll("#memView [data-mv]").forEach(b => b.onclick = () => setMemView(b.dataset.mv));
 
-function renderGraph() {
-  cancelAnimationFrame(mgAnim);
-  const box = $("memGraph"), svg = $("memSvg"), tip = $("mgTip");
-  const W = Math.max(320, box.clientWidth || 800), H = 480, cx = W / 2, cy = H / 2;
-  svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
-  box.querySelector(".gempty")?.remove();
-  const data = memGraphData || { nodes: [], links: [] };
-  const used = new Set(data.nodes.filter(n => n.category).map(n => n.category));
-  $("mgLegend").innerHTML = Object.entries(MEM_CATS).filter(([k]) => used.has(k)).map(([k, [l]]) => `<span><i style="background:${CAT_COLOR[k]}"></i>${l}</span>`).join("")
-    + (data.nodes.some(n => n.kind === "name") ? `<span><i style="border:2px solid var(--amber);width:6px;height:6px"></i>Names / places in 2+ memories</span>` : "");
-  if (data.nodes.length <= 1) {
-    svg.innerHTML = "";
-    box.insertAdjacentHTML("beforeend", '<div class="gempty">No memories yet. Your memories, their categories and the people and places in them will show here.</div>');
-    return;
-  }
-  // starting places: you in the middle, categories on a ring, each memory fanned out behind its category
-  const N = data.nodes.map(n => ({ ...n, x: cx, y: cy, vx: 0, vy: 0 })), byId = {};
-  N.forEach(n => byId[n.id] = n);
-  const cats = N.filter(n => n.kind === "category");
-  cats.forEach((c, i) => { c.a = (i / cats.length) * Math.PI * 2 - Math.PI / 2; c.x = cx + Math.cos(c.a) * 120; c.y = cy + Math.sin(c.a) * 120; });
-  cats.forEach(c => {
-    const mine = N.filter(n => n.kind === "memory" && n.category === c.category);
-    mine.forEach((m, j) => { const a = c.a + (j - (mine.length - 1) / 2) * 0.22; m.x = cx + Math.cos(a) * 210; m.y = cy + Math.sin(a) * 190; });
-  });
-  N.filter(n => n.kind === "name").forEach((n, i) => { const a = i * 2.4; n.x = cx + Math.cos(a) * 60; n.y = cy + Math.sin(a) * 60; });
-  const L = data.links.map(l => ({ s: byId[l.source], t: byId[l.target], nm: l.source.startsWith("e:") })).filter(l => l.s && l.t);
-  const R = n => n.kind === "you" ? 15 : n.kind === "category" ? 10 : n.kind === "name" ? 7 : 3.5 + (n.importance || 1) * 1.8;
-  const sc = Math.min(W, H) / 480, REST = l => l.s.kind === "you" ? 150 * sc : l.nm ? 85 * sc : 72 * sc;
-  // draw once, then move
-  const NS = "http://www.w3.org/2000/svg";
-  svg.innerHTML = "";
-  const gl = document.createElementNS(NS, "g"), gn = document.createElementNS(NS, "g");
-  svg.append(gl, gn);
-  L.forEach(l => { l.el = document.createElementNS(NS, "line"); if (l.nm) l.el.classList.add("nm"); gl.append(l.el); });
-  N.forEach(n => {
-    const g = document.createElementNS(NS, "g"); g.classList.add("gn", n.kind); g.setAttribute("tabindex", "0");
-    const c = document.createElementNS(NS, "circle"); c.setAttribute("r", R(n));
-    if (n.kind === "category" || n.kind === "memory") c.style.fill = CAT_COLOR[n.category] || CAT_COLOR.other;
-    g.append(c);
-    if (n.kind !== "memory") {
-      const t = document.createElementNS(NS, "text");
-      t.textContent = n.kind === "category" ? (MEM_CATS[n.category] || [n.label])[0] : n.label.length > 18 ? n.label.slice(0, 17) + "…" : n.label;
-      t.setAttribute("text-anchor", "middle"); t.setAttribute("dy", R(n) + 13); g.append(t);
-    }
-    g.setAttribute("role", "button");
-    g.setAttribute("aria-label", n.kind === "memory" ? n.label : n.kind === "category" ? `${(MEM_CATS[n.category] || [n.label])[0]} memories` : n.label);
-    n.el = g; gn.append(g);
-  });
-  // hover: show the full text and light up its neighbours; click: open it in the list
-  const near = n => { const s = new Set([n]); L.forEach(l => { if (l.s === n) s.add(l.t); if (l.t === n) s.add(l.s); }); return s; };
-  const focusOn = n => {
-    const s = near(n); box.classList.add("focus");
-    N.forEach(m => m.el.classList.toggle("hi", s.has(m)));
-    L.forEach(l => l.el.classList.toggle("hi", l.s === n || l.t === n));
-    const stars = n.kind === "memory" ? " · " + "★".repeat(n.importance || 1) : "";
-    tip.innerHTML = n.kind === "memory" ? `${esc(n.label)}<small>${esc((MEM_CATS[n.category] || [n.category])[0])}${stars} · click to open</small>`
-      : n.kind === "category" ? `${esc((MEM_CATS[n.category] || [n.category])[0])}<small>${s.size - 2} memories · click to show them</small>`
-      : n.kind === "name" ? `${esc(n.label)}<small>in ${s.size - 1} memories · click to find them</small>` : `${esc(n.label)}<small>you</small>`;
-    tip.hidden = false;
-    const bw = box.clientWidth, sx = bw / W;
-    tip.style.left = Math.min(bw - 330, Math.max(8, n.x * sx + 14)) + "px"; tip.style.top = Math.max(8, n.y * sx - 10) + "px";
-  };
-  const unfocus = () => { box.classList.remove("focus"); tip.hidden = true; };
-  const open = n => {
-    if (n.kind === "you") return;
-    memCat = n.kind === "category" ? n.category : "";
-    $("memQ").value = n.kind === "name" ? n.label : "";
-    setMemView("list"); renderMemories();
-    if (n.kind === "memory") {
-      const el = $("memList").querySelector(`[data-mem="${n.memory}"]`);
-      if (el) { el.scrollIntoView({ block: "center", behavior: "smooth" }); el.classList.add("flash"); setTimeout(() => el.classList.remove("flash"), 1700); }
-    }
-  };
-  N.forEach(n => {
-    n.el.addEventListener("pointerenter", () => focusOn(n)); n.el.addEventListener("pointerleave", unfocus);
-    n.el.addEventListener("focus", () => focusOn(n)); n.el.addEventListener("blur", unfocus);
-    n.el.addEventListener("click", () => open(n));
-    n.el.addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); open(n); } });
-  });
-  const draw = () => {
-    L.forEach(l => { l.el.setAttribute("x1", l.s.x.toFixed(1)); l.el.setAttribute("y1", l.s.y.toFixed(1)); l.el.setAttribute("x2", l.t.x.toFixed(1)); l.el.setAttribute("y2", l.t.y.toFixed(1)); });
-    N.forEach(n => n.el.setAttribute("transform", `translate(${n.x.toFixed(1)},${n.y.toFixed(1)})`));
-  };
-  // a small force layout: nodes push apart, links pull together, everything drifts to the middle
-  const step = alpha => {
-    for (let i = 0; i < N.length; i++) for (let j = i + 1; j < N.length; j++) {
-      const a = N[i], b = N[j]; let dx = b.x - a.x, dy = b.y - a.y, d2 = dx * dx + dy * dy || 0.01;
-      if (d2 > 90000) continue;
-      const f = (a.kind === "memory" && b.kind === "memory" ? 450 : 1100) / d2 * alpha, d = Math.sqrt(d2);
-      dx /= d; dy /= d; a.vx -= dx * f; a.vy -= dy * f; b.vx += dx * f; b.vy += dy * f;
-    }
-    L.forEach(l => {
-      const dx = l.t.x - l.s.x, dy = l.t.y - l.s.y, d = Math.hypot(dx, dy) || 0.01, f = (d - REST(l)) * 0.04 * alpha;
-      l.s.vx += dx / d * f; l.s.vy += dy / d * f; l.t.vx -= dx / d * f; l.t.vy -= dy / d * f;
-    });
-    N.forEach(n => {
-      if (n.kind === "you") { n.x = cx; n.y = cy; n.vx = n.vy = 0; return; }
-      n.vx += (cx - n.x) * 0.0012 * alpha; n.vy += (cy - n.y) * 0.002 * alpha;
-      n.x += (n.vx *= 0.6); n.y += (n.vy *= 0.6);
-      const r = R(n) + 4; n.x = clamp(n.x, r, W - r); n.y = clamp(n.y, r, H - r - 14);
-    });
-  };
-  if (matchMedia("(prefers-reduced-motion: reduce)").matches) { for (let k = 0; k < 260; k++) step(1); draw(); return; }
-  for (let i = 0; i < 120; i++) step(1);     // settle most of the way at once (also when the window is in the background)
-  let k = 120;
-  const tick = () => { for (let i = 0; i < 2; i++) step(Math.max(0.15, 1 - k / 260)); draw(); if (++k < 260 && !$("memGraph").hidden) mgAnim = requestAnimationFrame(tick); };
-  tick();
+// A small world you can move: drag it, zoom it, pull a dot, click one to read and change it, double-click a category to fold it.
+const mg = { N: [], L: [], by: {}, z: 1, x: 0, y: 0, to: null, hover: null, sel: null, drag: null, heat: 0, off: new Set(), shut: new Set(), raf: 0, last: 0, w: 0, h: 0, col: {}, moved: false, fitted: false };
+const mgCalm = () => matchMedia("(prefers-reduced-motion: reduce)").matches;
+function mgColors() {
+  const cs = getComputedStyle(document.documentElement), v = n => cs.getPropertyValue(n).trim(), r = c => c.startsWith("var(") ? v(c.slice(4, -1)) : c;
+  mg.col = { text: v("--text"), muted: v("--muted"), bg: v("--bg"), amber: v("--amber"), cyan: v("--cyan"), light: resolvedTheme() === "light", cat: Object.fromEntries(Object.entries(CAT_COLOR).map(([k, c]) => [k, r(c)])) };
 }
-window.addEventListener("resize", () => { if (memViewMode === "graph" && !$("memGraph").hidden) renderGraph(); });
+const mgR = n => n.kind === "you" ? 22 : n.kind === "category" ? 14 : n.kind === "name" ? 9 : 4.5 + (n.importance || 1) * 2;
+const mgColor = n => n.kind === "you" ? mg.col.cyan : n.kind === "name" ? mg.col.amber : mg.col.cat[n.category] || mg.col.cat.other;
+const mgName = n => n.kind === "category" ? (MEM_CATS[n.category] || [n.label])[0] : n.label;
+const mgShows = n => n.kind === "you" || (n.kind === "category" ? !mg.off.has(n.category) : n.kind === "memory" ? !mg.off.has(n.category) && !mg.shut.has(n.category) : mgNear(n).some(m => !mg.off.has(m.category) && !mg.shut.has(m.category)));
+const mgNear = n => mg.L.filter(l => l.s === n || l.t === n).map(l => l.s === n ? l.t : l.s);
+function renderGraph() {
+  const box = $("memGraph"), data = memGraphData || { nodes: [], links: [] }, old = mg.by;
+  mgColors(); box.querySelector(".gempty")?.remove();
+  mg.by = {};
+  mg.N = data.nodes.map((n, i) => { const o = old[n.id], m = { ...n, x: o ? o.x : 0, y: o ? o.y : 0, vx: 0, vy: 0, born: o ? o.born : performance.now() + i * 14, ph: i * 1.7, fresh: !o }; mg.by[n.id] = m; return m; });
+  mg.L = data.links.map(l => ({ s: mg.by[l.source], t: mg.by[l.target], nm: l.source.startsWith("e:") })).filter(l => l.s && l.t);
+  const cats = mg.N.filter(n => n.kind === "category");
+  cats.forEach((c, i) => { c.a = i / cats.length * Math.PI * 2 - Math.PI / 2; if (c.fresh) { c.x = Math.cos(c.a) * 170; c.y = Math.sin(c.a) * 150; } });
+  cats.forEach(c => { const mine = mg.N.filter(n => n.kind === "memory" && n.category === c.category); mine.forEach((m, j) => { if (m.fresh) { const a = c.a + (j - (mine.length - 1) / 2) * .3; m.x = Math.cos(a) * 285; m.y = Math.sin(a) * 250; } }); });
+  mg.N.filter(n => n.kind === "name" && n.fresh).forEach((n, i) => { n.x = Math.cos(i * 2.4) * 90; n.y = Math.sin(i * 2.4) * 90; });
+  mg.sel = mg.sel && mg.by[mg.sel.id] || null; mg.hover = null;
+  const used = new Set(data.nodes.filter(n => n.category).map(n => n.category));
+  setHTML($("mgLegend"), Object.entries(MEM_CATS).filter(([k]) => used.has(k)).map(([k, [l]]) => `<button data-mgc="${k}" class="${mg.off.has(k) ? "off" : ""}" aria-pressed="${!mg.off.has(k)}" title="Show or hide"><i style="background:${mg.col.cat[k]}"></i>${l} ${mg.N.filter(n => n.kind === "memory" && n.category === k).length}</button>`).join("")
+    + (data.nodes.some(n => n.kind === "name") ? `<button data-mgn="1" title="Names and places that are in two or more memories"><i style="border:2px solid ${mg.col.amber};box-sizing:border-box"></i>Names that link</button>` : ""));
+  $("mgLegend").querySelectorAll("[data-mgc]").forEach(b => b.onclick = () => { const k = b.dataset.mgc; mg.off.has(k) ? mg.off.delete(k) : mg.off.add(k); if (mg.sel && !mgShows(mg.sel)) mgPick(null); $("mgLegend")._h = ""; renderGraph(); mg.heat = Math.max(mg.heat, .5); mgWake(); });
+  const nb = $("mgLegend").querySelector("[data-mgn]"); if (nb) nb.onclick = () => { const first = mg.N.find(n => n.kind === "name" && mgShows(n)); if (first) mgPick(first, true); };
+  if (data.nodes.length <= 1) box.insertAdjacentHTML("beforeend", '<div class="gempty">No memories yet. Your memories, their categories and the people and places in them will show here.</div>');
+  if (mg.N.some(n => n.fresh)) { for (let i = 0; i < 160; i++) mgStep(1); mg.heat = mgCalm() ? 0 : .35; }
+  mgSize(); if (!mg.fitted && mg.w) { mgFit(false); mg.fitted = true; }
+  mgPanel(); mgWake();
+}
+function mgStep(al) {
+  const V = mg.N.filter(mgShows);
+  for (let i = 0; i < V.length; i++) for (let j = i + 1; j < V.length; j++) {
+    const a = V[i], b = V[j]; let dx = b.x - a.x, dy = b.y - a.y, d2 = dx * dx + dy * dy || .01; if (d2 > 160000) continue;
+    const d = Math.sqrt(d2), f = (a.kind === "memory" && b.kind === "memory" ? 900 : 2100) / d2 * al + (d < mgR(a) + mgR(b) + 10 ? .9 : 0); dx /= d; dy /= d; a.vx -= dx * f; a.vy -= dy * f; b.vx += dx * f; b.vy += dy * f;
+  }
+  for (const l of mg.L) { if (!mgShows(l.s) || !mgShows(l.t)) continue; const dx = l.t.x - l.s.x, dy = l.t.y - l.s.y, d = Math.hypot(dx, dy) || .01, rest = l.s.kind === "you" ? 205 : l.nm ? 140 : 125, f = (d - rest) * .04 * al; l.s.vx += dx / d * f; l.s.vy += dy / d * f; l.t.vx -= dx / d * f; l.t.vy -= dy / d * f; }
+  for (const n of V) { if (n === mg.drag) { n.vx = n.vy = 0; continue; } const k = n.kind === "you" ? .03 : .0016; n.vx -= n.x * k * al; n.vy -= n.y * k * 1.3 * al; n.vx = clamp(n.vx * .6, -14, 14); n.vy = clamp(n.vy * .6, -14, 14); n.x += n.vx; n.y += n.vy; }
+}
+function mgSize() {
+  const cv = $("memCv"), dpr = Math.min(2, devicePixelRatio || 1); mg.w = cv.clientWidth; mg.h = cv.clientHeight;
+  if (mg.w && (cv.width !== Math.round(mg.w * dpr) || cv.height !== Math.round(mg.h * dpr))) { cv.width = Math.round(mg.w * dpr); cv.height = Math.round(mg.h * dpr); }
+  mg.dpr = dpr;
+}
+function mgFit(soft = true) {
+  const V = mg.N.filter(mgShows); if (!V.length || !mg.w) return;
+  const x0 = Math.min(...V.map(n => n.x - 60)), x1 = Math.max(...V.map(n => n.x + 60)), y0 = Math.min(...V.map(n => n.y - 40)), y1 = Math.max(...V.map(n => n.y + 46));
+  const side = mg.sel && mg.w > 720 ? 320 : 0, z = clamp(Math.min((mg.w - side - 20) / (x1 - x0), (mg.h - 70) / (y1 - y0)), .3, 1.7);
+  mgGo({ z, x: -(x0 + x1) / 2 * z - side / 2, y: -(y0 + y1) / 2 * z - 8 }, soft);
+}
+function mgGo(to, soft = true) { if (!soft || mgCalm()) { Object.assign(mg, to); mg.to = null; } else mg.to = { ...to }; mgWake(); }
+function mgZoom(f, px = mg.w / 2, py = mg.h / 2, soft = true) { const b = mg.to || mg, z = clamp(b.z * f, .25, 4), wx = (px - mg.w / 2 - b.x) / b.z, wy = (py - mg.h / 2 - b.y) / b.z; mgGo({ z, x: px - mg.w / 2 - wx * z, y: py - mg.h / 2 - wy * z }, soft); }
+const mgWorld = e => { const r = $("memCv").getBoundingClientRect(), px = (e.clientX - r.left) * mg.w / r.width, py = (e.clientY - r.top) * mg.h / r.height; return { px, py, x: (px - mg.w / 2 - mg.x) / mg.z, y: (py - mg.h / 2 - mg.y) / mg.z }; };
+function mgHit(p) { let best = null, bd = 1e9; for (const n of mg.N) { if (!mgShows(n)) continue; const d = Math.hypot(n.x - p.x, n.y - p.y) - mgR(n); if (d < 7 / mg.z + 2 && d < bd) { bd = d; best = n; } } return best; }
+function mgWake() { if (!mg.raf && memViewMode === "graph") mg.raf = requestAnimationFrame(mgFrame); }
+function mgFrame(t) {
+  mg.raf = 0; const cv = $("memCv");
+  if (memViewMode !== "graph" || !cv.offsetParent && !cv.closest(".xp")) return;
+  mgSize(); if (!mg.w) return;
+  const dt = Math.min(50, t - (mg.last || t)); mg.last = t;
+  if (mg.heat > .02 || mg.drag) { mgStep(mg.drag ? Math.max(.5, mg.heat) : mg.heat); mg.heat *= .985; } else mg.heat = 0;
+  if (mg.to) { const k = 1 - Math.pow(.0016, dt / 1000 * 1.6); let far = 0; for (const p of ["z", "x", "y"]) { const d = mg.to[p] - mg[p]; mg[p] += d * k; far = Math.max(far, Math.abs(d) * (p === "z" ? 200 : 1)); } if (far < .5) { Object.assign(mg, mg.to); mg.to = null; } }
+  mgDraw(t);
+  const busy = mg.heat || mg.to || mg.drag || mg.N.some(n => t < n.born + 600);
+  if (busy || (!mgCalm() && !document.hidden)) { if (busy) mg.raf = requestAnimationFrame(mgFrame); else setTimeout(() => { if (!mg.raf) mgWake(); }, 33); }       // calm: thirty pictures a second
+}
+function mgDraw(t) {
+  const g = $("memCv").getContext("2d"), c = mg.col, calm = mgCalm(); g.setTransform(mg.dpr, 0, 0, mg.dpr, 0, 0); g.clearRect(0, 0, mg.w, mg.h);
+  const words = $("memQ").value.trim().toLowerCase().split(/\s+/).filter(Boolean), hit = n => words.length && words.every(w => (n.label + " " + (n.category || "")).toLowerCase().includes(w));
+  const f = mg.hover || mg.sel, near = f ? new Set([f, ...mgNear(f)]) : null; if (f && f.kind === "category") near.add(mg.by.you);
+  const on = n => words.length ? hit(n) : !near || near.has(n), P = n => ({ x: n.x + (calm || n === mg.drag ? 0 : Math.sin(t / 1400 + n.ph) * 2.2), y: n.y + (calm || n === mg.drag ? 0 : Math.cos(t / 1700 + n.ph * 1.3) * 2.2) });
+  g.translate(mg.w / 2 + mg.x, mg.h / 2 + mg.y); g.scale(mg.z, mg.z);
+  for (const r of [120, 220, 330]) { g.beginPath(); g.arc(0, 0, r, 0, 7); g.strokeStyle = c.light ? "rgba(20,50,90,.06)" : "rgba(120,190,255,.05)"; g.lineWidth = 1 / mg.z; g.stroke(); }
+  for (const l of mg.L) {
+    if (!mgShows(l.s) || !mgShows(l.t)) continue; const a = P(l.s), b = P(l.t), hot = f && (l.s === f || l.t === f), dim = words.length ? !(hit(l.s) && hit(l.t)) : near && !hot;
+    const bend = .12 * (l.nm ? -1 : 1), mx = (a.x + b.x) / 2 - (b.y - a.y) * bend, my = (a.y + b.y) / 2 + (b.x - a.x) * bend;
+    g.globalAlpha = dim ? .1 : hot ? .95 : c.light ? .55 : .4; g.strokeStyle = l.nm ? c.amber : mgColor(l.t.kind === "memory" ? l.t : l.t); g.lineWidth = (hot ? 2 : 1.1) / Math.sqrt(mg.z); g.setLineDash(l.nm ? [4, 4] : []);
+    g.beginPath(); g.moveTo(a.x, a.y); g.quadraticCurveTo(mx, my, b.x, b.y); g.stroke(); g.setLineDash([]);
+    if (hot && !calm) for (let k = 0; k < 2; k++) { const q = (t / 1300 + k / 2) % 1, u = l.s === f ? q : 1 - q, x = (1 - u) * (1 - u) * a.x + 2 * (1 - u) * u * mx + u * u * b.x, y = (1 - u) * (1 - u) * a.y + 2 * (1 - u) * u * my + u * u * b.y; g.globalAlpha = Math.sin(q * Math.PI); g.fillStyle = mgColor(l.t); g.beginPath(); g.arc(x, y, 2.4, 0, 7); g.fill(); }
+  }
+  const order = { memory: 0, name: 1, category: 2, you: 3 };
+  for (const n of [...mg.N].sort((a, b) => order[a.kind] - order[b.kind])) {
+    if (!mgShows(n)) continue; const p = P(n), lit = on(n), big = n === mg.hover || n === mg.sel, grow = calm ? 1 : clamp((t - n.born) / 500, 0, 1), r = mgR(n) * (1 - Math.pow(1 - grow, 3)) * (big ? 1.22 : 1), color = mgColor(n); if (r < .3) continue;
+    g.globalAlpha = lit ? 1 : .16; g.shadowColor = color; g.shadowBlur = lit ? (n.kind === "you" ? 30 : big ? 24 : n.kind === "memory" ? 8 : 16) * Math.min(1.4, mg.z) : 0;
+    if (n.kind === "name") { g.fillStyle = c.bg; g.strokeStyle = color; g.lineWidth = 2.4; g.beginPath(); g.arc(p.x, p.y, r, 0, 7); g.fill(); g.stroke(); }
+    else { const gr = g.createRadialGradient(p.x - r * .35, p.y - r * .4, r * .1, p.x, p.y, r); gr.addColorStop(0, c.light ? "#fff" : "rgba(255,255,255,.9)"); gr.addColorStop(.4, color); gr.addColorStop(1, color); g.fillStyle = gr; g.beginPath(); g.arc(p.x, p.y, r, 0, 7); g.fill(); }
+    g.shadowBlur = 0;
+    if (n.kind === "you" && !calm) { g.globalAlpha = lit ? .5 : .1; for (let k = 0; k < 2; k++) { const q = (t / 2600 + k / 2) % 1; g.strokeStyle = color; g.globalAlpha = (1 - q) * (lit ? .45 : .1); g.lineWidth = 1.4; g.beginPath(); g.arc(p.x, p.y, r + q * 26, 0, 7); g.stroke(); } }
+    if (n === mg.sel) { g.globalAlpha = 1; g.strokeStyle = c.text; g.lineWidth = 1.6; g.beginPath(); g.arc(p.x, p.y, r + 4, 0, 7); g.stroke(); }
+    if (n.kind === "category" && mg.shut.has(n.category)) { g.globalAlpha = lit ? 1 : .2; g.fillStyle = c.bg; g.font = "700 11px Inter, sans-serif"; g.textAlign = "center"; g.textBaseline = "middle"; g.fillText("+" + mg.N.filter(m => m.kind === "memory" && m.category === n.category).length, p.x, p.y); }
+    const label = n.kind !== "memory" || big || (lit && words.length) || mg.z > 1.55 || (f && near.has(n) && mg.z > .75 && near.size < 16);
+    if (label) {
+      const fs = (n.kind === "you" ? 14 : n.kind === "category" ? 13 : 11.5) / Math.max(1, Math.sqrt(mg.z)), name = mgName(n), s = n.kind === "memory" ? (name.length > 34 ? name.slice(0, 33) + "…" : name) : name.length > 22 ? name.slice(0, 21) + "…" : name;
+      g.globalAlpha = lit ? 1 : .22; g.font = `${n.kind === "memory" ? 500 : 600} ${fs}px Inter, "Segoe UI", sans-serif`; g.textAlign = "center"; g.textBaseline = "top"; g.lineWidth = 3.5; g.strokeStyle = c.bg; g.lineJoin = "round"; g.strokeText(s, p.x, p.y + r + 5); g.fillStyle = n.kind === "memory" ? c.muted : c.text; g.fillText(s, p.x, p.y + r + 5);
+    }
+  }
+  g.globalAlpha = 1;
+}
+function mgPick(n, go = false) {
+  mg.sel = n; mgPanel(); mgWake();
+  if (n && go) { const z = clamp(mg.z, .9, 1.6), side = mg.w > 720 ? 160 : 0; mgGo({ z, x: -n.x * z - side, y: -n.y * z }); }
+}
+function mgPanel() {
+  const n = mg.sel, box = $("mgPanel"); box.classList.toggle("on", !!n); if (!n) return;
+  const cat = n.category ? (MEM_CATS[n.category] || [n.category])[0] : "", list = ms => ms.length ? `<div class="mgl">${ms.map(m => `<button data-mgo="${esc(m.id)}">${esc(m.label)}</button>`).join("")}</div>` : "", x = `<button class="mgx" aria-label="Close">${icon("x")}</button>`;
+  const near = mgNear(n), mem = near.filter(m => m.kind === "memory"), names = near.filter(m => m.kind === "name");
+  setHTML(box, n.kind === "memory" ? `${x}<span class="mgk"><i style="background:${mgColor(n)}"></i>${esc(cat)}</span><b class="mgt">${esc(n.label)}</b><span class="stars">${[1, 2, 3].map(k => `<button class="star${k <= (n.importance || 1) ? " on" : ""}" data-mgs="${k}" title="${["Normal", "Important", "Key"][k - 1]}" aria-label="${["Normal", "Important", "Key"][k - 1]}">★</button>`).join("")}</span><div class="ckrow"><button class="btn" data-mgl="1">${icon("tasks")}In the list</button><button class="btn danger" data-mgf="1">Forget</button></div>${names.length ? `<span class="mgk">Linked by</span>${list(names)}` : ""}`
+    : n.kind === "category" ? `${x}<span class="mgk"><i style="background:${mgColor(n)}"></i>Category</span><b class="mgt">${esc(cat)}</b><div class="ckrow"><button class="btn" data-mgfold="1">${mg.shut.has(n.category) ? "Unfold" : "Fold"}</button><button class="btn" data-mgl="1">${icon("tasks")}In the list</button></div>${list(mem)}`
+    : n.kind === "name" ? `${x}<span class="mgk"><i style="background:${mgColor(n)}"></i>In ${mem.length} memories</span><b class="mgt">${esc(n.label)}</b><div class="ckrow"><button class="btn" data-mgl="1">${icon("tasks")}In the list</button></div>${list(mem)}`
+    : `${x}<span class="mgk"><i style="background:${mgColor(n)}"></i>You</span><b class="mgt">${esc(n.label)}</b><span class="mgk">${mg.N.filter(m => m.kind === "memory").length} memories in ${near.length} categories</span>${list(near.map(m => ({ ...m, label: mgName(m) })))}`);
+  const on = (k, fn) => box.querySelectorAll(`[data-${k}]`).forEach(b => b.onclick = () => fn(b.dataset[k], b));
+  box.querySelector(".mgx").onclick = () => mgPick(null); on("mgo", id => mgPick(mg.by[id], true)); on("mgfold", () => mgFold(n));
+  on("mgs", async k => { await post("/api/memory/update", { id: n.memory, importance: +k }); loadInfo(); });
+  on("mgf", (_, b) => lnArm("mg" + n.memory, b, async () => { await post("/api/memory/forget", { id: n.memory }); mgPick(null); loadInfo(); poll(); }));
+  on("mgl", () => {
+    if (xpEl) xpClose(true); memCat = n.kind === "category" ? n.category : ""; $("memQ").value = n.kind === "name" ? n.label : ""; setMemView("list"); renderMemories();
+    const el = n.kind === "memory" && $("memList").querySelector(`[data-mem="${n.memory}"]`); if (el) { el.scrollIntoView({ block: "center", behavior: "smooth" }); el.classList.add("flash"); setTimeout(() => el.classList.remove("flash"), 1700); }
+  });
+}
+function mgFold(n) { mg.shut.has(n.category) ? mg.shut.delete(n.category) : mg.shut.add(n.category); mg.heat = Math.max(mg.heat, .6); mgPanel(); mgWake(); }
+(function mgHands() {
+  const cv = $("memCv"); let down = null, lastClick = { at: 0, n: null };
+  cv.onpointerdown = e => { if (e.button) return; cv.setPointerCapture(e.pointerId); const p = mgWorld(e), n = mgHit(p); down = { n, px: p.px, py: p.py, x: mg.x, y: mg.y, dx: n ? n.x - p.x : 0, dy: n ? n.y - p.y : 0 }; mg.moved = false; mg.to = null; };
+  cv.onpointermove = e => {
+    const p = mgWorld(e);
+    if (!down) { const n = mgHit(p); if (n !== mg.hover) { mg.hover = n; cv.classList.toggle("node", !!n); cv.title = n && n.kind === "memory" ? n.label : ""; mgWake(); } return; }
+    if (!mg.moved && Math.hypot(p.px - down.px, p.py - down.py) < 5) return; mg.moved = true; cv.classList.add("drag");
+    if (down.n) { mg.drag = down.n; down.n.x = p.x + down.dx; down.n.y = p.y + down.dy; mg.heat = Math.max(mg.heat, .45); } else { mg.x = down.x + p.px - down.px; mg.y = down.y + p.py - down.py; } mgWake();
+  };
+  cv.onpointerup = cv.onpointercancel = e => {
+    if (!down) return; const n = down.n, moved = mg.moved; down = null; mg.drag = null; cv.classList.remove("drag"); if (moved || e.type === "pointercancel") { mg.heat = Math.max(mg.heat, n ? .4 : 0); return mgWake(); }
+    const now = Date.now(), twice = now - lastClick.at < 350 && lastClick.n === n; lastClick = { at: now, n };
+    if (twice) { lastClick.at = 0; if (!n) mgFit(); else if (n.kind === "category") mgFold(n); else mgPick(n, true); } else mgPick(n);
+  };
+  cv.onpointerleave = () => { if (!down && mg.hover) { mg.hover = null; mgWake(); } };
+  cv.addEventListener("wheel", e => { e.preventDefault(); const p = mgWorld(e); mgZoom(Math.exp(-e.deltaY * .0016), p.px, p.py, false); }, { passive: false });
+  cv.onkeydown = e => {
+    const V = mg.N.filter(mgShows), i = V.indexOf(mg.sel), step = { ArrowRight: 1, ArrowDown: 1, ArrowLeft: -1, ArrowUp: -1 }[e.key];
+    if (step && V.length) { e.preventDefault(); mgPick(V[(i + step + V.length) % V.length], true); } else if (e.key === "+" || e.key === "=") mgZoom(1.25); else if (e.key === "-") mgZoom(.8); else if (e.key === "0") mgFit(); else if (e.key === "Enter" && mg.sel && mg.sel.kind === "category") mgFold(mg.sel); else if (e.key === "Escape" && mg.sel) { e.stopPropagation(); mgPick(null); }
+  };
+  document.querySelectorAll("[data-mg]").forEach(b => b.onclick = () => ({ in: () => mgZoom(1.35), out: () => mgZoom(.74), fit: () => mgFit(), big: () => xpEl === $("memGraph") ? xpClose() : xpOpen($("memGraph")) })[b.dataset.mg]());
+  $("memQ").addEventListener("input", () => { if (memViewMode !== "graph") return; mgWake(); const q = $("memQ").value.trim().toLowerCase(); if (q) { const n = mg.N.find(m => mgShows(m) && m.kind !== "you" && m.label.toLowerCase().includes(q)); if (n) { const z = clamp(mg.z, .8, 1.4); mgGo({ z, x: -n.x * z, y: -n.y * z }); } } else mgFit(); });
+})();
+window.addEventListener("resize", () => { if (memViewMode === "graph" && !$("memGraph").hidden) { mgSize(); mgFit(false); } });
 
 // ---------- skills: your own rules and routines ----------
 const SK_EXAMPLES = [
@@ -3509,7 +3580,7 @@ function renderAutomations() {
         <button class="btn" data-auexp="${a.id}" title="Copy as text to share" aria-label="Export ${esc(a.name)}">${icon("note")}</button>
         <button class="btn danger" data-audel="${a.id}" title="Delete" aria-label="Delete ${esc(a.name)}">${icon("x")}</button>
         ${a.trigger.type === "manual" ? "" : `<button class="btn switch${a.enabled ? " on" : ""}" role="switch" aria-checked="${a.enabled}" data-auon="${a.id}" aria-label="${esc(a.name)} on or off">${a.enabled ? "On" : "Off"}</button>`}</div></div>`;
-  }).join("") : '<div class="empty">No automations yet. Make one with <b>New automation</b>, or start from a template below.</div>';
+  }).join("") : '<div class="empty">No automations yet. Make one with <b>New automation</b>, or start from one under Templates.</div>';
   const on = (sel, fn) => box.querySelectorAll(`[data-${sel}]`).forEach(b => b.onclick = () => fn(+b.dataset[sel], b));
   on("aurun", async id => { const r = await post("/api/auto/run", { id }); const j = r ? await r.json() : {}; if (j.error) addFeed({ title: "Automation", sub: j.error, tag: "INFO", ic: "info" }); });
   on("auedit", id => autoForm(auAll.find(a => a.id === id)));
@@ -5135,7 +5206,7 @@ function drawWave(t) {
   if (!w) return;
   g.clearRect(0, 0, w, h);
   const key = currentLabel(), n = 34, bw = w / n;
-  const amp = key === "listening" ? 0.15 + rec.level * 0.85 : key === "speaking" ? 0.55 : key === "thinking" || key === "transcribing" ? 0.3 : 0.1;
+  const amp = key === "listening" ? 0.06 + rec.level * 0.94 : key === "speaking" ? 0.55 : key === "thinking" || key === "transcribing" ? 0.3 : 0.1;
   const c = key === "listening" ? THEME.wave.listening : key === "thinking" || key === "transcribing" ? THEME.wave.thinking : THEME.wave.idle;
   for (let i = 0; i < n; i++) {
     const v = (Math.sin(t / 160 + i * 0.7) * 0.5 + 0.5) * (Math.sin(t / 430 + i * 0.31) * 0.5 + 0.5);
@@ -5854,6 +5925,75 @@ function placeClock() {
   if (mid - w / 2 > st.getBoundingClientRect().right + 20 && mid + w / 2 < bar.getBoundingClientRect().left - 20) c.classList.add("centered");
 }
 window.addEventListener("resize", placeClock);
+
+// ---------- a panel opened large ----------
+
+const xpMove = (el, from, to, close) => {
+  const k = { duration: mgCalm() ? 1 : close ? 300 : 430, easing: close ? "cubic-bezier(.5, 0, .75, .2)" : "cubic-bezier(.18, .9, .22, 1)", fill: "both" };
+  const far = { transform: `translate(${from.left - to.left}px, ${from.top - to.top}px) scale(${from.width / to.width}, ${from.height / to.height})`, opacity: .15 }, near = { transform: "none", opacity: 1 };
+  const a = el.animate(close ? [near, far] : [far, near], k);
+  [...el.children].forEach(c => c.animate(close ? [{ opacity: 1 }, { opacity: 0 }] : [{ opacity: 0 }, { opacity: 0, offset: .35 }, { opacity: 1 }], { duration: close ? 140 : 460, easing: "ease", fill: close ? "forwards" : "none" }));
+  return Promise.race([a.finished.catch(() => {}), new Promise(r => setTimeout(r, k.duration + 90))]).then(() => a);
+};
+function xpAfter() { requestAnimationFrame(() => { sizeCanvases(); drawConstel(); if (xpEl === $("memGraph") || memViewMode === "graph") { mgSize(); mgFit(); mgWake(); } }); }
+function xpMark(el, on) { const b = el.querySelector(".xpb") || el.querySelector('[data-mg="big"]'); if (b) { b.innerHTML = icon(on ? "shrink" : "expand"); b.title = on ? "Close (Esc)" : "Open large"; b.setAttribute("aria-label", b.title); b.setAttribute("aria-expanded", on); } }
+async function xpOpen(el) {
+  if (xpEl || xpBusy) return; xpBusy = true;
+  const from = el.getBoundingClientRect(); xpHold = document.createElement("div"); xpHold.className = "xphold"; xpHold.style.height = el.id === "memGraph" ? from.height + "px" : "";
+  el.before(xpHold); $("xpHost").append(el); xpEl = el; el.classList.add("xp"); xpMark(el, true); $("xpBack").classList.add("on");
+  if (el.querySelector("#timeline")) renderTimeline((lastStats || {}).timers || []);
+  xpAfter(); const a = await xpMove(el, from, el.getBoundingClientRect(), false); a.cancel(); xpBusy = false; xpAfter();
+  const b = el.querySelector(".xpb"); if (b) b.focus({ preventScroll: true });
+}
+async function xpClose(now = false) {
+  if (!xpEl || xpBusy && !now) return; xpBusy = true; const el = xpEl, hold = xpHold; $("xpBack").classList.remove("on");
+  if (!now) await xpMove(el, hold.getBoundingClientRect(), el.getBoundingClientRect(), true);
+  el.getAnimations({ subtree: true }).forEach(a => a.cancel()); el.classList.remove("xp"); hold.replaceWith(el); xpEl = xpHold = null; xpBusy = false; xpMark(el, false);
+  if (el.querySelector("#timeline")) renderTimeline((lastStats || {}).timers || []);
+  xpAfter();
+}
+document.querySelectorAll(".dash .card:not(.hero) > h3").forEach(t => { const b = document.createElement("button"); b.className = "xpb"; t.append(b); xpMark(t.parentElement, false); b.onclick = () => xpEl === t.parentElement ? xpClose() : xpOpen(t.parentElement); });
+$("xpBack").onclick = () => xpClose();
+document.querySelectorAll(".dash .card .qbtn").forEach(b => b.addEventListener("click", () => xpClose()));
+document.addEventListener("keydown", e => { if (e.key === "Escape" && xpEl && !confirmQueue.length && !$("alerts").firstChild && !$("detail").classList.contains("open")) { e.stopImmediatePropagation(); e.preventDefault(); if (xpEl === $("memGraph") && mg.sel) mgPick(null); else xpClose(); } }, true);
+
+// ---------- tabs across a page, like Settings ----------
+const ptPages = {};
+function ptMark(view, i) { const p = ptPages[view]; if (!p) return; p.at = i; p.tabs.forEach((t, k) => { t.b.classList.toggle("on", k === i); t.b.setAttribute("aria-selected", k === i); }); const g = p.tabs[i].g; p.groups.forEach((d, k) => d.classList.toggle("on", k === g)); }
+(function sectionTabs() {
+  const P = { tools: {}, models: {}, auto: { first: ["My automations", "tasks"] }, agents: { first: ["Agents", "user"] }, memory: { first: ["Memories", "db"], keep: ["memSuggest"] } };
+  const IC = { "MY SKILLS": "zap", WORKSPACES: "layers", DOCUMENTS: "note", "PC CARE": "pc", "BUILT-IN TOOLS": "wrench", TEMPLATES: "note", BOARD: "tasks", "LOCAL AI · ON THIS PC": "cpu", "ALL AIS": "layers", "HOW TO SWITCH": "swap", NOTES: "note" };
+  for (const [view, o] of Object.entries(P)) {
+    const body = document.querySelector(`.view[data-view="${view}"] > .page > .body`), groups = [], tabs = []; let cur = null;
+    for (const n of [...body.children]) {
+      if ((o.keep || []).includes(n.id)) continue;
+      if (n.matches("h4.sec") || !cur) {
+        const t = n.matches("h4.sec") ? [...n.childNodes].filter(x => x.nodeType === 3).map(x => x.textContent).join("").trim() : "", key = t.toUpperCase();
+        cur = document.createElement("div"); cur.className = "ptab"; n.before(cur); groups.push(cur);
+        const [label, ic] = t ? [/^all ais$/i.test(t) ? "All AIs" : t === t.toUpperCase() ? t[0] + t.slice(1).toLowerCase().replace(/\bai\b/g, "AI").replace(/\bpc\b/g, "PC") : t, IC[key] || "info"] : o.first;
+        tabs.push({ label: label.replace("Pc care", "PC care").replace("Local ai · on this pc", "Local AI").replace("Local AI · on this PC", "Local AI"), ic, g: groups.length - 1 });
+        if (n.matches("h4.sec") && !n.querySelector("button")) n.hidden = true;
+      }
+      cur.append(n);
+    }
+    if (view === "memory") { tabs.splice(1, 0, { label: "Graph", ic: "globe", g: 0, run: () => setMemView("graph") }); tabs[0].run = () => setMemView("list"); $("memView").hidden = true; }
+    const bar = document.createElement("div"); bar.className = "settabs ptabs"; bar.setAttribute("role", "tablist"); bar.setAttribute("aria-label", view);
+    tabs.forEach((t, i) => { t.b = document.createElement("button"); t.b.className = "settab"; t.b.setAttribute("role", "tab"); t.b.innerHTML = icon(t.ic) + esc(t.label); t.b.onclick = () => { ptMark(view, i); if (t.run) t.run(); }; bar.append(t.b); });
+    body.prepend(bar); ptPages[view] = { tabs, groups, at: 0 }; ptMark(view, 0);
+  }
+})();
+
+// ---------- the waves beside the talk button: your voice, nothing else ----------
+const wvBars = [...document.querySelectorAll(".wv i")]; let wvLv = 0, wvOn = false;
+const wvMine = () => (rec.active || live.active && live.phase === "listening") && rec.level > .1 ? Math.min(1, rec.level * 1.2) : 0;
+function wvKick() { if (!wvOn && wvMine()) { wvOn = true; document.querySelectorAll(".wv").forEach(w => w.classList.add("hot")); requestAnimationFrame(wvFrame); } }
+function wvFrame(t) {
+  const want = wvMine(); wvLv += (want - wvLv) * (want > wvLv ? .4 : .1);
+  wvBars.forEach((b, i) => { b.style.height = `${Math.round(15 + wvLv * 85 * (.3 + .7 * Math.abs(Math.sin(t / 150 + i * 1.13) * Math.cos(t / 310 + i * .7))))}%`; });
+  if (wvLv < .02 && !want) { wvOn = false; wvBars.forEach(b => b.style.height = ""); document.querySelectorAll(".wv").forEach(w => w.classList.remove("hot")); return; }
+  requestAnimationFrame(wvFrame);
+}
+setInterval(wvKick, 150);
 
 // ---------- start ----------
 brand();

@@ -2,6 +2,15 @@
 
 Newest first. Each entry: what was done, how it was tested, what is open, the next task.
 
+## 2026-11-24 — Session 2, part 22b: look and feel (v1.31.3)
+
+**Asked by the owner** — pages in the middle like Settings, taking things out of Activity, panels that open large with a movement, the
+voice box's alignment, waves only while they talk, a graph one can handle; and from now on the last number of the version counts up
+(1.31.1 → 1.31.2 → 1.31.3), with a short text in every commit of what changed. The vault, not pushed yet as 1.32.0, became 1.31.2.
+
+**Done** — `hud.html` (`sectionTabs`, `xpOpen`, `mg*`, `wvFrame`, `.vbody`), `storage.remove_activity`, `/api/activity/remove`, every kept
+event has an id.
+
 ## 2026-11-24 — Session 2, part 22: Phase 9 part 2 — vault and privacy lock (v1.31.2)
 
 **Decided by the owner** — the vault opens with the master password and, if turned on, Windows Hello; the lock with Windows Hello, the

@@ -6,6 +6,7 @@ really lie in the notes folder. Deleting moves to the Recycle Bin.
 from __future__ import annotations
 
 import re
+import time
 from datetime import datetime
 from pathlib import Path
 
@@ -83,7 +84,14 @@ def save(name: str, text: str, new: bool = False) -> dict:
         raise ValueError("There's no note with that name.")
     tmp = p.with_suffix(".tmp")
     tmp.write_text(str(text), encoding="utf-8")        # never half a note if the PC stops in between
-    tmp.replace(p)
+    for attempt in range(20):
+        try:
+            tmp.replace(p)
+            break
+        except PermissionError:                        # antivirus or the search index reads it for a moment
+            if attempt == 19:
+                raise
+            time.sleep(0.05 * (attempt + 1))
     return _row(p)
 
 

@@ -154,6 +154,7 @@ class Hub:
         # (not called "kind": reminders send their own kind=alarm/prayer/battery in **data)
         ev = {"type": event_type, "time": datetime.now().strftime("%H:%M:%S"), **data}
         if keep:
+            ev.setdefault("id", self._next_id())
             self.history.append(ev)
             self.history = self.history[-200:]
             if self.keep_history():
@@ -223,6 +224,15 @@ class Hub:
         self.history = []
         audit.record("history_cleared", events=n)
         self.emit("history_cleared")
+
+    def remove_activity(self, ids: list[str] | None) -> int:
+        """Your click in the Activity panel: these go from the list and from what is saved (the record of actions stays)."""
+        n = storage.remove_activity(ids)
+        gone = None if ids is None else set(ids)
+        self.history = [e for e in self.history if e.get("type") not in storage.ACTIVITY or gone is not None and e.get("id") not in gone]
+        audit.record("activity_removed", things="all" if ids is None else len(ids))
+        self.emit("activity_removed", ids=ids)
+        return n
 
     def on_tool(self, name: str, args: dict) -> None:
         if name not in ("switching_model", "live_reconnecting", "microphone", "routing"):   # (notices, not actions)
@@ -1340,7 +1350,7 @@ class Hub:
                "native_mic": bool(recorder),
                "live": self.live_status(),
                **self.mic_status(),
-               "location": schedule.get_location().get("city"),
+               "location": schedule.known_location().get("city"),
                "weather": self.weather,
                "meeting": self.meeting.state() if self.meeting_on() else None, "screen": self.screen.state(),
                "ringing": self.ringer.list(), "silent": os.environ.get("JARVIS_NO_SPEAK") == "1",
@@ -2404,6 +2414,13 @@ class Handler(BaseHTTPRequestHandler):
         if self.path == "/api/history/clear":              # Settings > Privacy: forget the saved conversation
             HUB.clear_history()
             return self._json({"ok": True})
+        if self.path == "/api/activity/remove":            # the Activity panel: take one out, or all
+            try:
+                data = json.loads(self._body(200_000) or b"{}")
+                ids = None if data.get("all") is True else [str(i) for i in data["ids"]][:300]
+            except (ValueError, KeyError, TypeError, AttributeError):
+                return self._json({"error": "bad request"}, 400)
+            return self._json({"ok": True, "removed": HUB.remove_activity(ids)})
         if self.path == "/api/stop":                        # Emergency stop (button, Esc twice, tray menu)
             threading.Thread(target=HUB.emergency_stop, args=("button",), daemon=True).start()
             return self._json({"ok": True})

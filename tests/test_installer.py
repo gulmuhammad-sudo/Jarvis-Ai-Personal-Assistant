@@ -349,3 +349,28 @@ def test_hiding_folders_never_deletes(tmp_path, monkeypatch):
     build.tidy()
     assert (tmp_path / "data" / "x").read_text() == "x" and os.stat(tmp_path / "data").st_file_attributes & 2 and not os.stat(tmp_path / "jarvis").st_file_attributes & 2
     assert not {"jarvis", "docs", "tests", "packaging", "assets", ".env"} & set(build.HIDE)
+
+
+def test_the_build_takes_every_python_library_along(tmp_path):
+    """The vault couldn't be made in the exe: python3t.dll wasn't in it, and nothing said so until it was used."""
+    import build
+    src = (ROOT / "packaging" / "build.py").read_text(encoding="utf-8") if "ROOT" in globals() else open(build.__file__, encoding="utf-8").read()
+    assert "--add-binary={f}{SEP}." in src and "missing_python_dlls(app_dir)" in src
+    assert build.missing_python_dlls(tmp_path) == []
+
+
+def test_a_note_waits_for_antivirus(tmp_path, monkeypatch):
+    from pathlib import Path
+
+    from jarvis import notes
+    monkeypatch.setattr(notes, "path_of", lambda name: tmp_path / f"{name}.md")
+    real, n = Path.replace, []
+
+    def busy(self, to):
+        n.append(1)
+        if len(n) < 3:
+            raise PermissionError(13, "in use")
+        return real(self, to)
+    monkeypatch.setattr(Path, "replace", busy)
+    notes.save("x", "hello", new=True)
+    assert (tmp_path / "x.md").read_text() == "hello" and len(n) == 3

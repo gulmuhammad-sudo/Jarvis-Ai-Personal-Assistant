@@ -417,17 +417,18 @@ def recent_events(n: int = 200) -> list[dict]:
     """The last n kept events, oldest first, each with 'date' (YYYY-MM-DD) added."""
     try:
         with _LOCK:
-            rows = conn().execute("SELECT at, data FROM events ORDER BY id DESC LIMIT ?", (n,)).fetchall()
+            rows = conn().execute("SELECT at, data, id FROM events ORDER BY id DESC LIMIT ?", (n,)).fetchall()
     except sqlite3.Error as e:
         print(f"[storage] couldn't read the history: {e}")
         return []
     out = []
-    for at, data in reversed(rows):
+    for at, data, row in reversed(rows):
         try:
             ev = json.loads(data)
         except json.JSONDecodeError:
             continue
         ev["date"] = at[:10]
+        ev.setdefault("id", f"r{row}")               # (saved before every event had its own)
         out.append(ev)
     return out
 
@@ -451,6 +452,23 @@ def clear_events() -> int:
             n = c.execute("DELETE FROM events").rowcount
         c.execute("VACUUM")
     return n
+
+
+ACTIVITY = ("tool", "tool_result", "notify", "error")
+
+
+def remove_activity(ids: list[str] | None) -> int:
+    """Take these out of the Activity list for good (None: all of them). What you said and the answers stay."""
+    marks = ",".join("?" * len(ACTIVITY))
+    with _LOCK:
+        c = conn()
+        with c:
+            if ids is None:
+                return c.execute(f"DELETE FROM events WHERE type IN ({marks})", ACTIVITY).rowcount
+            n = 0
+            for i in ids:
+                n += c.execute(f"DELETE FROM events WHERE type IN ({marks}) AND (json_extract(data, '$.id') = ? OR (json_extract(data, '$.id') IS NULL AND 'r' || id = ?))", (*ACTIVITY, i, i)).rowcount
+            return n
 
 
 def count_events() -> int:

@@ -11,6 +11,15 @@ set PA_TEST_NETWORK=1 && .venv\Scripts\python -m pytest tests   # also the onlin
 .venv\Scripts\python packaging\build.py              # then smoke-test the packaged exe (see below)
 ```
 
+## 2026-11-24 — Look and feel (v1.31.3)
+
+| Suite | Result | Notes |
+|---|---|---|
+| `pytest tests` |  | new tests/test_look.py (13): taking out one and all, old entries, what can't be taken out, the request, panels under questions, waves, voice box |
+| Running app (test copy, no mic) | pass | all 14 pages at 1534x787, 1920x1000, 1534x650, 1280x787, 620x760, light theme: nothing past the edge; 8 panels opened and closed by button, backdrop, Esc; movement measured (405 → 1080 px in 0.4 s); one and all taken out, still gone after a reload; the voice box's parts at the same place with short, long, Urdu words and the Unmute button; the waves: still while silent, while it speaks and thinks, moving while talking; the graph: hover, click, drag, pan, wheel, buttons, fold, hide, find, keys, stars, large |
+| Found by the packaged exe | fixed | the vault couldn't be made in the exe: Python 3.15's `python3t.dll` (asked for by the encryption library) wasn't in it. It is now, and the build stops when any part asks for a Python library that isn't inside |
+| Not tested | — | the waves with a real microphone |
+
 ## 2026-11-24 — The vault and the privacy lock (v1.31.2)
 
 | Suite | Result | Notes |

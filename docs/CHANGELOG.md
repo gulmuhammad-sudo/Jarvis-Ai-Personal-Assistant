@@ -2,6 +2,20 @@
 
 Each version is also a git tag (`git tag -n20 vX.Y.Z` shows its notes). Newest first.
 
+## 1.31.3 — 2026-11-24 (not pushed yet)
+Look and feel.
+- Every page is one column in the middle with its tabs across it, like Settings; Tools & Skills, Automations, Agents, AI Models and
+  Memory got tabs of their own.
+- Activity: take one thing out (the cross), or all (Clear). What you said, the answers and the record of actions stay.
+- Every panel of the Command Center opens large, with a movement and a fade, and closes the same way (the button, Esc, a click
+  beside it). Shortcuts has more buttons there.
+- The Voice box has one layout, the same at every window size; the menu shares its room evenly (no scrolling in a usual window).
+- The waves beside the talk button move with your voice only.
+- The memory graph can be handled: drag it, zoom, pull a dot, click one to read it and change it (stars, forget), fold a category, hide
+  kinds, find words, keyboard, open large.
+- Fixed: "View all" of Agents opened Tools.
+- Fixed: the app's first answer waited for the internet (location, prayer times): seconds, on a bad line half a minute.
+
 ## 1.31.2 — 2026-11-24 (not pushed yet)
 The vault and the privacy lock (Phase 9 part 2).
 - Vault: passwords, cards, documents (CNIC, passport…), notes and files, encrypted on this PC (AES-256-GCM; the key from your master

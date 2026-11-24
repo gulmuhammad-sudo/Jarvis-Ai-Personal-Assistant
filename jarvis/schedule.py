@@ -113,6 +113,47 @@ def get_location() -> dict:
     return _loc_cache
 
 
+# what the page asks for all the time must never wait for the internet (20 seconds and more on a bad line): what is known is
+# given at once, and the rest is fetched in the background
+_BACK: dict[str, float] = {}
+_BACK_LOCK = threading.Lock()
+
+
+def _later(key: str, fetch) -> None:
+    """Fetch in the background: once at a time, and not again within a minute."""
+    with _BACK_LOCK:
+        if time.monotonic() < _BACK.get(key, 0.0):
+            return
+        _BACK[key] = time.monotonic() + 60
+
+    def go() -> None:
+        try:
+            fetch()
+        except Exception as e:
+            print(f"[schedule] {key}: {type(e).__name__}")
+    threading.Thread(target=go, name=f"fetch-{key}", daemon=True).start()
+
+
+def known_location() -> dict:
+    """The location as far as known ({} while it is being looked up)."""
+    if os.environ.get("JARVIS_CITY") or read_json(LOCATION_FILE, None) or _loc_cache:
+        return get_location()
+    _later("location", get_location)
+    return {}
+
+
+def known_prayers(day: date) -> dict[str, str] | None:
+    """The prayer times as far as known (None while they are being fetched)."""
+    loc = known_location()
+    if not loc:
+        return None
+    key = (day.isoformat(), _where(loc), os.environ.get("JARVIS_PRAYER_METHOD", "1"), os.environ.get("JARVIS_PRAYER_SCHOOL", "1"))
+    if key in _prayer_cache:
+        return _prayer_cache[key]
+    _later(f"prayers {day.isoformat()}", lambda: prayer_times(day))
+    return None
+
+
 def set_location(city: str, country: str = "") -> dict:
     """Save the user's city (looked up on the map so prayer times and weather are exact)."""
     q = urllib.parse.quote(f"{city} {country}".strip())
@@ -130,6 +171,7 @@ def set_location(city: str, country: str = "") -> dict:
         write_json(LOCATION_FILE, loc)
     _prayer_cache.clear()
     _weather_cache.clear()
+    _BACK.clear()
     return loc
 
 
@@ -514,9 +556,9 @@ class Scheduler:
                               "repeat": a["repeat"] if a["repeat"] != "once" else ""})
         if self.prayers_on():
             try:
-                times = prayer_times(now.date())
+                times = known_prayers(now.date()) or {}
                 items += [{"at": _at(now.date(), times[p]), "label": f"{p} prayer", "kind": "prayer", "repeat": ""}
-                          for p in PRAYERS if _at(now.date(), times[p]) > now]
+                          for p in PRAYERS if p in times and _at(now.date(), times[p]) > now]
             except Exception:
                 pass
         items.sort(key=lambda i: i["at"])
