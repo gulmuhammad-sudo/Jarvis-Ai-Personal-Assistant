@@ -223,12 +223,13 @@ class OpenAICompatBrain:
 
 # A small local model gets the everyday tools only: all ~47 tool descriptions would fill its context.
 BIG_TOOLS = {"documents": r"pdf|docx?|word|excel|xlsx|sheet|powerpoint|pptx|slides?|document|report|file|فائل", "goals": r"goal|habit|aadat|target|عادت|ہدف",
-             "journal": r"journal|diary|mood|ڈائری", "money": r"spen[dt]|money|paisa|paise|kharch|bill|budget|rupee|rupay|rs|paid|salary|خرچ|پیسے|بل", "email": r"mail|inbox|gmail|draft|میل"}
+             "journal": r"journal|diary|mood|ڈائری", "money": r"spen[dt]|money|paisa|paise|kharch|bill|budget|rupee|rupay|rs|paid|salary|خرچ|پیسے|بل", "email": r"mail|inbox|gmail|draft|میل",
+             "clock": r"stop ?watch|lap|focus|pomodoro|pause|resume|snooze|ring|time in|time is it|alarm|timer|waqt|baje|وقت|الارم", "news": r"news|headline|khabar|خبر"}
 LOCAL_TOOLS = ("get_datetime", "system_status", "open_website", "search_web_in_browser", "open_application",
                "open_path", "find_files", "read_text_file", "save_note", "list_notes", "remember_fact",
                "recall_memories", "set_timer", "list_timers", "cancel_timer", "media_control", "clipboard",
                "web_search", "fetch_webpage", "get_weather", "play_youtube", "set_alarm", "list_alarms",
-               "close_app", "take_screenshot", "write_file", "tasks", "calendar", "notes", "documents", "goals", "money", "journal", "email")
+               "close_app", "take_screenshot", "write_file", "tasks", "calendar", "notes", "documents", "goals", "money", "journal", "email", "clock", "news")
 
 
 def prefer_local() -> bool:

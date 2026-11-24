@@ -21,6 +21,8 @@ One Python process (`Personal Assistant.exe`, or `pythonw -m jarvis` from source
      ├── winmgr.py, ocr.py         windows (Win32 via ctypes), workspaces; Windows OCR (offline)
      ├── life.py                   goals and habits, journal, money
      ├── mail.py                   Gmail: reading and drafts only
+     ├── clock.py                  timers, focus, stopwatch, ringing, world clock
+     ├── news.py                   topics, RSS sources, search, kept stories
      ├── documents.py, docindex.py reading and making Word, Excel, PowerPoint, PDF; the local index
      ├── planner.py, notes.py      tasks, calendar, agenda, reminders; the notes folder
      ├── agents.py                 specialists with hard tool limits and a shared board

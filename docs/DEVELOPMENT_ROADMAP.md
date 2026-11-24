@@ -52,7 +52,8 @@ enough to finish, test and release on its own. Numbers in brackets are decisions
 - [x] Email [46]: Gmail, reading and drafts (the owner chose no sending)
 
 ## Phase 8 — Personal, creative, entertainment
-- [ ] Stopwatch and time tools [83]; media, news, learning, fitness, travel, meetings, companion [48, 65, 61, 62, 63, 68, 60]
+- [x] Clock: stopwatch, timers, focus, alarms, world clock [83]; news [65]
+- [ ] Learning, fitness [61, 62]; travel, meetings, companion [63, 68, 60]; media [48]
 - [ ] Screen recording (never silent) [54]; local image generation if hardware allows [55]
 
 ## Phase 9 — Privacy, integrations, system tools

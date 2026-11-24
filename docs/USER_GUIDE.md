@@ -121,6 +121,10 @@ and its keys in `.env` next to the code).
 | "Read the text in this window" / "read the text in Desktop/receipt.png" | Windows' own OCR, offline |
 | "Put Chrome on the left and VS Code on the right" / "minimise everything" | Moves, snaps, minimises and maximises windows |
 | "Save this as my Study workspace" / "open Study workspace" | Saves the window layout; reopens the apps and puts them back |
+| "Set a timer for 10 minutes" / "pause the timer" / "start the stopwatch" / "focus for 25 minutes" | Daily › Clock; timers survive a restart |
+| "Snooze ten minutes" / "stop the alarm" | What is ringing now (or the Stop and Snooze buttons) |
+| "What time is it in London?" | World clock |
+| "What's in the news?" / "news about Karachi" / "what's new in what I follow?" | Headlines with their sources (Daily › News) |
 | "Summarise my unread emails" / "draft a reply to Ali: yes, ten is fine" | Reads your Gmail and saves drafts; never sends (Planner › Email to connect) |
 | "I spent 1500 on groceries" / "how much did I spend this month?" / "mark walk as done" / "write in my journal: …" | Goals, habits, journal, money (Planner page) |
 | "Summarise Desktop/report.pdf" / "make a PowerPoint about solar power on my Desktop" / "find the warranty in my documents" | Reads, makes and searches documents (folders: Tools & Skills › Documents) |

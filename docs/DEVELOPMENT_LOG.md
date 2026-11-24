@@ -2,6 +2,16 @@
 
 Newest first. Each entry: what was done, how it was tested, what is open, the next task.
 
+## 2026-11-24 — Session 2, part 16: Phase 8 part 1 — clock and news (v1.27.0)
+
+**Plan of Phase 8 (told to the owner)** — 1 clock and news; 2 learning and fitness; 3 travel, meetings, companion; 4 media,
+screen recording, local images. One release each.
+
+**Done** — `jarvis/clock.py`, `jarvis/news.py`, tools `clock` and `news`, `/api/clock/*`, `/api/news/*`, page Daily, database 10
+(timers, stopwatch, focus_log, news_feeds, news_saved), alarm edit / off / missed in `schedule.py`, `Hub.ringer`. `ctx.timers` is gone.
+
+**Next** — ask the owner: build 1.27.0; then part 2.
+
 ## 2026-11-23 — Session 2, part 15: Phase 7 part 4 — email, look only (v1.26.0)
 
 **Decided by the owner** — Gmail; read and drafts, no sending.

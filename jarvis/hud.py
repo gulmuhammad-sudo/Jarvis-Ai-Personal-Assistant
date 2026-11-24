@@ -26,7 +26,7 @@ from urllib.parse import parse_qs, quote
 
 from . import __version__
 from . import live as live_mod
-from . import agents, alerts, approvals, audit, automations, denoise, docindex, gpu, guard, languages, life, local_ai, mail, local_stt, local_tts, memory, notes, planner, plans, schedule, netcheck, skills, software, stt, storage, tools, tts, urdu, wake, winmgr
+from . import agents, alerts, approvals, audit, automations, clock, denoise, docindex, gpu, guard, languages, life, local_ai, mail, local_stt, local_tts, memory, news, notes, planner, plans, schedule, netcheck, skills, software, stt, storage, tools, tts, urdu, wake, winmgr
 from .brain import make_brain
 from .config import NOTES_DIR
 from .providers import provider_status
@@ -125,6 +125,11 @@ class Hub:
         tts.warm_up()                       # first reply shouldn't pay the voice service's start-up cost
         if recorder and os.environ.get("JARVIS_NO_MIC") != "1":     # (automated tests never open the mic)
             threading.Thread(target=recorder.choose_mic, daemon=True).start()   # pick a working mic early
+        self.ringer = clock.Ringer(play=lambda label, first: self.alert("alarm", label, force=not first),
+                                   changed=lambda rings: self.emit("ringing", rings=rings), missed=lambda text: self.notify(text, "info"),
+                                   quiet=lambda: bool(self.live and self.live.active))
+        tools.RINGER = self.ringer
+        clock.start(self.clock_done, lambda: self.emit("clock_changed"))
         self.scheduler = schedule.Scheduler(notify=self.notify,
                                             run_prompt=lambda text: self.submit(text, source="scheduled"))
         self.scheduler.on_tick = self._tick
@@ -221,10 +226,22 @@ class Hub:
         self.emit("skills_changed")
 
     def notify(self, msg: str, kind: str = "reminder") -> None:
+        if kind == "alarm":                  # an alarm rings until you stop or snooze it
+            label = re.sub(r"^Alarm: (.*) \(\d\d:\d\d\)$", r"\1", msg)
+            return self.emit("notify", keep=True, text=msg, kind=kind, ring=self.ringer.start(label, "alarm"))
         self.emit("notify", keep=True, text=msg, kind=kind)
+
+    def clock_done(self, text: str, label: str, ring: bool) -> None:
+        """A timer or focus round ended."""
+        if ring:
+            self.emit("notify", keep=True, text=text, kind="reminder", ring=self.ringer.start(label, "timer"))
+        else:
+            self.emit("notify", keep=True, text=text, kind="info")
 
     def alert(self, kind: str = "warn", text: str = "", force: bool = False, tone: str | None = None) -> None:
         """Beep loudly for a warning/alarm (the page asks for this when it shows an alert)."""
+        if os.environ.get("JARVIS_NO_SPEAK") == "1":        # demo copies stay quiet
+            return
         def hold_mic() -> None:          # a live call shouldn't send the beep to Gemini as if you spoke
             self.quiet_for(alerts.duration(kind) + 0.8)
             if self.live:
@@ -802,6 +819,7 @@ class Hub:
             self.live_stop("stopped")
         if self.recording:
             self.recording.stop()
+        self.ringer.stop()
         audit.record("emergency_stop", how=how)
         print(f"[stop] everything stopped ({how})")
         self.emit("stopped", how=how)
@@ -936,6 +954,8 @@ class Hub:
 
     def live_start(self, preroll=None, greet: str | None = None, idle_stop: float | None = None,
                    quiet_room: bool = False) -> None:
+        if os.environ.get("JARVIS_NO_MIC") == "1":      # tests and demo copies: not even when the mic button is pressed
+            return
         tools.STOP.clear()                     # starting a call is a new instruction
         self.standby_halt()                    # the call needs the microphone
         with self._listen_lock:
@@ -1134,9 +1154,9 @@ class Hub:
                **self.mic_status(),
                "location": schedule.get_location().get("city"),
                "weather": self.weather,
-               "timers": sorted([{"id": i, "message": m, "due": d.strftime("%H:%M"), "kind": "timer", "repeat": "",
-                                  "left": max(0, int((d - datetime.now()).total_seconds()))}
-                                 for i, (_, m, d) in self.ctx.timers.items()]
+               "ringing": self.ringer.list(), "silent": os.environ.get("JARVIS_NO_SPEAK") == "1",
+               "timers": sorted([{"id": t["id"], "message": t["label"], "due": datetime.fromtimestamp(t["due"]).strftime("%H:%M"), "kind": "timer", "repeat": "",
+                                  "left": int(t["left"])} for t in clock.timers() if not t["paused"]]
                                 + self._upcoming(), key=lambda x: x["left"])}
         total, used, _ = shutil.disk_usage(Path.home().anchor)
         out["disk"] = round(used / total * 100, 1)
@@ -1452,6 +1472,94 @@ class Handler(BaseHTTPRequestHandler):
             return self._json({"error": f"Windows said: {e.strerror or e}"}, 500)
         HUB.emit("planner_changed")
         return self._json(out)
+
+    def _clock(self, action: str, data: dict) -> None:
+        """The Daily page's Clock, and the buttons of something ringing."""
+        try:
+            num = lambda: int(data.get("id"))                                           # noqa: E731
+            if action == "load":
+                return self._json(clock.load())
+            if action == "timer":
+                clock.add(data.get("seconds"), data.get("label"))
+            elif action in ("pause", "resume"):
+                clock.pause(num(), action == "pause")
+            elif action == "extend":
+                clock.extend(num(), data.get("seconds"))
+            elif action == "cancel":
+                clock.cancel(num())
+            elif action == "focus":
+                clock.focus(data.get("work"), data.get("rest"), data.get("rounds"), data.get("label"))
+            elif action == "focus_skip":
+                clock.focus_skip()
+            elif action == "focus_stop":
+                clock.focus_stop()
+            elif action == "stopwatch":
+                clock.stopwatch_do(str(data.get("do") or ""))
+            elif action == "alarm":
+                args = (str(data.get("time") or ""), str(data.get("label") or ""), str(data.get("repeat") or "once"),
+                        [str(d) for d in data.get("days") or []] if isinstance(data.get("days"), list) else [])
+                schedule.update_alarm(num(), *args) if data.get("id") else schedule.add_alarm(*args)
+            elif action == "alarm_on":
+                schedule.enable_alarm(num(), bool(data.get("on")))
+            elif action == "alarm_delete":
+                schedule.delete_alarm(num())
+            elif action == "place":
+                clock.add_place(data.get("place"))
+            elif action == "place_remove":
+                clock.remove_place(data.get("place"))
+            elif action == "ring_minutes":
+                clock.set_ring_minutes(data.get("minutes"))
+            elif action == "ring_stop":
+                HUB.ringer.stop(data.get("id"))
+                return self._json({"ok": True})
+            elif action == "snooze":
+                clock_t = HUB.ringer.snooze(data.get("minutes"), data.get("id"))
+                return self._json({"ok": True, "text": clock.describe(clock_t)})
+            else:
+                return self._json({"error": "unknown action"}, 404)
+        except (ValueError, TypeError, KeyError) as e:
+            return self._json({"error": str(e) if isinstance(e, ValueError) and "invalid literal" not in str(e) else "Something is missing."}, 400)
+        HUB.emit("clock_changed")
+        return self._json(clock.load())
+
+    def _news(self, action: str, data: dict) -> None:
+        """The Daily page's News: your own clicks."""
+        try:
+            if action == "load":
+                return self._json(news.page())
+            if action == "stories":
+                got = news.stories(data.get("where"), bool(data.get("fresh")))
+                return self._json({**got, "at": datetime.fromtimestamp(got["at"]).strftime("%H:%M")})
+            if action == "open":                                  # in your own browser
+                s = news.story(data.get("id"))
+                if not s:
+                    raise ValueError("That story isn't in the list any more.")
+                news.mark_read(s["id"])
+                os.startfile(s["link"])
+                return self._json({"ok": True})
+            if action == "save":
+                news.save(data.get("id"))
+            elif action == "unsave":
+                news.unsave(data.get("id"))
+            elif action == "feed":
+                f = news.add_feed(data.get("url"), data.get("name"))
+                audit.record("news_source_added", url=f["url"])
+                return self._json({**news.page(), "added": f["id"]})
+            elif action == "feed_remove":
+                news.remove_feed(data.get("id"))
+            elif action == "follow":
+                news.follow(data.get("words"))
+            elif action == "unfollow":
+                news.unfollow(data.get("words"))
+            elif action == "briefing":
+                schedule.set_setting("news_follow_briefing", bool(data.get("on")))
+            else:
+                return self._json({"error": "unknown action"}, 404)
+        except (ValueError, TypeError, KeyError) as e:
+            return self._json({"error": str(e) if isinstance(e, ValueError) and "invalid literal" not in str(e) else "Something is missing."}, 400)
+        except OSError as e:
+            return self._json({"error": f"Windows said: {e.strerror or e}"}, 500)
+        return self._json(news.page())
 
     def _mail(self, action: str, data: dict) -> None:
         """The Planner page's Email: your own clicks. Nothing here goes to the AI."""
@@ -1797,6 +1905,10 @@ class Handler(BaseHTTPRequestHandler):
             return self._planner(self.path.rsplit("/", 1)[1], data)
         elif self.path.startswith("/api/life/"):       # Planner page: Goals, Journal, Money
             return self._life(self.path.rsplit("/", 1)[1], data)
+        elif self.path.startswith("/api/clock/"):      # Daily page: Clock; Stop and Snooze
+            return self._clock(self.path.rsplit("/", 1)[1], data)
+        elif self.path.startswith("/api/news/"):       # Daily page: News
+            return self._news(self.path.rsplit("/", 1)[1], data)
         elif self.path.startswith("/api/mail/"):       # Planner page: Email
             return self._mail(self.path.rsplit("/", 1)[1], data)
         elif self.path.startswith("/api/agents/"):     # Agents page

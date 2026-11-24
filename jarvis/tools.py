@@ -45,8 +45,6 @@ class ToolContext:
     def __init__(self, confirm: Callable[[str], bool], notify: Callable[..., None]):
         self.confirm = confirm
         self.notify = notify
-        self.timers: dict[int, tuple[threading.Timer, str, datetime]] = {}
-        self._next_timer = 1
         self.set_language: Callable[[str], None] | None = None   # set by the HUD / console
         self.set_name: Callable[[str], str] | None = None           # rename the assistant (HUD)
         self.set_theme: Callable[[str], None] | None = None         # light / dark Command Center (HUD)
@@ -350,38 +348,64 @@ def switch_ai_model(inp: dict, ctx: ToolContext) -> str:
     return msg + " (Your next typed or Classic-voice message goes there; Live voice calls always use Gemini Live.)"
 
 
+RINGER = None            # what is ringing now (hud.py)
+
+
 def set_timer(inp: dict, ctx: ToolContext) -> str:
-    seconds = float(inp["seconds"])
-    if not 0 < seconds <= 7 * 86400:
-        return "Timers can be from 1 second up to 7 days. For a clock time, use set_alarm."
-    message = inp.get("message") or "Your timer is done."
-    tid = ctx._next_timer
-    ctx._next_timer += 1
-
-    def fire():
-        ctx.timers.pop(tid, None)
-        ctx.notify(f"Reminder: {message}")
-
-    t = threading.Timer(seconds, fire)
-    t.daemon = True
-    t.start()
-    due = datetime.now() + timedelta(seconds=seconds)
-    ctx.timers[tid] = (t, message, due)
-    return f"Timer #{tid} set for {due:%I:%M:%S %p}: {message}"
+    from . import clock
+    try:
+        return "Timer set: " + clock.describe(clock.add(inp["seconds"], inp.get("message")))
+    except ValueError as e:
+        return str(e)
 
 
 def list_timers(_: dict, ctx: ToolContext) -> str:
-    if not ctx.timers:
-        return "No active timers."
-    return "\n".join(f"#{i}: {m} at {d:%I:%M:%S %p}" for i, (_, m, d) in ctx.timers.items())
+    from . import clock
+    return "\n".join(clock.describe(t) for t in clock.timers()) or "No active timers."
 
 
 def cancel_timer(inp: dict, ctx: ToolContext) -> str:
-    item = ctx.timers.pop(int(inp["id"]), None)
-    if not item:
-        return f"No timer #{inp['id']}."
-    item[0].cancel()
-    return f"Cancelled timer #{inp['id']}."
+    from . import clock
+    t = clock.get(inp["id"])
+    return f"Cancelled timer #{t['id']} ({t['label']})." if t and clock.cancel(t["id"]) else f"No timer #{inp['id']}."
+
+
+def clock_tool(inp: dict, ctx: ToolContext) -> str:
+    """Everything else of the clock: stopwatch, focus rounds, pausing a timer, stopping or snoozing what rings, the time elsewhere."""
+    from . import clock
+    action = str(inp.get("action") or "").lower()
+    try:
+        if action.startswith("stopwatch"):
+            do = action.removeprefix("stopwatch").strip("_") or "read"
+            return clock.describe_stopwatch(clock.stopwatch() if do == "read" else clock.stopwatch_do(do))
+        if action == "time_in":
+            p = clock.find_place(inp.get("name"))
+            return clock.describe_place(clock.place_time(p))
+        if action in ("timer_pause", "timer_resume", "timer_extend"):
+            t = clock.get(inp.get("name"))
+            if not t:
+                return "Which timer? " + ("; ".join(clock.describe(x) for x in clock.timers()) or "There are none.")
+            if action == "timer_extend":
+                return clock.describe(clock.extend(t["id"], float(inp.get("minutes") or 1) * 60))
+            return clock.describe(clock.pause(t["id"], action == "timer_pause"))
+        if action == "focus":
+            return "Started: " + clock.describe(clock.focus(inp.get("minutes"), inp.get("rest"), inp.get("rounds"), inp.get("name")))
+        if action == "focus_stop":
+            return "Focus stopped; the minutes done are kept." if clock.focus_stop() else "No focus rounds are running."
+        if action == "focus_minutes":
+            return "Focus minutes: " + ", ".join(f"{d['day']}: {d['minutes']}" for d in clock.focus_days())
+        if action in ("ring_stop", "snooze"):
+            if RINGER is None:
+                return "Nothing is ringing."
+            if action == "ring_stop":
+                gone = RINGER.stop()
+                return "Stopped: " + ", ".join(r["label"] for r in gone) if gone else "Nothing is ringing."
+            return "Snoozed: " + clock.describe(RINGER.snooze(inp.get("minutes")))
+        if action in ("alarm_on", "alarm_off"):
+            return "Alarm: " + _sched.describe_alarm(_sched.enable_alarm(int(str(inp.get("name")).lstrip("#")), action == "alarm_on"))
+    except (ValueError, TypeError) as e:
+        return "Which one? Give its number." if "invalid literal" in str(e) else str(e)
+    return f"Unknown action {action!r}."
 
 
 _MEDIA_KEYS = {"play_pause": 179, "next": 176, "previous": 177, "stop": 178,
@@ -549,6 +573,14 @@ TOOLS: list[tuple[dict, Callable[[dict, ToolContext], Any]]] = [
     ({"name": "list_timers", "description": "List active timers.", "input_schema": _obj({})}, list_timers),
     ({"name": "cancel_timer", "description": "Cancel a timer by id.",
       "input_schema": _obj({"id": {"type": "integer"}}, ["id"])}, cancel_timer),
+    ({"name": "clock",
+      "description": "Stopwatch (stopwatch_start / stop / lap / reset / read), timer_pause / timer_resume / timer_extend (name = timer, minutes), "
+                     "focus rounds (focus: minutes, rest, rounds; focus_stop; focus_minutes), ring_stop or snooze (minutes) what is ringing now, "
+                     "alarm_on / alarm_off (name = its number), time_in (name = a city).",
+      "input_schema": _obj({"action": {"type": "string", "enum": ["stopwatch_start", "stopwatch_stop", "stopwatch_lap", "stopwatch_reset", "stopwatch_read",
+                                                                  "timer_pause", "timer_resume", "timer_extend", "focus", "focus_stop", "focus_minutes",
+                                                                  "ring_stop", "snooze", "alarm_on", "alarm_off", "time_in"]},
+                            "name": {"type": "string"}, "minutes": {"type": "number"}, "rest": {"type": "integer"}, "rounds": {"type": "integer"}}, ["action"])}, clock_tool),
     ({"name": "media_control",
       "description": "Control media playback and system volume. Each volume step is about 2%.",
       "input_schema": _obj({"action": {"type": "string", "enum": list(_MEDIA_KEYS)},
@@ -783,8 +815,9 @@ def daily_briefing(inp: dict, ctx: ToolContext) -> str:
             parts.append("Planned: " + planner.describe_agenda(planner.agenda(extra=False)))
         except Exception as e:
             print(f"[planner] briefing: {e}")
-    if ctx.timers:
-        parts.append("Timers: " + "; ".join(f"{m} at {d:%H:%M}" for _, m, d in ctx.timers.values()) + ".")
+    from . import clock, news
+    if clock.timers():
+        parts.append("Timers: " + "; ".join(clock.describe(t) for t in clock.timers()) + ".")
     if psutil:
         bat = psutil.sensors_battery()
         parts.append(f"PC: CPU {psutil.cpu_percent(interval=0.3)}%, RAM {psutil.virtual_memory().percent}%"
@@ -793,6 +826,10 @@ def daily_briefing(inp: dict, ctx: ToolContext) -> str:
         parts.append("Top headlines: " + " | ".join(_sched.headlines(int(inp.get("headlines", 5)))))
     except Exception as e:
         parts.append(f"Headlines: unavailable ({type(e).__name__}).")
+    try:
+        parts += [f"News the user follows, {line}" for line in news.followed_lines()]
+    except Exception as e:
+        print(f"[news] briefing: {e}")
     parts.append("(Summarise this as a warm, concise spoken briefing: greeting, weather, next prayer, "
                  "alarms/timers, 3 headlines, PC note only if something needs attention.)")
     return "\n".join(parts)
@@ -1844,6 +1881,35 @@ def email(inp: dict, ctx: ToolContext) -> str:
     return f"Unknown action {action!r}. This app can only list, search and read email and save drafts."
 
 
+def news_tool(inp: dict, ctx: ToolContext) -> str:
+    from . import news
+    action = str(inp.get("action") or "top").lower()
+    limit = max(1, min(20, int(inp.get("limit") or 8)))
+    try:
+        if action in ("top", "topic"):
+            where = str(inp.get("topic") or "top")
+            src = next((k for k, v in {**{k: v[0] for k, v in news.SOURCES.items()}, **{f"feed:{f['id']}": f["name"] for f in news.feeds()}}.items()
+                        if v.casefold() == where.casefold()), where)
+            got = news.stories(src)
+        elif action == "search":
+            got = news.search(inp.get("query"))
+        elif action == "saved":
+            got = {"stories": news.saved(), "note": ""}
+        elif action == "following":
+            return "\n".join(news.followed_lines()) or "Nothing is followed, or there is nothing new in the last two days."
+        elif action == "story":
+            s = news.story(inp.get("id"))
+            return news.line(s, True) + f"\n   {s['link']}" if s else "That story isn't in the list any more; list the news again."
+        elif action == "save":
+            return f"Kept for later: {news.save(inp.get('id'))['title']}"
+        else:
+            return f"Unknown action {action!r}."
+    except (ValueError, TypeError) as e:
+        return str(e)
+    rows = [news.line(s, action == "search") for s in got["stories"][:limit]]
+    return "\n".join(([got["note"]] if got.get("note") else []) + rows) or "No stories."
+
+
 def documents(inp: dict, ctx: ToolContext) -> str:
     from . import docindex, documents as dc
     action = str(inp.get("action") or "read").lower()
@@ -1924,6 +1990,11 @@ PLANNER_TOOLS = [
                      "or reply_to = id) saves a draft. Never sends, deletes or marks anything.",
       "input_schema": _obj({"action": {"type": "string", "enum": ["list", "search", "read", "draft"]}, "query": _STR, "unread": {"type": "boolean"}, "limit": _INT,
                             "id": _STR, "to": _STR, "cc": _STR, "subject": _STR, "body": _STR, "reply_to": _STR}, ["action"])}, email),
+    ({"name": "news",
+      "description": "News headlines. top / topic (topic: top, pakistan, world, business, technology, science, health, sports, entertainment, or a source's name), "
+                     "search (query), following (what the user follows), saved, story (id), save (id) for later. Say the source; read the full story with web_search.",
+      "input_schema": _obj({"action": {"type": "string", "enum": ["top", "topic", "search", "following", "saved", "story", "save"]}, "topic": _STR, "query": _STR,
+                            "id": _STR, "limit": _INT}, ["action"])}, news_tool),
     ({"name": "documents",
       "description": "read: the text of a PDF, Word, Excel, PowerPoint or CSV file (path; part like 2-5 or a sheet's name). make: write one "
                      "(path ending .docx .xlsx .pptx .pdf, title, content). content is Markdown; for .pptx each # heading starts a slide, "

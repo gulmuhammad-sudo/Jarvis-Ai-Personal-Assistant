@@ -279,7 +279,7 @@ def _days_for(repeat: str, days: list[str] | None) -> list[int]:
     if repeat == "days":
         picked = sorted({DAY_NAMES.index(d.lower()[:3]) for d in (days or []) if d.lower()[:3] in DAY_NAMES})
         if not picked:
-            raise ValueError("Say which days, e.g. ['mon', 'wed', 'fri'].")
+            raise ValueError("Choose at least one day (mon, tue, wed, thu, fri, sat, sun).")
         return picked
     return []
 
@@ -289,22 +289,57 @@ def list_alarms() -> list[dict]:
     return data if isinstance(data, list) else []
 
 
-def add_alarm(at: str, label: str = "", repeat: str = "once", days: list[str] | None = None) -> dict:
+def _alarm(at: str, label: str, repeat: str, days: list[str] | None) -> dict:
     repeat = (repeat or "once").lower()
     if repeat not in REPEATS:
         repeat = "once"
-    hhmm = _parse_time(at)
-    alarm = {"time": hhmm, "label": (label or "").strip() or "Alarm", "repeat": repeat,
-             "days": _days_for(repeat, days), "enabled": True, "last_fired": None}
-    if repeat == "once":  # today if still ahead, otherwise tomorrow
-        when = _at(date.today(), hhmm)
+    return _switch_on({"time": _parse_time(at), "label": " ".join(str(label or "").split())[:120] or "Alarm", "repeat": repeat,
+                       "days": _days_for(repeat, days)})
+
+
+def _switch_on(alarm: dict) -> dict:
+    alarm.update(enabled=True, last_fired=None, since=datetime.now().isoformat(timespec="seconds"))
+    alarm.pop("date", None)
+    if alarm["repeat"] == "once":  # today if still ahead, otherwise tomorrow
+        when = _at(date.today(), alarm["time"])
         alarm["date"] = (when if when > datetime.now() else when + timedelta(days=1)).date().isoformat()
+    return alarm
+
+
+def add_alarm(at: str, label: str = "", repeat: str = "once", days: list[str] | None = None) -> dict:
+    alarm = _alarm(at, label, repeat, days)
     with DATA_LOCK:
         alarms = list_alarms()
         alarm["id"] = max((a["id"] for a in alarms), default=0) + 1
         alarms.append(alarm)
         write_json(ALARMS_FILE, alarms)
     return alarm
+
+
+def update_alarm(alarm_id: int, at: str, label: str = "", repeat: str = "once", days: list[str] | None = None) -> dict:
+    """Change it; it's on again afterwards, and may still ring today."""
+    alarm = _alarm(at, label, repeat, days)
+    with DATA_LOCK:
+        alarms = list_alarms()
+        if not any(a["id"] == alarm_id for a in alarms):
+            raise ValueError("That alarm is gone.")
+        alarm["id"] = alarm_id
+        write_json(ALARMS_FILE, [alarm if a["id"] == alarm_id else a for a in alarms])
+    return alarm
+
+
+def enable_alarm(alarm_id: int, on: bool) -> dict:
+    with DATA_LOCK:
+        alarms = list_alarms()
+        a = next((a for a in alarms if a["id"] == alarm_id), None)
+        if not a:
+            raise ValueError("That alarm is gone.")
+        if on and not a.get("enabled", True):
+            _switch_on(a)
+        elif not on:
+            a["enabled"] = False
+        write_json(ALARMS_FILE, alarms)
+    return a
 
 
 def delete_alarm(alarm_id: int) -> bool:
@@ -335,7 +370,7 @@ def describe_alarm(a: dict) -> str:
     rep = {"once": "once", "daily": "every day", "weekdays": "on weekdays", "weekends": "on weekends"}.get(
         a["repeat"], "on " + ", ".join(DAY_NAMES[d].title() for d in a["days"]))
     nf = next_fire(a)
-    return f"#{a['id']} {a['time']} {a['label']} ({rep})" + (f", next {nf:%a %d %b %H:%M}" if nf else "")
+    return f"#{a['id']} {a['time']} {a['label']} ({rep})" + (f", next {nf:%a %d %b %H:%M}" if nf else "" if a.get("enabled", True) else ", switched off")
 
 
 # --------------------------------------------------------------------------- #
@@ -403,23 +438,27 @@ class Scheduler:
 
     def _alarms(self, now: datetime, today: str, due) -> None:
         with DATA_LOCK:
-            alarms, changed = list_alarms(), False
+            alarms, changed, done = list_alarms(), False, set()
             for a in alarms:
                 if not a.get("enabled", True) or a.get("last_fired") == today:
                     continue
-                if a["repeat"] == "once" and a.get("date") != today:
+                if a["repeat"] == "once" and (a.get("date") or "9999") > today:
                     continue
                 if a["repeat"] != "once" and now.weekday() not in a["days"]:
                     continue
-                if not due(_at(now.date(), a["time"])):
+                at = _at(date.fromisoformat(a["date"]) if a["repeat"] == "once" else now.date(), a["time"])
+                if at > now:
                     continue
+                if due(at):
+                    self.notify(f"Alarm: {a['label']} ({a['time']})", "alarm")
+                elif now - at < timedelta(hours=24) and a.get("since", "9999") < at.isoformat():      # the PC or the app was off
+                    self.notify(f"You missed the alarm \"{a['label']}\" ({at:%a} {a['time']}): the app or the PC was off.", "info")
                 a["last_fired"] = today
-                if a["repeat"] == "once":
-                    a["enabled"] = False
                 changed = True
-                self.notify(f"Alarm: {a['label']} ({a['time']})", "alarm")
-            if changed:   # finished one-off alarms are removed
-                write_json(ALARMS_FILE, [a for a in alarms if a.get("enabled", True) or a["repeat"] != "once"])
+                if a["repeat"] == "once":
+                    done.add(a["id"])
+            if changed:   # finished one-off alarms are removed (switched-off ones stay)
+                write_json(ALARMS_FILE, [a for a in alarms if a["id"] not in done])
 
     def _prayers(self, now: datetime, today: str, due) -> None:
         try:

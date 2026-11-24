@@ -30,11 +30,11 @@ BOARD_CHARS = 1200                 # of each result, in an agent's instructions
 
 # sends something out of this PC (words you typed, an address)
 # (daily_briefing is neither: it goes out AND holds alarms, timers and plans, so no agent has it)
-OUTBOUND = {"web_search", "fetch_webpage", "open_website", "search_web_in_browser", "play_youtube", "get_weather", "prayer_times"}
+OUTBOUND = {"web_search", "fetch_webpage", "open_website", "search_web_in_browser", "play_youtube", "get_weather", "prayer_times", "news"}
 # shows the agent something private
 PRIVATE = {"recall_memories", "list_notes", "read_text_file", "find_files", "read_screen_text", "manage_windows", "workspace",
            "list_alarms", "list_timers", "dev_tools", "find_old_files", "remember_fact", "edit_memory", "system_status", "network",
-           "write_file", "make_folder", "save_note", "tasks", "calendar", "notes", "documents", "goals", "money", "arrange_windows", "cancel_timer"}
+           "write_file", "make_folder", "save_note", "tasks", "calendar", "notes", "documents", "goals", "money", "arrange_windows", "cancel_timer", "clock"}
 # neither
 PLAIN = {"get_datetime", "set_timer", "set_alarm", "media_control", "set_brightness", "set_theme", "open_application"}
 AGENT_TOOLS = OUTBOUND | PRIVATE | PLAIN
@@ -42,10 +42,11 @@ AGENT_TOOLS = OUTBOUND | PRIVATE | PLAIN
 LIMITS: dict[str, tuple[str, ...]] = {"workspace": ("open", "list"), "network": ("check",), "dev_tools": ("versions", "ports"),
                                      "tasks": ("list", "add", "update", "done", "undone"), "calendar": ("agenda", "find", "add", "update"),
                                      "notes": ("search", "read"), "money": ("summary", "list", "bills"),       # (never the journal)
+                                     "clock": ("time_in", "stopwatch_read", "focus_minutes"), "news": ("top", "topic", "search"),
                                      "goals": ("list", "progress", "step", "habit_done", "habit_undo")}
 
 BUILT_IN = [
-    {"key": "researcher", "name": "Researcher", "memory": False, "tools": ["web_search", "fetch_webpage", "get_datetime"],
+    {"key": "researcher", "name": "Researcher", "memory": False, "tools": ["web_search", "fetch_webpage", "news", "get_datetime"],
      "role": "Find current, reliable information on the web. Check more than one source, say when they disagree, and give a short "
              "answer with the addresses you used."},
     {"key": "organiser", "name": "Organiser", "memory": True,

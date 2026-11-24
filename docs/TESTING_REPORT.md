@@ -11,6 +11,15 @@ set PA_TEST_NETWORK=1 && .venv\Scripts\python -m pytest tests   # also the onlin
 .venv\Scripts\python packaging\build.py              # then smoke-test the packaged exe (see below)
 ```
 
+## 2026-11-24 — Clock and news (v1.27.0)
+
+| Suite | Result | Notes |
+|---|---|---|
+| `pytest tests` | 900 passed, 4 skipped | new tests/test_clock.py (54) and tests/test_news.py (57): restarts, late ends, two starts, ringing / snooze / giving up, summer time in 12 places, missed alarms, upgrade from database 9; feeds that attack (entities, home-network addresses, redirects to them, bad links), offline, the untrusted block, after-email questions |
+| Running app (test copy, no mic, quiet; real feeds) | pass | every button of both tabs pressed at 1534x787 (opening a story and asking the AI were caught before they left); light theme; 620x760. Found and fixed: the ringing popup had the same function name as the orb's rings and never showed (now a test), a hidden form that showed, chips without a border |
+| Found in the test copy | fixed | its mic button opened a real Live call although it must never use the microphone (the owner pressed it and spoke); JARVIS_NO_MIC now stops that too, and reminders are no longer spoken there |
+| Not tested | — | how the ringing sounds to a person, voice commands, the AI summary (real AI), the packaged exe |
+
 ## 2026-11-23 — Email, look only (v1.26.0, 1.26.1)
 
 | Suite | Result | Notes |

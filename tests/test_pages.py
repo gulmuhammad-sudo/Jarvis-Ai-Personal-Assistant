@@ -76,3 +76,10 @@ def test_page_lookups_never_find_the_menu_button():
     """[data-view="x"] is on the menu button too, and it comes first: the Planner's buttons were wired to nothing."""
     html = (ROOT / "jarvis/hud.html").read_text(encoding="utf-8")
     assert not re.findall(r"""querySelector\(['"]\[data-view=""", html)
+
+
+def test_no_function_is_written_twice():
+    """A second function with the same name silently replaces the first: the ringing popup was drawn by the orb's drawRings."""
+    html = (ROOT / "jarvis/hud.html").read_text(encoding="utf-8")
+    names = re.findall(r"^(?:async )?function (\w+)", html, re.M)
+    assert len(names) > 100 and sorted(n for n in set(names) if names.count(n) > 1) == []

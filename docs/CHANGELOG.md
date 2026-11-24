@@ -2,11 +2,26 @@
 
 Each version is also a git tag (`git tag -n20 vX.Y.Z` shows its notes). Newest first.
 
-## 1.26.1 — 2026-11-23 (not pushed yet)
+## 1.27.0 — 2026-11-24 (not pushed yet)
+Clock and news: a new Daily page (Phase 8 part 1).
+- Timers survive a restart (one that ended while the app or the PC was off is told, not rung), can be paused, made longer and
+  named. Stopwatch with laps. Focus rounds with breaks; the minutes you did are kept.
+- Alarms and timers ring until you press Stop or Snooze (5 or 10 minutes; once, or up to 1, 2 or 5 minutes: you choose). In a
+  Live call they ring once. Alarms can be edited and switched off and on. An alarm missed because the app or the PC was off is
+  told when you are back. "Stop the alarm" and "snooze ten minutes" work by voice.
+- World clock for about 75 cities with Windows' own summer-time rules (nothing is downloaded). "What time is it in London?"
+- News: nine topics, seven ready sources (Dawn, Express Tribune, Geo, BBC اردو, BBC World, Ars Technica, ESPNcricinfo), your own
+  RSS / Atom sources, search, words to follow (they join the daily briefing), stories kept for later, read aloud, summary by
+  the AI. Nothing is fetched until you open the tab, ask, or the briefing runs. Addresses on this PC or the home network are
+  refused; stories are untrusted text.
+- A switched-off one-time alarm is no longer thrown away when another alarm rings.
+- Demo copies (JARVIS_NO_MIC, JARVIS_NO_SPEAK) really stay off the microphone and quiet, also when a button is pressed.
+
+## 1.26.1 — 2026-11-23
 - Whom a draft is for, and the tool's answers about email, stay out of the activity list and the audit log too. Before, an
   address could get into them. (Found by the packaged-exe test.)
 
-## 1.26.0 — 2026-11-23 (not pushed yet)
+## 1.26.0 — 2026-11-23
 Email (Gmail), look only: Planner page › Email.
 - Connect with an app password that you make at Google; kept encrypted for your Windows account. Inbox, unread, search in
   Gmail's own words, reading as plain text (no pictures load, nothing is marked as read), drafts and draft replies.

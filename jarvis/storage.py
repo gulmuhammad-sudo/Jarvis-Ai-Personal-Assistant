@@ -177,6 +177,38 @@ MIGRATIONS: list[str] = [
            start TEXT NOT NULL,                           -- the first month to pay
            reminded TEXT,
            created TEXT NOT NULL);""",
+    # 10: clock (timers, stopwatch, focus minutes) and news (own sources, stories kept)
+    """CREATE TABLE timers (
+           id INTEGER PRIMARY KEY,                         -- numbers are used again: "timer 1" stays easy to say
+           kind TEXT NOT NULL,
+           label TEXT NOT NULL,
+           total REAL NOT NULL,
+           due REAL,                                       -- running: the moment it ends
+           left REAL,                                      -- paused: the seconds it has left
+           extra TEXT NOT NULL DEFAULT '{}');
+       CREATE TABLE stopwatch (
+           id INTEGER PRIMARY KEY CHECK (id = 1),
+           started REAL,
+           banked REAL NOT NULL DEFAULT 0,
+           laps TEXT NOT NULL DEFAULT '[]');
+       CREATE TABLE focus_log (
+           id INTEGER PRIMARY KEY AUTOINCREMENT,
+           day TEXT NOT NULL,
+           minutes INTEGER NOT NULL,
+           label TEXT NOT NULL DEFAULT '');
+       CREATE INDEX focus_day ON focus_log(day);
+       CREATE TABLE news_feeds (
+           id INTEGER PRIMARY KEY AUTOINCREMENT,
+           name TEXT NOT NULL,
+           url TEXT NOT NULL UNIQUE);
+       CREATE TABLE news_saved (
+           link TEXT PRIMARY KEY,
+           title TEXT NOT NULL,
+           source TEXT NOT NULL DEFAULT '',
+           about TEXT NOT NULL DEFAULT '',
+           at TEXT NOT NULL DEFAULT '',
+           saved TEXT NOT NULL,
+           read INTEGER NOT NULL DEFAULT 0);""",
 ]
 
 # event types worth keeping across restarts (not live captions, levels, approval prompts...)

@@ -1,5 +1,17 @@
 # Security review
 
+## 2026-11-24 — v1.27.0 (clock and news)
+
+| Area | How | Where |
+|---|---|---|
+| Feed addresses | http(s) on ports 80 / 443 only, no sign-in in the address; every address the name resolves to must be public, also after a redirect. Left: a name that changes between the check and the download (the answer must still parse as a feed, and nothing of it is sent anywhere) | `news._public`, `_Redirect` |
+| What feeds say | 3 MB at most; entity declarations refused; markup, control and direction characters removed; links only http(s); for the AI always untrusted | `news.parse`, `guard.UNTRUSTED_TOOLS` |
+| Asking the AI about a story | the message has the story's number, never its text (a title can't speak as you) | `hud.html` |
+| After an email | news search and topics ask first, like the web; the top list, saved and story don't (they carry nothing out) | `guard.AFTER_EMAIL` |
+| Agents | news counts as going out, clock (reading only) as private: never in one agent | `agents.OUTBOUND`, `LIMITS` |
+| Opening a story | only one that is in the list, in your own browser | `hud._news` |
+| Demo copies | JARVIS_NO_MIC refuses Live calls in the code, JARVIS_NO_SPEAK also alarms and spoken reminders | `hud.live_start`, `hud.alert` |
+
 ## 2026-11-23 — v1.26.0 (email)
 
 | Area | How | Where |

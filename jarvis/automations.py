@@ -38,8 +38,9 @@ STEP_TOOLS: dict[str, dict[str, Any]] = {
     "close_app": {"force": (False,)},
     "calendar": {"action": ("agenda",)}, "tasks": {"action": ("list",)},
     "goals": {"action": ("list",)}, "money": {"action": ("summary", "bills")},
+    "news": {"action": ("top", "topic")}, "clock": {"action": ("focus", "focus_stop", "time_in")},
 }
-ONLY = {"calendar": ("action", "day", "days"), "tasks": ("action", "project"), "goals": ("action",), "money": ("action",)}       # of these tools, only these settings
+ONLY = {"calendar": ("action", "day", "days"), "tasks": ("action", "project"), "goals": ("action",), "money": ("action",), "news": ("action", "topic", "limit")}       # of these tools, only these settings
 LABELS = {
     "open_application": "Open an app", "open_website": "Open a website", "open_path": "Open a folder or document",
     "play_youtube": "Play on YouTube", "media_control": "Media and volume", "set_brightness": "Screen brightness",
@@ -49,11 +50,12 @@ LABELS = {
     "manage_windows": "Move a window", "workspace": "Open a workspace", "network": "Check the internet",
     "software": "Look for app updates", "close_app": "Close an app", "calendar": "What's planned", "tasks": "Open tasks",
     "goals": "Goals and habits", "money": "Money this month / bills",
+    "news": "News headlines", "clock": "Focus rounds / time elsewhere",
 }
 # steps whose answer is the point: told to you when the automation ends
 TELLS = {"get_weather": "Weather", "daily_briefing": "Briefing", "prayer_times": "Prayer times", "get_datetime": "Time", "system_status": "PC",
          "network": "Internet", "software": "App updates", "calendar": "Planned", "tasks": "Tasks",
-         "goals": "Goals and habits", "money": "Money"}
+         "goals": "Goals and habits", "money": "Money", "news": "News", "clock": "Clock"}
 
 TEMPLATES = [
     {"name": "Morning start", "steps": [{"tool": "get_weather", "args": {}}, {"tool": "prayer_times", "args": {}}, {"tool": "calendar", "args": {"action": "agenda"}},

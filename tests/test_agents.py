@@ -117,7 +117,7 @@ def test_agent_cannot_use_other_tools_even_if_it_tries(db, run):
     (ok, answer), _ = run(g.find("Researcher"), "look something up", ai, c=ctx(True, asked))
     r = ai.seen["results"]
     assert ok and [e for _, e in r] == [True, True, True, False, True] and "may not use run_powershell" in r[0][0] and asked == []
-    assert set(ai.seen["offered"]) == {"web_search", "fetch_webpage", "get_datetime"}
+    assert set(ai.seen["offered"]) == {"web_search", "fetch_webpage", "news", "get_datetime"}
     assert ai.seen["messages"] == [] and ai.seen["steps"] == g.MAX_STEPS
     assert ai.messages == ["the main conversation"] and ai.system == "main"           # the assistant's own talk is untouched
 
@@ -148,9 +148,8 @@ def test_approvals_name_the_agent_and_timers_stay_shared(db, run):
     ai = FakeAI([("write_file", {"path": "Desktop/zz-agent-probe.bat", "content": "x"}), ("set_timer", {"seconds": 900, "message": "t"})])
     run(g.save("W", "r", ["write_file", "set_timer"]), "t", ai, c=c)
     assert asked and asked[0].startswith("[W] Make a file that can run") and not f.exists()
-    assert len(c.timers) == 1 and c._next_timer == 2                                   # the real context's timer list
-    for t, *_ in c.timers.values():
-        t.cancel()
+    from jarvis import clock
+    assert [t["label"] for t in clock.timers()] == ["t"]                              # the same timer list
 
 
 def test_stop_ends_it(db, run):

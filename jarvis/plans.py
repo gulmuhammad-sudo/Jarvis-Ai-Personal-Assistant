@@ -25,7 +25,8 @@ LOOKING = {"get_datetime", "system_status", "find_files", "read_text_file", "lis
            "software:search", "software:installed", "software:updates", "network:check", "network:speed", "clipboard:read",
            "wireless:status", "end_conversation", "tasks:list", "calendar:agenda", "calendar:find", "notes:search",
            "notes:read", "documents:read", "documents:search", "goals:list", "journal:read", "email:list", "email:search", "email:read",
-           "money:summary", "money:list", "money:bills"}
+           "money:summary", "money:list", "money:bills", "clock:stopwatch_read", "clock:time_in", "clock:focus_minutes", "clock:ring_stop", "clock:snooze",
+           "news:top", "news:topic", "news:search", "news:following", "news:saved", "news:story"}
 
 _LOCK = threading.RLock()
 _PLAN: dict | None = None
