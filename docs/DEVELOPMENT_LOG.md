@@ -2,6 +2,13 @@
 
 Newest first. Each entry: what was done, how it was tested, what is open, the next task.
 
+## 2026-11-24 — Session 2, part 17: downloading and installing (v1.27.1)
+
+**Why** — the owner saw that GitHub still offered 1.7.1: pushing code doesn't change a release. The Setup also sat in `dist`, where nobody looked.
+
+**Done** — see the changelog. The owner chose: publish the release after testing; keep one place on this PC (the project folder).
+Every release from now on: build, tests, push main and the tag, then `packaging/release.py --publish`.
+
 ## 2026-11-24 — Session 2, part 16: Phase 8 part 1 — clock and news (v1.27.0)
 
 **Plan of Phase 8 (told to the owner)** — 1 clock and news; 2 learning and fitness; 3 travel, meetings, companion; 4 media,

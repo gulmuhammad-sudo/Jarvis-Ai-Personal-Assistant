@@ -10,9 +10,9 @@ You choose its name and voice (it starts as "Jarvis"; this README calls it Jarvi
 
 ## Download
 
-**[Download Personal Assistant Setup.exe](https://github.com/gulmuhammad-sudo/Jarvis-Ai-Personal-Assistant/releases)**
-(open the newest release and pick `Personal.Assistant.Setup.exe` under *Assets*). Windows 10/11, about 100 MB.
-If Windows says "Windows protected your PC", press **More info → Run anyway** (the app isn't code-signed).
+**[Download Personal Assistant Setup](https://github.com/gulmuhammad-sudo/Jarvis-Ai-Personal-Assistant/releases/latest/download/Personal-Assistant-Setup.exe)**
+(Windows 10 / 11, about 160 MB). If Windows says "Windows protected your PC", press **More info → Run anyway** (the app isn't
+code-signed). Other files, checks and help: [Install help](INSTALL.md).
 
 ## Install
 
@@ -43,7 +43,7 @@ python -m venv .venv
 .venv\Scripts\python packaging\build.py
 ```
 
-That makes `dist\Personal Assistant Setup.exe` (the installer) and `dist\Personal Assistant\` (the app).
+That makes `Personal Assistant Setup.exe` in the project folder; the app and the release files are in `%TEMP%\PersonalAssistant-build`.
 To run straight from the code instead: `.venv\Scripts\pythonw -m jarvis` (its data then lives in `data\`
 and its keys in `.env` next to the code).
 

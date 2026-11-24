@@ -76,7 +76,9 @@ def save_env_keys(new: dict[str, str]) -> None:
             lines[hit] = f"{key}={value}"
         os.environ[key] = value
     ENV_FILE.parent.mkdir(parents=True, exist_ok=True)
-    ENV_FILE.write_text("\n".join(lines) + "\n", encoding="utf-8")
+    tmp = ENV_FILE.with_name(ENV_FILE.name + ".tmp")          # (Windows refuses to write over a hidden file; replacing it is fine)
+    tmp.write_text("\n".join(lines) + "\n", encoding="utf-8")
+    os.replace(tmp, ENV_FILE)
 
 MODEL = os.environ.get("JARVIS_MODEL", "claude-opus-5-5")      # only used with an Anthropic API key
 EFFORT = os.environ.get("JARVIS_EFFORT", "medium")              # low | medium | high | xhigh | max

@@ -1,0 +1,48 @@
+PERSONAL ASSISTANT
+==================
+A personal AI assistant for Windows 10 / 11 (64-bit). Free.
+
+
+INSTALL (English)
+-----------------
+ 1. Double-click "Personal Assistant Setup.exe".
+    Don't see that file here? You downloaded the source code. Get the app instead:
+    https://github.com/gulmuhammad-sudo/Jarvis-Ai-Personal-Assistant/releases/latest
+
+ 2. Does Windows say "Windows protected your PC"?
+    Press "More info", then "Run anyway". (It says that about every app that isn't code-signed.)
+    Does the browser say the file is "not commonly downloaded"? Choose Keep.
+
+ 3. Follow the steps: folder, name, language, voice, look, AI keys, startup.
+    Everything already has a good answer, so you can just press Next. No admin password is needed.
+
+ 4. Press Finish. The app opens. Later, open it from the Desktop or the Start Menu.
+
+ AI keys: they are free and you can add them later in Settings. Without any key the app opens,
+ but it can't answer until you add one (or set up Local AI). Setup has a "get one" link for each.
+
+ UPDATE:    run the newer Setup. Your settings, memories and keys stay.
+ REMOVE:    Windows Settings > Apps > Installed apps > Personal Assistant > Uninstall.
+ TROUBLE:   https://github.com/gulmuhammad-sudo/Jarvis-Ai-Personal-Assistant/blob/main/docs/INSTALL.md
+
+
+INSTALL (Roman Urdu)
+--------------------
+ 1. "Personal Assistant Setup.exe" par double-click karein.
+    Yeh file yahan nahi hai? Aap ne source code download kiya hai. App yahan se lein:
+    https://github.com/gulmuhammad-sudo/Jarvis-Ai-Personal-Assistant/releases/latest
+
+ 2. Windows kahe "Windows protected your PC"?
+    "More info" dabayein, phir "Run anyway". (Jo app code-signed na ho, us par Windows yehi kehta hai.)
+    Browser kahe ke file "not commonly downloaded" hai? Keep chunein.
+
+ 3. Steps par chalein: folder, naam, zubaan, awaz, look, AI keys, startup.
+    Har jagah theek jawab pehle se hai, sirf Next dabate jayen. Admin password nahi chahiye.
+
+ 4. Finish dabayein. App khul jayegi. Baad mein Desktop ya Start Menu se kholein.
+
+ AI keys: muft hain, baad mein Settings mein bhi daal sakte hain. Bina key ke app khulti hai magar
+ jawab nahi de sakti, jab tak ek key na dalein (ya Local AI na lagayein). Setup mein har key ka link hai.
+
+ UPDATE:    nayi Setup chalayein. Settings, memories aur keys waisi hi rehti hain.
+ HATANA:    Windows Settings > Apps > Installed apps > Personal Assistant > Uninstall.

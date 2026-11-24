@@ -11,6 +11,16 @@ set PA_TEST_NETWORK=1 && .venv\Scripts\python -m pytest tests   # also the onlin
 .venv\Scripts\python packaging\build.py              # then smoke-test the packaged exe (see below)
 ```
 
+## 2026-11-24 — Setup and release for new users (v1.27.1)
+
+| Suite | Result | Notes |
+|---|---|---|
+| `pytest tests` | 920 passed, 4 skipped | tests/test_installer.py: 20 new (fresh, update, damaged file, full drive, a swap that fails at each of its four steps, the PC switched off at three moments, files held by an antivirus, folders, old Windows, WebView2 missing, older Setup, silent, leftovers, the release files) |
+| What a new user gets (the real release files, isolated) | 15 / 15 | checksums, ZIP, Setup whole, picture after 1.8 s (0.4 s the second time), fresh install 8 s with all 752 files into a folder with spaces and Urdu letters, update 8 s, own files refused, the installed app starts and asks the first-time questions |
+| The Setup window | pass | picture, then the window after 5 s, the picture goes, closes by itself; all pages walked in the preview with a wrong folder, a wrong name and a failing install |
+| Packaged exe 1.27.1 | 80 / 80 and 78 / 78 | the same checks as 1.27.0 |
+| Not tested | — | a PC without WebView2, SmartScreen on a fresh download, Windows 10 |
+
 ## 2026-11-24 — Clock and news (v1.27.0)
 
 | Suite | Result | Notes |

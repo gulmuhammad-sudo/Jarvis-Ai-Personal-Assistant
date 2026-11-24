@@ -262,6 +262,10 @@ def main(tray: bool = False) -> None:
     # TTS must be able to play without a click first; WebView2 reads extra Chromium flags from here.
     os.environ.setdefault("WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS", "--autoplay-policy=no-user-gesture-required")
 
+    from . import install
+    if not install.need_webview2():          # (an older Windows 10): say so instead of failing without a word
+        return
+
     from . import hud
     import webview
 

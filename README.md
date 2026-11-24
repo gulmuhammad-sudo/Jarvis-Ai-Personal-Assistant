@@ -6,14 +6,20 @@ completely on your own PC.
 
 ## Download and install
 
-1. Go to **[Releases](https://github.com/gulmuhammad-sudo/Jarvis-Ai-Personal-Assistant/releases)** and download
-   `Personal.Assistant.Setup.exe` (Windows 10/11, about 100 MB).
-2. Run it. If Windows says *"Windows protected your PC"*, press **More info → Run anyway** (the app isn't
-   code-signed).
-3. Follow the steps: name, language, voice, look, your free AI keys (optional) and startup options.
-   No admin password needed.
+### **[⬇ Download Personal Assistant Setup](https://github.com/gulmuhammad-sudo/Jarvis-Ai-Personal-Assistant/releases/latest/download/Personal-Assistant-Setup.exe)** (Windows 10 / 11, about 160 MB)
 
-Open **Personal Assistant** from the Start Menu or the Desktop.
+1. **Open the file you downloaded.** If Windows says *"Windows protected your PC"*, press **More info → Run anyway**; if the
+   browser says *"not commonly downloaded"*, choose **Keep** (the app isn't code-signed).
+2. **Press Next through the steps:** folder, name, language, voice, look, your free AI keys (optional), startup. Every step
+   already has a good answer. No admin password needed.
+3. **Press Finish.** Later, open **Personal Assistant** from the Desktop or the Start Menu.
+
+Prefer a folder? Take `Personal-Assistant-….zip` from the [latest release](https://github.com/gulmuhammad-sudo/Jarvis-Ai-Personal-Assistant/releases/latest),
+extract it, and open `Personal Assistant Setup.exe` inside.
+
+> **Don't use the green *Code › Download ZIP* button** or *Source code (zip)*: that is the program text for developers, without the app.
+
+To update, run the newer Setup: your settings, memories and keys stay. Problems? See [Install help](docs/INSTALL.md).
 
 | What | Where |
 |---|---|
@@ -64,7 +70,7 @@ python -m venv .venv
 .venv\Scripts\pip install -r requirements.txt pyinstaller pytest
 .venv\Scripts\pythonw -m jarvis          # run from source
 .venv\Scripts\python -m pytest tests     # tests (temporary data, fake keys)
-.venv\Scripts\python packaging\build.py  # makes dist\Personal Assistant Setup.exe
+.venv\Scripts\python packaging\build.py  # makes Personal Assistant Setup.exe, and the release files
 ```
 
 | Folder | What's in it |
@@ -72,5 +78,5 @@ python -m venv .venv
 | `jarvis/` | the app (engine, voice, tools, UI page) |
 | `packaging/` | build script and the install wizard |
 | `tests/` | automated tests |
-| `docs/` | [user guide](docs/USER_GUIDE.md), [feature status](docs/FEATURE_STATUS.md), [architecture](docs/ARCHITECTURE.md), [changelog](docs/CHANGELOG.md), roadmap |
+| `docs/` | [install help](docs/INSTALL.md), [user guide](docs/USER_GUIDE.md), [feature status](docs/FEATURE_STATUS.md), [architecture](docs/ARCHITECTURE.md), [changelog](docs/CHANGELOG.md), roadmap |
 | `assets/` | the icon |

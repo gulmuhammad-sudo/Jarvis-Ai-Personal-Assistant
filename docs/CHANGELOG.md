@@ -2,7 +2,21 @@
 
 Each version is also a git tag (`git tag -n20 vX.Y.Z` shows its notes). Newest first.
 
-## 1.27.0 — 2026-11-24 (not pushed yet)
+## 1.27.1 — 2026-11-24
+Downloading and installing, for new users.
+- Setup is a file in the project folder itself (not in `dist` any more), next to READ ME FIRST.txt (English and Roman Urdu). Folders that
+  only the tools need are hidden there.
+- For GitHub releases: `Personal-Assistant-Setup.exe` (a download link that always gives the newest), a ZIP that shows the Setup and the
+  instructions as soon as it is extracted, and checksums. `packaging/release.py` checks everything and publishes.
+- An update unpacks next to the old version and swaps at the end: a full drive, a damaged file or the PC switching off never leaves you
+  without a working app. Before, the old program files were deleted first.
+- Setup shows a picture while it unpacks itself (before: nothing for five seconds, so people clicked again); a second double-click does
+  nothing; closing the window in the middle of copying isn't possible; folders are checked before you go on.
+- Plain messages when something is missing: WebView2 (with Microsoft's page), free space, an older Windows, an older Setup than what is installed.
+- Uninstalling with "delete my data" also removes the offline models (before, hundreds of MB stayed). Old leftovers of Setup are cleaned.
+- `--silent` and `--check` for people who install on several PCs. New: docs/INSTALL.md.
+
+## 1.27.0 — 2026-11-24
 Clock and news: a new Daily page (Phase 8 part 1).
 - Timers survive a restart (one that ended while the app or the PC was off is told, not rung), can be paused, made longer and
   named. Stopwatch with laps. Focus rounds with breaks; the minutes you did are kept.

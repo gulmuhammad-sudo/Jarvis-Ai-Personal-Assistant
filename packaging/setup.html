@@ -113,6 +113,7 @@ button.b.main { background: linear-gradient(180deg, #44BCEF, #2A9FD6); box-shado
       <svg class="big" viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="32" r="30" fill="#06101A"/><circle cx="32" cy="32" r="16" fill="url(#g)" opacity=".7"/><circle cx="32" cy="32" r="26" fill="none" stroke="#5CCFFF" stroke-width="4" stroke-dasharray="11 5"/><circle cx="32" cy="32" r="11" fill="none" stroke="#5CCFFF" stroke-width="2"/><circle cx="32" cy="32" r="6" fill="#EBFAFF"/></svg>
       <h1 id="wTitle">Welcome</h1>
       <p class="lead">Your own AI assistant for Windows: it talks, listens and gets things done on your PC, in English, Urdu or any language. This setup takes about a minute.</p>
+      <div id="wProblem"></div>
       <div id="wOld"></div>
       <div id="wExisting"></div>
     </section>
@@ -121,7 +122,7 @@ button.b.main { background: linear-gradient(180deg, #44BCEF, #2A9FD6); box-shado
       <h1>Where to install</h1>
       <p class="lead">The suggested folder is in your own user folder, so no admin rights are needed.</p>
       <label class="f"><span>Install folder</span>
-        <div class="row"><input type="text" id="dir" spellcheck="false"><button class="b" id="browse" type="button">Browse…</button></div></label>
+        <div class="row"><input type="text" id="dir" spellcheck="false"><button class="b" id="browse" type="button">Browse…</button></div><div class="err" id="dirErr"></div></label>
       <label class="check"><input type="checkbox" id="desktop" checked><div><b>Desktop shortcut</b><small>A Start Menu shortcut is always added.</small></div></label>
       <p class="lead" style="margin-top:16px">Your settings, memories and keys are kept in <span id="dataDir"></span>.</p>
     </section>
@@ -237,6 +238,8 @@ async function load() {
   $("ver").textContent = `Setup · version ${info.version}`;
   $("wTitle").textContent = info.existing ? `Update Personal Assistant` : `Welcome to Personal Assistant`;
   if (info.existing) $("wExisting").innerHTML = `<div class="note">Version ${esc(info.existing.version)} is installed. This updates it to ${esc(info.version)}; your settings, memories and keys stay as they are.</div>`;
+  if (info.older) $("wExisting").innerHTML = `<div class="note warn"><b>You have a newer version (${esc(info.existing.version)}).</b><br>This Setup is ${esc(info.version)}. Going on puts the older one back; your settings stay. Most people want the newest Setup from the download page instead.</div>`;
+  if (info.problems.length) { $("wProblem").innerHTML = `<div class="note warn">${info.problems.map(esc).join("<br>")}</div>`; }
   if (info.old) $("wOld").innerHTML = `<div class="note"><b>Found your current Personal Assistant</b><br><small style="color:var(--dim)">${esc(info.old)}</small><br>
     <label style="display:flex;gap:8px;margin-top:8px;cursor:pointer"><input type="checkbox" id="migrate" checked style="accent-color:var(--cyan2)"> Bring over its settings, memories, notes and keys. It will be closed while installing, and its shortcuts will open the new app.</label></div>`;
   $("dir").value = info.default_dir; $("dataDir").textContent = info.data;
@@ -293,7 +296,12 @@ function show() {
 async function next() {
   if (busy) return;
   const key = STEPS[step][0];
-  if (key === "place" && !$("dir").value.trim()) { $("dir").focus(); return; }
+  if (key === "place") {
+    if (!$("dir").value.trim()) { $("dir").focus(); return; }
+    const err = await api().check_dir($("dir").value.trim());
+    $("dirErr").textContent = err;
+    if (err) { $("dir").focus(); return; }
+  }
   if (key === "you") {
     const err = await api().check_name($("name").value.trim());
     $("nameErr").textContent = err;
@@ -321,7 +329,7 @@ window.installed = () => {
   show();
 };
 window.failed = msg => {
-  busy = false; $("iTitle").textContent = "Couldn't install"; $("iLead").textContent = "Nothing on your PC was harmed. Fix the problem below, then go back and try again.";
+  busy = false; $("iTitle").textContent = "Couldn't install"; $("iLead").textContent = "Nothing was lost: what was installed before still works. Fix the problem below, then go back and try again.";
   $("iErr").textContent = msg; $("next").disabled = false; $("next").textContent = "Back";
   $("next").onclick = () => { $("next").onclick = next; $("iTitle").textContent = "Installing…"; $("iLead").textContent = "This takes a moment."; $("iErr").textContent = ""; progress(0, "");
     step = STEPS.findIndex(s => s[0] === "place"); show(); };

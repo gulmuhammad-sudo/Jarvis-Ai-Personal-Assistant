@@ -4,6 +4,12 @@ A small wizard (setup.html in a WebView2 window) asks where to install and how y
 its name, what it calls you, language, voices, look, AI keys and startup options. Then it copies the app,
 brings over the settings, memories and keys of an older copy (the run.py / .bat version or an earlier install),
 makes the shortcuts and adds "Personal Assistant" to Windows Settings > Apps (with Uninstall).
+
+The new program files are unpacked next to the old ones and swapped in at the end: if anything goes wrong on the way
+(no space, the PC switched off), the installed version still works.
+
+    "Personal Assistant Setup.exe" --silent [--dir FOLDER]     no window, no questions; keeps your settings
+    "Personal Assistant Setup.exe" --check FILE                checks itself and this PC, writes the result to FILE, installs nothing
 """
 from __future__ import annotations
 
@@ -33,6 +39,8 @@ from jarvis import __version__, install, keystore, languages, memory, schedule, 
 
 KEYS = {"gemini": "GEMINI_API_KEY", "groq": "GROQ_API_KEY", "openrouter": "OPENROUTER_API_KEY"}
 NO_WINDOW = 0x08000000
+ROOM = 900 * 1024 * 1024                           # free space an install needs (the app is about 250 MB; an update holds both for a moment)
+NEW, OLD = "_new", "_old"                          # folders used while swapping
 DEFAULT_DIR = Path(os.environ.get("LOCALAPPDATA") or Path.home() / "AppData" / "Local") / "Programs" / APP_NAME
 TEST = os.environ.get("PA_SETUP_TEST") == "1"      # tests: no shortcuts, Startup, registry or closing apps
 
@@ -75,6 +83,108 @@ def find_old_copy() -> Path | None:
     return None
 
 
+def problems(target: Path | None = None) -> list[str]:
+    """What would stop the app from working on this PC, in plain words."""
+    out = []
+    v = sys.getwindowsversion()
+    if v.build < install.MIN_WINDOWS:
+        out.append("This app needs Windows 10 (version 1809) or newer. Please update Windows first.")
+    if sys.maxsize <= 2 ** 32:
+        out.append("This app needs a 64-bit Windows.")
+    d = Path(target or DEFAULT_DIR)
+    while not d.exists() and d != d.parent:
+        d = d.parent
+    try:
+        free = shutil.disk_usage(d).free
+        if free < ROOM:
+            out.append(f"There isn't enough free space on drive {d.anchor or d} ({free / 1e9:.1f} GB free, {ROOM / 1e9:.1f} GB needed). "
+                       "Delete some files or choose another drive.")
+    except OSError:
+        out.append(f"Drive {d.anchor or d} can't be used. Choose another folder.")
+    return out
+
+
+def _newer(a: str, b: str) -> bool:
+    num = lambda s: [int(x) for x in re.findall(r"\d+", s)[:3]]           # noqa: E731
+    return num(a) > num(b)
+
+
+def _force(fn, *args) -> None:
+    """Renaming and deleting, with patience: antivirus and search indexing hold files for a moment."""
+    for left in range(24, -1, -1):
+        try:
+            return fn(*args)
+        except FileNotFoundError:
+            return
+        except OSError:
+            if not left:
+                raise
+            time.sleep(0.25)
+
+
+def _tidy(target: Path) -> None:
+    """Finish or undo an install that was cut short."""
+    old, new = target / OLD, target / NEW
+    if old.exists():
+        if not (target / "_internal").exists() and (old / "_internal").exists():            # cut short while swapping: the old one comes back
+            for p in list(old.iterdir()):
+                if (target / p.name).exists() and p.name != "_internal":
+                    (target / p.name).unlink()
+                _force(os.rename, p, target / p.name)
+        _force(shutil.rmtree, old)
+    if new.exists():
+        _force(shutil.rmtree, new)
+
+
+def unpack(target: Path, progress=lambda pct, text: None) -> None:
+    """Unpack the app next to the old files, then swap. Whatever fails, an older version stays usable."""
+    target.mkdir(parents=True, exist_ok=True)
+    _tidy(target)
+    new, old = target / NEW, target / OLD
+    new.mkdir()
+    try:
+        with zipfile.ZipFile(PAYLOAD) as z:
+            names = z.infolist()
+            for i, m in enumerate(names):
+                z.extract(m, new)                  # (checks each file's checksum)
+                if i % 25 == 0:
+                    progress(5 + 70 * i / len(names), "Copying the app")
+        if not (new / install.EXE_NAME).is_file() or not (new / "_internal").is_dir():
+            raise RuntimeError("This Setup file is damaged. Please download it again.")
+        progress(77, "Putting it in place")
+        old.mkdir()
+        try:
+            for name in ("_internal", install.EXE_NAME):
+                if (target / name).exists():
+                    _force(os.rename, target / name, old / name)
+            for name in ("_internal", install.EXE_NAME):
+                _force(os.rename, new / name, target / name)
+        except OSError:
+            for name in ("_internal", install.EXE_NAME):                          # back to how it was
+                if (old / name).exists():
+                    if (target / name).exists():
+                        _force(shutil.rmtree if (target / name).is_dir() else os.unlink, target / name)
+                    _force(os.rename, old / name, target / name)
+            raise
+    except zipfile.BadZipFile:
+        raise RuntimeError("This Setup file is damaged. Please download it again.") from None
+    finally:
+        for d in (new, old):
+            shutil.rmtree(d, ignore_errors=True)
+
+
+def check_target(target: Path) -> None:
+    if not target.is_absolute() or target == Path(target.anchor) or re.search('[<>"|?*]', str(target)):
+        raise RuntimeError("Choose a folder, e.g. " + str(DEFAULT_DIR))
+    if target.is_file():
+        raise RuntimeError(f"{target} is a file. Choose a folder.")
+    if target.exists() and not (target / install.EXE_NAME).exists() and any(p.name not in ("desktop.ini", NEW, OLD) for p in target.iterdir()):
+        raise RuntimeError(f"{target} already has other files in it. Choose an empty folder.")
+    bad = problems(target)
+    if bad:
+        raise RuntimeError(bad[0])
+
+
 class Api:
     """Called from setup.html (window.pywebview.api.*)."""
 
@@ -83,6 +193,7 @@ class Api:
         self._old = find_old_copy()
         self._existing = None if TEST else install.installed()
         self._done_dir: Path | None = None
+        self._busy = False
 
     # ---------- what the wizard shows ----------
     def info(self) -> dict:
@@ -92,7 +203,8 @@ class Api:
         env = {**_read_env(self._old / ".env" if self._old else Path("-")), **_read_env(DATA / ".env"),
                **(keystore.load(self._old / "data" / "keys.dat") if self._old else {}), **keystore.load(DATA / "keys.dat")}
         return {
-            "version": __version__, "default_dir": str(self._existing["dir"] if self._existing else DEFAULT_DIR),
+            "version": __version__, "problems": problems(self._existing["dir"] if self._existing else None),
+            "older": bool(self._existing) and _newer(self._existing["version"], __version__), "default_dir": str(self._existing["dir"] if self._existing else DEFAULT_DIR),
             "existing": {"dir": str(self._existing["dir"]), "version": self._existing["version"]} if self._existing else None,
             "old": str(self._old) if self._old else None, "data": str(DATA),
             "languages": languages.choices(), "live_voices": languages.LIVE_VOICES,
@@ -131,7 +243,20 @@ class Api:
             return str(e)
 
     # ---------- installing ----------
+    def check_dir(self, path: str) -> str:
+        """'' if the app can go there, or why not."""
+        try:
+            check_target(Path(path).expanduser())
+            return ""
+        except (RuntimeError, OSError, ValueError) as e:
+            return str(e) if isinstance(e, RuntimeError) else "That folder can't be used. Choose another one."
+
+    def may_close(self) -> bool:
+        """Closing the window while files are being copied would leave half an app: not then."""
+        return not self._busy
+
     def install(self, c: dict) -> None:
+        self._busy = True
         threading.Thread(target=self._install, args=(c,), daemon=True).start()
 
     def _progress(self, pct: float, text: str) -> None:
@@ -141,9 +266,7 @@ class Api:
     def _install(self, c: dict) -> None:
         try:
             target = Path(c.get("dir") or DEFAULT_DIR).expanduser()
-            if target.exists() and any(target.iterdir()) and not (target / install.EXE_NAME).exists():
-                if any(p.name not in ("desktop.ini",) for p in target.iterdir()):
-                    raise RuntimeError(f"{target} already has other files in it. Choose an empty folder.")
+            check_target(target)
             self._progress(2, "Closing Personal Assistant if it is running")
             if not TEST:
                 install.stop_running(target)
@@ -151,17 +274,7 @@ class Api:
                     self._stop_old(self._old)
             time.sleep(0.8)
 
-            self._progress(5, "Copying the app")
-            target.mkdir(parents=True, exist_ok=True)
-            internal = target / "_internal"
-            if internal.exists():
-                shutil.rmtree(internal)                    # an update replaces the old program files
-            with zipfile.ZipFile(PAYLOAD) as z:
-                names = z.infolist()
-                for i, m in enumerate(names):
-                    z.extract(m, target)
-                    if i % 40 == 0:
-                        self._progress(5 + 75 * i / len(names), "Copying the app")
+            unpack(target, self._progress)
 
             self._progress(82, "Bringing over your settings")
             DATA.mkdir(parents=True, exist_ok=True)
@@ -169,12 +282,14 @@ class Api:
                 self._migrate(self._old)
 
             self._progress(88, "Saving your choices")
-            self._apply(c)
+            if not c.get("keep_settings"):
+                self._apply(c)
 
             self._progress(93, "Making shortcuts")
             if not TEST:
                 install.create_shortcuts(target, desktop=bool(c.get("desktop", True)), start_menu=True)
-                install.set_startup(bool(c.get("start_with_windows", True)), app_dir=target)
+                if not c.get("keep_settings") or not self._existing:
+                    install.set_startup(bool(c.get("start_with_windows", True)), app_dir=target)
                 install.register(target, __version__)
             self._done_dir = target
             self._progress(100, "Done")
@@ -183,11 +298,15 @@ class Api:
         except Exception as e:
             msg = str(e) if isinstance(e, RuntimeError) else f"{type(e).__name__}: {e}"
             if isinstance(e, PermissionError):
-                msg = "Windows didn't allow writing there. Choose a folder in your user folder (the suggested one works)."
+                msg = "Windows didn't allow writing there (or an antivirus is holding a file). Try again, or choose a folder in your user folder (the suggested one works)."
+            elif isinstance(e, OSError) and getattr(e, "winerror", 0) in (39, 112):
+                msg = "The drive is full. Delete some files or choose another drive."
             if self._window:
                 self._window.evaluate_js(f"failed({json.dumps(msg)})")
             else:
-                raise
+                raise RuntimeError(msg) from e
+        finally:
+            self._busy = False
 
     @staticmethod
     def _stop_old(old: Path) -> None:
@@ -298,18 +417,90 @@ def window_size(want: tuple[int, int] = (900, 640), area: tuple[int, int] | None
     return max(480, min(want[0], area[0] - 8)), max(380, min(want[1], area[1] - 8))
 
 
+def clean_leftovers(keep: Path = HERE) -> int:
+    """A Setup that was killed leaves its unpacked files (about 170 MB) in the temp folder: remove old ones of ours."""
+    n = 0
+    for d in Path(os.environ.get("TEMP") or "C:/Windows/Temp").glob("_MEI*"):
+        try:
+            if d.resolve() != keep.resolve() and (d / "setup.html").is_file() and (d / "payload" / "app.zip").is_file() \
+                    and time.time() - d.stat().st_mtime > 86400:
+                shutil.rmtree(d)
+                n += 1
+        except OSError:
+            pass
+    return n
+
+
+def selfcheck(out: Path) -> None:
+    """Is this Setup whole, and would the app run here? (Used before a release; changes nothing.)"""
+    r = {"version": __version__, "webview2": install.webview2(), "problems": problems(), "frozen": bool(getattr(sys, "frozen", False))}
+    try:
+        with zipfile.ZipFile(PAYLOAD) as z:
+            r["files"], r["damaged"] = len(z.namelist()), z.testzip()
+            r["exe"] = install.EXE_NAME in z.namelist()
+    except (OSError, zipfile.BadZipFile) as e:
+        r["damaged"] = f"{type(e).__name__}: {e}"
+    out.write_text(json.dumps(r), encoding="utf-8")
+
+
+def silent(target: Path) -> int:
+    api = Api()
+    if api._existing and target == DEFAULT_DIR:
+        target = Path(api._existing["dir"])
+    try:
+        api._install({"dir": str(target), "desktop": True, "keep_settings": True, "start_with_windows": False})
+        return 0
+    except RuntimeError as e:
+        print(e, file=sys.stderr)
+        return 1
+
+
+def _only_one() -> bool:
+    """Setup opened twice (a second double-click while the first is still starting): the second one goes away."""
+    if TEST:
+        return True
+    import ctypes
+    _only_one.handle = ctypes.windll.kernel32.CreateMutexW(None, False, "PersonalAssistantSetup")        # type: ignore[attr-defined]
+    return ctypes.windll.kernel32.GetLastError() != 183
+
+
+def _splash_off() -> None:
+    try:
+        import pyi_splash                         # the picture shown while Setup unpacks itself (build.py)
+        pyi_splash.close()
+    except Exception:
+        pass
+
+
 def main() -> None:
-    import webview
+    args = sys.argv[1:]
+    if "--check" in args:
+        _splash_off()
+        return selfcheck(Path(args[args.index("--check") + 1]))
+    if "--silent" in args or "/S" in args:
+        _splash_off()
+        sys.exit(silent(Path(args[args.index("--dir") + 1]) if "--dir" in args else DEFAULT_DIR))
     try:
         import ctypes
         ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID("PersonalAssistant.Setup")
     except Exception:
         pass
+    if not _only_one():
+        _splash_off()
+        return
+    if not install.webview2():
+        _splash_off()
+        install.need_webview2(f"{APP_NAME} Setup")
+        return
+    threading.Thread(target=clean_leftovers, daemon=True).start()
+    import webview
     api = Api()
     width, height = window_size()
     html = (HERE / "setup.html").read_text(encoding="utf-8")
     api._window = webview.create_window(f"{APP_NAME} Setup", html=html, js_api=api, width=width, height=height,
                                        min_size=(480, 380), resizable=True, background_color="#05080C")
+    api._window.events.closing += api.may_close
+    api._window.events.shown += _splash_off
     webview.start(gui="edgechromium", private_mode=True)
 
 

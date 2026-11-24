@@ -2,7 +2,7 @@
 
 Exact order. Each step ends with tests, docs (FEATURE_STATUS, TESTING_REPORT, DEVELOPMENT_LOG) and a tagged release.
 
-1. **Owner installs 1.27.0** — Setup built, exe checked (80/80 and 78/78); Setup opened for the owner on 24 Nov. Then the owner connects Gmail and hears an alarm ring. 1.27.0 is committed and tagged locally, not pushed.
+1. **Owner**: 1.27.0 is installed; 1.27.1 changes only Setup. Connect Gmail, hear an alarm ring.
 2. **Phase 8, part 2** — learning center [61] and fitness [62]; then part 3 (travel, meetings, companion), part 4 (media, screen recording never silent, local images if the PC can).
 3. **Real AI, rest** — Live calls with plans and agents (needs the owner's microphone); fewer tools per request for Groq.
 4. **Phase 7 — productivity and knowledge.** Also: find out where the unexplained Emergency Stops in the test copy came from.
@@ -12,4 +12,3 @@ Exact order. Each step ends with tests, docs (FEATURE_STATUS, TESTING_REPORT, DE
 
 Waiting on the owner (not blocking):
 - Permission to install Ollama for the real local-AI check.
-- Publishing the latest Setup.exe as a GitHub release (`gh release create` works now; publishing needs an OK).

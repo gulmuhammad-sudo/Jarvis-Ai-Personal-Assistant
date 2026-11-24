@@ -19,4 +19,6 @@ desktop.ini
 # app builds (packaging/build.py)
 build/
 dist/
+*.exe
+*.new
 .pytest_cache/

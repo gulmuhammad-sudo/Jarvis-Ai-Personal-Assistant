@@ -19,6 +19,6 @@
      set to a temporary folder / spare port;
    - update FEATURE_STATUS.md, TESTING_REPORT.md, DEVELOPMENT_LOG.md, NEXT_STEPS.md, CHANGELOG.md;
    - bump `__version__`, commit, annotated tag `vX.Y.Z` with the change list, push `main --follow-tags`.
-5. Never commit `.env`, `data/`, `keys.dat`, `build/`, `dist/`, personal paths or e-mail addresses; scan the
+5. Never commit `.env`, `data/`, `keys.dat`, `build/`, the Setup (`*.exe`), personal paths or e-mail addresses; scan the
    staged diff for key patterns (`AIza…`, `gsk_…`, `sk-or-…`, `sk-ant-…`) before every commit.
 6. Talk to the owner in Roman Urdu or English (never Hindi script).

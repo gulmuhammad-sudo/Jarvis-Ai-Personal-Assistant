@@ -44,6 +44,43 @@ def make_icon() -> Path:
     return ICON
 
 
+# ---------------- what Windows needs ----------------
+WEBVIEW2_PAGE = "https://go.microsoft.com/fwlink/p/?LinkId=2124703"       # Microsoft's own small installer for WebView2
+_WEBVIEW2 = "{F3017226-FE2A-4295-8BDF-00C3A9A7E4C5}"
+MIN_WINDOWS = 17763                                                        # Windows 10, version 1809
+
+
+def webview2() -> str:
+    """The version of Microsoft Edge WebView2 (it draws the window), '' if it isn't there (older Windows 10)."""
+    import winreg
+    for root, path in ((winreg.HKEY_LOCAL_MACHINE, r"SOFTWARE\WOW6432Node\Microsoft\EdgeUpdate\Clients"),
+                       (winreg.HKEY_LOCAL_MACHINE, r"SOFTWARE\Microsoft\EdgeUpdate\Clients"),
+                       (winreg.HKEY_CURRENT_USER, r"Software\Microsoft\EdgeUpdate\Clients")):
+        try:
+            with winreg.OpenKey(root, rf"{path}\{_WEBVIEW2}") as k:
+                v = str(winreg.QueryValueEx(k, "pv")[0])
+            if v and v != "0.0.0.0":
+                return v
+        except OSError:
+            pass
+    return ""
+
+
+def message(text: str, title: str = APP_NAME, yes_no: bool = False) -> bool:
+    """A plain Windows message (works without WebView2). True for OK / Yes."""
+    return ctypes.windll.user32.MessageBoxW(None, text, title, (0x04 if yes_no else 0x00) | 0x30 | 0x10000) in (1, 6)
+
+
+def need_webview2(title: str = APP_NAME) -> bool:
+    """Is WebView2 there? If not: say so in plain words, and open Microsoft's page if you want it."""
+    if webview2():
+        return True
+    if message("This PC doesn't have Microsoft Edge WebView2 yet. It is free, from Microsoft, and draws this app's window.\n\n"
+               "Open Microsoft's download now?\n\nRun the file it gives you (it takes a minute), then open this again.", title, yes_no=True):
+        os.startfile(WEBVIEW2_PAGE)
+    return False
+
+
 # ---------------- where things go ----------------
 def folder(kind: str) -> Path:
     """'desktop', 'programs' (Start Menu) or 'startup' for the signed-in user."""
@@ -149,6 +186,11 @@ def stop_running(app_dir: Path) -> int:
     return n
 
 
+def models_dir() -> Path:
+    """Where the installed app keeps the offline models and voices you downloaded."""
+    return Path(os.environ.get("LOCALAPPDATA") or Path.home() / "AppData" / "Local") / APP_NAME / "models"
+
+
 def _ask(text: str, yes_no: bool = True, warn: bool = False) -> bool:
     flags = (0x04 if yes_no else 0x00) | (0x30 if warn else 0x20 if yes_no else 0x40)
     return ctypes.windll.user32.MessageBoxW(None, text, f"{APP_NAME} - Uninstall", flags) in (6, 1)
@@ -173,9 +215,16 @@ def uninstall() -> None:
         winreg.DeleteKey(winreg.HKEY_CURRENT_USER, UNINSTALL_KEY)
     except OSError:
         pass
-    if DATA_DIR.exists() and _ask(f"Also delete your settings, memories, notes and API keys?\n\n{DATA_DIR}\n\n"
-                                  "Choose No to keep them for next time.", warn=True):
+    models = models_dir()
+    also = f"\n\nThe offline models and voices go too:\n{models}" if models.exists() else ""
+    if (DATA_DIR.exists() or models.exists()) and _ask(f"Also delete your settings, memories, notes and API keys?\n\n{DATA_DIR}{also}\n\n"
+                                                       "Choose No to keep them for next time.", warn=True):
         shutil.rmtree(DATA_DIR, ignore_errors=True)
+        shutil.rmtree(models, ignore_errors=True)
+        try:
+            models.parent.rmdir()                  # %LOCALAPPDATA%\\Personal Assistant, if nothing else is in it
+        except OSError:
+            pass
     # this .exe can't delete its own folder while it runs: a hidden command does it a moment after we exit
     if (app_dir / EXE_NAME).exists() and app_dir.name and app_dir != Path(app_dir.anchor):
         subprocess.Popen(f'cmd /c ping -n 3 127.0.0.1 >nul & rmdir /s /q "{app_dir}"', creationflags=NO_WINDOW,
