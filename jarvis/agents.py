@@ -34,7 +34,7 @@ OUTBOUND = {"web_search", "fetch_webpage", "open_website", "search_web_in_browse
 # shows the agent something private
 PRIVATE = {"recall_memories", "list_notes", "read_text_file", "find_files", "read_screen_text", "manage_windows", "workspace",
            "list_alarms", "list_timers", "dev_tools", "find_old_files", "remember_fact", "edit_memory", "system_status", "network",
-           "write_file", "make_folder", "save_note", "tasks", "calendar", "notes", "documents", "goals", "money", "arrange_windows", "cancel_timer", "clock", "learn"}
+           "write_file", "make_folder", "save_note", "tasks", "calendar", "notes", "documents", "goals", "money", "arrange_windows", "cancel_timer", "clock", "learn", "travel"}
 # neither
 PLAIN = {"get_datetime", "set_timer", "set_alarm", "media_control", "set_brightness", "set_theme", "open_application"}
 AGENT_TOOLS = OUTBOUND | PRIVATE | PLAIN
@@ -42,7 +42,8 @@ AGENT_TOOLS = OUTBOUND | PRIVATE | PLAIN
 LIMITS: dict[str, tuple[str, ...]] = {"workspace": ("open", "list"), "network": ("check",), "dev_tools": ("versions", "ports"),
                                      "tasks": ("list", "add", "update", "done", "undone"), "calendar": ("agenda", "find", "add", "update"),
                                      "notes": ("search", "read"), "money": ("summary", "list", "bills"),       # (never the journal)
-                                     "clock": ("time_in", "stopwatch_read", "focus_minutes"), "news": ("top", "topic", "search"), "learn": ("decks", "search", "add"),       # (never fitness)
+                                     "clock": ("time_in", "stopwatch_read", "focus_minutes"), "news": ("top", "topic", "search"), "learn": ("decks", "search", "add"),
+                                     "travel": ("list", "show", "plan", "pack"),       # (never fitness, meetings or people)
                                      "goals": ("list", "progress", "step", "habit_done", "habit_undo")}
 
 BUILT_IN = [

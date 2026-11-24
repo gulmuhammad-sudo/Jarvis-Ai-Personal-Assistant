@@ -44,6 +44,11 @@ def system_prompt(template: str | None = None, live: bool = False) -> str:
         text += skills.prompt_text()     # your own rules and saved routines (Tools & Skills page)
     except Exception as e:               # a broken database must never stop the assistant from answering
         print(f"[skills] couldn't load: {e}")
+    try:
+        from . import people
+        text += people.prompt()          # the manner you chose (Daily page, People)
+    except Exception as e:
+        print(f"[people] couldn't load: {e}")
     from . import languages, tts
     if not live and tts.reading_female():
         text += f"\n{languages.WOMAN}\n"

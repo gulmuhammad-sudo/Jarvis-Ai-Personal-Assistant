@@ -17,11 +17,13 @@ UNTRUSTED_TOOLS = {"fetch_webpage", "web_search", "read_text_file", "clipboard",
 
 READ_BACK = {"tasks": ("list", ""), "calendar": ("agenda", "find", ""), "notes": ("search", "read", ""),
              "documents": ("read", "search", ""), "goals": ("list", ""), "journal": ("read",), "money": ("list", "summary", "bills", ""),
-             "learn": ("quiz", "search", "decks", ""), "fitness": ("history",)}
+             "learn": ("quiz", "search", "decks", ""), "fitness": ("history",),
+             "travel": ("list", "show", ""), "meetings": ("list", "show", "transcript", ""), "people": ("list", "coming", "")}
 
 # what these say stays out of the activity list, the saved history and the audit log
-PRIVATE_TEXT = {"journal": ("text", "query"), "email": ("body", "subject", "query", "to", "cc"), "fitness": ("value", "note", "km", "what")}
-PRIVATE_KINDS = {"email", "email_draft", "after_email"}          # approvals: only their first line is kept
+PRIVATE_TEXT = {"journal": ("text", "query"), "email": ("body", "subject", "query", "to", "cc"), "fitness": ("value", "note", "km", "what"),
+                "meetings": ("text", "summary", "decisions", "actions", "agenda", "people", "query"), "people": ("notes", "birthday", "relation", "query")}
+PRIVATE_KINDS = {"email", "email_draft", "after_email", "meeting"}          # approvals: only their first line is kept
 
 
 def for_logs(tool: str, args: dict) -> dict:
@@ -35,8 +37,9 @@ def question_for_logs(question: str, kind: str | None) -> str:
 
 # after the AI has seen an email, these ask first: each could carry what it read out of this PC, or keep an order from the email
 AFTER_EMAIL = {"fetch_webpage", "web_search", "open_website", "search_web_in_browser", "play_youtube", "open_path", "delegate", "automation", "run_powershell",
-               "software", "save_skill", "news"}
-AFTER_EMAIL_FINE = {"automation:list", "software:installed", "software:updates", "news:top", "news:saved", "news:story", "news:save", "news:following"}
+               "software", "save_skill", "news", "travel"}
+AFTER_EMAIL_FINE = {"automation:list", "software:installed", "software:updates", "news:top", "news:saved", "news:story", "news:save", "news:following", "travel:list", "travel:show", "travel:add",
+                    "travel:update", "travel:plan", "travel:pack", "travel:papers", "travel:done"}
 
 
 def held_after_email(tool: str, args: dict) -> bool:

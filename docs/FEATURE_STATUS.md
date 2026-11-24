@@ -95,15 +95,15 @@ audio, installer, uninstaller, packaged-exe smoke test). They are being moved in
 | 57 | Backup and recovery | PARTIALLY IMPLEMENTED | installer keeps data on update/uninstall | 26 | installer test | No backup/restore command |
 | 58 | No public plugin SDK initially | NOT APPLICABLE | — | — | — | Excluded for now |
 | 59 | Voice communication assistant | NOT IMPLEMENTED | — | — | — | — |
-| 60 | AI personal companion | NOT IMPLEMENTED | — | 100, 105 | — | — |
+| 60 | AI personal companion | IMPLEMENTED BUT NEEDS TESTING | `jarvis/people.py`, tool `people`, Daily › People | 100, 105 | test_travel_meet_people, running app | 1.29.0: people, birthdays, check-in, manner. The manner not yet tried with a real AI |
 | 61 | AI learning center | IMPLEMENTED BUT NEEDS TESTING | `jarvis/learn.py`, tool `learn`, Daily › Learn | — | test_learn_fit, running app | 1.28.0: decks, spaced repetition, quiz, import/export, reminder. Not tried with a real AI; no courses or lessons |
 | 62 | Health and fitness center | IMPLEMENTED BUT NEEDS TESTING | `jarvis/fit.py`, tool `fitness`, Daily › Fitness | storage layer | test_learn_fit, running app | 1.28.0: water, steps, sleep, weight, workouts, targets, charts, reminders. Typed or spoken by the owner; no watch or phone is connected |
-| 63 | Travel and trip planner | NOT IMPLEMENTED | (weather only) | 31 | — | — |
+| 63 | Travel and trip planner | IMPLEMENTED BUT NEEDS TESTING | `jarvis/travel.py`, tool `travel`, Daily › Travel | 31 | test_travel_meet_people, running app with real weather | 1.29.0: plan, packing, papers, budget, weather, calendar. No maps, tickets or bookings |
 | 64 | No shopping assistant | NOT APPLICABLE | — | — | — | Excluded |
 | 65 | News and intelligence center | IMPLEMENTED BUT NEEDS TESTING | `jarvis/news.py`, tool `news`, Daily › News | 31 | test_news (made-up feeds), running app with real feeds | 1.27.0: topics, sources, search, follow, keep, briefing. Not tried with a real AI; no alerts when something new appears |
 | 66 | No smart-home dashboard | NOT APPLICABLE | — | — | — | Excluded |
 | 67 | Social media assistant | NOT IMPLEMENTED | — | — | — | — |
-| 68 | Meeting and conference assistant | NOT IMPLEMENTED | — | — | — | — |
+| 68 | Meeting and conference assistant | IMPLEMENTED BUT NEEDS TESTING | `jarvis/meet.py`, tool `meetings`, Daily › Meetings | stt | test_travel_meet_people, real offline speech model with a synthetic voice | 1.29.0: notes, actions, writing down with consent. Not tried with a real microphone or in an online call (hears the room, not the call's own sound) |
 | 69 | Smart search and research engine | PARTIALLY IMPLEMENTED | tools `web_search`, `fetch_webpage` | 31 | none | Web search with fallbacks; no multi-source research report |
 | 70 | Emergency and personal safety | NOT IMPLEMENTED | — | — | — | — |
 
@@ -157,13 +157,13 @@ audio, installer, uninstaller, packaged-exe smoke test). They are being moved in
 | 109 | Command history and activity timeline | PARTIALLY IMPLEMENTED | `jarvis/storage.py` (SQLite), `jarvis/audit.py`, Conversations page, Settings › Privacy | — | test_storage 4, test_guard_audit | 1.9.0: conversation + activity survive restarts; permanent audit record viewable in Settings. Missing: timeline page with search and dates |
 | 110 | Modular expansion and upgrade system | NOT IMPLEMENTED | — | 13 | — | — |
 
-## Totals (after v1.28.0, 24 Nov 2026)
+## Totals (after v1.29.0, 24 Nov 2026)
 
 | Status | Count |
 |---|---|
 | IMPLEMENTED AND VERIFIED | 1 |
-| IMPLEMENTED BUT NEEDS TESTING | 29 |
+| IMPLEMENTED BUT NEEDS TESTING | 32 |
 | PARTIALLY IMPLEMENTED | 41 |
-| NOT IMPLEMENTED | 29 |
+| NOT IMPLEMENTED | 26 |
 | BLOCKED BY EXTERNAL DEPENDENCY | 0 |
 | NOT APPLICABLE | 10 |

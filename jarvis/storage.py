@@ -250,6 +250,48 @@ MIGRATIONS: list[str] = [
            note TEXT NOT NULL DEFAULT '',
            created TEXT NOT NULL);
        CREATE INDEX workouts_day ON workouts(day);""",
+    # 12: travel, meetings, people
+    """CREATE TABLE trips (
+           id INTEGER PRIMARY KEY AUTOINCREMENT,
+           title TEXT NOT NULL,
+           place TEXT NOT NULL DEFAULT '',
+           abroad INTEGER NOT NULL DEFAULT 0,
+           start TEXT NOT NULL,
+           end TEXT NOT NULL,
+           notes TEXT NOT NULL DEFAULT '',
+           budget INTEGER,                                 -- hundredths
+           created TEXT NOT NULL);
+       CREATE TABLE trip_items (
+           id INTEGER PRIMARY KEY AUTOINCREMENT,
+           trip INTEGER NOT NULL,
+           kind TEXT NOT NULL,                             -- plan, pack, papers
+           day TEXT,
+           at TEXT,
+           text TEXT NOT NULL,
+           place TEXT NOT NULL DEFAULT '',
+           done INTEGER NOT NULL DEFAULT 0);
+       CREATE INDEX trip_items_trip ON trip_items(trip);
+       CREATE TABLE meetings (
+           id INTEGER PRIMARY KEY AUTOINCREMENT,
+           title TEXT NOT NULL,
+           at TEXT NOT NULL,
+           people TEXT NOT NULL DEFAULT '',
+           agenda TEXT NOT NULL DEFAULT '',
+           notes TEXT NOT NULL DEFAULT '',
+           decisions TEXT NOT NULL DEFAULT '',
+           summary TEXT NOT NULL DEFAULT '',
+           actions TEXT NOT NULL DEFAULT '[]',
+           transcript TEXT NOT NULL DEFAULT '',
+           created TEXT NOT NULL);
+       CREATE TABLE people (
+           id INTEGER PRIMARY KEY AUTOINCREMENT,
+           name TEXT NOT NULL UNIQUE COLLATE NOCASE,
+           relation TEXT NOT NULL DEFAULT '',
+           birthday TEXT NOT NULL DEFAULT '',              -- YYYY-MM-DD, or --MM-DD without the year
+           phone TEXT NOT NULL DEFAULT '',
+           notes TEXT NOT NULL DEFAULT '',
+           remind INTEGER NOT NULL DEFAULT 1,              -- days before (0: on the day; -1: never)
+           created TEXT NOT NULL);""",
 ]
 
 # event types worth keeping across restarts (not live captions, levels, approval prompts...)

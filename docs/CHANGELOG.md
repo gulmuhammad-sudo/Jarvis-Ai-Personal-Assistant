@@ -2,6 +2,19 @@
 
 Each version is also a git tag (`git tag -n20 vX.Y.Z` shows its notes). Newest first.
 
+## 1.29.0 — 2026-11-24 (not pushed yet)
+Travel, meetings and people: three new tabs on the Daily page (Phase 8 part 3).
+- Travel: trips with a day-by-day plan, packing lists (basic, summer, winter, business, umrah, family), papers, a budget that follows
+  Planner › Money, the time there, the weather when you press the button, add to calendar, a reminder the day before. Nothing is
+  booked or paid.
+- Meetings: agenda, people, notes, decisions, actions that become tasks, search, summary by the AI. The app can write down what is
+  said: only your button starts it, each time with a tick that everyone knows and agrees; a red bar on every page with Pause and Stop;
+  Emergency Stop ends it; sound is never saved. You choose where it is written down: on this PC (offline) or by Groq. No Live call
+  can start meanwhile. The AI asks before it reads what was said, and afterwards asks before going online, as after an email.
+- People: names, relations, birthdays (with reminders), notes; an optional daily check-in; how the assistant talks with you (butler,
+  warm, cheerful, calm, professional; humour; length). It never sees phone numbers; names only with your tick.
+- If you seem very low or in danger, the assistant is told to be kind, take it seriously and point to people and emergency help.
+
 ## 1.28.0 — 2026-11-24
 Learning and fitness: two new tabs on the Daily page (Phase 8 part 2).
 - Learn: decks of flashcards that come back just before you would forget them (spaced repetition). Study with the mouse, the keyboard

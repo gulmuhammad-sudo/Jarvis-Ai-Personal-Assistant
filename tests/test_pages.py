@@ -83,3 +83,27 @@ def test_no_function_is_written_twice():
     html = (ROOT / "jarvis/hud.html").read_text(encoding="utf-8")
     names = re.findall(r"^(?:async )?function (\w+)", html, re.M)
     assert len(names) > 100 and sorted(n for n in set(names) if names.count(n) > 1) == []
+
+
+def test_no_name_is_declared_twice():
+    """Two top-level lets with one name stop the whole page from loading (nearly shipped: dxSeq)."""
+    html = (ROOT / "jarvis/hud.html").read_text(encoding="utf-8")
+    names = re.findall(r"^(?:async )?function (\w+)", html, re.M)
+    for line in re.findall(r"^(?:let|const|var) (.*)$", html, re.M):
+        depth, start = 0, True                                # names at the top of the list, not inside the values
+        for part in re.split(r"([(\[{}\])]|, |;|`[^`]*`|\"[^\"]*\"|'[^']*')", line):
+            if part in ("(", "[", "{"):
+                depth += 1
+            elif part in (")", "]", "}"):
+                depth -= 1
+            elif part == ", ":
+                start = depth == 0
+                continue
+            elif part == ";" and depth == 0:
+                break
+            m = re.match(r"(\w+)\s*(=|$)", part or "") if start and depth == 0 else None
+            if m:
+                names.append(m.group(1))
+            if part:
+                start = False
+    assert len(names) > 300 and sorted(n for n in set(names) if names.count(n) > 1) == []

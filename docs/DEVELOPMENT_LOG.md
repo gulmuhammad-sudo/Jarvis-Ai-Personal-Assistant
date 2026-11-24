@@ -2,6 +2,13 @@
 
 Newest first. Each entry: what was done, how it was tested, what is open, the next task.
 
+## 2026-11-24 — Session 2, part 19: Phase 8 part 3 — travel, meetings, people (v1.29.0)
+
+**Done** — `jarvis/travel.py`, `jarvis/meet.py` (Scribe, Mic), `jarvis/people.py`, tools `travel`, `meetings`, `people`, `/api/travel|meet|people/*`,
+three tabs, the red bar, permission kind `meeting`, `Hub.meeting_start`, `people.prompt()` in the system prompt, database 12.
+
+**Next** — ask the owner: build and release 1.29.0; then part 4 (media, screen recording never silent, local images if the PC can).
+
 ## 2026-11-24 — Session 2, part 18: Phase 8 part 2 — learning and fitness (v1.28.0)
 
 **Done** — `jarvis/learn.py`, `jarvis/fit.py`, tools `learn` and `fitness`, `/api/learn/*`, `/api/fit/*`, tabs Learn and Fitness, database 11.

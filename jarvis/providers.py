@@ -225,12 +225,14 @@ class OpenAICompatBrain:
 BIG_TOOLS = {"documents": r"pdf|docx?|word|excel|xlsx|sheet|powerpoint|pptx|slides?|document|report|file|فائل", "goals": r"goal|habit|aadat|target|عادت|ہدف",
              "journal": r"journal|diary|mood|ڈائری", "money": r"spen[dt]|money|paisa|paise|kharch|bill|budget|rupee|rupay|rs|paid|salary|خرچ|پیسے|بل", "email": r"mail|inbox|gmail|draft|میل",
              "clock": r"stop ?watch|lap|focus|pomodoro|pause|resume|snooze|ring|time in|time is it|alarm|timer|waqt|baje|وقت|الارم", "news": r"news|headline|khabar|خبر",
+             "travel": r"travel|trip|safar|journey|pack|itinerar|umrah|hajj|visa|flight|hotel|ticket|سفر", "meetings": r"meeting|minutes|agenda|transcript|conference|mulaqat|میٹنگ",
+             "people": r"birthday|saalgir|salgir|people|family|friend|wife|husband|brother|sister|mother|father|son\b|daughter|bhai|behen|ammi|abbu|dost|who is|سالگرہ|دوست|بھائی|بہن",
              "learn": r"flash|card|deck|quiz|learn|study|revis|yaad kar|parh|سبق|یاد", "fitness": r"weigh|wazan|water|paani|pani|glass|steps|qadam|sleep|slept|neend|soya|workout|exercise|gym|walk|\bran\b|\brun|fitness|bmi|وزن|پانی|نیند"}
 LOCAL_TOOLS = ("get_datetime", "system_status", "open_website", "search_web_in_browser", "open_application",
                "open_path", "find_files", "read_text_file", "save_note", "list_notes", "remember_fact",
                "recall_memories", "set_timer", "list_timers", "cancel_timer", "media_control", "clipboard",
                "web_search", "fetch_webpage", "get_weather", "play_youtube", "set_alarm", "list_alarms",
-               "close_app", "take_screenshot", "write_file", "tasks", "calendar", "notes", "documents", "goals", "money", "journal", "email", "clock", "news", "learn", "fitness")
+               "close_app", "take_screenshot", "write_file", "tasks", "calendar", "notes", "documents", "goals", "money", "journal", "email", "clock", "news", "learn", "fitness", "travel", "meetings", "people")
 
 
 def prefer_local() -> bool:

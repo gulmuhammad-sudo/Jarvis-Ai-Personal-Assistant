@@ -634,12 +634,12 @@ def execute(name: str, tool_input: dict, ctx: ToolContext, from_ai: bool = False
         real = tool_input if isinstance(tool_input, dict) else {}
         # what an email said may be steering the AI: it doesn't go online, or leave orders behind, without you (an agent can't have email at all)
         if mail.recently_seen() and guard.held_after_email(name, real) and getattr(ctx, "allowed_tools", None) is None and not ctx.approve(
-                f"An email was read in this conversation. Let the assistant use {name.replace('_', ' ')} now?\n\n{json.dumps(real, ensure_ascii=False)[:700]}", kind="after_email"):
+                f"An email or a meeting was read in this conversation. Let the assistant use {name.replace('_', ' ')} now?\n\n{json.dumps(real, ensure_ascii=False)[:700]}", kind="after_email"):
             audit.record("tool", tool=name, args=args, ok=False, result="held: after an email")
-            return "Not done: the user was asked, because an email was read in this conversation, and didn't allow it. Don't try it another way.", True
+            return "Not done: the user was asked, because an email or a meeting was read in this conversation, and didn't allow it. Don't try it another way.", True
     out, err = _execute(name, tool_input, ctx)
     # (email: every answer, since they name people; the journal: what was read)
-    shown = "(not kept)" if name in ("email", "fitness") or (name == "journal" and str(args.get("action")).lower() == "read" and not err) else out
+    shown = "(not kept)" if name in ("email", "fitness", "meetings", "people") or (name == "journal" and str(args.get("action")).lower() == "read" and not err) else out
     audit.record("tool", tool=name, args=args, ok=not err,
                  result=(shown if isinstance(shown, str) else "[image]")[:120])
     if RESULT_HOOK:
@@ -1889,6 +1889,118 @@ def _daily_changed(what: str) -> None:
         DAILY_CHANGED(what)
 
 
+def travel_tool(inp: dict, ctx: ToolContext) -> str:
+    from . import travel
+    action, ref = str(inp.get("action") or "list").lower(), inp.get("trip")
+    try:
+        if action == "list":
+            return "\n".join(travel.describe(t) for t in travel.trips()) or "No trips."
+        if action == "add":
+            t = travel.save(inp.get("title"), inp.get("place"), inp.get("start"), inp.get("end"), inp.get("notes"), inp.get("budget"), inp.get("abroad"))
+            _daily_changed("travel")
+            return "Added: " + travel.describe(t)
+        if action == "weather" and inp.get("place"):
+            return "; ".join(f"{d['day']}: {d['text']}, {d['min']} to {d['max']}°C, rain {d['rain']}%" for d in travel.weather(str(inp["place"])))
+        t = travel.find(ref)
+        if not t:
+            return "Which trip? " + ("; ".join(travel.describe(x) for x in travel.trips()[:8]) or "There are none.")
+        if action == "show":
+            return travel.describe_full(t)
+        if action == "weather":
+            return f"{t['place']}: " + "; ".join(f"{d['day']}: {d['text']}, {d['min']} to {d['max']}°C, rain {d['rain']}%" for d in travel.weather(t["place"]))
+        if action == "update":
+            t = travel.save(inp.get("title"), inp.get("place"), inp.get("start"), inp.get("end"), inp.get("notes"), inp.get("budget"), inp.get("abroad"), t["id"])
+            out = "Changed: " + travel.describe(t)
+        elif action == "plan":
+            x = travel.add_item(t["id"], "plan", inp.get("text"), inp.get("day"), inp.get("time"), inp.get("place"))
+            out = f"Planned for {x['day']}{' ' + x['at'] if x['at'] else ''}: {x['text']}." if x else "That is already planned."
+        elif action in ("pack", "papers"):
+            things = [str(x) for x in (inp.get("items") or []) if str(x).strip()][:60] or ([str(inp["text"])] if inp.get("text") else [])
+            n = travel.add_list(t["id"], str(inp["list"])) if inp.get("list") else sum(1 for x in things if travel.add_item(t["id"], action, x))
+            out = f"{n} added to the {'packing list' if action == 'pack' else 'papers'} of {t['title']}."
+        elif action == "done":
+            x = travel.find_item(t["id"], inp.get("text"))
+            if not x:
+                return f"I can't tell which thing {inp.get('text')!r} is."
+            travel.tick_item(x["id"])
+            out = f"Ticked: {x['text']}."
+        else:
+            return f"Unknown action {action!r}. (Trips are deleted by the user, on the Daily page. Nothing can be booked or paid here.)"
+    except (ValueError, TypeError) as e:
+        return str(e) if isinstance(e, ValueError) and str(e)[:1].isupper() else "Something is missing or wrong."
+    _daily_changed("travel")
+    return out
+
+
+def meetings_tool(inp: dict, ctx: ToolContext) -> str:
+    from . import mail, meet
+    action = str(inp.get("action") or "list").lower()
+    try:
+        if action == "list":
+            return "\n".join(meet.describe(m) for m in meet.meetings(str(inp.get("query") or ""), 30)) or "No meetings."
+        if action == "add":
+            m = meet.save(inp.get("title"), inp.get("day"), inp.get("time"), inp.get("people"), inp.get("agenda"))
+            _daily_changed("meet")
+            return "Added: " + meet.describe(m)
+        if action in ("record", "start", "write"):
+            return "Only the user can start writing down a meeting, with the button on the Daily page (Meetings)."
+        m = meet.find(inp.get("meeting"))
+        if not m:
+            return "Which meeting? " + ("; ".join(meet.describe(x) for x in meet.meetings(limit=8)) or "There are none.")
+        if action == "show":
+            return meet.describe_full(m)
+        if action == "transcript":
+            text, i, n = meet.part(m["id"], inp.get("part"))
+            if not text:
+                return "Nothing of it was written down."
+            if not meet.allowed(m["id"]):                          # one yes is for all the parts of this meeting
+                if not ctx.approve(f"Let the assistant read what was said in this meeting? It goes to the AI.\n\n{m['title']}, {m['at'].replace('T', ' ')}", kind="meeting"):
+                    return "Okay, I didn't read it."
+                meet.allow(m["id"])
+            mail.seen_by_ai()                                     # other people's words: nothing is carried out of the PC after them without asking
+            return f"Part {i} of {n}.\n{text}"
+        if action == "note":
+            meet.save(notes=(m["notes"] + "\n" + str(inp.get("text") or "")).strip(), meeting_id=m["id"])
+            out = f"Noted in {m['title']}."
+        elif action == "save":
+            meet.save(summary=inp.get("summary"), decisions=inp.get("decisions"), meeting_id=m["id"])
+            n = 0
+            for a in (inp.get("actions") or [])[:30]:
+                if isinstance(a, dict) and str(a.get("text") or "").strip():
+                    before = len(meet.get(m["id"])["actions"])
+                    n += len(meet.add_action(m["id"], a["text"], a.get("who"), a.get("due"))["actions"]) - before
+            out = f"Saved in {m['title']}" + (f", {n} action{'' if n == 1 else 's'} added" if n else "") + ". (The user can turn actions into tasks on the Daily page.)"
+        else:
+            return f"Unknown action {action!r}."
+    except (ValueError, TypeError) as e:
+        return str(e) if isinstance(e, ValueError) and str(e)[:1].isupper() else "Something is missing or wrong."
+    _daily_changed("meet")
+    return out
+
+
+def people_tool(inp: dict, ctx: ToolContext) -> str:
+    from . import people
+    action = str(inp.get("action") or "list").lower()
+    try:
+        if action == "list":
+            return "\n".join("- " + people.describe(p) for p in people.people(str(inp.get("query") or ""))[:60]) or "Nobody is written down."
+        if action == "coming":
+            return "\n".join("- " + people.describe(p) for p in people.coming(int(inp.get("days") or 60))) or "No birthdays soon."
+        if action in ("add", "update"):
+            old = people.find(inp.get("name")) if action == "update" else None
+            if action == "update" and not old:
+                return f"I can't tell who {inp.get('name')!r} is."
+            notes = inp.get("notes")
+            if old and notes:
+                notes = (old["notes"] + "\n" + str(notes)).strip()
+            p = people.save(None if old else inp.get("name"), inp.get("relation"), inp.get("birthday"), None, notes, None, old["id"] if old else None)
+            _daily_changed("people")
+            return "Kept: " + people.describe(p)
+    except (ValueError, TypeError) as e:
+        return str(e) if isinstance(e, ValueError) and str(e)[:1].isupper() else "Something is missing or wrong."
+    return f"Unknown action {action!r}. (People are removed by the user, on the Daily page.)"
+
+
 def learn_tool(inp: dict, ctx: ToolContext) -> str:
     from . import learn
     action, name = str(inp.get("action") or "decks").lower(), str(inp.get("deck") or "").strip()
@@ -2072,6 +2184,22 @@ PLANNER_TOOLS = [
                      "search (query), following (what the user follows), saved, story (id), save (id) for later. Say the source; read the full story with web_search.",
       "input_schema": _obj({"action": {"type": "string", "enum": ["top", "topic", "search", "following", "saved", "story", "save"]}, "topic": _STR, "query": _STR,
                             "id": _STR, "limit": _INT}, ["action"])}, news_tool),
+    ({"name": "travel",
+      "description": "The user's trips; nothing is booked or paid. list, show (trip), add (title, place, start, end, abroad, budget, notes), update, plan (trip, day = date or number, "
+                     "time, text, place), pack / papers (trip, items, or list = basic, summer, winter, business, umrah, family, papers), done (trip, text), weather (trip or place).",
+      "input_schema": _obj({"action": {"type": "string", "enum": ["list", "show", "add", "update", "plan", "pack", "papers", "done", "weather"]}, "trip": _STR, "title": _STR, "place": _STR,
+                            "start": _STR, "end": _STR, "abroad": {"type": "boolean"}, "budget": _STR, "notes": _STR, "day": _STR, "time": _STR, "text": _STR, "list": _STR,
+                            "items": {"type": "array", "items": _STR}}, ["action"])}, travel_tool),
+    ({"name": "meetings",
+      "description": "The user's meetings. list (query), show (meeting), add (title, day, time, people, agenda), note (meeting, text), transcript (meeting, part): what was said, if it was "
+                     "written down; save (meeting, summary, decisions, actions [{text, who, due}]). Only the user can start writing one down.",
+      "input_schema": _obj({"action": {"type": "string", "enum": ["list", "show", "add", "note", "transcript", "save"]}, "meeting": _STR, "query": _STR, "title": _STR, "day": _STR, "time": _STR,
+                            "people": _STR, "agenda": _STR, "text": _STR, "part": _INT, "summary": _STR, "decisions": _STR,
+                            "actions": {"type": "array", "items": {"type": "object", "properties": {"text": _STR, "who": _STR, "due": _STR}, "required": ["text"]}}}, ["action"])}, meetings_tool),
+    ({"name": "people",
+      "description": "People who matter to the user. list (query), coming (days): birthdays, add / update (name, relation, birthday like 14 May or 14 May 2001, notes).",
+      "input_schema": _obj({"action": {"type": "string", "enum": ["list", "coming", "add", "update"]}, "name": _STR, "relation": _STR, "birthday": _STR, "notes": _STR, "query": _STR, "days": _INT},
+                           ["action"])}, people_tool),
     ({"name": "learn",
       "description": "The user's flashcards. decks, add (deck = a name, new or old; cards [{front, back}], short and exact, e.g. from a document they asked about), "
                      "quiz (deck optional): one card to ask, then grade (card, how = again / hard / good / easy, from their answer), search (query, deck).",

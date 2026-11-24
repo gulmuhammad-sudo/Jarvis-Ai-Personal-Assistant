@@ -26,7 +26,7 @@ from urllib.parse import parse_qs, quote
 
 from . import __version__
 from . import live as live_mod
-from . import agents, alerts, approvals, audit, automations, clock, denoise, docindex, fit, gpu, guard, languages, learn, life, local_ai, mail, local_stt, local_tts, memory, news, notes, planner, plans, schedule, netcheck, skills, software, stt, storage, tools, tts, urdu, wake, winmgr
+from . import agents, alerts, approvals, audit, automations, clock, denoise, docindex, fit, gpu, guard, languages, learn, life, local_ai, mail, local_stt, local_tts, meet, memory, news, notes, people, planner, plans, schedule, netcheck, skills, software, stt, storage, tools, travel, tts, urdu, wake, winmgr
 from .brain import make_brain
 from .config import NOTES_DIR
 from .providers import provider_status
@@ -85,6 +85,7 @@ class Hub:
         self.ctx.language = self.language
         self.weather: dict | None = None
         self.recording = None               # the native-mic Recording in progress
+        self.meeting: meet.Scribe | None = None            # a meeting is being written down (only you start it)
         self._listen_lock = threading.Lock()
         self._mic_cache: tuple[float, dict] = (0.0, {})
         self.live: live_mod.LiveSession | None = None     # the live conversation in progress
@@ -285,7 +286,7 @@ class Hub:
             planner.tick(now, self.notify)
         except Exception as e:
             print(f"[planner] {type(e).__name__}: {e}")
-        for part in (life, learn, fit):
+        for part in (life, learn, fit, travel, people):
             try:
                 part.tick(now, self.notify)
             except Exception as e:
@@ -410,8 +411,45 @@ class Hub:
         return bool(self.voice_mode and self.voice_engine == "live" and recorder and live_mod.available()
                     and os.environ.get("JARVIS_HANDSFREE", "on") != "off"      # test copies don't grab the mic
                     and bool(schedule.get_setting("setup_done"))                # not while the welcome setup is open
-                    and not (self.live and self.live.active) and not self.recording
+                    and not (self.live and self.live.active) and not self.recording and not self.meeting_on()
                     and not (len(self._live_errors) >= 2 and time.time() - self._live_errors[-2] < 120))
+
+    # ---------- writing down a meeting ----------
+    def meeting_on(self) -> bool:
+        return bool(self.meeting and self.meeting.active)
+
+    def meeting_start(self, meeting_id: int, engine: str, agree: bool) -> None:
+        """Your button only (no tool, agent or automation gets here), with your tick that everyone agrees."""
+        if agree is not True:
+            raise ValueError("Tick that everyone knows and agrees first.")
+        if os.environ.get("JARVIS_NO_MIC") == "1" or recorder is None:
+            raise ValueError("The microphone isn't available here.")
+        if engine not in meet.ENGINES or not meet.engines()[engine]:
+            raise ValueError("Writing on this PC needs the offline speech model (Settings > Voice & Mic)." if engine == "local" else "Writing with Groq needs a Groq key (Settings > AI).")
+        if not meet.get(meeting_id):
+            raise ValueError("That meeting is gone.")
+        if self.live and self.live.active:
+            raise ValueError("End the Live call first: it uses the microphone.")
+        with self._listen_lock:
+            if self.meeting_on():
+                raise ValueError("A meeting is already being written down.")
+            if self.recording:
+                raise ValueError("The microphone is in use. Try again in a moment.")
+            self.standby_halt()
+            try:
+                source = meet.Mic()
+            except Exception as e:
+                raise ValueError(str(e) if isinstance(e, RuntimeError) else f"The microphone couldn't be opened ({type(e).__name__}).") from None
+            tools.STOP.clear()
+            self.meeting = meet.Scribe(int(meeting_id), engine, self.language, source, lambda st: self.emit("meeting_state", state=st), self._meeting_ended).start()
+        audit.record("meeting_writing_started", meeting=int(meeting_id), engine=engine)
+        self.emit("tool", keep=True, name="meeting", id=self._next_id(), args="writing down a meeting, started by you")
+
+    def _meeting_ended(self, reason: str) -> None:
+        audit.record("meeting_writing_ended", reason=reason)
+        self.emit("notify", keep=True, text=f"The meeting isn't written down any more ({reason}).", kind="info")
+        if self.standby_wanted():
+            self.standby_start(2.5)
 
     def standby_start(self, delay: float = 0.0) -> None:
         if self._standby and self._standby.is_alive():
@@ -713,7 +751,7 @@ class Hub:
 
     CONFIRM_TIMEOUT = 180
     # once allowed, these aren't asked again until the app restarts; shutdown, deleting files etc. always ask
-    TRUSTABLE = {"powershell": "PowerShell commands", "lock": "locking the PC", "wifi_off": "turning Wi-Fi off", "email": "reading your email"}
+    TRUSTABLE = {"powershell": "PowerShell commands", "lock": "locking the PC", "wifi_off": "turning Wi-Fi off", "email": "reading your email", "meeting": "reading what was said in a meeting"}
     # Every kind of approval the tools ask for. Settings > Privacy keeps a rule per kind: "ask" (default),
     # "never" (refused without asking) or "allow" (only for the TRUSTABLE kinds: shutting down, deleting,
     # replacing files and closing apps with unsaved work are always asked).
@@ -729,7 +767,8 @@ class Hub:
         "software": "Installing, updating or removing programs (winget)",
         "email": "Reading your email (Gmail) for an answer",
         "email_draft": "Saving a draft in Gmail (never sent)",
-        "after_email": "Going online after an email was read",
+        "after_email": "Going online after an email or a meeting was read",
+        "meeting": "Reading what was said in a meeting, for an answer",
     }
 
     def permission(self, kind: str | None) -> str:
@@ -822,6 +861,8 @@ class Hub:
         if self.recording:
             self.recording.stop()
         self.ringer.stop()
+        if self.meeting_on():
+            self.meeting.stop("Stop was pressed")
         audit.record("emergency_stop", how=how)
         print(f"[stop] everything stopped ({how})")
         self.emit("stopped", how=how)
@@ -958,6 +999,9 @@ class Hub:
                    quiet_room: bool = False) -> None:
         if os.environ.get("JARVIS_NO_MIC") == "1":      # tests and demo copies: not even when the mic button is pressed
             return
+        if self.meeting_on():                  # what is said there isn't for a call
+            self.emit("notify", keep=True, text="A meeting is being written down. Stop that first, then start a call.", kind="info")
+            return
         tools.STOP.clear()                     # starting a call is a new instruction
         self.standby_halt()                    # the call needs the microphone
         with self._listen_lock:
@@ -1033,7 +1077,7 @@ class Hub:
 
     def listen_native(self, hands_free: bool = False) -> None:
         """Record from the microphone in Python, transcribe with Whisper, then hand the text to Jarvis."""
-        if self.live and self.live.active:     # the live call already has the microphone
+        if self.live and self.live.active or self.meeting_on():     # the live call (or a meeting) already has the microphone
             return
         self.standby_halt()
         with self._listen_lock:              # a double click must not start two recordings
@@ -1156,6 +1200,7 @@ class Hub:
                **self.mic_status(),
                "location": schedule.get_location().get("city"),
                "weather": self.weather,
+               "meeting": self.meeting.state() if self.meeting_on() else None,
                "ringing": self.ringer.list(), "silent": os.environ.get("JARVIS_NO_SPEAK") == "1",
                "timers": sorted([{"id": t["id"], "message": t["label"], "due": datetime.fromtimestamp(t["due"]).strftime("%H:%M"), "kind": "timer", "repeat": "",
                                   "left": int(t["left"])} for t in clock.timers() if not t["paused"]]
@@ -1597,6 +1642,90 @@ class Handler(BaseHTTPRequestHandler):
             return self._json({"error": f"Windows said: {e.strerror or e}"}, 500)
         return self._json({**out, **fit.load()})
 
+    def _daily_api(self, page: str, action: str, data: dict) -> None:
+        """The Daily page's Travel, Meetings and People: your own clicks."""
+        try:
+            num = lambda k="id": int(data.get(k))                                        # noqa: E731
+            out = {"travel": self._travel, "meet": self._meet, "people": self._people}[page](action, data, num)
+        except (ValueError, TypeError, KeyError, AttributeError) as e:
+            return self._json({"error": str(e) if isinstance(e, ValueError) and str(e)[:1].isupper() else "Something is missing or wrong."}, 400)
+        except OSError as e:
+            return self._json({"error": f"Windows said: {e.strerror or e}"}, 500)
+        return self._json({"error": "unknown action"}, 404) if out is None else self._json(out)
+
+    @staticmethod
+    def _travel(action: str, data: dict, num) -> dict | None:
+        out, trip = {}, data.get("trip")
+        if action == "save":
+            t = travel.save(data.get("title"), data.get("place"), data.get("start"), data.get("end"), data.get("notes"), data.get("budget"), data.get("abroad"), num() if data.get("id") else None)
+            trip = t["id"]
+        elif action == "delete":
+            travel.delete(num())
+            trip = None
+        elif action == "item":
+            out["there"] = travel.add_item(num("trip"), str(data.get("kind")), data.get("text"), data.get("day"), data.get("at"), data.get("place")) is None
+        elif action == "tick":
+            travel.tick_item(num(), bool(data.get("on")))
+        elif action == "item_delete":
+            travel.delete_item(num())
+        elif action == "list":
+            out["added"] = travel.add_list(num("trip"), str(data.get("name")))
+        elif action == "weather":
+            t = travel.get(num("trip"))
+            out["weather"] = travel.weather(t["place"] if t else "")
+        elif action == "calendar":
+            out["calendar"] = travel.to_calendar(num("trip"))
+            HUB.emit("planner_changed")
+        elif action != "load":
+            return None
+        return {**out, **travel.load(trip)}
+
+    @staticmethod
+    def _meet(action: str, data: dict, num) -> dict | None:
+        out, mid = {}, data.get("meeting")
+        if action == "save":
+            mid = meet.save(data.get("title"), data.get("day"), data.get("at"), data.get("people"), data.get("agenda"), data.get("notes"), data.get("decisions"), data.get("summary"),
+                            num() if data.get("id") else None)["id"]
+        elif action == "delete":
+            if HUB.meeting_on() and HUB.meeting.meeting_id == num():
+                raise ValueError("It is being written down. Stop that first.")
+            meet.delete(num())
+            mid = None
+        elif action == "clear":
+            meet.clear_transcript(num("meeting"))
+        elif action == "action":
+            meet.add_action(num("meeting"), data.get("text"), data.get("who"), data.get("due"))
+        elif action == "action_delete":
+            meet.remove_action(num("meeting"), data.get("n"))
+        elif action == "action_task":
+            meet.action_task(num("meeting"), data.get("n"))
+            HUB.emit("planner_changed")
+        elif action == "start":
+            HUB.meeting_start(num("meeting"), str(data.get("engine")), data.get("agree"))
+        elif action == "pause":
+            if HUB.meeting_on():
+                HUB.meeting.pause(bool(data.get("on")))
+        elif action == "stop":
+            if HUB.meeting_on():
+                HUB.meeting.stop("you stopped it")
+        elif action != "load":
+            return None
+        return {**out, **meet.load(mid, str(data.get("query") or "")), "state": HUB.meeting.state() if HUB.meeting_on() else None}
+
+    @staticmethod
+    def _people(action: str, data: dict, num) -> dict | None:
+        if action == "save":
+            people.save(data.get("name"), data.get("relation"), data.get("birthday"), data.get("phone"), data.get("notes"), data.get("remind"), num() if data.get("id") else None)
+        elif action == "delete":
+            people.delete(num())
+        elif action == "settings":
+            people.save_settings(data)
+        elif action != "load":
+            return None
+        if action != "load" and hasattr(HUB.brain, "refresh_system"):
+            HUB.brain.refresh_system()
+        return people.load(str(data.get("query") or ""))
+
     def _news(self, action: str, data: dict) -> None:
         """The Daily page's News: your own clicks."""
         try:
@@ -1986,6 +2115,8 @@ class Handler(BaseHTTPRequestHandler):
             return self._learn(self.path.rsplit("/", 1)[1], data)
         elif self.path.startswith("/api/fit/"):        # Daily page: Fitness
             return self._fit(self.path.rsplit("/", 1)[1], data)
+        elif self.path.startswith(("/api/travel/", "/api/meet/", "/api/people/")):       # Daily page
+            return self._daily_api(*self.path.split("/")[2:4], data)
         elif self.path.startswith("/api/news/"):       # Daily page: News
             return self._news(self.path.rsplit("/", 1)[1], data)
         elif self.path.startswith("/api/mail/"):       # Planner page: Email
@@ -2037,6 +2168,7 @@ class Handler(BaseHTTPRequestHandler):
             HUB.history.clear()
             agents.clear_board()
             mail.clear_seen()
+            meet.forget_yes()
             HUB.emit("reset")
         else:
             return self._json({"error": "not found"}, 404)

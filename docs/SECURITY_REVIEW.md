@@ -1,5 +1,16 @@
 # Security review
 
+## 2026-11-24 — v1.29.0 (travel, meetings, people)
+
+| Area | How | Where |
+|---|---|---|
+| Starting to write down | only `/api/meet/start` with the page's token and `agree: true`; no tool, agent, automation or plan can; the microphone must be free; refused while a Live call runs; a Live call is refused meanwhile | `hud.meeting_start`, `live_start` |
+| Never silent | a red bar on every page (also after a reload), a sound at the start, an entry in the activity list, start and end in the audit log; Pause really drops the sound; Emergency Stop and four hours end it | `hud.html`, `meet.Scribe` |
+| Sound | only in memory, piece by piece; only to the engine chosen (a failure never goes to the other one); pieces without speech aren't sent | `meet._write_down`, `Scribe` |
+| What was said | other people's words: untrusted for the AI, a question for each meeting (one yes for its parts, until a new conversation or half an hour), then the same hold as after an email; not in the activity list or audit log | `tools.meetings_tool`, `meet.allow`, `guard` |
+| People | the AI never gets phone numbers; names in its instructions only with a tick; no agent or automation has people or meetings | `people.prompt`, `agents` |
+| Travel | the weather sends the place's name, only when asked (after an email it asks first); nothing can be booked; a hint not to keep passport numbers | `travel.weather`, `guard.AFTER_EMAIL` |
+
 ## 2026-11-24 — v1.28.0 (learning and fitness)
 
 | Area | How | Where |
