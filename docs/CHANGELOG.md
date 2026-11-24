@@ -2,7 +2,7 @@
 
 Each version is also a git tag (`git tag -n20 vX.Y.Z` shows its notes). Newest first.
 
-## 1.29.0 — 2026-11-24 (not pushed yet)
+## 1.29.0 — 2026-11-24
 Travel, meetings and people: three new tabs on the Daily page (Phase 8 part 3).
 - Travel: trips with a day-by-day plan, packing lists (basic, summer, winter, business, umrah, family), papers, a budget that follows
   Planner › Money, the time there, the weather when you press the button, add to calendar, a reminder the day before. Nothing is

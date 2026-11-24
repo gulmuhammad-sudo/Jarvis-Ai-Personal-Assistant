@@ -18,7 +18,9 @@ set PA_TEST_NETWORK=1 && .venv\Scripts\python -m pytest tests   # also the onlin
 | `pytest tests` | 1031 passed, 4 skipped | new tests/test_travel_meet_people.py (47): trips and dates, lists, budget, weather only when asked; meetings, actions to tasks; writing down with a pretend microphone (silence not sent, long speech cut, a failing piece, pause, stop, deleted or full meanwhile, the chosen engine only), start only by the button with the tick, no Live call meanwhile, Emergency Stop; the AI's question per meeting; birthdays in ten forms, 29 February, reminders; the manner; privacy; upgrade from database 11. New in test_pages: no top-level name declared twice (a page with that doesn't load at all; caught while writing) |
 | Real offline speech (no microphone) | pass | 21 s spoken by the offline voice "alan" with room hiss, through the meeting code and the base-q5_1 model: 6 s, nearly word for word ("Sara" became "Tsara", "Ali" "Arlee"); no sound file left |
 | Running app (test copy, no mic; real weather) | pass | every button of the three tabs at 1534x787 (asking the AI was caught), the red bar on other pages with Pause and Stop (its state pretended), light theme, 620x760. Fixed: a list too wide, a box too wide |
-| Not tested | — | a real microphone and room, Groq for meetings, the manner with a real AI, the packaged exe |
+| Packaged exe 1.29.0 (built from 5a01ac7) | 80 / 80 and 116 / 116 | 22 new checks: trips, packing and plan by the AI, calendar once, real weather; a meeting isn't written down without the tick, in a copy without microphone, or by the AI; the AI asks before it reads what was said; no phone number for the AI; the manner reaches it at once; nothing in the audit log; kept after a restart |
+| What a new user gets (the release files) | 15 / 15 | as before |
+| Not tested | — | a real microphone and room, Groq for meetings, the manner with a real AI |
 
 ## 2026-11-24 — Learning and fitness (v1.28.0)
 
