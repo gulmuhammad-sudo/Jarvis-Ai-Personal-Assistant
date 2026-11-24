@@ -19,7 +19,9 @@ set PA_TEST_NETWORK=1 && .venv\Scripts\python -m pytest tests   # also the onlin
 | After | 20 of 20 changed once | at normal speed, 2.6 s late, and 0 to 6.5 s late in mixed order; six quick theme clicks in a row |
 | Status answer | 1550 ms → 45 ms | without Ollama; the microphone's state in the background |
 | `pytest tests` | 1192 passed, 4 skipped | new tests/test_steady.py (13) |
-| Not tested | — | with a real microphone and real AI models (none in the test copy); the packaged exe |
+| Packaged exe 1.31.1 (built from 1aa6869) | 80 / 80 and 162 / 162 | 25 new checks: Windows' list from inside the exe, what went out counted, the status at once, the next status has the new choice, Local only (window held back, search and website refused, AI on this PC still answers, counted), an hour, ask again, kept, timeline, history only after a yes; kept after a restart |
+| What a new user gets (the release files) | 15 / 15 | as before |
+| Not tested | — | with a real microphone and real AI models (none in the test copy) |
 
 ## 2026-11-24 — Privacy and the timeline (v1.31.0)
 

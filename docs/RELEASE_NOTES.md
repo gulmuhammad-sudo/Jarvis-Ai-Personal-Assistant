@@ -1,4 +1,4 @@
-# Personal Assistant 1.30.0
+# Personal Assistant 1.31.1
 
 A personal AI assistant for Windows: it talks, listens and gets things done on your PC, in English, Urdu or almost any language. Free.
 
@@ -7,7 +7,7 @@ A personal AI assistant for Windows: it talks, listens and gets things done on y
 | File | For whom |
 |---|---|
 | **`Personal-Assistant-Setup.exe`** | everyone: the one file you need |
-| `Personal-Assistant-1.30.0.zip` | the same Setup in a folder with the instructions (if your browser blocks `.exe` files) |
+| `Personal-Assistant-1.31.1.zip` | the same Setup in a folder with the instructions (if your browser blocks `.exe` files) |
 | `SHA256.txt` | to check the download (optional) |
 | *Source code (zip / tar.gz)* | developers only: **there is no app inside** |
 
@@ -18,6 +18,20 @@ A personal AI assistant for Windows: it talks, listens and gets things done on y
 Windows 10 (1809 or newer) or 11, 64-bit. Updating: run this Setup; your settings, memories and keys stay. Problems: [Install help](https://github.com/gulmuhammad-sudo/Jarvis-Ai-Personal-Assistant/blob/main/docs/INSTALL.md).
 
 **Urdu:** `Personal-Assistant-Setup.exe` download karke kholein. Windows roke to **More info → Run anyway**. Phir Next dabate jayen. *Source code* wali file mein app nahi hoti.
+
+## Theme glitch fix (1.31.1)
+
+- After changing an option (theme, voice, model, any switch) it jumped back to the old one and forth again. Every option now changes once and stays.
+- The app's status is answered at once (1.5 seconds before), so the whole window feels quicker.
+
+## New in 1.31
+
+A new **Privacy** page:
+
+- **Going out:** which services the app talked to, how often, what goes there. **Local only:** one switch, and nothing the app does leaves the PC.
+- **Microphone & screen:** when the app used them and why, a sign while the microphone is in use, and Windows' own list for all programs.
+- **Permissions** (also for one hour), **who may read what**, **what is kept** and for how long.
+- **Timeline:** everything day by day, with search, CSV and "Ask again".
 
 ## New in 1.30.0
 

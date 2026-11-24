@@ -2,7 +2,7 @@
 
 Each version is also a git tag (`git tag -n20 vX.Y.Z` shows its notes). Newest first.
 
-## 1.31.1 — 2026-11-24 (not pushed yet)
+## 1.31.1 — 2026-11-24 (Theme glitch fix)
 Every option stays where you put it.
 - Fixed: after changing an option (theme, voice, model, any switch) it jumped back to the old value and forth again, once or twice.
   The page asks for the status every second and a half; answers asked for before the click came in after it and were painted. Now an
@@ -12,7 +12,7 @@ Every option stays where you put it.
 - Fixed: "Prefer local AI" and "Use" on AI Models showed the wrong state after a click; the Test button of a voice on this PC switched
   the voice setting there and back; the microphone list showed the old one after a change; "Keep conversation history" showed late.
 
-## 1.31.0 — 2026-11-24 (not pushed yet)
+## 1.31.0 — 2026-11-24
 Privacy and the timeline: a new Privacy page (Phase 9 part 1).
 - Going out: which services the app talked to, how often, what goes there and how to stop it. Only the day, the address and the number
   are kept, on this PC, 30 days; it can be off.
