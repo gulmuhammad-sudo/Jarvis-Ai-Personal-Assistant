@@ -1,4 +1,4 @@
-# Personal Assistant 1.31.4
+# Personal Assistant 1.31.8
 
 A personal AI assistant for Windows: it talks, listens and gets things done on your PC, in English, Urdu or almost any language. Free.
 
@@ -7,7 +7,7 @@ A personal AI assistant for Windows: it talks, listens and gets things done on y
 | File | For whom |
 |---|---|
 | **`Personal-Assistant-Setup.exe`** | everyone: the one file you need |
-| `Personal-Assistant-1.31.4.zip` | the same Setup in a folder with the instructions (if your browser blocks `.exe` files) |
+| `Personal-Assistant-1.31.8.zip` | the same Setup in a folder with the instructions (if your browser blocks `.exe` files) |
 | `SHA256.txt` | to check the download (optional) |
 | *Source code (zip / tar.gz)* | developers only: **there is no app inside** |
 
@@ -18,6 +18,25 @@ A personal AI assistant for Windows: it talks, listens and gets things done on y
 Windows 10 (1809 or newer) or 11, 64-bit. Updating: run this Setup; your settings, memories and keys stay. Problems: [Install help](https://github.com/gulmuhammad-sudo/Jarvis-Ai-Personal-Assistant/blob/main/docs/INSTALL.md).
 
 **Urdu:** `Personal-Assistant-Setup.exe` download karke kholein. Windows roke to **More info → Run anyway**. Phir Next dabate jayen. *Source code* wali file mein app nahi hoti.
+
+## 1.31.8: the language you ask for, a tidier window
+
+- **"Urdu mein batao", "Hindi mein bolo", "translate to Arabic":** the answer stays in that language's own letters, typed and in Live calls. Otherwise Roman Urdu as always.
+- **Top right:** Lock, Stop, Details, Settings; the rest in one menu. **Left menu** in groups that open.
+
+## 1.31.7: other PCs and sync
+
+- Pair your PCs with a code (Settings › Devices): ask each other, send files, sync memories, notes, tasks and calendar straight from PC to PC, no cloud.
+
+## 1.31.6: phone, API, connections
+
+- **Your phone** (Settings › Devices, off by default): chat, tasks and agenda in your own Wi-Fi, encrypted. Scan the picture, press Allow on the PC. The phone's browser warns once about the certificate: it is this PC's own.
+- **API** for your own programs on this PC, with keys; **connections** to ntfy, Telegram, Discord, Slack, Home Assistant or any address, asked every time.
+
+## 1.31.5: backup, health, repair
+
+- **Backup** (Settings › Backup): one encrypted file, by button or by itself; put back all or parts, with a restore point first. Also before every new version.
+- **Health** (Settings › Health): 22 parts looked at, Fix buttons, repairs, a report without names or keys.
 
 ## 1.31.4: Setup shows the theme you choose
 

@@ -2,7 +2,7 @@
 
 Each version is also a git tag (`git tag -n20 vX.Y.Z` shows its notes). Newest first.
 
-## 1.31.8 — 2026-11-25 (not pushed yet)
+## 1.31.8 — 2026-11-25
 Answers in the language you ask for; a tidier top bar and menu.
 - "Urdu mein batao", "Hindi mein bolo", "translate it to Arabic": the answer stays in that language's own script, typed and in Live calls,
   and so does the conversation until you ask for another language or for Roman. Otherwise Roman Urdu as always.
@@ -11,7 +11,7 @@ Answers in the language you ask for; a tidier top bar and menu.
 - Top right: Lock, Stop, Details and Settings; profile, new conversation, spoken replies, language and theme in one menu.
 - Left: Command Center, Conversations, Memory, three groups that open (My day, AI & tools, Me & privacy) and Settings.
 
-## 1.31.7 — 2026-11-25 (not pushed yet)
+## 1.31.7 — 2026-11-25
 Other PCs and sync (Phase 9 part 4).
 - Settings › Devices: pair your PCs with a code. They know each other by their own keys, not by their addresses; each keeps its own rights
   for the other.
@@ -22,7 +22,7 @@ Other PCs and sync (Phase 9 part 4).
 - The assistant can do these too ("doosre PC par Chrome kholo"); it asks first.
 - The list of what goes out names your own network.
 
-## 1.31.6 — 2026-11-25 (not pushed yet)
+## 1.31.6 — 2026-11-25
 Phone access, API and connections (Phase 9 part 4).
 - Settings › Devices (off by default): your phone reaches the app in your own Wi-Fi, encrypted (HTTPS with this PC's own key). A QR
   picture or a code good once for three minutes; you allow each phone here. A small page: chat, tasks and agenda, Stop, and, only if you
@@ -37,7 +37,7 @@ Phone access, API and connections (Phase 9 part 4).
   secrets.
 - What was asked from a phone or by a program isn't read out loud into the room.
 
-## 1.31.5 — 2026-11-25 (not pushed yet)
+## 1.31.5 — 2026-11-25
 Backup, health and repair (Phase 9 part 3).
 - Settings › Backup: one button makes one encrypted file with conversations, memories, planner, notes, settings and the vault (still
   under its own password); AI keys and screen pictures if ticked. Every backup is read back and checked. By itself daily or weekly (off

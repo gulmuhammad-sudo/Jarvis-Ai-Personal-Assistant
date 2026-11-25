@@ -17,7 +17,9 @@ set PA_TEST_NETWORK=1 && .venv\Scripts\python -m pytest tests   # also the onlin
 |---|---|---|
 | `pytest tests` | 1512 passed, 4 skipped | new tests/test_asked_language.py (51): 36 ways of asking in English, Roman, Urdu and Hindi letters (also "not in Roman"), typed, phone, Live while still heard, other languages, the always-Urdu chat, new conversation, failed rewriting; test_look.py: menu and groups |
 | Running app (test copy) | pass | the menu: every row, Esc, a click beside it, profile; groups open one at a time and by themselves; 1534x787, 1534x650, 1280x787, 1000x640, 620x760, light |
-| Not tested | — | a real Live call in Urdu and Hindi; the real AI's obedience; spoken replies on (the test copy is silent) |
+| Packaged exe 1.31.8 | 80 / 80 and 222 / 222 | new: health and repair, backup, the phone's door, API, a connection, two copies paired, synced and a file sent, a real restore where the exe starts itself again |
+| What a new user gets (the release files) | 15 / 15 | |
+| Not tested | — | the restart of the app's window (the exe was tested without it); a real Live call in Urdu and Hindi; the real AI's obedience; spoken replies on (the test copy is silent) |
 
 ## 2026-11-25 — Other PCs and sync (v1.31.7)
 
