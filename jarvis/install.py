@@ -183,6 +183,9 @@ def stop_running(app_dir: Path) -> int:
                 n += 1
         except (psutil.Error, OSError):
             pass
+    if n:
+        from .config import DATA_DIR
+        (DATA_DIR / "running.json").unlink(missing_ok=True)      # closed on purpose, not a crash (doctor.py)
     return n
 
 

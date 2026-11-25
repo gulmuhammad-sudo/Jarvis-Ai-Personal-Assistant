@@ -188,6 +188,8 @@ class Tray:
                 self.icon.Dispose()
             except Exception:
                 pass
+        from . import doctor
+        doctor.ended()
         os._exit(0)
 
 
@@ -229,6 +231,9 @@ def _keep_running_on_close(window, tray: Tray) -> None:
                 args.Cancel = True
                 sender.Hide()
                 threading.Thread(target=tray.hint, daemon=True).start()
+            else:                                        # Windows is signing out or shutting down
+                from . import doctor
+                doctor.ended()
         form.Invoke(Action(lambda: form.add_FormClosing(WF.FormClosingEventHandler(closing))))
         print("[desktop] closing the window hides it to the tray")
     except Exception as e:
@@ -312,7 +317,7 @@ def main(tray: bool = False) -> None:
         ready = threading.Event()
         threading.Thread(target=hud.main, kwargs={"open_window": False, "watchdog": False, "ready": ready, "boot": tray},
                          daemon=True).start()
-        if not ready.wait(60):
+        if not ready.wait(300):                          # (a backup may be put back first)
             _message_box("Jarvis couldn't start its engine. See data\\jarvis.log for details.")
             return
 
@@ -332,11 +337,14 @@ def main(tray: bool = False) -> None:
         hud.WINDOW_HOOK = lambda action="show": show_window(window)
         hud.STARTUP_HOOK = install.set_startup
         hud.REC_HOOK = rec_pill
+        hud.QUIT_HOOK = icon.quit
         install.set_startup(schedule.get_setting("start_with_windows", True) is not False)
 
     store = str(DATA_DIR / "webview")
     if owner:          # (a second window onto a running app just closes normally)
         webview.start(tray_and_startup, gui="edgechromium", private_mode=False, storage_path=store)
+        from . import doctor
+        doctor.ended()
     else:
         webview.start(gui="edgechromium", private_mode=False, storage_path=store)
     os._exit(0)   # Quit (or Windows signing out): stop the server, scheduler and everything else

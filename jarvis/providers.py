@@ -227,6 +227,7 @@ BIG_TOOLS = {"documents": r"pdf|docx?|word|excel|xlsx|sheet|powerpoint|pptx|slid
              "clock": r"stop ?watch|lap|focus|pomodoro|pause|resume|snooze|ring|time in|time is it|alarm|timer|waqt|baje|وقت|الارم", "news": r"news|headline|khabar|خبر",
              "media": r"play|music|song|radio|volume|video|album|playlist|pause|gaana|gana|awaz|nasheed|naat|quran|tilawat|گانا|آواز", "images": r"image|picture|photo|tasveer|tasvir|draw|paint|logo|wallpaper|تصویر",
              "travel": r"travel|trip|safar|journey|pack|itinerar|umrah|hajj|visa|flight|hotel|ticket|سفر", "meetings": r"meeting|minutes|agenda|transcript|conference|mulaqat|میٹنگ",
+             "self_check": r"check (yourself|itself)|self.?check|diagnos|health|troubleshoot|repair|not working|doesn'?t work|something.{0,12}wrong|broken|back ?up|khud ko check|apne aap ko|kharab|masla|theek nahi|بیک ?اپ|خراب|مسئلہ",
              "history": r"yesterday|last (week|time|night)|earlier|before|asked|said|told|talked|history|kal|parson|pehle|pichl|poocha|kaha tha|baat|کل|پہلے|پوچھا",
              "people": r"birthday|saalgir|salgir|people|family|friend|wife|husband|brother|sister|mother|father|son\b|daughter|bhai|behen|ammi|abbu|dost|who is|سالگرہ|دوست|بھائی|بہن",
              "learn": r"flash|card|deck|quiz|learn|study|revis|yaad kar|parh|سبق|یاد", "fitness": r"weigh|wazan|water|paani|pani|glass|steps|qadam|sleep|slept|neend|soya|workout|exercise|gym|walk|\bran\b|\brun|fitness|bmi|وزن|پانی|نیند"}
@@ -234,7 +235,7 @@ LOCAL_TOOLS = ("get_datetime", "system_status", "open_website", "search_web_in_b
                "open_path", "find_files", "read_text_file", "save_note", "list_notes", "remember_fact",
                "recall_memories", "set_timer", "list_timers", "cancel_timer", "media_control", "clipboard",
                "web_search", "fetch_webpage", "get_weather", "play_youtube", "set_alarm", "list_alarms",
-               "close_app", "take_screenshot", "write_file", "tasks", "calendar", "notes", "documents", "goals", "money", "journal", "email", "clock", "news", "learn", "fitness", "travel", "meetings", "people", "media", "images", "history")
+               "close_app", "take_screenshot", "write_file", "tasks", "calendar", "notes", "documents", "goals", "money", "journal", "email", "clock", "news", "learn", "fitness", "travel", "meetings", "people", "media", "images", "history", "self_check")
 
 
 def prefer_local() -> bool:

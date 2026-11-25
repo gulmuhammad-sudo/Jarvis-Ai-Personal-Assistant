@@ -2,6 +2,21 @@
 
 Each version is also a git tag (`git tag -n20 vX.Y.Z` shows its notes). Newest first.
 
+## 1.31.5 — 2026-11-25 (not pushed yet)
+Backup, health and repair (Phase 9 part 3).
+- Settings › Backup: one button makes one encrypted file with conversations, memories, planner, notes, settings and the vault (still
+  under its own password); AI keys and screen pictures if ticked. Every backup is read back and checked. By itself daily or weekly (off
+  by default); a folder of your choice (also a USB stick); older ones go.
+- It opens on this PC without asking; with a backup password on another PC too.
+- Put back: looks into the file first, you choose the parts, a restore point of now is made, the app starts again and exchanges the
+  files, all or none. A restore point is also made before each new version and before repairs that touch your data.
+- Settings › Health: the app looks at 21 parts of itself (AI, internet, microphone, voices, database, files, vault, backup, start-up,
+  crashes, faults in the log…), with Fix buttons; a report without names, keys or texts.
+- Repairs: database, leftover and broken files, AIs, microphones, DNS cache, document index, shortcuts, window cache, settings back, start
+  again; Windows' own tools.
+- The assistant can check itself or make a backup when asked ("khud ko check karo", "backup bana do"); repairing and putting back are
+  only your buttons.
+
 ## 1.31.4 — 2026-11-25
 - Setup wears the theme you choose on its Look page, at once and with a soft change: Light, Dark, or Auto (as Windows is). An update
   opens in the theme you already use.

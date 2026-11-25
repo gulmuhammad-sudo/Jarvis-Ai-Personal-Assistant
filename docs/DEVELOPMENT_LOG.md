@@ -2,6 +2,18 @@
 
 Newest first. Each entry: what was done, how it was tested, what is open, the next task.
 
+## 2026-11-25 — Session 2, part 23: Phase 9 part 3 — backup, health, repair (v1.31.5)
+
+**Done** — `jarvis/backup.py` (`.pabackup`: readable front, then AES-256-GCM pieces bound to their place around a zip with a list of
+hashes; key locked with DPAPI and, if set, scrypt of a password), `restore.pending` exchanged in `hud.main` before anything is opened,
+`jarvis/doctor.py` (21 checks, 11 repairs, `running.json` as the sign of a run), `hud.restart` (`--wait-for PID`), Settings tabs Backup
+and Health, tool `self_check` (80 tools).
+
+**Found** — the rescue of a damaged database copied the list of documents without the word index (documents would have looked indexed
+but found nothing): the list is made anew. Setup closing the app looked like a crash: same-version marker removed, other version ignored.
+
+**Next** — ask the owner: build and release 1.31.5; part 4 (other PCs, remote access, API and integrations).
+
 ## 2026-11-24 — Session 2, part 22b: look and feel (v1.31.3)
 
 **Asked by the owner** — pages in the middle like Settings, taking things out of Activity, panels that open large with a movement, the

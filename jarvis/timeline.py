@@ -34,6 +34,9 @@ _WORDS = {
     "vault_created": "The vault was made", "vault_unlocked": "The vault was opened", "vault_locked": "The vault was locked", "vault_wrong": "A wrong password at the vault", "vault_secret_shown": "A secret of the vault was shown",
     "vault_secret_copied": "A secret of the vault was copied", "app_locked": "The app was locked", "app_unlocked": "The app was opened again", "lock_wrong": "A wrong PIN at the lock", "lock_settings": "The lock's settings were changed",
     "lock_pin_set": "The lock's PIN was set", "activity_removed": "Taken out of the Activity list", "permission_hour": "A permission was given for an hour", "permissions_asked_again": "All permissions ask again",
+    "backup_made": "A backup was made", "backup_deleted": "A backup was moved to the Recycle Bin", "backup_settings": "The backup settings were changed", "backup_password_set": "The backup password was set",
+    "backup_password_removed": "The backup password was removed", "restore_prepared": "A backup was made ready to be put back", "restored": "A backup was put back", "restore_failed": "A backup couldn't be put back; nothing changed",
+    "repaired": "A repair was done", "ended_unexpectedly": "The app had ended unexpectedly",
 }
 
 

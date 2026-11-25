@@ -54,6 +54,9 @@ and its keys in `.env` next to the code).
   download a model (e.g. qwen2.5:3b, 1.9 GB). The assistant then thinks on this PC — offline, private, no limits —
   with the cloud AIs as backup ("Prefer local AI" decides which goes first).
 - **Settings › Privacy:** keep or clear the saved conversation; see a record of everything it did on this PC.
+- **Settings › Backup:** one encrypted file of everything, by button or by itself; put back all or parts. Set a backup password to
+  open it on another PC, and write it down.
+- **Settings › Health:** what works and what doesn't, with Fix buttons.
 - Dangerous PowerShell commands are refused even if you approve them; text from web pages and files is treated
   as information, never as instructions; API keys are stored encrypted.
 

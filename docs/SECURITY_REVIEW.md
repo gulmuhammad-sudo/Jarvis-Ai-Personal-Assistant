@@ -1,5 +1,19 @@
 # Security review
 
+## 2026-11-25 — v1.31.5 (backup, health, repair)
+
+| Area | How | Where |
+|---|---|---|
+| Backup file | random key, AES-256-GCM in 1 MB pieces, each bound to its number, to being the last, and to the readable front; every file's SHA-256 in a list inside; read back before it counts | `backup._Seal`, `_Open`, `_verify` |
+| Who opens it | this Windows account (DPAPI); a password only if set (scrypt 2^16), kept on this PC only as the key made from it, locked with DPAPI | `backup._key_of`, `set_password` |
+| Never in it | the lock's PIN, the Gmail sign-in, `.env`, logs; the vault only as it lies on the disk (encrypted with its own password); AI keys only if ticked (restore points have them, locked to this account) | `backup._contents` |
+| A made-up backup | known names only, no way out of the folder, sizes and free space checked, all unpacked and checked before anything changes, exchange is all or nothing with a restore point before; the page says to open only your own | `backup._safe`, `prepare`, `apply_pending` |
+| Network paths | refused (looking at one sends the Windows sign-in) | `backup._file`, `set_settings` |
+| Who may | restore and repair: only the page with its token, not while locked, not during a call or recording; the AI only looks and makes a backup; agents and automations have no such tool; backups count as secret files | `hud._backup`, `_health`, `guard._SECRET` |
+| Settings back | look, voice, AI and alerts only: Local only, the lock, "never" rules and history off stay | `doctor.RESET` |
+| Opening Windows' tools | a fixed list | `doctor.open_windows` |
+| Report | no account name, keys, or lines of the log (only kinds of faults, counted) | `doctor.report`, `log_errors` |
+
 ## 2026-11-24 — v1.31.3 (look)
 
 | Area | How | Where |

@@ -755,6 +755,13 @@ svg.ic { transition: transform .28s cubic-bezier(.3, 1.5, .5, 1), color .2s, fil
 .setrow > .ctrl { display: flex; align-items: center; justify-content: flex-end; flex-wrap: wrap; gap: 8px; }
 .setrow > .ctrl > .themecards { justify-content: flex-end; }
 .setrow.wide { grid-template-columns: 1fr; }
+.hcbox { border: 1px solid var(--hair); border-radius: 12px; background: rgba(var(--c-fill), .015); padding: 6px 14px; margin-bottom: 10px; } .hcbox[hidden] { display: none; } .hcbox > b { display: block; margin-top: 6px; overflow-wrap: anywhere; } .hcbox > small { display: block; color: var(--muted); font-size: 13px; line-height: 1.5; margin: 2px 0 8px; }
+.hcbox .empty { padding: 14px 2px; } .hcwin { display: flex; flex-wrap: wrap; gap: 8px; padding: 12px 14px; }
+.hcdot { width: 10px; height: 10px; border-radius: 50%; flex: none; background: var(--dim); } .hcrow.ok .hcdot { background: var(--green); } .hcrow.warn .hcdot { background: var(--amber); } .hcrow.bad .hcdot { background: var(--red); }
+.hcrow em { min-width: 58px; text-align: right; } .hcrow.warn em { color: var(--amber); } .hcrow.bad em { color: var(--red); }
+.bkpw { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin: 0; } .hcbox .bkpw { margin: 4px 0 8px; } .setrow .bkpw input.txt { width: 150px; } .hcbox input.txt { height: 36px; width: 220px; max-width: 100%; border-radius: 10px; border: 1px solid var(--hair-2); background: var(--bg); color: var(--text); padding: 0 12px; font: 14px var(--sans); outline: none; } .hcbox input.txt:focus { border-color: rgba(var(--c-accent), .5); }
+.bkpart { display: flex; gap: 9px; align-items: flex-start; padding: 6px 0; font-size: 13.5px; cursor: pointer; } .bkpart input { margin-top: 3px; } .bkpart small { display: block; color: var(--muted); font-size: 12.5px; }
+.bkmsg { scroll-margin: 70px 0 20px; min-height: 20px; margin: 2px 2px 8px; font-size: 13.5px; color: var(--red); overflow-wrap: anywhere; } .bkmsg.ok { color: var(--green); } .bkmsg:empty { min-height: 0; margin: 0; }
 .setrow.wide > .ctrl { justify-content: flex-start; }
 .setrow select, .setrow .txt, .setrow .btn { height: 36px; }
 @media (max-width: 760px) { .setrow { grid-template-columns: 1fr; } .setrow > .ctrl { justify-content: flex-start; } }
@@ -1720,7 +1727,7 @@ body.focus .hero { background: none; box-shadow: none; }
       <section class="card page">
         <h3>Settings <span class="more" id="appVer" style="cursor:default"></span></h3>
         <div class="body"><div class="settings">
-          <div class="settabs" role="tablist" aria-label="Settings sections"><button class="settab" role="tab" data-settab="general">General</button><button class="settab" role="tab" data-settab="voice">Voice &amp; Mic</button><button class="settab" role="tab" data-settab="ai">AI</button><button class="settab" role="tab" data-settab="privacy">Privacy</button><button class="settab" role="tab" data-settab="permissions">Permissions</button><button class="settab" role="tab" data-settab="alerts">Alerts</button></div>
+          <div class="settabs" role="tablist" aria-label="Settings sections"><button class="settab" role="tab" data-settab="general">General</button><button class="settab" role="tab" data-settab="voice">Voice &amp; Mic</button><button class="settab" role="tab" data-settab="ai">AI</button><button class="settab" role="tab" data-settab="privacy">Privacy</button><button class="settab" role="tab" data-settab="permissions">Permissions</button><button class="settab" role="tab" data-settab="alerts">Alerts</button><button class="settab" role="tab" data-settab="backup">Backup</button><button class="settab" role="tab" data-settab="health">Health</button></div>
           <div class="setgroup" data-setgroup="general" role="tabpanel">
           <h4 class="sec">ASSISTANT</h4>
           <div class="setrow"><div class="lbl"><b>Name</b><small id="agentMsg">What your assistant is called everywhere: in replies, on calls and on this screen. You can also just say "your name is Maya now".</small></div>
@@ -1828,6 +1835,38 @@ body.focus .hero { background: none; box-shadow: none; }
             <button class="btn" id="loudBtn">On</button></div>
           <div class="setrow"><div class="lbl"><b>Alert sound</b><small>Pick a sound and press Play to hear it.</small></div>
             <select id="toneSel" aria-label="Alert sound"></select><button class="btn" id="alertTest"><i data-ic="play"></i>Play</button></div>
+
+          </div>
+          <div class="setgroup" data-setgroup="backup" role="tabpanel">
+          <h4 class="sec">BACKUP</h4>
+          <div class="setrow"><div class="lbl"><b>Back up now</b><small id="bkLast">Conversations, memories, planner, notes, settings and the vault, in one encrypted file.</small></div>
+            <button class="btn on" id="bkMake"><i data-ic="download"></i>Back up now</button></div>
+          <div class="setrow"><div class="lbl"><b>By itself</b><small>Made in the background while the app runs; older ones go.</small></div>
+            <select id="bkEvery" aria-label="How often"><option value="off">Off</option><option value="daily">Every day</option><option value="weekly">Every week</option></select><select id="bkKeep" aria-label="How many are kept"><option value="3">Keep 3</option><option value="7">Keep 7</option><option value="14">Keep 14</option><option value="30">Keep 30</option></select></div>
+          <div class="setrow"><div class="lbl"><b>Where</b><small id="bkDir" style="overflow-wrap:anywhere"></small></div>
+            <button class="btn" id="bkPick">Change</button><button class="btn" id="bkOpen"><i data-ic="note"></i>Open</button></div>
+          <div class="setrow"><div class="lbl"><b>AI keys too</b><small>Then you needn't add them again on another PC.</small></div><button class="btn switch" id="bkKeys" role="switch" aria-label="AI keys too">Off</button></div>
+          <div class="setrow"><div class="lbl"><b>Pictures of the screen too</b><small>The ones it looked at. They can be big.</small></div><button class="btn switch" id="bkShots" role="switch" aria-label="Pictures of the screen too">Off</button></div>
+          <div class="setrow"><div class="lbl"><b>Backup password</b><small id="bkPwInfo">Without one a backup opens only on this PC, with your Windows account. With one it opens on another PC too. Nobody can find it out again: write it down.</small></div>
+            <form id="bkPwForm" class="bkpw" autocomplete="off"><input class="txt" id="bkPw" type="password" maxlength="200" placeholder="Password" aria-label="Backup password" autocomplete="new-password"><input class="txt" id="bkPw2" type="password" maxlength="200" placeholder="Again" aria-label="Backup password again" autocomplete="new-password"><button class="btn" type="submit">Set</button></form><button class="btn danger" id="bkPwX" hidden>Remove</button></div>
+          <div class="bkmsg" id="bkMsg" role="status"></div>
+          <h4 class="sec">PUT BACK</h4>
+          <div class="setrow"><div class="lbl"><b>From a file</b><small>Looks into it first; nothing changes before you choose what to put back. Only open backups you made yourself.</small></div>
+            <button class="btn" id="bkFile">Choose a file</button></div>
+          <div class="hcbox" id="bkPane" hidden></div>
+          <div class="hcbox" id="bkList"></div>
+
+          </div>
+          <div class="setgroup" data-setgroup="health" role="tabpanel">
+          <h4 class="sec">HEALTH</h4>
+          <div class="setrow"><div class="lbl"><b id="hcSum">Looking…</b><small id="hcAt">Looks at every part of the app. Nothing is changed.</small></div>
+            <button class="btn on" id="hcRun"><i data-ic="refresh"></i>Check again</button><button class="btn" id="hcRep"><i data-ic="note"></i>Save a report</button></div>
+          <div class="bkmsg" id="hcMsg" role="status"></div>
+          <div class="hcbox" id="hcList"></div>
+          <h4 class="sec">REPAIR</h4>
+          <div class="hcbox" id="hcFix"></div>
+          <h4 class="sec">WINDOWS' OWN TOOLS</h4>
+          <div class="hcbox hcwin" id="hcWin"></div>
 
           </div>
         </div></div>
@@ -2041,8 +2080,8 @@ function md(s) {
   return s.replace(/\u0000(\d+)\u0000/g, (_, i) => `<pre><code>${esc(blocks[+i])}</code></pre>`);
 }
 // What you choose wins over older news: an answer about the settings that was asked for before your click (or while it is on its way) is never painted.
-const CHANGES = /^\/api\/(settings|live|mic|mic_unmute|mic_boost|local|setup|profile|approvals\/reset|history\/clear|privacy\/(local_only|access|rule|hour|ask_again|kept|clear))$/;
-let chgSeq = 0, chgBusy = 0, chgTimer = 0;
+const CHANGES = /^\/api\/(settings|live|mic|mic_unmute|mic_boost|local|setup|profile|approvals\/reset|history\/clear|privacy\/(local_only|access|rule|hour|ask_again|kept|clear)|health\/repair)$/;
+let chgSeq = 0, chgBusy = 0, chgTimer = 0, setCur = "";
 const chosen = {};                                       // key -> { v, until }: what you just chose; an older echo of it isn't painted either
 async function post(path, body = {}) {
   const change = CHANGES.test(path);
@@ -2066,6 +2105,7 @@ function nowT() { return new Date().toLocaleTimeString([], { hour: "2-digit", mi
 
 // ---------- navigation ----------
 function go(view) {
+  if (view === "backup" || view === "health") { go("settings"); return setTab(view); }
   if (xpEl) xpClose(true);
   if (view !== "dash") $("subs").classList.remove("show");
   document.querySelectorAll(".view").forEach(v => v.classList.toggle("active", v.dataset.view === view));
@@ -2081,6 +2121,7 @@ function go(view) {
   if (view === "studio") stShow();
   if (view === "privacy") pvShow();
   if (view === "vault") vShow();
+  if (view === "settings") setLoad();
   mdMini();
 }
 document.querySelectorAll(".navi").forEach(n => n.onclick = () => go(n.dataset.view));
@@ -5487,9 +5528,10 @@ loadMics();
     "PLAYING ON THIS PC": "speaker", "PLAYER": "play", "MY LIBRARY": "layers", "PLAYLISTS": "tasks", "RADIO": "wifi", "FOLDERS": "note", "RECORD THE SCREEN": "pc", "RECORDINGS": "layers",
     "MAKE A PICTURE": "zap", "MY PICTURES": "layers", "EDIT": "edit",
     "PRIVACY LOCK": "lock", "WHO MAY READ WHAT": "eye", "WHERE IT WENT TO": "globe", "THE LAST 14 DAYS": "clock", "ABOUT THIS LIST": "note", "THIS APP": "mic", "ALL PROGRAMS": "pc", "EACH KIND OF ACTION": "check", "WHAT IS KEPT": "db", "HOW LONG": "clock",
+    "BACKUP": "db", "PUT BACK": "refresh", "HEALTH": "shield", "REPAIR": "wrench", "WINDOWS' OWN TOOLS": "pc",
     "RECORDINGS OF YOUR VOICE": "mic", "TIMELINE": "clock", "YOU ASK OFTEN": "chat" };
   document.querySelectorAll("h4.sec").forEach(h => { const n = SEC[(h.firstChild ? h.firstChild.textContent : "").trim().toUpperCase()]; if (n) h.insertAdjacentHTML("afterbegin", icon(n)); });
-  const TAB = { general: "gear", voice: "mic", ai: "layers", privacy: "shield", permissions: "check", alerts: "bell" };
+  const TAB = { general: "gear", voice: "mic", ai: "layers", privacy: "shield", permissions: "check", alerts: "bell", backup: "db", health: "shield" };
   document.querySelectorAll("[data-settab]").forEach(b => b.insertAdjacentHTML("afterbegin", icon(TAB[b.dataset.settab] || "info")));
   document.querySelectorAll(".settings .setrow").forEach(row => {       // label left, all controls together on the right
     const items = [...row.children].filter(c => !c.classList.contains("lbl") && !(c.tagName === "INPUT" && c.type === "file"));
@@ -5508,6 +5550,90 @@ loadMics();
   }
 })();
 
+// ---------- settings: backup and health ----------
+let bkD = null, bkIn = null, hcD = null, hcBusy = false;
+const bkTell = (t, good = false, id = "bkMsg") => { $(id).textContent = t || ""; $(id).classList.toggle("ok", good); if (t) $(id).scrollIntoView({ block: "nearest", behavior: "smooth" }); };
+async function bkPost(action, body = {}, page = "backup") {
+  const r = await post(`/api/${page}/${action}`, body), j = r ? await r.json().catch(() => ({ error: "The app didn't answer." })) : { error: "The app didn't answer." };
+  if (j.error) bkTell(j.error, false, page === "backup" ? "bkMsg" : "hcMsg");
+  return j;
+}
+function bkAgain(text, id = "bkMsg") {                                    // the app closes and opens again: in a browser the page comes back by itself
+  bkTell(text, true, id); const t0 = Date.now();
+  const look = async () => { try { if ((await fetch("/", { cache: "no-store" })).ok && Date.now() - t0 > 2500) return location.reload(); } catch (e) { } if (Date.now() - t0 < 120000) setTimeout(look, 900); };
+  setTimeout(look, 2600);
+}
+async function bkLoad(body = {}, action = "load") { const j = await bkPost(action, body); if (!j.error) { bkD = j; bkDraw(); } return j; }
+function bkDraw() {
+  const s = bkD.settings;
+  $("bkLast").textContent = s.last_error ? `The last automatic one didn't work: ${s.last_error}` : s.last ? `Last: ${pvAgo(s.last.replace("T", " "))}` : "Conversations, memories, planner, notes, settings and the vault, in one encrypted file.";
+  $("bkEvery").value = s.every; $("bkKeep").value = String(s.keep); $("bkDir").textContent = s.folder; pvSw($("bkKeys"), s.keys); pvSw($("bkShots"), s.shots);
+  $("bkPwX").hidden = !s.password; $("bkPw").placeholder = s.password ? "New password" : "Password";
+  $("bkPwInfo").textContent = s.password ? "Set: new backups open on another PC too, with this password. Nobody can find it out again: write it down." : "Without one a backup opens only on this PC, with your Windows account. With one it opens on another PC too. Nobody can find it out again: write it down.";
+  setHTML($("bkList"), bkD.list.map((b, i) => `<div class="pvline"><div><b>${b.point ? "Restore point" : "Backup"}</b> · ${esc(b.made ? pvAgo(b.made.replace("T", " ")) : b.name)}<small>${esc([b.why === "you" ? "made by you" : b.why, b.app && "version " + b.app, pvSize(b.size), b.point ? "" : b.password ? "with a password" : "opens on this PC only"].filter(Boolean).join(" · "))}</small></div><button class="btn" data-bkl="${i}">Look into it</button><button class="btn danger" data-bkx="${i}" aria-label="Move to the Recycle Bin">Delete</button></div>`).join("") || '<div class="empty">No backup yet.</div>');
+  document.querySelectorAll("[data-bkl]").forEach(b => b.onclick = () => bkLook(bkD.list[+b.dataset.bkl].path));
+  document.querySelectorAll("[data-bkx]").forEach(b => b.onclick = () => lnArm("bk" + b.dataset.bkx, b, async () => { const j = await bkLoad({ path: bkD.list[+b.dataset.bkx].path }, "delete"); if (!j.error) bkTell("Moved to the Recycle Bin.", true); }));
+}
+async function bkLook(path, password) {
+  bkTell(""); const j = await bkPost("look", { path, password }); if (j.error) return;
+  bkIn = { ...j, path, password }; const p = $("bkPane"); p.hidden = false;
+  if (j.locked) {
+    p.innerHTML = `<b>${esc(j.name)}</b><small>Made ${esc(pvAgo(String(j.made || "").replace("T", " ")))}. It needs its backup password.</small><form class="bkpw" id="bkOpenForm" autocomplete="off"><input class="txt" type="password" id="bkOpenPw" maxlength="200" placeholder="Its password" aria-label="Password of this backup" autocomplete="off"><button class="btn on" type="submit">Open</button><button class="btn" type="button" id="bkNo">Cancel</button></form>`;
+    $("bkOpenForm").onsubmit = e => { e.preventDefault(); bkLook(path, $("bkOpenPw").value); }; $("bkOpenPw").focus();
+  } else {
+    p.innerHTML = `<b>${esc(j.name)}</b><small>Made ${esc(pvAgo(j.made.replace("T", " ")))} · version ${esc(j.app)} · whole and checked. Choose what to put back; it takes the place of what is there now.</small>`
+      + j.parts.map(x => `<label class="bkpart"><input type="checkbox" data-bkp="${x.id}"${["app", "settings", "notes"].includes(x.id) ? " checked" : ""}> <span>${esc(x.name)}<small>${x.files} file${x.files === 1 ? "" : "s"} · ${pvSize(x.bytes) || "0 B"}</small></span></label>`).join("")
+      + `<small>A restore point of now is made first, so you can come back. The app starts again.</small><div class="bkpw"><button class="btn on" id="bkGo">Put back and start again</button><button class="btn" id="bkNo">Cancel</button></div>`;
+    $("bkGo").onclick = () => {
+      const parts = [...document.querySelectorAll("[data-bkp]")].filter(c => c.checked).map(c => c.dataset.bkp);
+      if (!parts.length) return bkTell("Choose what to put back.");
+      lnArm2("bkgo", $("bkGo"), "Really put it back?", async () => { $("bkGo").disabled = true; bkTell("Checking and unpacking…", true); const r = await bkPost("restore", { path, password, parts }); if (r.error) { if ($("bkGo")) $("bkGo").disabled = false; } else bkAgain("Ready. The app starts again and puts it back…"); });
+    };
+  }
+  $("bkNo").onclick = () => { p.hidden = true; p.innerHTML = ""; bkIn = null; bkTell(""); };
+  p.scrollIntoView({ block: "nearest", behavior: "smooth" });
+}
+$("bkMake").onclick = async () => { const b = $("bkMake"); b.disabled = true; bkTell("Making it, then reading it back to check…", true); const j = await bkLoad({}, "make"); b.disabled = false; if (!j.error) bkTell(`Done: ${j.made.files} files, ${pvSize(j.made.size)}, encrypted and checked.`, true); };
+$("bkEvery").onchange = () => bkLoad({ every: $("bkEvery").value }, "save"); $("bkKeep").onchange = () => bkLoad({ keep: +$("bkKeep").value }, "save");
+$("bkKeys").onclick = () => bkLoad({ keys: !$("bkKeys").classList.contains("on") }, "save"); $("bkShots").onclick = () => bkLoad({ shots: !$("bkShots").classList.contains("on") }, "save");
+$("bkPick").onclick = async () => { const j = await bkPost("pick"); if (j.path) { const r = await bkLoad({ folder: j.path }, "save"); if (!r.error) bkTell("New backups go there.", true); } };
+$("bkOpen").onclick = () => bkPost("open"); $("bkFile").onclick = async () => { const j = await bkPost("pick_file"); if (j.path) bkLook(j.path); };
+$("bkPwForm").onsubmit = async e => { e.preventDefault(); const j = await bkLoad({ password: $("bkPw").value, again: $("bkPw2").value }, "password"); if (!j.error) { $("bkPw").value = $("bkPw2").value = ""; bkTell("Set. New backups open with it on another PC too. Write it down.", true); } };
+$("bkPwX").onclick = () => lnArm2("bkpw", $("bkPwX"), "Remove it?", async () => { const j = await bkLoad({}, "password_remove"); if (!j.error) bkTell("Removed. New backups open on this PC only.", true); });
+// -- health
+const HC = { ok: ["OK", "ok"], info: ["Note", "info"], warn: ["Look at", "warn"], bad: ["Problem", "bad"] };
+async function hcLoad() {
+  if (hcBusy) return; hcBusy = true; $("hcRun").disabled = true; $("hcSum").textContent = "Looking…";
+  const j = await bkPost("check", {}, "health"); hcBusy = false; $("hcRun").disabled = false;
+  if (j.error) $("hcSum").textContent = "It couldn't be checked"; else { hcD = j; hcDraw(); }
+}
+function hcDraw() {
+  const d = hcD, name = id => (d.repairs.find(r => r.id === id) || {}).name || "Repair";
+  $("hcSum").textContent = d.bad ? `${d.bad} problem${d.bad === 1 ? "" : "s"}${d.warn ? ` and ${d.warn} to look at` : ""}` : d.warn ? `${d.warn} thing${d.warn === 1 ? "" : "s"} to look at` : "Everything works";
+  $("hcAt").textContent = `${d.rows.length} parts looked at, ${pvAgo(d.at.replace("T", " "))}. Nothing is changed by looking.`;
+  setHTML($("hcList"), d.rows.map(r => `<div class="pvline hcrow ${HC[r.state][1]}"><i class="hcdot" aria-hidden="true"></i><div><b>${esc(r.name)}</b><small>${esc(r.detail)}</small></div><em>${HC[r.state][0]}</em>${r.fix ? `<button class="btn" data-hcf="${esc(r.fix)}" title="${esc(name(r.fix))}">Fix</button>` : ""}${r.go ? `<button class="btn" data-hcg="${esc(r.go)}">Open</button>` : ""}</div>`).join(""));
+  setHTML($("hcFix"), d.repairs.map(r => `<div class="pvline"><div><b>${esc(r.name)}</b><small>${esc(r.about)}</small></div><button class="btn" data-hcf="${esc(r.id)}">${r.restart ? "Do it, then start again" : "Do it"}</button></div>`).join(""));
+  setHTML($("hcWin"), d.windows.map(w => `<button class="btn" data-hcw="${esc(w.id)}">${esc(w.name)}</button>`).join(""));
+  document.querySelectorAll("[data-hcf]").forEach((b, i) => b.onclick = () => lnArm2("hc" + i, b, "Sure?", () => hcRepair(b.dataset.hcf)));
+  document.querySelectorAll("[data-hcg]").forEach(b => b.onclick = () => hcGo(b.dataset.hcg));
+  document.querySelectorAll("[data-hcw]").forEach(b => b.onclick = () => bkPost("open", { what: b.dataset.hcw }, "health"));
+}
+function hcGo(to) {
+  if (to.startsWith("ms-settings:")) return bkPost("open", { what: to }, "health");
+  if (to === "unmute" || to === "settings") return setTab("voice");
+  go(to);
+}
+async function hcRepair(what) {
+  document.querySelectorAll("[data-hcf]").forEach(b => b.disabled = true); bkTell("Working…", true, "hcMsg");
+  const j = await bkPost("repair", { what }, "health"); document.querySelectorAll("[data-hcf]").forEach(b => b.disabled = false);
+  if (j.error) return hcDraw();
+  if (j.restart) return bkAgain(`${j.said} Starting again…`, "hcMsg");
+  hcD = j; hcDraw(); bkTell(j.said, true, "hcMsg");
+}
+$("hcRun").onclick = () => { bkTell("", false, "hcMsg"); hcLoad(); };
+$("hcRep").onclick = async () => { const j = await bkPost("report", {}, "health"); if (!j.error) bkTell(`Saved without names, keys or texts: ${j.path}`, true, "hcMsg"); };
+function setLoad() { if (!document.querySelector('.view.active[data-view="settings"]')) return; if (setCur === "backup") bkLoad(); if (setCur === "health") hcLoad(); }
+
 // ---------- settings tabs ----------
 function setTab(name) {
   if (!document.querySelector(`[data-setgroup="${name}"]`)) name = "general";
@@ -5517,7 +5643,7 @@ function setTab(name) {
     g.classList.toggle("on", false);
     if (on) { [...g.children].forEach((c, i) => c.style.setProperty("--i", Math.min(i, 14))); void g.offsetWidth; g.classList.add("on"); }   // replay the row animation
   });
-  storeSet("jarvis.settab", name);
+  storeSet("jarvis.settab", name); setCur = name; setLoad();
 }
 document.querySelectorAll("[data-settab]").forEach(b => b.onclick = () => setTab(b.dataset.settab));
 document.querySelectorAll("[data-setgroup] [data-go]").forEach(b => b.onclick = () => go(b.dataset.go));

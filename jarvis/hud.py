@@ -26,7 +26,7 @@ from urllib.parse import parse_qs, quote
 
 from . import __version__
 from . import live as live_mod
-from . import agents, alerts, approvals, audit, automations, clock, denoise, docindex, fit, gpu, guard, hello, images, languages, learn, life, local_ai, lock, mail, local_stt, local_tts, media, meet, memory, netlog, news, notes, people, planner, plans, privacy, schedule, screenrec, netcheck, skills, software, stt, storage, timeline, tools, travel, tts, urdu, vault, wake, winmgr
+from . import agents, alerts, approvals, audit, automations, backup, clock, denoise, docindex, doctor, fit, gpu, guard, hello, images, languages, learn, life, local_ai, lock, mail, local_stt, local_tts, media, meet, memory, netlog, news, notes, people, planner, plans, privacy, schedule, screenrec, netcheck, skills, software, stt, storage, timeline, tools, travel, tts, urdu, vault, wake, winmgr
 from .brain import make_brain
 from .config import NOTES_DIR
 from .providers import provider_status
@@ -49,6 +49,7 @@ FACES = ("globe", "mask", "rings")
 PORT = int(os.environ.get("JARVIS_HUD_PORT", "8765"))
 TOKEN = secrets.token_urlsafe(24)
 WINDOW_HOOK = None      # set by the desktop app: WINDOW_HOOK("show") brings its window back from the tray
+QUIT_HOOK = None        # set by the desktop app: ends it (a restart)
 STARTUP_HOOK = None     # set by the desktop app: STARTUP_HOOK(on) adds / removes the "start with Windows" shortcut
 
 
@@ -329,7 +330,7 @@ class Hub:
             planner.tick(now, self.notify)
         except Exception as e:
             print(f"[planner] {type(e).__name__}: {e}")
-        for part in (life, learn, fit, travel, people, vault):
+        for part in (life, learn, fit, travel, people, vault, backup):
             try:
                 part.tick(now, self.notify)
             except Exception as e:
@@ -1828,7 +1829,7 @@ class Handler(BaseHTTPRequestHandler):
         """The Daily page's Travel, Meetings and People: your own clicks."""
         try:
             num = lambda k="id": int(data.get(k))                                        # noqa: E731
-            out = {"travel": self._travel, "meet": self._meet, "people": self._people, "media": self._media, "rec": self._rec, "images": self._images, "privacy": self._privacy, "time": self._time, "lock": self._lock_api}[page](action, data, num)
+            out = {"travel": self._travel, "meet": self._meet, "people": self._people, "media": self._media, "rec": self._rec, "images": self._images, "privacy": self._privacy, "time": self._time, "lock": self._lock_api, "backup": self._backup, "health": self._health}[page](action, data, num)
         except (ValueError, TypeError, KeyError, AttributeError) as e:
             return self._json({"error": str(e) if isinstance(e, ValueError) and str(e)[:1].isupper() else "Something is missing or wrong."}, 400)
         except OSError as e:
@@ -2123,6 +2124,69 @@ class Handler(BaseHTTPRequestHandler):
         if action == "remove_pin":
             lock.remove_pin(data.get("old"))
             return lock.settings()
+        return None
+
+    @staticmethod
+    def _may_restart() -> None:
+        if HUB.live and HUB.live.active:
+            raise ValueError("End the Live call first.")
+        if HUB.meeting_on() or HUB.screen.state() or HUB.recording:
+            raise ValueError("Something is being recorded. End that first.")
+
+    @staticmethod
+    def _backup(action: str, data: dict, num) -> dict | None:
+        """Settings: Backup. The owner's own clicks."""
+        out: dict = {}
+        if action == "make":
+            out["made"] = backup.make()
+        elif action == "save":
+            backup.set_settings(data)
+        elif action == "pick":
+            return {"path": _pick_folder("Where the backups go")}
+        elif action == "pick_file":
+            return {"path": _pick_file("Backups (*.pabackup)|*.pabackup", str(backup.folder()))}
+        elif action == "password":
+            backup.set_password(data.get("password"), data.get("again"))
+        elif action == "password_remove":
+            backup.remove_password()
+        elif action == "look":
+            return backup.look(data.get("path"), data.get("password"))
+        elif action == "restore":
+            Handler._may_restart()
+            out["ready"] = backup.prepare(data.get("path"), data.get("parts"), data.get("password"))
+            vault.lock("a backup is put back")
+            restart()
+            return {**out, "restart": True}
+        elif action == "delete":
+            backup.delete(data.get("path"))
+        elif action == "open":
+            p = backup.points_dir() if data.get("points") is True else backup.folder()
+            p.mkdir(parents=True, exist_ok=True)
+            os.startfile(str(p))
+        elif action != "load":
+            return None
+        return {**out, **backup.page()}
+
+    @staticmethod
+    def _health(action: str, data: dict, num) -> dict | None:
+        """Settings: Health. Looking changes nothing; a repair is one click of the owner each."""
+        if action == "check":
+            return doctor.check(HUB)
+        if action == "repair":
+            what = data.get("what")
+            again = what in doctor.REPAIRS and doctor.REPAIRS[what][2]
+            if again:
+                Handler._may_restart()
+            said = doctor.repair(what, HUB)
+            if again:
+                restart()
+                return {"said": said, "restart": True}
+            return {"said": said, **doctor.check(HUB)}
+        if action == "open":
+            doctor.open_windows(data.get("what"))
+            return {"ok": True}
+        if action == "report":
+            return doctor.report(HUB)
         return None
 
     def _vault(self, action: str, data: dict) -> None:
@@ -2643,7 +2707,7 @@ class Handler(BaseHTTPRequestHandler):
             return self._learn(self.path.rsplit("/", 1)[1], data)
         elif self.path.startswith("/api/fit/"):        # Daily page: Fitness
             return self._fit(self.path.rsplit("/", 1)[1], data)
-        elif self.path.startswith(("/api/travel/", "/api/meet/", "/api/people/", "/api/media/", "/api/rec/", "/api/images/", "/api/privacy/", "/api/time/", "/api/lock/")):       # Daily, Studio and Privacy pages
+        elif self.path.startswith(("/api/travel/", "/api/meet/", "/api/people/", "/api/media/", "/api/rec/", "/api/images/", "/api/privacy/", "/api/time/", "/api/lock/", "/api/backup/", "/api/health/")):       # Daily, Studio, Privacy pages; Settings
             return self._daily_api(*self.path.split("/")[2:4], data)
         elif self.path.startswith("/api/news/"):       # Daily page: News
             return self._news(self.path.rsplit("/", 1)[1], data)
@@ -2874,12 +2938,23 @@ class Handler(BaseHTTPRequestHandler):
         self._json({"text": text, "engine": engine})
 
 
-def _pick_folder() -> str:
+def _pick_file(kinds: str, start: str = "") -> str:
+    """Windows' own box for choosing a file ('' if you pressed Cancel)."""
+    ps = ("Add-Type -AssemblyName System.Windows.Forms; $d = New-Object System.Windows.Forms.OpenFileDialog; $d.Filter = $env:PA_KINDS; if (Test-Path -LiteralPath $env:PA_START) { $d.InitialDirectory = $env:PA_START }; "
+          "$w = New-Object System.Windows.Forms.Form; $w.TopMost = $true; if ($d.ShowDialog($w) -eq 'OK') { [Console]::OutputEncoding = [Text.Encoding]::UTF8; [Console]::Out.Write($d.FileName) }")
+    try:
+        r = subprocess.run(["powershell", "-NoProfile", "-STA", "-Command", ps], capture_output=True, timeout=300, env={**os.environ, "PA_KINDS": kinds, "PA_START": start or "."}, creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0))
+        return r.stdout.decode("utf-8", "ignore").lstrip("\ufeff").strip()
+    except subprocess.TimeoutExpired:
+        return ""
+
+
+def _pick_folder(what: str = "Music or videos") -> str:
     """Windows' own box for choosing a folder ('' if you pressed Cancel)."""
-    ps = ("Add-Type -AssemblyName System.Windows.Forms; $d = New-Object System.Windows.Forms.FolderBrowserDialog; $d.Description = 'Music or videos'; "
+    ps = ("Add-Type -AssemblyName System.Windows.Forms; $d = New-Object System.Windows.Forms.FolderBrowserDialog; $d.Description = $env:PA_WHAT; "
           "$w = New-Object System.Windows.Forms.Form; $w.TopMost = $true; if ($d.ShowDialog($w) -eq 'OK') { [Console]::OutputEncoding = [Text.Encoding]::UTF8; [Console]::Out.Write($d.SelectedPath) }")
     try:
-        r = subprocess.run(["powershell", "-NoProfile", "-STA", "-Command", ps], capture_output=True, timeout=300, creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0))
+        r = subprocess.run(["powershell", "-NoProfile", "-STA", "-Command", ps], capture_output=True, timeout=300, env={**os.environ, "PA_WHAT": what}, creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0))
         return r.stdout.decode("utf-8", "ignore").lstrip("\ufeff").strip()
     except subprocess.TimeoutExpired:
         return ""
@@ -2929,7 +3004,26 @@ def _watchdog() -> None:
             has_clients = bool(HUB.subscribers)
         if not has_clients and time.time() - HUB.last_client_seen > 20:
             print("HUD window closed. Jarvis shutting down.")
+            doctor.ended()
             os._exit(0)
+
+
+def restart() -> None:
+    """Close the app and open it again (a moment later, so that the answer still goes out)."""
+    args = [sys.executable] if getattr(sys, "frozen", False) else [sys.executable, "-m", "jarvis"]
+    if QUIT_HOOK is None:
+        args.append("--no-window")
+    args += ["--wait-for", str(os.getpid())]
+
+    def go() -> None:
+        time.sleep(0.8)
+        doctor.ended()
+        subprocess.Popen(args, cwd=str(Path(__file__).resolve().parent.parent) if not getattr(sys, "frozen", False) else None, close_fds=True, env={**os.environ, "PYINSTALLER_RESET_ENVIRONMENT": "1"},
+                         creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0) if not getattr(sys, "frozen", False) else 0)
+        if QUIT_HOOK:
+            QUIT_HOOK()
+        os._exit(0)
+    threading.Thread(target=go, name="restart", daemon=True).start()
 
 
 def port_in_use() -> bool:
@@ -2946,6 +3040,8 @@ def main(open_window: bool = True, watchdog: bool = True, ready: threading.Event
         server = QuietServer(("127.0.0.1", PORT), Handler)
     except OSError:
         sys.exit(f"Port {PORT} is busy - is Jarvis already running? (Set JARVIS_HUD_PORT in .env to change it.)")
+    note = doctor.at_start()                        # a backup to put back, a restore point before a new version
+    how = doctor.started()
     netlog.install()                                # before anything goes online
     HUB = Hub()
     privacy.start()
@@ -2972,6 +3068,10 @@ def main(open_window: bool = True, watchdog: bool = True, ready: threading.Event
     HUB.history.append({"type": "jarvis", "time": datetime.now().strftime("%H:%M:%S"),
                         "text": f"Good {part}, {memory.call_name()}. All systems online. How can I help?",
                         "quiet": auto_call, "greeting": True})   # the Live call greets you out loud instead
+    if note:
+        HUB.notify(note, "info")
+    elif how == "crash":
+        HUB.notify("The app ended unexpectedly last time. Settings \u203a Health looks for the reason.", "info")
     if open_window:
         _open_window(url)
     if watchdog:

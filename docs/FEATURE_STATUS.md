@@ -92,7 +92,7 @@ audio, installer, uninstaller, packaged-exe smoke test). They are being moved in
 | 54 | Screen recording | IMPLEMENTED BUT NEEDS TESTING | `jarvis/screenrec.py`, Studio › Recorder, REC window in `desktop.py` | 26 (no silent recording) | test_studio, real getDisplayMedia of the test page's own tab, REC window for real | 1.30.0. Not tried with a real screen, microphone or the box in the app's window |
 | 55 | AI image generation and editing | IMPLEMENTED BUT NEEDS TESTING | `jarvis/images.py`, tool `images`, Studio › Images | 5 | test_studio, running app with one real picture | 1.30.0: editing on the PC; making online (Pollinations.ai, owner's choice). No local making: this PC has no graphics card for it. The free service puts its name in a corner |
 | 56 | No AI video studio | NOT APPLICABLE | — | — | — | Excluded |
-| 57 | Backup and recovery | PARTIALLY IMPLEMENTED | installer keeps data on update/uninstall | 26 | installer test | No backup/restore command |
+| 57 | Backup and recovery | IMPLEMENTED BUT NEEDS TESTING | `backup.py`, Settings › Backup | 26 | test_backup_health.py; real restore in the test copy | Restoring on another PC, a USB stick |
 | 58 | No public plugin SDK initially | NOT APPLICABLE | — | — | — | Excluded for now |
 | 59 | Voice communication assistant | NOT IMPLEMENTED | — | — | — | — |
 | 60 | AI personal companion | IMPLEMENTED BUT NEEDS TESTING | `jarvis/people.py`, tool `people`, Daily › People | 100, 105 | test_travel_meet_people, running app | 1.29.0: people, birthdays, check-in, manner. The manner not yet tried with a real AI |
@@ -140,11 +140,11 @@ audio, installer, uninstaller, packaged-exe smoke test). They are being moved in
 | 92 | Knowledge sharing and export | NOT IMPLEMENTED | — | 9 | — | — |
 | 93 | Accessibility center | PARTIALLY IMPLEMENTED | voice control, RTL Urdu, light/dark | — | none | No screen-reader labels audit, no font-size setting |
 | 94 | No live-streaming studio | NOT APPLICABLE | — | — | — | Excluded |
-| 95 | System restore and troubleshooting | PARTIALLY IMPLEMENTED | `jarvis.log`, mic diagnostics, Unmute/Boost | 99 | none | No "repair" actions |
+| 95 | System restore and troubleshooting | IMPLEMENTED BUT NEEDS TESTING | `doctor.py` repairs, restore points, Windows' tools | 99 | test_backup_health.py | Microphone, shortcut and DNS repairs on the owner's PC |
 | 96 | No household management | NOT APPLICABLE | — | — | — | Excluded |
 | 97 | AI avatar and character studio | PARTIALLY IMPLEMENTED | faces Globe/Mask/Rings in `jarvis/hud.html` (Photo removed in 1.13.0 at the owner's request) | — | manual checks | No character editor, no lip sync |
 | 98 | Privacy and permission dashboard | IMPLEMENTED BUT NEEDS TESTING | `jarvis/privacy.py`, `jarvis/netlog.py`, page Privacy | 6, 26 | test_privacy, running app | 1.31.0: going out, Local only, microphone and screen uses, Windows' list, permissions with an hour, who may read what, kept and how long. Not tried with a real microphone or a real Live call |
-| 99 | Self-diagnostics and health monitoring | PARTIALLY IMPLEMENTED | AI Models status, mic probing, echo-canceller log | — | none | No diagnostics page |
+| 99 | Self-diagnostics and health monitoring | IMPLEMENTED BUT NEEDS TESTING | `doctor.py`, Settings › Health, tool `self_check`, crash notice | — | test_backup_health.py | Real AI with `self_check`; look by itself in the background |
 | 100 | Personal user understanding engine | PARTIALLY IMPLEMENTED | `jarvis/memory.py` (profile + top memories in every prompt) | 9 | test_memory_engine | Shared Personal Intelligence Engine with 9, 29, 40, 103, 104. 1.14.0: categories, importance, search. Missing: skills/custom instructions [103] |
 | 101 | Multi-agent command center | PARTIALLY IMPLEMENTED | Agents page, shared board, `delegate` | 20, 39 | test_agents | 1.19.0: give tasks, live state, results, shared board. One agent at a time, no parallel teams |
 | 102 | Desktop and window management | IMPLEMENTED BUT NEEDS TESTING | `jarvis/winmgr.py` (Win32 via ctypes), tools `manage_windows`, `arrange_windows` | — | test_desktop 29, real check on 2 test windows (9/9) | 1.16.0: list, focus, minimise/maximise/restore, snap to halves/quarters/centre, minimise all, 2-6 windows side by side; per-monitor DPI and Windows 11 invisible borders handled; window titles marked untrusted |

@@ -11,6 +11,14 @@ set PA_TEST_NETWORK=1 && .venv\Scripts\python -m pytest tests   # also the onlin
 .venv\Scripts\python packaging\build.py              # then smoke-test the packaged exe (see below)
 ```
 
+## 2026-11-25 — Backup, health and repair (v1.31.5)
+
+| Suite | Result | Notes |
+|---|---|---|
+| `pytest tests` | 1361 passed, 4 skipped (twice) | new tests/test_backup_health.py (53): nothing readable in a backup, what is never in it, all parts back, only the chosen parts, all or nothing when a file can't be moved, one changed bit anywhere, exchanged pieces, cut short, another Windows account, passwords, a made-up backup with paths outside, newer version, folders, old ones, no room, faults while writing, by itself, restore points; every check, a really damaged database found and repaired, settings back without touching privacy or the lock, window cache, the report, crashes and what is none, start and restart, every request, the AI's tool |
+| Running app (test copy, no mic) | pass | 1534x787 dark and light, 640x760: nothing past the edge; every button of both tabs (Windows' windows, folders and the Recycle Bin held back); a real restore: prepared, the app started again by itself, the page came back, the data was there; killed by force: noticed at the next start |
+| Not tested | — | restoring on another PC; a USB stick; the file and folder boxes of Windows; microphone, shortcut and DNS repairs; the restart of the installed app's window (after the build) |
+
 ## 2026-11-24 — Setup in the chosen theme (v1.31.4)
 
 | Suite | Result | Notes |

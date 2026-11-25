@@ -2088,6 +2088,19 @@ def history_tool(inp: dict, ctx: ToolContext) -> str:
     return text or "Nothing was found. (The history may be off or cleared.)"
 
 
+def self_check_tool(inp: dict, ctx: ToolContext) -> str:
+    """The app looks at itself, or makes a backup. Repairing and putting back are the owner's clicks only."""
+    from . import backup, doctor
+    if str(inp.get("action") or "check").lower() == "backup":
+        try:
+            r = backup.make(why="asked for")
+        except backup.BackupError as e:
+            return str(e)
+        return f"A backup was made ({r['size'] / 2**20:.1f} MB, {r['files']} files, encrypted, checked), in the folder of the backups." + ("" if r["password"] else " It has no password, so it opens only on this PC: the user can set one in Settings > Backup.")
+    from . import hud
+    return doctor.for_ai(hud.HUB)
+
+
 def people_tool(inp: dict, ctx: ToolContext) -> str:
     from . import people
     action = str(inp.get("action") or "list").lower()
@@ -2318,6 +2331,10 @@ PLANNER_TOOLS = [
     ({"name": "history",
       "description": "What the user and you said in earlier conversations. search (query: words), day (day: YYYY-MM-DD, today or yesterday). Asks the user first.",
       "input_schema": _obj({"action": {"type": "string", "enum": ["search", "day"]}, "query": _STR, "day": _STR}, ["action"])}, history_tool),
+    ({"name": "self_check",
+      "description": "This app itself. check: is everything in it working (AI, microphone, voices, database, backup, internet), for 'something is wrong with you / check yourself'; backup: make an "
+                     "encrypted backup now. Repairs and restoring are done only by the user in Settings > Health / Backup.",
+      "input_schema": _obj({"action": {"type": "string", "enum": ["check", "backup"]}}, ["action"])}, self_check_tool),
     ({"name": "people",
       "description": "People who matter to the user. list (query), coming (days): birthdays, add / update (name, relation, birthday like 14 May or 14 May 2001, notes).",
       "input_schema": _obj({"action": {"type": "string", "enum": ["list", "coming", "add", "update"]}, "name": _STR, "relation": _STR, "birthday": _STR, "notes": _STR, "query": _STR, "days": _INT},

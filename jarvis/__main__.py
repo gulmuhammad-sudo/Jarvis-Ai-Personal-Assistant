@@ -24,7 +24,11 @@ def main() -> None:
     parser.add_argument("--no-window", action="store_true", help="engine only, no window")
     parser.add_argument("--install", action="store_true", help="Desktop / Start Menu shortcuts for this checkout")
     parser.add_argument("--uninstall", action="store_true", help="remove the installed app")
+    parser.add_argument("--wait-for", type=int, default=0, metavar="PID", help=argparse.SUPPRESS)      # a restart: the old one has to be gone first
     args, _ = parser.parse_known_args()
+    if args.wait_for:
+        from jarvis.doctor import wait_for
+        wait_for(args.wait_for)
 
     if args.uninstall:
         from jarvis.install import uninstall
