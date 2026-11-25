@@ -2,7 +2,7 @@
 
 Each version is also a git tag (`git tag -n20 vX.Y.Z` shows its notes). Newest first.
 
-## 1.31.4 — 2026-11-24 (not pushed yet)
+## 1.31.4 — 2026-11-25
 - Setup wears the theme you choose on its Look page, at once and with a soft change: Light, Dark, or Auto (as Windows is). An update
   opens in the theme you already use.
 

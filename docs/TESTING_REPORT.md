@@ -17,7 +17,8 @@ set PA_TEST_NETWORK=1 && .venv\Scripts\python -m pytest tests   # also the onlin
 |---|---|---|
 | `pytest tests` | 1308 passed, 4 skipped | 9 new in tests/test_installer.py |
 | Setup's page (pretend Setup, 1106x748) | pass | light, dark, auto with Windows light and dark; six quick clicks end in the last choice; clicks elsewhere change nothing; every step in both themes, lowest contrast 4.6 |
-| Not tested | — | the built Setup.exe itself |
+| Packaged exe 1.31.4 | 80 / 80 and 183 / 183; new user 15 / 15 | as 1.31.3 |
+| Not tested | — | looking at the built Setup's window in Light (its page was) |
 
 ## 2026-11-24 — Look and feel (v1.31.3)
 
