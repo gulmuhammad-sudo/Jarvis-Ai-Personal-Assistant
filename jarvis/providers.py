@@ -40,9 +40,10 @@ URDU_NOTE = """
 URDU MODE IS ON: the user is speaking to you in Urdu. Always reply in natural, simple Urdu written in Urdu script
 (for example: “جی سر، میں نے الارم لگا دیا ہے۔”). Your reply is read aloud by an Urdu voice, so keep it short and conversational,
 with no markdown. Keep app names, numbers and technical terms in English letters only when that is clearer.
+If the user asks for something in another language, give that in that language and its own script.
 """
 ENGLISH_NOTE = """
-ENGLISH MODE: reply in English again (or Roman Urdu if the user writes in Roman Urdu).
+ENGLISH MODE: reply in English again (or Roman Urdu if the user writes in Roman Urdu; or the language they ask for, in its own script).
 """
 TOOL_DISCIPLINE = """
 Tool rules (important):

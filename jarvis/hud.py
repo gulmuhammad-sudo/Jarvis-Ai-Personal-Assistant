@@ -61,6 +61,8 @@ class Hub:
         self.sub_lock = threading.Lock()
         self.inbox: queue.Queue[tuple[str, str, dict | None]] = queue.Queue()      # (text, where it came from, who waits for the answer)
         self._now_from, self._now_slot = "", None            # the message the AI is answering
+        self.asked = ""                                      # the language you asked the answers in ("Urdu mein batao"); "" = as always
+        self._asked_now = False                              # ... with your last message
         self.pending: dict[str, dict] = {}  # confirm id -> {"event", "allow"}
         self.state = "idle"  # idle | listening | thinking
         # spoken replies: as you left them (demo copies with JARVIS_NO_SPEAK=1 stay quiet)
@@ -198,7 +200,7 @@ class Hub:
         self.emit("jarvis", keep=True, text=text, provider=getattr(self.brain, "current", ""), id=rid, **({"quiet": True} if away else {}))
         if self._now_slot is not None:
             self._now_slot["texts"].append(text)
-        self._chat_script_later(rid, text)                # (it is spoken as written; only the chat text changes)
+        self._chat_script_later(rid, text, reply=True)    # (it is spoken as written; only the chat text changes)
         self.recent_replies = [(t, r) for t, r in self.recent_replies if time.time() - t < 120][-6:]
         self.recent_replies.append((time.time(), text))
 
@@ -377,18 +379,33 @@ class Hub:
 
     def set_chat_script(self, script: str) -> None:
         schedule.set_setting("chat_script", "urdu" if script == "urdu" else "roman")
+        if not self._asked_now:
+            self.asked = ""                              # your choice in Settings counts from now on
         self.emit("settings", chat_script=self.chat_script())
 
-    def _chat_text(self, rid: str, text: str) -> None:
-        """Write a chat message in the script you asked for, then update it on screen (a quick free AI call)."""
+    def note_asked(self, text: str) -> None:
+        """Your message: do you ask for a language? It holds for this conversation, until you ask for another one (or for Roman)."""
+        a = languages.asked_for(text)
+        self._asked_now = bool(a)
+        if a:
+            self.asked = a
+
+    def _script_for(self, text: str, reply: bool, raw: str = "") -> str:
+        """What a chat message has to be rewritten in: "roman", "urdu", "fix" (Live's Hindi letters into good Urdu), or "" (stays as it is)."""
+        a = self.asked
+        if a == "ur":                                        # Urdu, in Urdu letters, whatever is usual
+            return "fix" if urdu.has_devanagari(raw) else "urdu" if reply and urdu.mostly_latin(text) else ""
+        if a == "hi":
+            return ""
         if self.chat_script() == "urdu":
-            if not urdu.mostly_latin(text):
-                return
-            out = urdu.to_urdu_script(text)
-        else:
-            if not urdu.has_other_script(text):
-                return
-            out = urdu.to_roman(text)
+            return "urdu" if urdu.mostly_latin(text) and not (a and reply) else ""
+        if a and a not in languages.LATIN and reply and self._asked_now:
+            return ""                                        # the very answer you asked for in that language
+        return "roman" if urdu.has_other_script(text) and urdu.looks_urdu(text) else ""
+
+    def _chat_text(self, rid: str, text: str, how: str, raw: str = "") -> None:
+        """Write a chat message in the script you asked for, then update it on screen (a quick free AI call)."""
+        out = urdu.from_hindi(raw) if how == "fix" else urdu.to_urdu_script(text) if how == "urdu" else urdu.to_roman(text)
         if not out or out == text:
             return
         for ev in self.history:                     # a page that reconnects gets the new version too
@@ -397,10 +414,10 @@ class Hub:
         storage.update_text(rid, out)
         self.emit("jarvis_update", id=rid, text=out)
 
-    def _chat_script_later(self, rid: str, text: str) -> None:
-        if (self.chat_script() == "urdu" and urdu.mostly_latin(text)) or \
-                (self.chat_script() == "roman" and urdu.has_other_script(text)):
-            threading.Thread(target=self._chat_text, args=(rid, text), daemon=True).start()
+    def _chat_script_later(self, rid: str, text: str, reply: bool = False, raw: str = "") -> None:
+        how = self._script_for(text, reply, raw)
+        if how:
+            threading.Thread(target=self._chat_text, args=(rid, text, how, raw), daemon=True).start()
 
     def live_on_open(self) -> bool:
         return schedule.get_setting("live_on_open", True) is not False
@@ -1088,6 +1105,8 @@ class Hub:
             plans.new_message("" if source in ("typed", "skill", "phone") else text)
         rid = self._next_id()
         self.emit("user", keep=True, text=text, source=source, id=rid)
+        if source not in ("scheduled", "skill", "api", "pc"):
+            self.note_asked(text)
         if source not in ("scheduled", "skill"):        # a skill's own text isn't you talking about yourself
             self._suggest_memory(text)
         if source not in ("typed", "scheduled", "skill", "phone"):    # what you typed stays exactly as you typed it
@@ -1199,8 +1218,8 @@ class Hub:
             self.live.stop(reason)
 
     def _script(self, text: str) -> str:
-        """Live calls write Urdu in Hindi letters: show it in Urdu script (unless you chose Hindi)."""
-        return text if self.language == "hi" else urdu.from_devanagari(text)
+        """Live calls write Urdu in Hindi letters: show it in Urdu script (unless you chose Hindi, or asked for it)."""
+        return text if self.language == "hi" or self.asked == "hi" else urdu.from_devanagari(text)
 
     def _live_error(self, text: str) -> None:
         if "just got muted" in text:                 # not a fault: Windows (Teams, the mic key) muted the mic
@@ -1210,25 +1229,28 @@ class Hub:
             self.emit("error", keep=True, text=text)
 
     def _live_partial(self, who: str, text: str) -> None:
+        if who == "user":
+            self.note_asked(text)                            # (the answer is written down while you are still being heard)
         text = self._script(text)
         self.emit("live_partial", who=who, text=text)
         if who == "user" and self.pending:
             self.voice_answer(text)            # "yes" / "nahi" said during a live call
 
     def _live_heard(self, text: str) -> None:
-        text = self._script(text)
+        self.note_asked(text)
+        raw, text = text, self._script(text)
         self._live_user = text
         plans.new_message(text)
         rid = self._next_id()
         self.emit("user", keep=True, text=text, source="live", id=rid)
         self._suggest_memory(text)
-        self._chat_script_later(rid, text)
+        self._chat_script_later(rid, text, raw=raw)
 
     def _live_reply(self, text: str, interrupted: bool) -> None:
-        text = self._script(text)
+        raw, text = text, self._script(text)
         rid = self._next_id()
         self.emit("jarvis", keep=True, text=text, provider="Gemini Live", live=True, id=rid)
-        self._chat_script_later(rid, text)
+        self._chat_script_later(rid, text, reply=True, raw=raw)
         self.recent_replies = [(t, r) for t, r in self.recent_replies if time.time() - t < 120][-6:]
         self.recent_replies.append((time.time(), text))
         turns = getattr(self.brain, "turns", None)
@@ -2885,6 +2907,7 @@ class Handler(BaseHTTPRequestHandler):
             HUB.live_stop()
             HUB.brain.reset()
             HUB.history.clear()
+            HUB.asked = ""
             agents.clear_board()
             mail.clear_seen()
             meet.forget_yes()

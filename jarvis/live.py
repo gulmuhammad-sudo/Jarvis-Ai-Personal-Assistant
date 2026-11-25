@@ -419,6 +419,7 @@ class LiveSession:
         lang = languages.clean(schedule.get_setting("language") or "en")
         lang_line = ("if the user speaks Urdu (or Hindi/Roman Urdu), reply in natural spoken Urdu. English gets English."
                      if lang == "en" else f"always reply in natural spoken {languages.name(lang)}, whatever language the user uses.")
+        lang_line += " When the user asks you to say, explain or translate something in a language, say it in that language, and stay in it until they ask for another one."
         from datetime import datetime
         system = (system_prompt(live=True) + LIVE_NOTE.format(user=user, language=lang_line, accent=languages.accent(self.voice))
                   + f"\nToday is {datetime.now():%A %d %B %Y}; the time when this call started was {datetime.now():%H:%M}.\n")

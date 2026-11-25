@@ -2,6 +2,15 @@
 
 Each version is also a git tag (`git tag -n20 vX.Y.Z` shows its notes). Newest first.
 
+## 1.31.8 — 2026-11-25 (not pushed yet)
+Answers in the language you ask for; a tidier top bar and menu.
+- "Urdu mein batao", "Hindi mein bolo", "translate it to Arabic": the answer stays in that language's own script, typed and in Live calls,
+  and so does the conversation until you ask for another language or for Roman. Otherwise Roman Urdu as always.
+- A Live call's Urdu is written in good Urdu then (not letter by letter from Hindi letters); Hindi stays in Hindi letters.
+- Arabic, Persian, Pashto and Sindhi are never turned into Roman.
+- Top right: Lock, Stop, Details and Settings; profile, new conversation, spoken replies, language and theme in one menu.
+- Left: Command Center, Conversations, Memory, three groups that open (My day, AI & tools, Me & privacy) and Settings.
+
 ## 1.31.7 — 2026-11-25 (not pushed yet)
 Other PCs and sync (Phase 9 part 4).
 - Settings › Devices: pair your PCs with a code. They know each other by their own keys, not by their addresses; each keeps its own rights

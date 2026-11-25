@@ -2,6 +2,14 @@
 
 Newest first. Each entry: what was done, how it was tested, what is open, the next task.
 
+## 2026-11-25 — Session 2, part 26: asked languages, top bar, menu (v1.31.8)
+
+**Asked by the owner** — what is asked for in Urdu must not be turned into Roman; fewer icons at the top right (a drop-down); the left menu
+was too long.
+
+**Done** — `languages.asked_for`, `Hub.note_asked`, `_script_for` (roman, urdu, fix or as it is), `urdu.looks_urdu`, `urdu.from_hindi`, the
+AI's and Live's instructions; `topMenu`, `ngroup`.
+
 ## 2026-11-25 — Session 2, part 25: Phase 9 part 4b — other PCs and sync (v1.31.7)
 
 **Done** — `peers.py` (joining with scrypt and HMAC proofs over both keys, pinned calls, ask, files), `sync.py` (lasting numbers from the

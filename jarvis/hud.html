@@ -643,7 +643,6 @@ body[data-state="listening"] .talk { border-color: var(--green); background: lin
   .qbtn { padding: 4px 10px; } .quick { gap: 4px; }
   .llm { padding: 4px 8px; } .llms { gap: 5px; } .llm .ico { width: 22px; height: 22px; }
   .llmfoot { margin-top: 3px; }
-  .operator div { display: none; } .operator { padding: 0 4px; }
 }
 @media (max-width: 1360px) and (min-width: 1101px) {
   .shell { grid-template-columns: 60px minmax(0, 1fr); }
@@ -680,7 +679,7 @@ body[data-state="listening"] .talk { border-color: var(--green); background: lin
   .llms { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 @media (max-width: 560px) {
-  .operator, .wv { display: none; }
+  .wv { display: none; }
   .talk { min-width: 0; width: 100%; }
   .agents, .llms { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .gauges { grid-template-columns: repeat(3, minmax(0, 1fr)); }
@@ -904,7 +903,21 @@ body.focus[data-face="mask"] .heroText { bottom: 98px; }
 .ptab > h4.sec:first-child { margin-top: 2px; } .ptab .skillbar { justify-content: center; } .memtools { justify-content: center; } .memtools [hidden], .ptab [hidden] { display: none !important; }
 .view:not(.dash) > .page > h3 { justify-content: center; position: relative; min-height: 18px; } .view:not(.dash) > .page > h3 > .more { position: absolute; right: 0; } .view[data-view="conv"] > .page > h3 > .more { position: static; } .view[data-view="conv"] > .page > h3 > #tlFromConv { margin-left: auto; } .view[data-view="conv"] > .page > h3 { justify-content: flex-start; padding-inline: max(2px, calc((100% - var(--col)) / 2)); }
 @media (max-width: 900px) { .view:not(.dash) > .page > h3 > .more { position: static; } .view:not(.dash) > .page > h3 { justify-content: space-between; } }
-@media (min-width: 1101px) { .side > nav > .navi { flex: 1 1 31px; min-height: 31px; max-height: 44px; padding-block: 0; } }      /* the menu shares its room evenly: no scrolling in a usual window */
+.ngroup { display: flex; flex-direction: column; flex: none; } .navg { display: flex; align-items: center; gap: 11px; width: 100%; padding: 8px 10px; border: 0; border-radius: 8px; background: none; color: var(--muted); font: inherit; font-size: 14.5px; font-weight: 500; text-align: left; cursor: pointer; transition: color .15s, background .15s; }
+.navg:hover { color: var(--text); background: rgba(var(--c-fill), .035); } .navg:focus-visible { outline: 2px solid var(--cyan); outline-offset: -2px; } .navg svg.ic { width: 30px; height: 30px; padding: 6px; box-sizing: border-box; border-radius: 9px; background: rgba(var(--c-fill), .035); border: 1px solid var(--hair); flex: none; } .navg svg.ic-chev { width: 15px; height: 15px; padding: 0; border: 0; background: none; margin-left: auto; transition: transform .28s ease; }
+.ngroup.open > .navg { color: var(--text); } .ngroup.open > .navg .ic-chev { transform: rotate(90deg); } .ngroup.sel:not(.open) > .navg { color: var(--text); } .ngroup.sel:not(.open) > .navg svg.ic:not(.ic-chev) { color: var(--cyan); border-color: rgba(var(--c-accent), .55); background: rgba(var(--c-accent), .12); }
+.nsub { display: grid; grid-template-rows: 0fr; visibility: hidden; transition: grid-template-rows .28s cubic-bezier(.2, .8, .2, 1), visibility .28s; } .nsub > div { overflow: hidden; min-height: 0; margin-left: 24px; padding-left: 7px; border-left: 1px solid var(--hair); } .ngroup.open > .nsub { grid-template-rows: 1fr; visibility: visible; }
+.side .nsub .navi { padding: 4px 8px; font-size: 13.5px; } .side .nsub .navi svg.ic { width: 24px; height: 24px; padding: 5px; border-radius: 7px; } .nsub .navi.active::before { display: none; }
+.topmenu { position: fixed; z-index: 64; width: 270px; max-width: calc(100vw - 20px); padding: 8px; border: 1px solid var(--hair-2); border-radius: 14px; background: var(--surface-2, var(--surface)); background-color: var(--bg); box-shadow: 0 18px 50px rgba(0, 0, 0, .45); display: grid; gap: 2px; transform-origin: top right; animation: tmIn .18s cubic-bezier(.2, .8, .2, 1) both; } .topmenu[hidden] { display: none; } @keyframes tmIn { from { opacity: 0; transform: translateY(-6px) scale(.97); } }
+.topmenu .operator { height: auto; padding: 8px 10px; margin-bottom: 4px; gap: 11px; } .topmenu .operator div { display: block; } .topmenu .avatar { width: 32px; height: 32px; }
+.tmrow { display: flex; align-items: center; gap: 10px; min-height: 44px; padding: 3px 6px 3px 10px; border-radius: 10px; font-size: 14px; } .tmrow[data-tm] { cursor: pointer; } .tmrow[data-tm]:hover { background: rgba(var(--c-fill), .045); } .tmrow > span { flex: 1; min-width: 0; } .tmseg { display: flex; } .tmseg button { padding: 5px 9px; font-size: 12.5px; }
+:root[data-theme="light"] .topmenu { box-shadow: 0 18px 50px rgba(15, 40, 70, .18); }
+@media (min-width: 1101px) { .side .navg { padding-block: 0; } .side > nav > .navlast { margin-top: auto; } }
+@media (max-height: 900px) and (min-width: 1101px) { .side .navg { padding: 0 9px; font-size: 14px; } .navg svg.ic:not(.ic-chev) { width: 26px; height: 26px; padding: 5px; } }
+@media (max-width: 1360px) and (min-width: 1101px) { .navg { justify-content: center; } .navg span, .navg .ic-chev { display: none; } .nsub > div { margin-left: 0; padding-left: 0; border-left: 0; } .ngroup.open { border-radius: 10px; background: rgba(var(--c-fill), .035); } }
+@media (max-width: 1100px) { .sysstat, .toolbar { grid-column: 1; } .side > nav { min-height: 0; } .ngroup, .nsub, .nsub > div { display: contents; visibility: visible; } .navg { display: none; } .side .nsub .navi { padding: 8px 10px; font-size: 14.5px; } .side .nsub .navi svg.ic { width: 30px; height: 30px; padding: 6px; border-radius: 9px; } }
+@media (min-width: 1101px) { .side > nav > .navi, .side > nav > .ngroup > .navg { flex: none; height: 40px; padding-block: 0; } }      /* every row alike; groups keep the menu short, so nothing scrolls in a usual window */
+@media (max-height: 700px) and (min-width: 1101px) { .side > nav > .navi, .side > nav > .ngroup > .navg { height: 32px; } .side .nsub .navi { padding: 2px 8px; } .navg svg.ic:not(.ic-chev) { width: 24px; height: 24px; } }
 /* activity: take out */
 .fi { position: relative; } .fi .fx { width: 24px; height: 24px; flex: none; margin-left: -6px; border: 0; border-radius: 7px; background: none; color: var(--dim); display: grid; place-items: center; opacity: 0; transition: opacity .15s, color .15s, background .15s; } .fi .fx svg.ic { width: 13px; height: 13px; } .fi:hover .fx, .fi .fx:focus-visible { opacity: 1; } .fi .fx:hover { color: var(--red); background: rgba(var(--c-red), .12); } .fi.out { animation: fiOut .26s ease forwards; pointer-events: none; } @keyframes fiOut { to { opacity: 0; transform: translateX(26px); height: 0; padding-block: 0; border-width: 0; } }
 #feedClear { margin-left: auto; } #feedClear + .pill { margin-left: 2px; }
@@ -1204,17 +1217,20 @@ body.focus .hero { background: none; box-shadow: none; }
       <button class="navi active" data-view="dash"><i data-ic="grid"></i><span>Command Center</span></button>
       <button class="navi" data-view="conv"><i data-ic="chat"></i><span>Conversations</span><em class="badge" id="bConv">0</em></button>
       <button class="navi" data-view="memory"><i data-ic="db"></i><span>Memory</span><em class="badge" id="bMem">0</em></button>
-      <button class="navi" data-view="planner"><i data-ic="clock"></i><span>Planner</span><em class="badge" id="bPlan">0</em></button>
-      <button class="navi" data-view="daily"><i data-ic="sun"></i><span>Daily</span><em class="badge" id="bDaily">0</em></button>
-      <button class="navi" data-view="studio"><i data-ic="play"></i><span>Studio</span></button>
-      <button class="navi" data-view="profile"><i data-ic="user"></i><span>Profile</span></button>
-      <button class="navi" data-view="tools"><i data-ic="wrench"></i><span>Tools &amp; Skills</span><em class="badge" id="bTools">0</em></button>
-      <button class="navi" data-view="auto"><i data-ic="tasks"></i><span>Automations</span><em class="badge" id="bAuto">0</em></button>
-      <button class="navi" data-view="agents"><i data-ic="user"></i><span>Agents</span><em class="badge" id="bAgents">0</em></button>
-      <button class="navi" data-view="models"><i data-ic="layers"></i><span>AI Models</span><em class="badge" id="bModels">0</em></button>
-      <button class="navi" data-view="vault"><i data-ic="lock"></i><span>Vault</span></button>
-      <button class="navi" data-view="privacy"><i data-ic="shield"></i><span>Privacy</span></button>
-      <button class="navi" data-view="settings"><i data-ic="gear"></i><span>Settings</span></button>
+      <div class="ngroup" data-ng="day"><button class="navg" aria-expanded="false" title="My day: Planner, Daily, Studio"><i data-ic="sun"></i><span>My day</span><i data-ic="chev"></i></button><div class="nsub"><div>
+        <button class="navi" data-view="planner"><i data-ic="clock"></i><span>Planner</span><em class="badge" id="bPlan">0</em></button>
+        <button class="navi" data-view="daily"><i data-ic="sun"></i><span>Daily</span><em class="badge" id="bDaily">0</em></button>
+        <button class="navi" data-view="studio"><i data-ic="play"></i><span>Studio</span></button></div></div></div>
+      <div class="ngroup" data-ng="ai"><button class="navg" aria-expanded="false" title="AI and tools: Tools &amp; Skills, Automations, Agents, AI Models"><i data-ic="wrench"></i><span>AI &amp; tools</span><i data-ic="chev"></i></button><div class="nsub"><div>
+        <button class="navi" data-view="tools"><i data-ic="wrench"></i><span>Tools &amp; Skills</span><em class="badge" id="bTools">0</em></button>
+        <button class="navi" data-view="auto"><i data-ic="tasks"></i><span>Automations</span><em class="badge" id="bAuto">0</em></button>
+        <button class="navi" data-view="agents"><i data-ic="user"></i><span>Agents</span><em class="badge" id="bAgents">0</em></button>
+        <button class="navi" data-view="models"><i data-ic="layers"></i><span>AI Models</span><em class="badge" id="bModels">0</em></button></div></div></div>
+      <div class="ngroup" data-ng="me"><button class="navg" aria-expanded="false" title="Me and privacy: Profile, Vault, Privacy"><i data-ic="user"></i><span>Me &amp; privacy</span><i data-ic="chev"></i></button><div class="nsub"><div>
+        <button class="navi" data-view="profile"><i data-ic="user"></i><span>Profile</span></button>
+        <button class="navi" data-view="vault"><i data-ic="lock"></i><span>Vault</span></button>
+        <button class="navi" data-view="privacy"><i data-ic="shield"></i><span>Privacy</span></button></div></div></div>
+      <button class="navi navlast" data-view="settings"><i data-ic="gear"></i><span>Settings</span></button>
     </nav>
     <section class="card voicecard">
       <h3>Voice <span class="pill live" id="vPill">READY</span></h3>
@@ -1241,13 +1257,18 @@ body.focus .hero { background: none; box-shadow: none; }
       <button class="iconbtn" id="lockBtn" title="Lock the app (Ctrl+L)" aria-label="Lock the app"><i data-ic="lock"></i></button>
       <button class="iconbtn stop" id="stopBtn" title="Stop everything: the task, the call, speaking (Esc twice)" aria-label="Stop everything"><i data-ic="stop"></i></button>
       <button class="iconbtn" id="detailsBtn" title="Show the details around the face" aria-label="Show or hide details" aria-pressed="false"><i data-ic="grid"></i></button>
-      <button class="iconbtn lang" id="langBtn" title="Language: English / Urdu (click to switch)" aria-label="Switch language">EN</button>
-      <button class="iconbtn" id="speakBtn" title="Spoken replies on/off" aria-label="Spoken replies"><i data-ic="speaker"></i></button>
-      <button class="iconbtn" id="resetBtn" title="Start a new conversation" aria-label="New conversation"><i data-ic="refresh"></i></button>
       <button class="iconbtn" data-go="settings" title="Settings" aria-label="Settings"><i data-ic="gear"></i></button>
-      <div class="operator" id="operator" role="button" tabindex="0" title="Your profile"><div><b id="opName">__USER__</b><small>Profile</small></div><span class="avatar"><i data-ic="user"></i></span></div>
+      <button class="iconbtn" id="moreBtn" title="More: profile, new conversation, voice, language, theme" aria-label="More" aria-haspopup="true" aria-expanded="false" aria-controls="topMenu"><i data-ic="more"></i></button>
     </div>
   </header>
+
+  <div class="topmenu" id="topMenu" role="group" aria-label="More" hidden>
+    <div class="operator" id="operator" role="button" tabindex="0" title="Your profile"><span class="avatar"><i data-ic="user"></i></span><div><b id="opName">__USER__</b><small>Profile</small></div></div>
+    <div class="tmrow" data-tm="resetBtn"><span>New conversation</span><button class="iconbtn" id="resetBtn" title="Start a new conversation" aria-label="New conversation"><i data-ic="refresh"></i></button></div>
+    <div class="tmrow" data-tm="speakBtn"><span>Spoken replies</span><button class="iconbtn" id="speakBtn" title="Spoken replies on/off" aria-label="Spoken replies"><i data-ic="speaker"></i></button></div>
+    <div class="tmrow" data-tm="langBtn"><span>Language</span><button class="iconbtn lang" id="langBtn" title="Language: English / Urdu (click to switch)" aria-label="Switch language">EN</button></div>
+    <div class="tmrow"><span>Theme</span><div class="seg tmseg"><button data-tmt="dark">Dark</button><button data-tmt="light">Light</button><button data-tmt="system">Auto</button></div></div>
+  </div>
 
   <!-- ===== main ===== -->
   <main class="main">
@@ -2049,6 +2070,7 @@ const ICONS = {
   chat: "M4 5h16v11H9l-5 4z",
   db: "M12 3c4.4 0 8 1.3 8 3s-3.6 3-8 3-8-1.3-8-3 3.6-3 8-3zM4 6v6c0 1.7 3.6 3 8 3s8-1.3 8-3V6M4 12v6c0 1.7 3.6 3 8 3s8-1.3 8-3v-6",
   phone: "M8 2h8a1 1 0 0 1 1 1v18a1 1 0 0 1-1 1H8a1 1 0 0 1-1-1V3a1 1 0 0 1 1-1zM11 18.5h2",
+  chev: "M9 6l6 6-6 6", more: "M4 7h16M4 12h16M4 17h16",
   wrench: "M14.7 6.3a4 4 0 0 0-5.4 5.4L3 18l3 3 6.3-6.3a4 4 0 0 0 5.4-5.4l-2.5 2.5-2.4-.6-.6-2.4z",
   layers: "M12 3l9 5-9 5-9-5zM3 13l9 5 9-5",
   gear: "M12 9a3 3 0 1 0 0 6 3 3 0 0 0 0-6zM12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9 7 7M17 17l2.1 2.1M4.9 19.1 7 17M17 7l2.1-2.1",
@@ -2146,6 +2168,7 @@ function go(view) {
   if (view !== "dash") $("subs").classList.remove("show");
   document.querySelectorAll(".view").forEach(v => v.classList.toggle("active", v.dataset.view === view));
   document.querySelectorAll(".navi").forEach(n => n.classList.toggle("active", n.dataset.view === view));
+  navGroup(view); tmOpen(false);
   if (view === "conv") { scrollChat(); $("input2").focus(); }
   if (view === "memory" || view === "tools") loadInfo();
   if (view === "profile") loadProfile();
@@ -2161,6 +2184,34 @@ function go(view) {
   mdMini();
 }
 document.querySelectorAll(".navi").forEach(n => n.onclick = () => go(n.dataset.view));
+function navOpen(name) {                                  // one group open at a time, so the menu stays short
+  document.querySelectorAll(".ngroup").forEach(g => { const on = g.dataset.ng === name; g.classList.toggle("open", on); g.firstElementChild.setAttribute("aria-expanded", on); });
+}
+function navGroup(view) {                                 // the open page's group is open, and marked
+  const n = document.querySelector(`.navi[data-view="${view}"]`), mine = n && n.closest(".ngroup");
+  document.querySelectorAll(".ngroup").forEach(g => g.classList.toggle("sel", g === mine));
+  if (mine) navOpen(mine.dataset.ng);
+}
+document.querySelectorAll(".navg").forEach(b => b.onclick = () => navOpen(b.parentElement.classList.contains("open") ? "" : b.parentElement.dataset.ng));
+// the menu at the top right
+function tmOpen(on) {
+  const m = $("topMenu"), b = $("moreBtn"); if (on === !m.hidden) return;
+  m.hidden = !on; b.setAttribute("aria-expanded", on); b.classList.toggle("on", on);
+  if (!on) return;
+  const r = b.getBoundingClientRect(); m.style.top = Math.round(r.bottom + 8) + "px"; m.style.left = Math.round(Math.max(10, Math.min(r.right, innerWidth - 10) - m.offsetWidth)) + "px";
+  document.querySelectorAll("[data-tmt]").forEach(x => x.classList.toggle("on", x.dataset.tmt === themeMode));
+}
+$("moreBtn").onclick = () => tmOpen($("topMenu").hidden);
+document.querySelectorAll("[data-tm]").forEach(r => r.onclick = e => { if (!e.target.closest("button")) $(r.dataset.tm).click(); if (r.dataset.tm === "resetBtn") tmOpen(false); });
+document.querySelectorAll("[data-tmt]").forEach(b => b.onclick = () => { setTheme(b.dataset.tmt); document.querySelectorAll("[data-tmt]").forEach(x => x.classList.toggle("on", x === b)); });
+document.addEventListener("pointerdown", e => { if (!$("topMenu").hidden && !e.target.closest("#topMenu, #moreBtn")) tmOpen(false); });
+document.addEventListener("keydown", e => {
+  if ($("topMenu").hidden) return;
+  if (e.key === "Escape" && !confirmQueue.length) { e.stopImmediatePropagation(); e.preventDefault(); tmOpen(false); $("moreBtn").focus(); return; }      // (this Esc isn't half of the two that stop everything)
+  const step = e.key === "ArrowDown" ? 1 : e.key === "ArrowUp" ? -1 : 0; if (!step) return;
+  const all = [...$("topMenu").querySelectorAll("button, #operator")], i = all.indexOf(document.activeElement); e.preventDefault(); all[(i + step + all.length) % all.length].focus();
+}, true);
+addEventListener("resize", () => tmOpen(false));
 document.querySelectorAll("[data-go]").forEach(b => b.onclick = () => go(b.dataset.go));
 $("subs").onclick = () => go("conv");
 $("operator").onclick = () => go("profile");

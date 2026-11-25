@@ -41,6 +41,22 @@ def has_other_script(text: str) -> bool:
     return any("\u0600" <= c <= "\u06ff" or "\u0900" <= c <= "\u097f" for c in text or "")
 
 
+_URDU_ONLY = set("ٹڈڑںےھہۂۓ")
+_NOT_URDU = set("ښېځڅډړږڼۍئۀ" "ڳڻٻڄڃٿٽڍڌڏڊڦڪڱ") - set("ئ")
+
+
+def looks_urdu(text: str) -> bool:
+    """Urdu (or Hindi) letters that may be rewritten in English letters: not Arabic, Persian, Pashto or Sindhi, which stay as they are."""
+    return has_devanagari(text) or any(c in _URDU_ONLY for c in text or "") and not any(c in _NOT_URDU for c in text or "")
+
+
+def from_hindi(text: str) -> str:
+    """What a Live call wrote down in Hindi letters, in correct Urdu. "" if it couldn't be done."""
+    prompt = ("These words were spoken in Urdu but written down in Hindi letters. Write them in correct Urdu script. Keep exactly the same words, do not translate, add or drop anything; "
+              "words in English letters or other languages stay as they are. Reply with the rewritten text only.\n\n" + text)
+    return _rewrite(prompt, lambda out: not has_devanagari(out) and sum("\u0600" <= c <= "\u06ff" for c in out) > len(out) * 0.3)
+
+
 def to_urdu_script(text: str) -> str:
     """Roman Urdu ("Main theek hoon, Gul!") -> Urdu script ("میں ٹھیک ہوں، Gul!"); English is translated into Urdu.
     Only names, app names and numbers stay in English letters. "" if it couldn't be done."""

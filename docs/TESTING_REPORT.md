@@ -11,6 +11,14 @@ set PA_TEST_NETWORK=1 && .venv\Scripts\python -m pytest tests   # also the onlin
 .venv\Scripts\python packaging\build.py              # then smoke-test the packaged exe (see below)
 ```
 
+## 2026-11-25 — Asked languages, top bar, menu (v1.31.8)
+
+| Suite | Result | Notes |
+|---|---|---|
+| `pytest tests` | 1512 passed, 4 skipped | new tests/test_asked_language.py (51): 36 ways of asking in English, Roman, Urdu and Hindi letters (also "not in Roman"), typed, phone, Live while still heard, other languages, the always-Urdu chat, new conversation, failed rewriting; test_look.py: menu and groups |
+| Running app (test copy) | pass | the menu: every row, Esc, a click beside it, profile; groups open one at a time and by themselves; 1534x787, 1534x650, 1280x787, 1000x640, 620x760, light |
+| Not tested | — | a real Live call in Urdu and Hindi; the real AI's obedience; spoken replies on (the test copy is silent) |
+
 ## 2026-11-25 — Other PCs and sync (v1.31.7)
 
 | Suite | Result | Notes |

@@ -989,8 +989,8 @@ LIFE_TOOLS = [
     ({"name": "set_chat_script",
       "description": "How the chat on screen is written (not how you speak). 'roman' (default): everything in English "
                      "letters, Urdu as Roman Urdu. 'urdu': the chat is typed in Urdu script, English replies translated "
-                     "into Urdu. Use 'urdu' ONLY when the user asks for it, e.g. 'Urdu mein type karke do', 'Urdu mein "
-                     "likh ke do', 'chat ko Urdu mein translate karo'; 'roman' for 'English mein likho' / 'Roman mein likho'.",
+                     "into Urdu. This is for ALWAYS: use it ONLY when the user says so, e.g. 'hamesha chat Urdu mein likho', "
+                     "'chat ki likhai Urdu kar do'; 'roman' for 'chat hamesha Roman mein likho'. For one answer or this conversation ('Urdu mein batao') no tool is needed.",
       "input_schema": _obj({"script": {"type": "string", "enum": ["roman", "urdu"]}}, ["script"])}, set_chat_script),
     ({"name": "set_assistant_name",
       "description": "Rename the assistant (you). Use when the user wants to call you something else, "

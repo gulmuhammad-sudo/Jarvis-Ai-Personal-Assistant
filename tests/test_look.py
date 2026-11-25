@@ -125,7 +125,7 @@ def test_the_waves_have_no_movement_of_their_own():
 
 
 def test_the_menu_shares_its_room_and_the_voice_box_has_one_layout():
-    assert ".side > nav > .navi { flex: 1 1 31px; min-height: 31px;" in HTML and "@container voice" not in HTML
+    assert ".side > nav > .navi, .side > nav > .ngroup > .navg { flex: none; height: 40px;" in HTML and "@container voice" not in HTML
 
 
 def test_pages_are_in_the_middle():
@@ -137,3 +137,24 @@ def test_the_graph_can_be_handled():
     for part in ("cv.onpointerdown", 'addEventListener("wheel"', "cv.onkeydown", "function mgFold", "function mgFit", "data-mgc=", 'data-mgf="1"', 'tabindex="0" role="img"', "prefers-reduced-motion"):
         assert part in HTML, part
     assert "memSvg" not in HTML and "mgTip" not in HTML
+
+
+def test_the_left_menu_is_short_and_nothing_is_lost():
+    nav = HTML[HTML.index('<nav id="nav"'):HTML.index("</nav>")]
+    views = re.findall(r'class="navi[^"]*" data-view="(\w+)"', nav)
+    assert sorted(views) == sorted(["dash", "conv", "memory", "planner", "daily", "studio", "profile", "tools", "auto", "agents", "models", "vault", "privacy", "settings"])
+    assert all(f'<section class="view' in HTML and f'data-view="{v}"' in HTML for v in views)
+    assert nav.count('class="ngroup"') == 3 and nav.count('aria-expanded="false"') == 3
+    outside = re.sub(r'<div class="nsub">.*?</div></div></div>', "", nav, flags=re.S)
+    assert re.findall(r'data-view="(\w+)"', outside) == ["dash", "conv", "memory", "settings"]
+    assert "navGroup(view);" in HTML                                          # the open page's group opens by itself
+
+
+def test_few_buttons_at_the_top_the_rest_in_the_menu():
+    bar = HTML[HTML.index('<div class="toolbar">'):HTML.index("</header>")]
+    assert re.findall(r'id="(lockBtn|stopBtn|detailsBtn|moreBtn|langBtn|speakBtn|resetBtn|operator)"', bar) == ["lockBtn", "stopBtn", "detailsBtn", "moreBtn"] and 'data-go="settings"' in bar
+    menu = HTML[HTML.index('id="topMenu"'):HTML.index("<!-- ===== main ===== -->")]
+    assert all(f'id="{i}"' in menu for i in ("operator", "opName", "resetBtn", "speakBtn", "langBtn")) and re.findall(r'data-tmt="(\w+)"', menu) == ["dark", "light", "system"]
+    for i in ("langBtn", "speakBtn", "resetBtn", "operator", "topMenu", "moreBtn"):
+        assert HTML.count(f'id="{i}"') == 1
+    assert "e.stopImmediatePropagation(); e.preventDefault(); tmOpen(false)" in HTML      # closing the menu with Esc isn't half of "stop everything"
