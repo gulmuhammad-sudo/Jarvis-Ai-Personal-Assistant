@@ -36,6 +36,8 @@ One Python process (`Personal Assistant.exe`, or `pythonw -m jarvis` from source
      ├── timeline.py               everything that happened, day by day
      ├── access.py                 paired devices, API keys, connections (access.dat)
      ├── remote.py, remote.html    the door for phones: HTTPS in the home network, its own few requests
+     ├── peers.py                  other PCs: joining, asking, files
+     ├── sync.py                   the same memories, notes, tasks, calendar on two PCs
      ├── devapi.py                 /v1 for your own programs on this PC
      ├── connections.py            a text to other services and devices
      ├── qr.py                     QR picture

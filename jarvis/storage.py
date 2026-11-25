@@ -335,6 +335,24 @@ MIGRATIONS: list[str] = [
            end TEXT NOT NULL);
        CREATE INDEX sensor_start ON sensor_log(start);
        CREATE INDEX events_at ON events(at);""",
+    # 15: the same things on two PCs (sync.py): lasting numbers, and what lost against a newer one
+    """CREATE TABLE sync_items (
+           kind TEXT NOT NULL,
+           uid TEXT NOT NULL,
+           local TEXT NOT NULL,                          -- its id (or a note's name) on this PC
+           hash TEXT NOT NULL,
+           changed REAL NOT NULL,
+           by TEXT NOT NULL,
+           deleted INTEGER NOT NULL DEFAULT 0,
+           seen TEXT NOT NULL DEFAULT '{}',              -- what each other PC had last time
+           PRIMARY KEY (kind, uid));
+       CREATE TABLE sync_lost (
+           id INTEGER PRIMARY KEY AUTOINCREMENT,
+           at TEXT NOT NULL,
+           kind TEXT NOT NULL,
+           title TEXT NOT NULL,
+           data TEXT NOT NULL,
+           why TEXT NOT NULL);""",
 ]
 
 # event types worth keeping across restarts (not live captions, levels, approval prompts...)

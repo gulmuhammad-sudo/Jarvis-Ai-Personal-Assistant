@@ -356,7 +356,7 @@ class RemoteHandler(BaseHTTPRequestHandler):
     def _host_ok(self) -> bool:
         h = self.headers.get("Host", "").rpartition(":")[0] or self.headers.get("Host", "")
         name = socket.gethostname().lower()
-        if h.lower() in (name, f"{name}.local", "localhost"):
+        if h.lower() in (name, f"{name}.local", "localhost") or settings()["vpn"] and h.lower().startswith(f"{name}.") and h.lower().endswith(".ts.net"):
             return True
         return allowed_ip(h, vpn=True)
 
@@ -391,11 +391,11 @@ class RemoteHandler(BaseHTTPRequestHandler):
         self._got = True
         return self.rfile.read(n)
 
-    def _data(self) -> dict:
+    def _data(self, most: int | None = None) -> dict:
         if not self.headers.get("Content-Type", "").startswith("application/json"):
             raise RemoteError("That wasn't understood.")
         try:
-            d = json.loads(self._body() or b"{}")
+            d = json.loads(self._body(most) or b"{}")
         except ValueError:
             raise RemoteError("That wasn't understood.") from None
         if not isinstance(d, dict):
@@ -448,8 +448,11 @@ class RemoteHandler(BaseHTTPRequestHandler):
             if path.startswith("/pc/"):
                 if d["kind"] != "pc":
                     return self._json({"error": "forbidden"}, 403)
-                from . import peers
-                return peers.serve(self, path, d, lock.is_locked())
+                from . import peers, sync
+                try:
+                    return peers.serve(self, path, d, lock.is_locked())
+                except (peers.PeerError, sync.SyncError) as e:
+                    return self._json({"error": str(e)}, 400)
             if d["kind"] != "phone" or not self.headers.get("X-PA"):      # (a header another page can't send)
                 return self._json({"error": "forbidden"}, 403)
             return self._phone(path, d, hud.HUB, lock.is_locked())

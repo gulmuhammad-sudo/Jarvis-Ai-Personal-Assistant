@@ -67,6 +67,9 @@ def service(host: str) -> tuple[str, str, str, str]:
     for ends, name, kind, what, off in SERVICES:
         if any(host == e or host.endswith("." + e) for e in ends):
             return name, kind, what, off
+    from . import remote
+    if remote.home_ip(host) or "." not in host or host.endswith((".local", ".lan")):
+        return "Your own network", "you", "What you send to your other PCs and devices.", "Settings › Devices, Settings › API"
     return "Other web addresses", "web", "Pages you asked for, and whatever else was opened.", ""
 
 

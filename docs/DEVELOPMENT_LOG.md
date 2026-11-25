@@ -2,6 +2,14 @@
 
 Newest first. Each entry: what was done, how it was tested, what is open, the next task.
 
+## 2026-11-25 — Session 2, part 25: Phase 9 part 4b — other PCs and sync (v1.31.7)
+
+**Done** — `peers.py` (joining with scrypt and HMAC proofs over both keys, pinned calls, ask, files), `sync.py` (lasting numbers from the
+content, three-way decision with the last common state per PC, set aside, held deletions, clock difference), database 15, tool `other_pc`
+(82 tools), permission kinds `other_pc`, `other_pc_file`.
+
+**Phase 9 is complete.** Next: ask the owner: build and release 1.31.7; then Phase 10 (update check, modular install, final audit).
+
 ## 2026-11-25 — Session 2, part 24: Phase 9 part 4a — phone access, API, connections (v1.31.6)
 
 **Done** — `access.py` (who may come in: devices, keys, connections, pairing; access.dat, DPAPI, never in a backup), `remote.py` (a second

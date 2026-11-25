@@ -2,6 +2,17 @@
 
 Each version is also a git tag (`git tag -n20 vX.Y.Z` shows its notes). Newest first.
 
+## 1.31.7 — 2026-11-25 (not pushed yet)
+Other PCs and sync (Phase 9 part 4).
+- Settings › Devices: pair your PCs with a code. They know each other by their own keys, not by their addresses; each keeps its own rights
+  for the other.
+- Ask another PC to do something (its own questions appear there), send it a file (into Downloads › Personal Assistant, never opened by
+  itself), see whether it is on.
+- Sync memories, notes, tasks and calendar straight from PC to PC, by button or every ten minutes: what changed on one side goes over; on
+  both, the newer wins and the other is set aside for 90 days; an edit wins over a deletion; many deletions at once are held.
+- The assistant can do these too ("doosre PC par Chrome kholo"); it asks first.
+- The list of what goes out names your own network.
+
 ## 1.31.6 — 2026-11-25 (not pushed yet)
 Phone access, API and connections (Phase 9 part 4).
 - Settings › Devices (off by default): your phone reaches the app in your own Wi-Fi, encrypted (HTTPS with this PC's own key). A QR

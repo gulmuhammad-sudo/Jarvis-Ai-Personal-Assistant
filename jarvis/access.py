@@ -267,7 +267,7 @@ def answer(ask_id: Any, allow: bool, rights: Any = None) -> dict | None:
         a.update(state="allowed", device=did, token=token, rights=want)
         if a["kind"] == "pc":
             m = a["more"]
-            if isinstance(m.get("token"), str) and re.fullmatch(r"[0-9a-f]{64}", str(m.get("pin"))) and isinstance(m.get("urls"), list):
+            if re.fullmatch(r"[A-Za-z0-9_\-]{43}", str(m.get("token"))) and re.fullmatch(r"[0-9a-f]{16}", str(m.get("id"))) and re.fullmatch(r"[0-9a-f]{64}", str(m.get("pin"))) and isinstance(m.get("urls"), list):
                 save_peer(did, a["name"], [str(u) for u in m["urls"]][:8], str(m["pin"]), str(m.get("id") or ""), str(m["token"]), other=str(m.get("id") or ""))
         _save()
         audit.record("device_added", name=a["name"], kind=a["kind"], rights=want)
@@ -344,6 +344,9 @@ def remove(i: Any) -> None:
 # ---------------- other PCs we can call ----------------
 def save_peer(i: str, name: str, urls: list[str], pin: str, device_id: str, token: str, other: str = "") -> None:
     with _LOCK:
+        for k in [k for k, p in _data()["peers"].items() if p["pin"] == pin and k != i]:      # paired again: the old pairing ends
+            _data()["peers"].pop(k, None)
+            _data()["devices"].pop(k, None)
         _data()["peers"][i] = {"name": name_of(name, "PC"), "urls": [u for u in urls if re.fullmatch(r"[A-Za-z0-9.\-]{1,100}:\d{2,5}", u)], "pin": pin, "as": device_id, "token": token, "added": _now(), "other": other}
 
 

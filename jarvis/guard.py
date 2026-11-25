@@ -13,7 +13,7 @@ import re
 # ---------------- 1. untrusted text ----------------
 # window titles and text read off the screen come from other programs and web pages too
 UNTRUSTED_TOOLS = {"fetch_webpage", "web_search", "read_text_file", "clipboard", "daily_briefing", "manage_windows",
-                   "read_screen_text", "software", "dev_tools", "delegate", "email", "news"}
+                   "read_screen_text", "software", "dev_tools", "delegate", "email", "news", "other_pc"}
 
 READ_BACK = {"tasks": ("list", ""), "calendar": ("agenda", "find", ""), "notes": ("search", "read", ""),
              "documents": ("read", "search", ""), "goals": ("list", ""), "journal": ("read",), "money": ("list", "summary", "bills", ""),
@@ -38,8 +38,8 @@ def question_for_logs(question: str, kind: str | None) -> str:
 
 # after the AI has seen an email, these ask first: each could carry what it read out of this PC, or keep an order from the email
 AFTER_EMAIL = {"fetch_webpage", "web_search", "open_website", "search_web_in_browser", "play_youtube", "open_path", "delegate", "automation", "run_powershell",
-               "software", "save_skill", "news", "travel", "media", "images"}
-AFTER_EMAIL_FINE = {"automation:list", "software:installed", "software:updates", "news:top", "news:saved", "news:story", "news:save", "news:following", "travel:list", "travel:show", "travel:add",
+               "software", "save_skill", "news", "travel", "media", "images", "other_pc"}
+AFTER_EMAIL_FINE = {"other_pc:list", "automation:list", "software:installed", "software:updates", "news:top", "news:saved", "news:story", "news:save", "news:following", "travel:list", "travel:show", "travel:add",
                     "travel:update", "travel:plan", "travel:pack", "travel:papers", "travel:done", "media:now", "media:control", "media:volume", "media:search", "media:play",
                     "images:info", "images:convert"}
 

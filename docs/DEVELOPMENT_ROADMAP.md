@@ -62,7 +62,7 @@ enough to finish, test and release on its own. Numbers in brackets are decisions
 - [x] Privacy & permission dashboard [98, 6]; activity timeline [109]
 - [x] Encrypted vault (outside AI reach) [77, 81]; privacy lock
 - [x] Backup and restore [57]; self-diagnostics page [99]; repair [95]
-- [ ] Multi-PC pairing and optional remote access (TLS + pairing codes) [21, 28, 74]; API and integrations [91, 106]
+- [x] Multi-PC pairing and optional remote access (TLS + pairing codes) [21, 28, 74]; API and integrations [91, 106]
 
 ## Phase 10 — Expansion and release
 - [ ] Update check with consent from GitHub Releases [13]

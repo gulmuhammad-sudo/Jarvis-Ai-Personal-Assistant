@@ -11,6 +11,14 @@ set PA_TEST_NETWORK=1 && .venv\Scripts\python -m pytest tests   # also the onlin
 .venv\Scripts\python packaging\build.py              # then smoke-test the packaged exe (see below)
 ```
 
+## 2026-11-25 — Other PCs and sync (v1.31.7)
+
+| Suite | Result | Notes |
+|---|---|---|
+| `pytest tests` | 1459 passed, 4 skipped | new tests/test_peers_sync.py (35): sync of two data folders (both ways, the same on both, changes, deletions, both changed, edit against deletion, clocks a day apart, many deletions, kinds, what comes in is checked, a change in that very moment, many and big, one at a time); two real programs: pairing, wrong code, no, somebody in between, a PC that can't prove the code, another machine at the address, rights, lock and Stop over there, files (names, secrets, broken, twice), sync over the wire, paired again |
+| Running app (two test copies, only 127.0.0.1) | pass | code shown, joined, allowed, Check, Sync now (22 out), kinds, by itself, Ask, rights, Remove; 1534x787 dark, 640x760 light: nothing past the edge |
+| Not tested | — | two real PCs in a Wi-Fi; Windows' file box; sync over days |
+
 ## 2026-11-25 — Phone access, API, connections (v1.31.6)
 
 | Suite | Result | Notes |

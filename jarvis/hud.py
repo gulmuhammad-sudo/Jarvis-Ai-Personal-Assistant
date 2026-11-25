@@ -26,7 +26,7 @@ from urllib.parse import parse_qs, quote
 
 from . import __version__
 from . import live as live_mod
-from . import access, agents, alerts, approvals, audit, automations, backup, clock, connections, denoise, devapi, docindex, doctor, fit, gpu, guard, hello, images, languages, learn, life, local_ai, lock, mail, local_stt, local_tts, media, meet, memory, netlog, news, notes, people, planner, plans, privacy, qr, remote, schedule, screenrec, netcheck, skills, software, stt, storage, timeline, tools, travel, tts, urdu, vault, wake, winmgr
+from . import access, agents, alerts, approvals, audit, automations, backup, clock, connections, denoise, devapi, docindex, doctor, fit, gpu, guard, hello, images, languages, learn, life, local_ai, lock, mail, local_stt, local_tts, media, meet, memory, netlog, news, notes, peers, people, planner, plans, privacy, qr, remote, schedule, screenrec, netcheck, skills, software, stt, storage, sync, timeline, tools, travel, tts, urdu, vault, wake, winmgr
 from .brain import make_brain
 from .config import NOTES_DIR
 from .providers import provider_status
@@ -334,7 +334,7 @@ class Hub:
             planner.tick(now, self.notify)
         except Exception as e:
             print(f"[planner] {type(e).__name__}: {e}")
-        for part in (life, learn, fit, travel, people, vault, backup):
+        for part in (life, learn, fit, travel, people, vault, backup, peers):
             try:
                 part.tick(now, self.notify)
             except Exception as e:
@@ -826,7 +826,7 @@ class Hub:
 
     CONFIRM_TIMEOUT = 180
     # once allowed, these aren't asked again until the app restarts; shutdown, deleting files etc. always ask
-    TRUSTABLE = {"powershell": "PowerShell commands", "lock": "locking the PC", "wifi_off": "turning Wi-Fi off", "email": "reading your email", "meeting": "reading what was said in a meeting", "image_online": "making pictures online", "history": "reading your saved conversations"}
+    TRUSTABLE = {"powershell": "PowerShell commands", "lock": "locking the PC", "wifi_off": "turning Wi-Fi off", "email": "reading your email", "other_pc": "asking your other PCs", "meeting": "reading what was said in a meeting", "image_online": "making pictures online", "history": "reading your saved conversations"}
     # Every kind of approval the tools ask for. Settings > Privacy keeps a rule per kind: "ask" (default),
     # "never" (refused without asking) or "allow" (only for the TRUSTABLE kinds: shutting down, deleting,
     # replacing files and closing apps with unsaved work are always asked).
@@ -847,6 +847,8 @@ class Hub:
         "image_online": "Making a picture online (the words go to Pollinations.ai)",
         "history": "Reading your saved conversations, for an answer",
         "connection": "Sending a text over one of your connections",
+        "other_pc": "Asking one of your other PCs to do something",
+        "other_pc_file": "Sending a file to one of your other PCs",
     }
 
     def permission(self, kind: str | None) -> str:
@@ -2171,6 +2173,7 @@ class Handler(BaseHTTPRequestHandler):
     @staticmethod
     def _devices(action: str, data: dict, num) -> dict | None:
         """Settings: Devices. Who may come in; the owner's own clicks."""
+        out: dict = {}
         if action == "save":
             remote.set_settings({k: v for k, v in data.items() if k in ("on", "vpn", "port")})
         elif action == "pair":
@@ -2187,15 +2190,34 @@ class Handler(BaseHTTPRequestHandler):
             access.rename(data.get("id"), data.get("name"))
         elif action == "remove":
             access.remove(data.get("id"))
-        elif action == "firewall":
-            os.startfile("ms-settings:network-wifi")
+            sync.forget(str(data.get("id")))
+        elif action == "join":
+            peers.join(data.get("address"), data.get("code"), data.get("rights"))
+        elif action == "pc":                              # what is synced with it, and by itself or not
+            peers.set_options(data.get("id"), {k: v for k, v in data.items() if k in ("auto", "kinds")})
+        elif action == "check":
+            peers.check(str(data.get("id")))
+        elif action == "sync":
+            out["sync"] = peers.run_sync(str(data.get("id")), str(data.get("deletions") or "ask"))
+        elif action == "ask":                             # your own words: no question
+            out["answer"] = peers.ask(str(data.get("id")), data.get("text"), 60)
+        elif action == "file":                            # a file you choose in Windows' own box
+            p = _pick_file("All files (*.*)|*.*")
+            if p:
+                out["said"] = peers.send_file(str(data.get("id")), p)
+        elif action == "back":
+            sync.bring_back(data.get("aside"))
+            HUB.emit("planner_changed")
+        elif action == "files":
+            peers.downloads().mkdir(parents=True, exist_ok=True)
+            os.startfile(str(peers.downloads()))
         elif action != "load":
             return None
         st, p = remote.status(), access.pairing()
         if p and p["code"] and st["addresses"]:
             urls = [f"https://{a}:{st['port']}/" for a in st["addresses"][:1]]
             p["svg"] = qr.svg(f"{urls[0]}#{p['code'].replace('-', '')}") if p["kind"] == "phone" else ""
-        return {"status": st, "pairing": p, "devices": access.devices(), "rights": {"phone": access.PHONE_RIGHTS, "pc": access.PC_RIGHTS}}
+        return {**out, "status": st, "pairing": p, "devices": access.devices(), "rights": {"phone": access.PHONE_RIGHTS, "pc": access.PC_RIGHTS}, "join": peers.joining(), "pcs": peers.listing(), "kinds": sync.KINDS, "aside": sync.set_aside()}
 
     @staticmethod
     def _dev(action: str, data: dict, num) -> dict | None:

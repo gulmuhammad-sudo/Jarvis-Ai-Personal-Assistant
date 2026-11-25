@@ -59,6 +59,7 @@ and its keys in `.env` next to the code).
 - **Settings › Health:** what works and what doesn't, with Fix buttons.
 - **Settings › Devices:** use the assistant from your phone in your own Wi-Fi. Turn it on, Add a phone, scan the picture, press Allow on
   the PC. The phone's browser warns once about the certificate: that is this PC's own.
+- **Another PC:** turn Devices on on both; "Show a code" on one, "Join another PC" on the other. Then Sync now, Send a file, Ask.
 - **Settings › API:** keys for your own scripts, and connections (phone notices, Telegram, Home Assistant…).
 - Dangerous PowerShell commands are refused even if you approve them; text from web pages and files is treated
   as information, never as instructions; API keys are stored encrypted.

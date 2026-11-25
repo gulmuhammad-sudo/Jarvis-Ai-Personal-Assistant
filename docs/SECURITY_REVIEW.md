@@ -1,5 +1,16 @@
 # Security review
 
+## 2026-11-25 — v1.31.7 (other PCs, sync)
+
+| Area | How | Where |
+|---|---|---|
+| Pairing two PCs | the code (39 bits) through scrypt; both prove it with an HMAC over the server's own key, both random numbers and the hello: somebody in between has another key, so the proof doesn't fit and can't be guessed in three minutes; then the owner's click | `access.pc_code`, `peers._do_join` |
+| Which machine | before a word is sent the key has to be the pinned one; addresses may change | `peers._connect` |
+| Rights | each PC its own for the other, looked up every time; Stop and the lock hold over there; what another PC wrote taints the conversation, its answers count as untrusted text | `peers.serve`, `guard` |
+| Files | name cleaned, 200 MB, free space, SHA-256, never over an existing file, the mark "from the internet" so that Windows warns; files that look like passwords or keys aren't sent | `peers._take_file`, `send_file` |
+| Sync | only four kinds, chosen on both sides; every thing checked like typed input (names of notes, times, lengths); optimistic check so nothing typed meanwhile is lost; what is deleted or loses is set aside 90 days; many deletions are held | `sync.clean`, `put`, `_one` |
+| Addresses to join | only of the own network (or Tailscale names) | `peers.address` |
+
 ## 2026-11-25 — v1.31.6 (phone access, API, connections)
 
 | Area | How | Where |

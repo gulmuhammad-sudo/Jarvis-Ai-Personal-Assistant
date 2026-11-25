@@ -2119,6 +2119,34 @@ def connection_tool(inp: dict, ctx: ToolContext) -> str:
         return str(e)
 
 
+def other_pc_tool(inp: dict, ctx: ToolContext) -> str:
+    """The user's other PCs: ask the assistant there, send a file."""
+    from . import access, peers
+    action = str(inp.get("action") or "list").lower()
+    have = access.peers()
+    if action == "list":
+        return "\n".join(f"- {p['name']}" for p in have.values()) or "No other PC is paired (Settings > Devices)."
+    i = peers.find(inp.get("pc"))
+    if not i:
+        return f"I can't tell which PC {str(inp.get('pc'))[:60]!r} is. Use action list."
+    name = have[i]["name"]
+    try:
+        if action == "ask":
+            text = str(inp.get("text") or "").strip()
+            if not ctx.approve(f"Ask {name} to do this?\n\n{text[:4000]}", kind="other_pc"):
+                return "Okay, I didn't ask it."
+            return f"{name} says: " + (peers.ask(i, text) or "(nothing)")
+        if action == "send_file":
+            if not ctx.approve(f"Send this file to {name}?\n\n{str(inp.get('path'))[:400]}", kind="other_pc_file"):
+                return "Okay, I didn't send it."
+            return peers.send_file(i, inp.get("path"))
+        if action == "sync":
+            return f"Synced with {name}: {peers.run_sync(i)['text']}."
+    except peers.PeerError as e:
+        return str(e)
+    return f"Unknown action {action!r}."
+
+
 def people_tool(inp: dict, ctx: ToolContext) -> str:
     from . import people
     action = str(inp.get("action") or "list").lower()
@@ -2357,6 +2385,9 @@ PLANNER_TOOLS = [
       "description": "The user's own connections to other services and devices (a notice to the phone, Telegram, Discord, a lamp of Home Assistant, a webhook). list, or send (name, text). "
                      "Every sending asks the user with the whole text.",
       "input_schema": _obj({"action": {"type": "string", "enum": ["list", "send"]}, "name": _STR, "text": _STR}, ["action"])}, connection_tool),
+    ({"name": "other_pc",
+      "description": "The user's other PCs that are paired. list; ask (pc, text): the assistant there does it and answers; send_file (pc, path): into its Downloads; sync (pc): memories, notes, tasks and calendar now.",
+      "input_schema": _obj({"action": {"type": "string", "enum": ["list", "ask", "send_file", "sync"]}, "pc": _STR, "text": _STR, "path": _STR}, ["action"])}, other_pc_tool),
     ({"name": "people",
       "description": "People who matter to the user. list (query), coming (days): birthdays, add / update (name, relation, birthday like 14 May or 14 May 2001, notes).",
       "input_schema": _obj({"action": {"type": "string", "enum": ["list", "coming", "add", "update"]}, "name": _STR, "relation": _STR, "birthday": _STR, "notes": _STR, "query": _STR, "days": _INT},

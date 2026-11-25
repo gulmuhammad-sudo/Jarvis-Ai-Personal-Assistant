@@ -53,7 +53,7 @@ audio, installer, uninstaller, packaged-exe smoke test). They are being moved in
 | 25 | Knowledge and document understanding | PARTIALLY IMPLEMENTED | `jarvis/documents.py`, `jarvis/docindex.py`, tables `doc_folders`, `docs`, `doc_text`, tool `documents`, Tools & Skills › Documents | — | test_documents, running app | 1.22.0: PDF, Word, Excel, PowerPoint, text; local index of chosen folders (word search). Missing: meaning search, scanned PDFs (pictures of text) |
 | 26 | Application security and permissions | PARTIALLY IMPLEMENTED | `jarvis/hud.py` (token, host check), `jarvis/tools.py`, `jarvis/keystore.py`, `jarvis/audit.py`, `jarvis/guard.py` | — | test_keystore 8, test_safety 6, test_guard_audit 38 | 1.8.0: keys encrypted (DPAPI). 1.9.0: audit log, prompt-injection marking, PowerShell deny-list, Emergency Stop. Missing: saved per-kind permissions, privacy dashboard |
 | 27 | System monitoring dashboard | IMPLEMENTED BUT NEEDS TESTING | `jarvis/hud.py` (stats), `jarvis/gpu.py`, `jarvis/hud.html` | — | none | CPU, RAM, GPU, disk, battery, network |
-| 28 | Multiple Windows PC support | NOT IMPLEMENTED | — | 21, 74 | — | — |
+| 28 | Multiple Windows PC support | IMPLEMENTED BUT NEEDS TESTING | `peers.py`, tool `other_pc`, Settings › Devices | 21, 74 | test_peers_sync.py (two real programs) | Two real PCs |
 | 29 | Adaptive personal learning | PARTIALLY IMPLEMENTED | `memory.suggest_from`, `hud.py` `_suggest_memory`, Memory page card | 100 | test_memory_engine (suggest / no-suggest cases) | 1.14.0: when you say something lasting about yourself it asks "Remember this?"; nothing is saved without your OK; switch in Settings › Privacy. Missing: learning habits/patterns |
 | 30 | Hybrid background / interactive tasks | PARTIALLY IMPLEMENTED | `jarvis/live.py` (tools in a pool), `jarvis/schedule.py` scheduler | — | live test | Timers, alarms and tools run in the background. Missing: a task list you can see and cancel |
 
@@ -114,7 +114,7 @@ audio, installer, uninstaller, packaged-exe smoke test). They are being moved in
 | 71 | Workspace manager | IMPLEMENTED BUT NEEDS TESTING | `jarvis/winmgr.py` (workspaces), table `workspaces`, tool `workspace`, Tools & Skills › Workspaces | 102 | test_desktop (fake windows), real check on test windows | 1.16.0: save the open windows under a name; Open reopens closed apps and puts every window back (per monitor). Store apps can be placed but not reopened. Not yet tried by the owner on their own apps |
 | 72 | Data analytics and visualization | NOT IMPLEMENTED | — | 32 | — | — |
 | 73 | Communication and messaging center | NOT IMPLEMENTED | — | 46 | — | — |
-| 74 | Local-only memory sync | NOT IMPLEMENTED | — | 28 | — | — |
+| 74 | Local-only memory sync | IMPLEMENTED BUT NEEDS TESTING | `sync.py`, tables `sync_items`, `sync_lost` | 28 | test_peers_sync.py | Two real PCs over days; goals, journal, money aren't synced |
 | 75 | Performance optimization center | PARTIALLY IMPLEMENTED | tools `system_status`, `clean_folder` | 27 | none | Shows heavy apps; clean-up to Recycle Bin |
 | 76 | Smart clipboard | PARTIALLY IMPLEMENTED | tool `clipboard` (read/write) | — | none | No history |
 | 77 | Encrypted password and identity manager | IMPLEMENTED BUT NEEDS TESTING | `jarvis/vault.py`, page Vault | secure storage | test_vault_lock, running app | 1.31.2: outside the AI's reach. Windows Hello with a pretend answer only (its box needs the owner's finger) |
