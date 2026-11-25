@@ -11,6 +11,14 @@ set PA_TEST_NETWORK=1 && .venv\Scripts\python -m pytest tests   # also the onlin
 .venv\Scripts\python packaging\build.py              # then smoke-test the packaged exe (see below)
 ```
 
+## 2026-11-25 — The left menu's empty space (v1.31.9)
+
+| Suite | Result | Notes |
+|---|---|---|
+| `pytest tests` | 1512 passed, 4 skipped | |
+| Running app (test copy) | pass | rows measured: every row alike, nothing left under Settings, no scrolling at 1534x787, 1534x650, 1920x1000 (all groups open), 1280x787; 1000x640 as before |
+| Packaged exe 1.31.9 | 80 / 80 and 222 / 222; new user 15 / 15 | as 1.31.8 |
+
 ## 2026-11-25 — Asked languages, top bar, menu (v1.31.8)
 
 | Suite | Result | Notes |

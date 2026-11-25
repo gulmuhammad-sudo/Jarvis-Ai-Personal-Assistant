@@ -125,7 +125,7 @@ def test_the_waves_have_no_movement_of_their_own():
 
 
 def test_the_menu_shares_its_room_and_the_voice_box_has_one_layout():
-    assert ".side > nav > .navi, .side > nav > .ngroup > .navg { flex: none; height: 40px;" in HTML and "@container voice" not in HTML
+    assert ".side > nav > .navi, .side > nav > .ngroup > .navg { flex: 1 0 36px;" in HTML and "@container voice" not in HTML
 
 
 def test_pages_are_in_the_middle():

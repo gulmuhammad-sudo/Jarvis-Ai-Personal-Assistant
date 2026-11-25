@@ -912,12 +912,12 @@ body.focus[data-face="mask"] .heroText { bottom: 98px; }
 .topmenu .operator { height: auto; padding: 8px 10px; margin-bottom: 4px; gap: 11px; } .topmenu .operator div { display: block; } .topmenu .avatar { width: 32px; height: 32px; }
 .tmrow { display: flex; align-items: center; gap: 10px; min-height: 44px; padding: 3px 6px 3px 10px; border-radius: 10px; font-size: 14px; } .tmrow[data-tm] { cursor: pointer; } .tmrow[data-tm]:hover { background: rgba(var(--c-fill), .045); } .tmrow > span { flex: 1; min-width: 0; } .tmseg { display: flex; } .tmseg button { padding: 5px 9px; font-size: 12.5px; }
 :root[data-theme="light"] .topmenu { box-shadow: 0 18px 50px rgba(15, 40, 70, .18); }
-@media (min-width: 1101px) { .side .navg { padding-block: 0; } .side > nav > .navlast { margin-top: auto; } }
+@media (min-width: 1101px) { .side .navg { padding-block: 0; } .side .nsub .navi { height: 32px; padding-block: 0; } .side > nav.all .navg { cursor: default; } .side > nav.all .ic-chev { display: none; } .side > nav.all .nsub { grid-template-rows: 1fr; visibility: visible; } }
 @media (max-height: 900px) and (min-width: 1101px) { .side .navg { padding: 0 9px; font-size: 14px; } .navg svg.ic:not(.ic-chev) { width: 26px; height: 26px; padding: 5px; } }
 @media (max-width: 1360px) and (min-width: 1101px) { .navg { justify-content: center; } .navg span, .navg .ic-chev { display: none; } .nsub > div { margin-left: 0; padding-left: 0; border-left: 0; } .ngroup.open { border-radius: 10px; background: rgba(var(--c-fill), .035); } }
 @media (max-width: 1100px) { .sysstat, .toolbar { grid-column: 1; } .side > nav { min-height: 0; } .ngroup, .nsub, .nsub > div { display: contents; visibility: visible; } .navg { display: none; } .side .nsub .navi { padding: 8px 10px; font-size: 14.5px; } .side .nsub .navi svg.ic { width: 30px; height: 30px; padding: 6px; border-radius: 9px; } }
-@media (min-width: 1101px) { .side > nav > .navi, .side > nav > .ngroup > .navg { flex: none; height: 40px; padding-block: 0; } }      /* every row alike; groups keep the menu short, so nothing scrolls in a usual window */
-@media (max-height: 700px) and (min-width: 1101px) { .side > nav > .navi, .side > nav > .ngroup > .navg { height: 32px; } .side .nsub .navi { padding: 2px 8px; } .navg svg.ic:not(.ic-chev) { width: 24px; height: 24px; } }
+@media (min-width: 1101px) { .side > nav > .navi, .side > nav > .ngroup > .navg { flex: 1 0 36px; padding-block: 0; } .side > nav > .ngroup { flex: 1 0 auto; } }      /* the rows share the whole height: no empty room, and nothing scrolls in a usual window */
+@media (max-height: 700px) and (min-width: 1101px) { .side > nav > .navi, .side > nav > .ngroup > .navg { flex-basis: 30px; } .side .nsub .navi { height: 27px; padding: 0 8px; } .navg svg.ic:not(.ic-chev) { width: 24px; height: 24px; } }
 /* activity: take out */
 .fi { position: relative; } .fi .fx { width: 24px; height: 24px; flex: none; margin-left: -6px; border: 0; border-radius: 7px; background: none; color: var(--dim); display: grid; place-items: center; opacity: 0; transition: opacity .15s, color .15s, background .15s; } .fi .fx svg.ic { width: 13px; height: 13px; } .fi:hover .fx, .fi .fx:focus-visible { opacity: 1; } .fi .fx:hover { color: var(--red); background: rgba(var(--c-red), .12); } .fi.out { animation: fiOut .26s ease forwards; pointer-events: none; } @keyframes fiOut { to { opacity: 0; transform: translateX(26px); height: 0; padding-block: 0; border-width: 0; } }
 #feedClear { margin-left: auto; } #feedClear + .pill { margin-left: 2px; }
@@ -2184,7 +2184,8 @@ function go(view) {
   mdMini();
 }
 document.querySelectorAll(".navi").forEach(n => n.onclick = () => go(n.dataset.view));
-function navOpen(name) {                                  // one group open at a time, so the menu stays short
+function navOpen(name, keep = true) {                     // one group open at a time, so the menu stays short
+  if (keep) storeSet("jarvis.nav", name);
   document.querySelectorAll(".ngroup").forEach(g => { const on = g.dataset.ng === name; g.classList.toggle("open", on); g.firstElementChild.setAttribute("aria-expanded", on); });
 }
 function navGroup(view) {                                 // the open page's group is open, and marked
@@ -2192,7 +2193,12 @@ function navGroup(view) {                                 // the open page's gro
   document.querySelectorAll(".ngroup").forEach(g => g.classList.toggle("sel", g === mine));
   if (mine) navOpen(mine.dataset.ng);
 }
-document.querySelectorAll(".navg").forEach(b => b.onclick = () => navOpen(b.parentElement.classList.contains("open") ? "" : b.parentElement.dataset.ng));
+function navFit() {                                       // a tall window has room for all groups
+  const n = $("nav"), all = innerWidth > 1100 && n.clientHeight > 640; n.classList.toggle("all", all);
+  if (all) document.querySelectorAll(".navg").forEach(b => b.setAttribute("aria-expanded", true)); else navOpen((document.querySelector(".ngroup.open") || { dataset: { ng: "" } }).dataset.ng, false);
+}
+navOpen(storeGet("jarvis.nav") || "day", false); navFit(); addEventListener("resize", navFit);
+document.querySelectorAll(".navg").forEach(b => b.onclick = () => { if ($("nav").classList.contains("all")) return go(b.parentElement.querySelector(".navi").dataset.view); navOpen(b.parentElement.classList.contains("open") ? "" : b.parentElement.dataset.ng); });
 // the menu at the top right
 function tmOpen(on) {
   const m = $("topMenu"), b = $("moreBtn"); if (on === !m.hidden) return;

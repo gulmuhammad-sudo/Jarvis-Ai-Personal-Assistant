@@ -2,6 +2,9 @@
 
 Each version is also a git tag (`git tag -n20 vX.Y.Z` shows its notes). Newest first.
 
+## 1.31.9 — 2026-11-25
+- The left menu has no empty space any more: its rows share the whole height, one group is open, and in a tall window all three are.
+
 ## 1.31.8 — 2026-11-25
 Answers in the language you ask for; a tidier top bar and menu.
 - "Urdu mein batao", "Hindi mein bolo", "translate it to Arabic": the answer stays in that language's own script, typed and in Live calls,
