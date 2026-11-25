@@ -42,6 +42,7 @@ SERVICES: list[tuple[tuple[str, ...], str, str, str, str]] = [
     (("wikipedia.org",), "Wikipedia", "you", "The words you looked up.", ""),
     (("youtube.com", "youtu.be"), "YouTube", "you", "The words you looked up.", ""),
     (("radio-browser.info",), "Radio list (radio-browser.info)", "you", "The words of a station search.", ""),
+    (("ntfy.sh", "api.telegram.org", "discord.com", "discordapp.com", "hooks.slack.com"), "Your connections (ntfy, Telegram, Discord, Slack)", "you", "The text you allowed, to the place you set up.", "Settings › API"),
     (("wttr.in",), "Weather (wttr.in)", "info", "The name of your place.", "Settings › General: location"),
     (("api.aladhan.com",), "Prayer times (aladhan.com)", "info", "The name of your place.", "Settings › General: location"),
     (("nominatim.openstreetmap.org",), "Place search (OpenStreetMap)", "info", "The name of a place you typed.", ""),

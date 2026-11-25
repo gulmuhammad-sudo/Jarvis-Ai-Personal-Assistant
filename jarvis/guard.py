@@ -23,8 +23,8 @@ READ_BACK = {"tasks": ("list", ""), "calendar": ("agenda", "find", ""), "notes":
 
 # what these say stays out of the activity list, the saved history and the audit log
 PRIVATE_TEXT = {"journal": ("text", "query"), "email": ("body", "subject", "query", "to", "cc"), "fitness": ("value", "note", "km", "what"),
-                "history": ("query",), "meetings": ("text", "summary", "decisions", "actions", "agenda", "people", "query"), "people": ("notes", "birthday", "relation", "query")}
-PRIVATE_KINDS = {"email", "email_draft", "after_email", "meeting"}          # approvals: only their first line is kept
+                "history": ("query",), "connection": ("text",), "meetings": ("text", "summary", "decisions", "actions", "agenda", "people", "query"), "people": ("notes", "birthday", "relation", "query")}
+PRIVATE_KINDS = {"email", "email_draft", "after_email", "meeting", "connection"}          # approvals: only their first line is kept
 
 
 def for_logs(tool: str, args: dict) -> dict:
@@ -83,7 +83,7 @@ def runs_code(path: str) -> bool:
     return bool(_RUNS_CODE.search(p)) or bool(_RUNS_CODE.search(p[2:].split(":", 1)[0].rstrip(". "))) and ":" in p[2:]
 
 
-_SECRET = re.compile(r"(^|[\\/])(\.env[^\\/]*|keys\.dat|mail\.dat|lock\.dat|backup\.dat|vault\.json[^\\/]*|id_(rsa|dsa|ecdsa|ed25519)[^\\/]*|\.netrc|\.pgpass|\.git-credentials|credentials(\.json)?|"
+_SECRET = re.compile(r"(^|[\\/])(\.env[^\\/]*|keys\.dat|mail\.dat|lock\.dat|backup\.dat|access\.dat[^\\/]*|vault\.json[^\\/]*|id_(rsa|dsa|ecdsa|ed25519)[^\\/]*|\.netrc|\.pgpass|\.git-credentials|credentials(\.json)?|"
                      r"login data|cookies|key4\.db|logins\.json|[^\\/]*\.(pabackup|pem|key|pfx|p12|kdbx|ppk|ovpn|rdp))$|[\\/]\.(ssh|aws|gnupg|azure)[\\/]", re.I)
 
 # documents people keep them in, by name ("My Passwords 2024.xlsx", Windows' own "BitLocker Recovery Key ….txt", "backup-codes.txt")

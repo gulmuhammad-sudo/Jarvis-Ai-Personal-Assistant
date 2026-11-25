@@ -11,6 +11,15 @@ set PA_TEST_NETWORK=1 && .venv\Scripts\python -m pytest tests   # also the onlin
 .venv\Scripts\python packaging\build.py              # then smoke-test the packaged exe (see below)
 ```
 
+## 2026-11-25 — Phone access, API, connections (v1.31.6)
+
+| Suite | Result | Notes |
+|---|---|---|
+| `pytest tests` | 1424 passed, 4 skipped | new tests/test_remote_api.py (63): QR read back by an independent reader and the standard's own example; home addresses and unusual routers; the key never open on the disk; pairing, wrong codes, names that could fool, twenty devices; none of the window's own requests; rights looked up every time; other web pages, hosts, bodies, too many requests; chat, approvals, the lock, Stop; keys, scopes, rate, waiting, a program that left; each kind of connection, kept secrets never to another address, Local only |
+| Running app (test copy, only 127.0.0.1) | pass | Devices and API tabs at 1534x787 and 640x760, every button; the phone's page at 390x780 dark and light: wrong code, right code, Allow, chat, tasks, question box, Stop |
+| Found | fixed | refused requests broke the connection before their answer was read; off and on quickly failed on the port; the address shown first was VMware's; the owner's Wi-Fi uses 191.168.x.x, which isn't a private range: the app now knows its own network |
+| Not tested | — | a real phone; Windows' firewall question; Tailscale; real ntfy, Telegram, Discord, Slack, Home Assistant; real AI with /v1/ask |
+
 ## 2026-11-25 — Backup, health and repair (v1.31.5)
 
 | Suite | Result | Notes |

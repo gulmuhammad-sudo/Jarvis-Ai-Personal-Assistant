@@ -2,6 +2,14 @@
 
 Newest first. Each entry: what was done, how it was tested, what is open, the next task.
 
+## 2026-11-25 — Session 2, part 24: Phase 9 part 4a — phone access, API, connections (v1.31.6)
+
+**Done** — `access.py` (who may come in: devices, keys, connections, pairing; access.dat, DPAPI, never in a backup), `remote.py` (a second
+server with TLS and its own short list of requests), `remote.html`, `qr.py`, `devapi.py` (/v1), `connections.py`, tool `connection` (81
+tools), Settings tabs Devices and API, `Hub.ask_and_wait`, the inbox carries where a message came from.
+
+**Next** — part 4b: other PCs and sync (1.31.7).
+
 ## 2026-11-25 — Session 2, part 23: Phase 9 part 3 — backup, health, repair (v1.31.5)
 
 **Done** — `jarvis/backup.py` (`.pabackup`: readable front, then AES-256-GCM pieces bound to their place around a zip with a list of

@@ -328,6 +328,18 @@ def _start(hub: Any) -> dict:
     return _row("start", "Start with Windows", OK if want == there else WARN, ("On" if want else "Off") if want == there else "The setting says on, but the shortcut is gone" if want else "The setting says off, but the shortcut is there", "" if want == there else "startup")
 
 
+def _remote(hub: Any) -> dict:
+    from . import access, remote
+    s, n = remote.status(), len(access.devices())
+    if not s["on"]:
+        return _row("remote", "Phones and other PCs", INFO, "Off: nothing can come in", go="devices")
+    if s["local_only"]:
+        return _row("remote", "Phones and other PCs", INFO, "Held back by Local only", go="devices")
+    if not s["running"]:
+        return _row("remote", "Phones and other PCs", WARN, s["error"] or "It isn't running", go="devices")
+    return _row("remote", "Phones and other PCs", OK if s["addresses"] else WARN, f"Open in your home network, {n} device{'' if n == 1 else 's'}" if s["addresses"] else "On, but this PC isn't in a network", go="devices")
+
+
 def _parts(hub: Any) -> dict:
     names = {t.name for t in threading.enumerate()}
     need = {"scheduler": "reminders", "clock": "timers", "privacy": "lists", "lock-watch": "lock"}
@@ -379,7 +391,7 @@ def _documents(hub: Any) -> dict:
     return _row("docs", "Document search", OK, f"{n} documents" + (f", {bad} couldn't be read" if bad else ""), "index" if bad else "", "tools")
 
 
-CHECKS = [_app, _windows, _crashed, _disk, _memory, _database, _files, _backup, _ais, _net, _mic, _speaker, _hearing, _voice, _live, _vault, _hello, _start, _parts, _documents, _errors]
+CHECKS = [_app, _windows, _crashed, _disk, _memory, _database, _files, _backup, _ais, _net, _mic, _speaker, _hearing, _voice, _live, _vault, _hello, _start, _remote, _parts, _documents, _errors]
 
 
 def check(hub: Any) -> dict:

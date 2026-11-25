@@ -36,7 +36,9 @@ _WORDS = {
     "lock_pin_set": "The lock's PIN was set", "activity_removed": "Taken out of the Activity list", "permission_hour": "A permission was given for an hour", "permissions_asked_again": "All permissions ask again",
     "backup_made": "A backup was made", "backup_deleted": "A backup was moved to the Recycle Bin", "backup_settings": "The backup settings were changed", "backup_password_set": "The backup password was set",
     "backup_password_removed": "The backup password was removed", "restore_prepared": "A backup was made ready to be put back", "restored": "A backup was put back", "restore_failed": "A backup couldn't be put back; nothing changed",
-    "repaired": "A repair was done", "ended_unexpectedly": "The app had ended unexpectedly",
+    "repaired": "A repair was done", "remote_settings": "Coming in from other devices was changed", "device_added": "A device was paired", "device_denied": "A device was turned away", "device_removed": "A device was removed",
+    "device_rights": "What a device may do was changed", "api_key_made": "An API key was made", "api_key_removed": "An API key was removed", "api_asked": "A program asked the assistant", "connection_saved": "A connection was saved",
+    "connection_removed": "A connection was removed", "connection_used": "A text was sent over a connection", "ended_unexpectedly": "The app had ended unexpectedly",
 }
 
 

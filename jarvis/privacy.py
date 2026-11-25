@@ -317,7 +317,9 @@ def kept() -> dict:
     from . import vault
     files, size = _size(vault.folder())
     add("vault", "The vault (encrypted)", 1 if vault.exists() else 0, size, "vault", note="Nobody but you can open it; not even this list knows what is in it.")
-    from . import backup
+    from . import access, backup
+    d = len(access.devices())
+    add("devices", "Paired devices, API keys, connections", d + len(access.keys()) + len(access.connections()), 0, "devices", note="Locked with your Windows account; never in a backup.")
     made = backup.listing()
     add("backups", "Backups and restore points (encrypted)", len(made), sum(b["size"] for b in made), "backup", note="Backups lie in your folder, restore points with the app's data.")
     add("models", "Voices and speech models", *_size(local_stt.models_dir()), "settings")

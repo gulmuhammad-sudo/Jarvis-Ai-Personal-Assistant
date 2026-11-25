@@ -131,7 +131,7 @@ def main() -> None:
 
     # 1) the app: one folder with "Personal Assistant.exe"
     pyinstaller(f"--name={NAME}", f"--distpath={BUILD / 'app'}",f"--version-file={version_file('Personal Assistant', NAME)}",
-                f"--add-data={ROOT / 'jarvis' / 'hud.html'}{SEP}jarvis", f"--add-data={ROOT / 'assets'}{SEP}assets",
+                f"--add-data={ROOT / 'jarvis' / 'hud.html'}{SEP}jarvis", f"--add-data={ROOT / 'jarvis' / 'remote.html'}{SEP}jarvis", f"--add-data={ROOT / 'assets'}{SEP}assets",
                 "--collect-submodules=jarvis", "--collect-data=edge_tts", "--collect-data=certifi",
                 "--collect-all=pywhispercpp",          # local speech-to-text: native whisper.cpp library
                 "--collect-data=docx", "--collect-data=pptx",             # Word / PowerPoint templates

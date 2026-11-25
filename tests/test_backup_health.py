@@ -711,6 +711,6 @@ def test_the_page_has_both_tabs():
     for i in re.findall(r'\$\("((?:bk|hc)[A-Za-z0-9]+)"\)', HTML):
         assert f'id="{i}"' in HTML, i
     assert HTML.index("let bkD = null") < HTML.index('setTab(storeGet("jarvis.settab")')
-    assert "setCur" in HTML and 'view === "backup" || view === "health"' in HTML
+    assert "setCur" in HTML and '["backup", "health"' in HTML
     for r in doctor.REPAIRS.values():
         assert "—" not in r[0] + r[1]

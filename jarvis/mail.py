@@ -545,9 +545,16 @@ def save_draft(to: Any, subject: Any, body: Any, cc: Any = "", reply_id: Any = "
 
 
 # ---------------- after the AI has seen an email ----------------
-def seen_by_ai() -> None:
-    global _SEEN_AT
-    _SEEN_AT = time.monotonic()
+_WHY = "An email or a meeting was read in this conversation"
+
+
+def seen_by_ai(why: str = "An email or a meeting was read in this conversation") -> None:
+    global _SEEN_AT, _WHY
+    _SEEN_AT, _WHY = time.monotonic(), why
+
+
+def why_seen() -> str:
+    return _WHY
 
 
 def clear_seen() -> None:

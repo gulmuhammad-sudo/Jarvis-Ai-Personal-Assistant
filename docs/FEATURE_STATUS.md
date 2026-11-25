@@ -46,7 +46,7 @@ audio, installer, uninstaller, packaged-exe smoke test). They are being moved in
 | 18 | Proactive intelligence and alerts | PARTIALLY IMPLEMENTED | `jarvis/schedule.py`, `jarvis/alerts.py`, `jarvis/hud.py` | 38 | regression (alerts parts) | Battery, prayers, alarms, briefing, overload alerts. Missing: user-configurable alert rules |
 | 19 | Multilingual (English, Urdu, Roman Urdu, Hindi, Arabic) | IMPLEMENTED BUT NEEDS TESTING | `jarvis/languages.py`, `jarvis/urdu.py`, `jarvis/stt.py`, `jarvis/tts.py` | — | Session checks for Urdu script / Roman Urdu rewrites | 19 languages + any typed language. Add unit tests (started in `tests/`) |
 | 20 | Controlled autonomous multi-step tasks | IMPLEMENTED BUT NEEDS TESTING | `jarvis/plans.py`, tools `make_plan` / `plan_step`, plan card, Settings › Permissions › Plans; approvals, `tools.STOP` | 6, 101 | test_automations (plans), test_guard_audit (stop) | 1.18.0: the assistant shows its steps and asks first (or per step, or only shows). 1.20.0: a refusal holds in code. Tried with Gemini (plan, refusal, per step) and Groq (refusal). Whether a plan is made is up to the AI; risky tools ask on their own either way. Not tried in Live calls |
-| 21 | Secure remote access / web interface | NOT IMPLEMENTED | `jarvis/hud.py` binds 127.0.0.1 only (deliberately) | 26, 28 | — | Needs device pairing + TLS before exposing anything beyond this PC |
+| 21 | Secure remote access / web interface | IMPLEMENTED BUT NEEDS TESTING | `remote.py`, `remote.html`, `access.py`, `qr.py`, Settings › Devices | 26, 28 | test_remote_api.py; phone page in the test copy | A real phone in the Wi-Fi; Windows' firewall question; Tailscale |
 | 22 | Local-first privacy | PARTIALLY IMPLEMENTED | `jarvis/config.py`, `jarvis/keystore.py`, `jarvis/local_ai.py`, Settings › Privacy | 5, 98 | test_keystore, test_storage | Keys encrypted; local AI keeps conversations on the PC; history can be switched off/cleared. Cloud AIs still receive messages when used |
 | 23 | Custom wake word, local detection | IMPLEMENTED BUT NEEDS TESTING | `jarvis/wake.py`, `jarvis/hud.py` (standby, `_check_wake`), `jarvis/local_stt.py` | — | Session wake-word test passed (cloud); local path not yet tried with a real voice | Any name works. 1.10.0: with Speech to text = This PC (or offline) the name check runs locally. Needs a real-voice run on the laptop |
 | 24 | Advanced developer mode | NOT IMPLEMENTED | — | 50, 91 | — | — |
@@ -136,7 +136,7 @@ audio, installer, uninstaller, packaged-exe smoke test). They are being moved in
 
 | # | Decision | Status | Source files | Depends on | Tests | Remaining / next action |
 |---|---|---|---|---|---|---|
-| 91 | API and developer integration center | NOT IMPLEMENTED | — | 26 | — | — |
+| 91 | API and developer integration center | IMPLEMENTED BUT NEEDS TESTING | `devapi.py`, /v1, Settings › API | 26 | test_remote_api.py | Real AI with /v1/ask; plugins of others |
 | 92 | Knowledge sharing and export | NOT IMPLEMENTED | — | 9 | — | — |
 | 93 | Accessibility center | PARTIALLY IMPLEMENTED | voice control, RTL Urdu, light/dark | — | none | No screen-reader labels audit, no font-size setting |
 | 94 | No live-streaming studio | NOT APPLICABLE | — | — | — | Excluded |
@@ -151,7 +151,7 @@ audio, installer, uninstaller, packaged-exe smoke test). They are being moved in
 | 103 | Knowledge and skill expansion | PARTIALLY IMPLEMENTED | `jarvis/skills.py`, `storage.py` (table `skills`), tools `use_skill` / `save_skill`, Tools & Skills page | 100 | test_skills_graph 11 | 1.15.0: your own skills — Rules (every reply) and Routines (run by name or the Run button), on/off, edit, delete; the AI can save one only after you approve. Missing: importing documents as knowledge, shareable skill packs |
 | 104 | User understanding for all user types | PARTIALLY IMPLEMENTED | same as 100 | 100 | none | Same engine as 100 |
 | 105 | Personality and emotional intelligence | NOT IMPLEMENTED | — | 16 | — | — |
-| 106 | Universal device and app integration | NOT IMPLEMENTED | — | 91 | — | — |
+| 106 | Universal device and app integration | PARTIALLY IMPLEMENTED | `connections.py`, tool `connection` | 91 | test_remote_api.py (a pretend service) | The real services; reading from devices; more kinds |
 | 107 | Universal command and search bar | PARTIALLY IMPLEMENTED | top input box (Ctrl+K) in `jarvis/hud.html` | 109 | none | Sends to the assistant; doesn't search settings, memories or history |
 | 108 | Workflow marketplace and templates | PARTIALLY IMPLEMENTED | templates, export / import in `jarvis/automations.py` | 35 | test_automations | 1.18.0: 4 templates, sharing as text (imports are checked and arrive off). No online marketplace |
 | 109 | Command history and activity timeline | IMPLEMENTED BUT NEEDS TESTING | `jarvis/timeline.py`, tool `history`, Privacy › Timeline | — | test_privacy, running app | 1.31.0: days, search, kinds, take out, CSV, ask again, most used. Tool not tried with a real AI |

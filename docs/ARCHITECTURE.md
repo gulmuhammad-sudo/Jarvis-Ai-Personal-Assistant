@@ -34,6 +34,11 @@ One Python process (`Personal Assistant.exe`, or `pythonw -m jarvis` from source
      ├── netlog.py                 what goes out, and Local only
      ├── privacy.py                microphone and screen uses, what is kept, how long
      ├── timeline.py               everything that happened, day by day
+     ├── access.py                 paired devices, API keys, connections (access.dat)
+     ├── remote.py, remote.html    the door for phones: HTTPS in the home network, its own few requests
+     ├── devapi.py                 /v1 for your own programs on this PC
+     ├── connections.py            a text to other services and devices
+     ├── qr.py                     QR picture
      ├── backup.py                 encrypted backups, restore points, putting back before anything is opened
      ├── doctor.py                 looks at every part, repairs, crash sign, report
      ├── vault.py                  passwords, cards, papers, notes, files: encrypted, no way in for the AI

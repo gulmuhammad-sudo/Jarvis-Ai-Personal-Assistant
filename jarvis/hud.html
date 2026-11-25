@@ -743,7 +743,7 @@ svg.ic { transition: transform .28s cubic-bezier(.3, 1.5, .5, 1), color .2s, fil
 @keyframes icDrop { 40% { transform: translateY(3px); } }
 /* settings: tabs with icons, every row = label on the left, controls on the right */
 .settab { display: inline-flex; align-items: center; justify-content: center; gap: 7px; }
-.settab svg.ic { width: 15px; height: 15px; }
+.settab svg.ic { width: 15px; height: 15px; } .settings .settabs { gap: 3px; } .settings .settab { padding: 8px 7px; gap: 5px; }
 .settab.on { box-shadow: inset 0 -2px 0 var(--cyan), 0 0 16px rgba(var(--c-accent), .12); }
 .settings h4.sec { display: flex; align-items: center; gap: 8px; }
 .settings h4.sec svg.ic { width: 15px; height: 15px; padding: 4px; border-radius: 7px; box-sizing: content-box;
@@ -761,6 +761,11 @@ svg.ic { transition: transform .28s cubic-bezier(.3, 1.5, .5, 1), color .2s, fil
 .hcrow em { min-width: 58px; text-align: right; } .hcrow.warn em { color: var(--amber); } .hcrow.bad em { color: var(--red); }
 .bkpw { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin: 0; } .hcbox .bkpw { margin: 4px 0 8px; } .setrow .bkpw input.txt { width: 150px; } .hcbox input.txt { height: 36px; width: 220px; max-width: 100%; border-radius: 10px; border: 1px solid var(--hair-2); background: var(--bg); color: var(--text); padding: 0 12px; font: 14px var(--sans); outline: none; } .hcbox input.txt:focus { border-color: rgba(var(--c-accent), .5); }
 .bkpart { display: flex; gap: 9px; align-items: flex-start; padding: 6px 0; font-size: 13.5px; cursor: pointer; } .bkpart input { margin-top: 3px; } .bkpart small { display: block; color: var(--muted); font-size: 12.5px; }
+.dvcode { display: flex; gap: 18px; align-items: center; flex-wrap: wrap; padding: 8px 0; } .dvqr { width: 190px; max-width: 100%; line-height: 0; } .dvqr svg { width: 100%; border-radius: 8px; } .dvcode > div:last-child { flex: 1; min-width: 200px; } .dvbig { font: 600 30px/1.3 var(--mono); letter-spacing: .12em; display: block; } .dvcode small { display: block; color: var(--muted); font-size: 13px; margin: 6px 0 10px; line-height: 1.5; }
+.dvline { align-items: flex-start; } .dvrights { display: flex; flex-wrap: wrap; gap: 4px 16px; margin-top: 4px; font-size: 13px; color: var(--muted); } .dvrights label { display: flex; gap: 6px; align-items: center; cursor: pointer; }
+.cnf { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px 12px; margin: 4px 0 8px; } .cnf label { display: grid; gap: 3px; font-size: 12.5px; color: var(--muted); } .cnf input.txt { width: 100%; } .cnf .bkpw { grid-column: 1 / -1; } @media (max-width: 760px) { .cnf { grid-template-columns: 1fr; } }
+.apsc { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 14px; margin: 4px 0; } @media (max-width: 760px) { .apsc { grid-template-columns: 1fr; } } .apnew { font: 13px var(--mono); padding: 10px 12px; border: 1px dashed var(--hair-2); border-radius: 10px; margin-bottom: 10px; overflow-wrap: anywhere; user-select: all; } .hcbox summary { cursor: pointer; padding: 8px 0; font-size: 14px; }
+.hcbox select { height: 36px; }
 .bkmsg { scroll-margin: 70px 0 20px; min-height: 20px; margin: 2px 2px 8px; font-size: 13.5px; color: var(--red); overflow-wrap: anywhere; } .bkmsg.ok { color: var(--green); } .bkmsg:empty { min-height: 0; margin: 0; }
 .setrow.wide > .ctrl { justify-content: flex-start; }
 .setrow select, .setrow .txt, .setrow .btn { height: 36px; }
@@ -1727,7 +1732,7 @@ body.focus .hero { background: none; box-shadow: none; }
       <section class="card page">
         <h3>Settings <span class="more" id="appVer" style="cursor:default"></span></h3>
         <div class="body"><div class="settings">
-          <div class="settabs" role="tablist" aria-label="Settings sections"><button class="settab" role="tab" data-settab="general">General</button><button class="settab" role="tab" data-settab="voice">Voice &amp; Mic</button><button class="settab" role="tab" data-settab="ai">AI</button><button class="settab" role="tab" data-settab="privacy">Privacy</button><button class="settab" role="tab" data-settab="permissions">Permissions</button><button class="settab" role="tab" data-settab="alerts">Alerts</button><button class="settab" role="tab" data-settab="backup">Backup</button><button class="settab" role="tab" data-settab="health">Health</button></div>
+          <div class="settabs" role="tablist" aria-label="Settings sections"><button class="settab" role="tab" data-settab="general">General</button><button class="settab" role="tab" data-settab="voice">Voice &amp; Mic</button><button class="settab" role="tab" data-settab="ai">AI</button><button class="settab" role="tab" data-settab="privacy">Privacy</button><button class="settab" role="tab" data-settab="permissions">Permissions</button><button class="settab" role="tab" data-settab="alerts">Alerts</button><button class="settab" role="tab" data-settab="backup">Backup</button><button class="settab" role="tab" data-settab="health">Health</button><button class="settab" role="tab" data-settab="devices">Devices</button><button class="settab" role="tab" data-settab="dev">API</button></div>
           <div class="setgroup" data-setgroup="general" role="tabpanel">
           <h4 class="sec">ASSISTANT</h4>
           <div class="setrow"><div class="lbl"><b>Name</b><small id="agentMsg">What your assistant is called everywhere: in replies, on calls and on this screen. You can also just say "your name is Maya now".</small></div>
@@ -1867,6 +1872,31 @@ body.focus .hero { background: none; box-shadow: none; }
           <div class="hcbox" id="hcFix"></div>
           <h4 class="sec">WINDOWS' OWN TOOLS</h4>
           <div class="hcbox hcwin" id="hcWin"></div>
+
+          </div>
+          <div class="setgroup" data-setgroup="devices" role="tabpanel">
+          <h4 class="sec">PHONES AND OTHER PCS</h4>
+          <div class="setrow"><div class="lbl"><b>Let my devices in</b><small id="dvInfo">Off: nothing can come in. On: your phone reaches this app in your own Wi-Fi, encrypted. Nothing is opened to the internet.</small></div><button class="btn switch" id="dvOn" role="switch" aria-label="Let my devices in">Off</button></div>
+          <div class="setrow" id="dvAddrRow" hidden><div class="lbl"><b>Address</b><small id="dvAddr" style="overflow-wrap:anywhere"></small></div><input class="txt" id="dvPort" inputmode="numeric" maxlength="5" aria-label="Port" style="width:90px"><button class="btn" id="dvPortSet">Change port</button></div>
+          <div class="setrow" id="dvVpnRow" hidden><div class="lbl"><b>Also over my private VPN</b><small>For Tailscale (free): then it works away from home too, still without opening the router.</small></div><button class="btn switch" id="dvVpn" role="switch" aria-label="Also over my private VPN">Off</button></div>
+          <div class="bkmsg" id="dvMsg" role="status"></div>
+          <div class="hcbox" id="dvPair" hidden></div>
+          <h4 class="sec">PAIRED</h4>
+          <div class="hcbox" id="dvList"></div>
+          <div class="setrow"><div class="lbl"><b>Add a phone</b><small>Shows a code for three minutes. You allow the phone here before it gets in.</small></div><button class="btn on" id="dvAdd"><i data-ic="phone"></i>Add a phone</button></div>
+
+          </div>
+          <div class="setgroup" data-setgroup="dev" role="tabpanel">
+          <h4 class="sec">CONNECTIONS</h4>
+          <div class="setrow"><div class="lbl"><b>Send a text to other services and devices</b><small>A notice on your phone, Telegram, Discord, Slack, Home Assistant, any address. The assistant asks before every sending and never sees the secrets.</small></div><select id="cnKind" aria-label="Kind of connection"></select><button class="btn on" id="cnAdd">Add</button></div>
+          <div class="bkmsg" id="cnMsg" role="status"></div>
+          <div class="hcbox" id="cnForm" hidden></div>
+          <div class="hcbox" id="cnList"></div>
+          <h4 class="sec">API FOR YOUR PROGRAMS</h4>
+          <div class="setrow"><div class="lbl"><b>Address</b><small><span id="apAddr" style="font-family:var(--mono)"></span> · only from this PC, never from a web page</small></div><button class="btn" id="apCopy">Copy example</button></div>
+          <div class="hcbox"><form class="bkpw" id="apForm" autocomplete="off" style="margin-top:8px"><input class="txt" id="apName" maxlength="40" placeholder="Name of the program" aria-label="Name of the program"><select id="apDays" aria-label="Good for"><option value="0">Good until removed</option><option value="30">30 days</option><option value="90">90 days</option><option value="365">One year</option></select><button class="btn on" type="submit">Make a key</button></form><div id="apScopes" class="apsc"></div><div class="bkmsg" id="apMsg" role="status"></div><div id="apNew" class="apnew" hidden></div></div>
+          <div class="hcbox" id="apList"></div>
+          <div class="hcbox"><details><summary>What a program can call</summary><div id="apRoutes"></div></details></div>
 
           </div>
         </div></div>
@@ -2013,6 +2043,7 @@ const ICONS = {
   stop: "M7 7h10v10H7z",
   chat: "M4 5h16v11H9l-5 4z",
   db: "M12 3c4.4 0 8 1.3 8 3s-3.6 3-8 3-8-1.3-8-3 3.6-3 8-3zM4 6v6c0 1.7 3.6 3 8 3s8-1.3 8-3V6M4 12v6c0 1.7 3.6 3 8 3s8-1.3 8-3v-6",
+  phone: "M8 2h8a1 1 0 0 1 1 1v18a1 1 0 0 1-1 1H8a1 1 0 0 1-1-1V3a1 1 0 0 1 1-1zM11 18.5h2",
   wrench: "M14.7 6.3a4 4 0 0 0-5.4 5.4L3 18l3 3 6.3-6.3a4 4 0 0 0 5.4-5.4l-2.5 2.5-2.4-.6-.6-2.4z",
   layers: "M12 3l9 5-9 5-9-5zM3 13l9 5 9-5",
   gear: "M12 9a3 3 0 1 0 0 6 3 3 0 0 0 0-6zM12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9 7 7M17 17l2.1 2.1M4.9 19.1 7 17M17 7l2.1-2.1",
@@ -2105,7 +2136,7 @@ function nowT() { return new Date().toLocaleTimeString([], { hour: "2-digit", mi
 
 // ---------- navigation ----------
 function go(view) {
-  if (view === "backup" || view === "health") { go("settings"); return setTab(view); }
+  if (["backup", "health", "devices", "dev"].includes(view)) { go("settings"); return setTab(view); }
   if (xpEl) xpClose(true);
   if (view !== "dash") $("subs").classList.remove("show");
   document.querySelectorAll(".view").forEach(v => v.classList.toggle("active", v.dataset.view === view));
@@ -2334,14 +2365,14 @@ function handleOne(ev) {
   switch (ev.type) {
     case "activity_removed": feedGone(ev.ids); break;
     case "user":
-      addMsg("user", ev.text, ev.source === "live" ? "YOU · LIVE" : ev.source === "voice" ? "YOU · VOICE" : "YOU", ev.id);
+      addMsg("user", ev.text, ev.source === "live" ? "YOU · LIVE" : ev.source === "voice" ? "YOU · VOICE" : ev.source === "phone" ? "YOU · PHONE" : ev.source === "api" ? "A PROGRAM" : ev.source === "pc" ? "ANOTHER PC" : "YOU", ev.id);
       if (!replaying) convo.lastWasVoice = ev.source === "voice";
       break;
     case "jarvis": {
       const label = ev.provider ? `${AGENT_UP} · ${ev.provider.toUpperCase()}` : AGENT_UP;
       addMsg("jarvis", ev.text, label, ev.id);
       lastJarvisId = ev.id || null;
-      if (!replaying && !ev.live) speak(ev.text);       // Live answers are already spoken by Jarvis himself
+      if (!replaying && !ev.live && !ev.quiet) speak(ev.text);       // Live answers are already spoken by Jarvis himself
       break;
     }
     case "tool": {
@@ -5528,10 +5559,10 @@ loadMics();
     "PLAYING ON THIS PC": "speaker", "PLAYER": "play", "MY LIBRARY": "layers", "PLAYLISTS": "tasks", "RADIO": "wifi", "FOLDERS": "note", "RECORD THE SCREEN": "pc", "RECORDINGS": "layers",
     "MAKE A PICTURE": "zap", "MY PICTURES": "layers", "EDIT": "edit",
     "PRIVACY LOCK": "lock", "WHO MAY READ WHAT": "eye", "WHERE IT WENT TO": "globe", "THE LAST 14 DAYS": "clock", "ABOUT THIS LIST": "note", "THIS APP": "mic", "ALL PROGRAMS": "pc", "EACH KIND OF ACTION": "check", "WHAT IS KEPT": "db", "HOW LONG": "clock",
-    "BACKUP": "db", "PUT BACK": "refresh", "HEALTH": "shield", "REPAIR": "wrench", "WINDOWS' OWN TOOLS": "pc",
+    "PHONES AND OTHER PCS": "phone", "PAIRED": "check", "CONNECTIONS": "globe", "API FOR YOUR PROGRAMS": "layers", "BACKUP": "db", "PUT BACK": "refresh", "HEALTH": "shield", "REPAIR": "wrench", "WINDOWS' OWN TOOLS": "pc",
     "RECORDINGS OF YOUR VOICE": "mic", "TIMELINE": "clock", "YOU ASK OFTEN": "chat" };
   document.querySelectorAll("h4.sec").forEach(h => { const n = SEC[(h.firstChild ? h.firstChild.textContent : "").trim().toUpperCase()]; if (n) h.insertAdjacentHTML("afterbegin", icon(n)); });
-  const TAB = { general: "gear", voice: "mic", ai: "layers", privacy: "shield", permissions: "check", alerts: "bell", backup: "db", health: "shield" };
+  const TAB = { general: "gear", voice: "mic", ai: "layers", privacy: "shield", permissions: "check", alerts: "bell", backup: "db", health: "shield", devices: "phone", dev: "layers" };
   document.querySelectorAll("[data-settab]").forEach(b => b.insertAdjacentHTML("afterbegin", icon(TAB[b.dataset.settab] || "info")));
   document.querySelectorAll(".settings .setrow").forEach(row => {       // label left, all controls together on the right
     const items = [...row.children].filter(c => !c.classList.contains("lbl") && !(c.tagName === "INPUT" && c.type === "file"));
@@ -5555,7 +5586,7 @@ let bkD = null, bkIn = null, hcD = null, hcBusy = false;
 const bkTell = (t, good = false, id = "bkMsg") => { $(id).textContent = t || ""; $(id).classList.toggle("ok", good); if (t) $(id).scrollIntoView({ block: "nearest", behavior: "smooth" }); };
 async function bkPost(action, body = {}, page = "backup") {
   const r = await post(`/api/${page}/${action}`, body), j = r ? await r.json().catch(() => ({ error: "The app didn't answer." })) : { error: "The app didn't answer." };
-  if (j.error) bkTell(j.error, false, page === "backup" ? "bkMsg" : "hcMsg");
+  if (j.error && (page === "backup" || page === "health")) bkTell(j.error, false, page === "backup" ? "bkMsg" : "hcMsg");
   return j;
 }
 function bkAgain(text, id = "bkMsg") {                                    // the app closes and opens again: in a browser the page comes back by itself
@@ -5632,7 +5663,71 @@ async function hcRepair(what) {
 }
 $("hcRun").onclick = () => { bkTell("", false, "hcMsg"); hcLoad(); };
 $("hcRep").onclick = async () => { const j = await bkPost("report", {}, "health"); if (!j.error) bkTell(`Saved without names, keys or texts: ${j.path}`, true, "hcMsg"); };
-function setLoad() { if (!document.querySelector('.view.active[data-view="settings"]')) return; if (setCur === "backup") bkLoad(); if (setCur === "health") hcLoad(); }
+// ---------- settings: devices ----------
+let dvD = null, dvTimer = 0, cnD = null, cnEdit = null;
+async function dvPost(action, body = {}) { const j = await bkPost(action, body, "devices"); if (j.error) bkTell(j.error, false, "dvMsg"); else { dvD = j; dvDraw(); } return j; }
+const dvSeen = t => pvAgo((t || "").replace("T", " "));
+function dvDraw() {
+  const d = dvD, s = d.status, p = d.pairing;
+  pvSw($("dvOn"), s.on); pvSw($("dvVpn"), s.vpn); $("dvAddrRow").hidden = $("dvVpnRow").hidden = !s.on; $("dvAdd").disabled = !s.running;
+  $("dvInfo").textContent = s.local_only ? "Local only is on (Privacy), so nothing comes in." : s.on ? (s.running ? "On. Windows may ask once whether this app may use the network: allow it for private networks." : s.error || "It isn't running.") : "Off: nothing can come in. On: your phone reaches this app in your own Wi-Fi, encrypted. Nothing is opened to the internet.";
+  $("dvAddr").textContent = s.addresses.length ? `https://${s.addresses[0]}:${s.port}  ·  the browser warns once, because this PC made its certificate itself. Its mark: ${s.pin}` : "This PC isn't in a network now.";
+  if (document.activeElement !== $("dvPort")) $("dvPort").value = s.port;
+  const names = { phone: d.rights.phone, pc: d.rights.pc };
+  $("dvPair").hidden = !p;
+  if (p) setHTML($("dvPair"), p.asks.map(a => `<b>${esc(a.name)} wants in</b><small>${a.kind === "pc" ? "A PC" : "A phone or browser"} at ${esc(a.ip)}. Is it yours, and did you just type the code there?</small>${Object.entries(names[a.kind]).map(([k, v]) => `<label class="bkpart"><input type="checkbox" data-dvr="${k}"${k === "approve" ? "" : " checked"}> <span>${esc(v)}</span></label>`).join("")}<div class="bkpw"><button class="btn on" data-dvy="${a.id}">Allow</button><button class="btn danger" data-dvn="${a.id}">Deny</button></div>`).join("")
+    + (p.code ? `<div class="dvcode">${p.svg ? `<div class="dvqr">${p.svg}</div>` : ""}<div><b class="dvbig">${esc(p.code)}</b><small>${p.kind === "pc" ? "Type it on the other PC: Settings › Devices › Join another PC." : "Scan the picture with the phone's camera, or open the address in its browser and type the code."}<br>Good for <span id="dvLeft">${p.left}</span> more seconds, once.</small><button class="btn" id="dvStop">Cancel</button></div></div>` : ""));
+  setHTML($("dvList"), d.devices.map(x => `<div class="pvline dvline"><div><b>${esc(x.name)}</b><small>${x.kind === "pc" ? "PC" : "Phone"} · paired ${esc(dvSeen(x.added))} · last here ${esc(dvSeen(x.seen))}${x.ip ? " · " + esc(x.ip) : ""}${x.old ? " · too long away: pair it again" : ""}</small><span class="dvrights">${Object.entries(names[x.kind]).map(([k, v]) => `<label><input type="checkbox" data-dvset="${x.id}" value="${k}"${x.rights.includes(k) ? " checked" : ""}> ${esc(v)}</label>`).join("")}</span></div><button class="btn danger" data-dvx="${x.id}">Remove</button></div>`).join("") || '<div class="empty">Nothing is paired.</div>');
+  document.querySelectorAll("[data-dvy]").forEach(b => b.onclick = () => dvPost("answer", { id: b.dataset.dvy, allow: true, rights: [...document.querySelectorAll("[data-dvr]")].filter(c => c.checked).map(c => c.dataset.dvr) }));
+  document.querySelectorAll("[data-dvn]").forEach(b => b.onclick = () => dvPost("answer", { id: b.dataset.dvn, allow: false }));
+  document.querySelectorAll("[data-dvset]").forEach(c => c.onchange = () => dvPost("rights", { id: c.dataset.dvset, rights: [...document.querySelectorAll(`[data-dvset="${c.dataset.dvset}"]`)].filter(x => x.checked).map(x => x.value) }));
+  document.querySelectorAll("[data-dvx]").forEach(b => b.onclick = () => lnArm2("dv" + b.dataset.dvx, b, "Remove it?", async () => { const j = await dvPost("remove", { id: b.dataset.dvx }); if (!j.error) bkTell("Removed. It can't come in any more.", true, "dvMsg"); }));
+  if ($("dvStop")) $("dvStop").onclick = () => dvPost("pair_stop");
+  clearTimeout(dvTimer); if (p && setCur === "devices") dvTimer = setTimeout(dvWatch, 1200);
+}
+async function dvWatch() {                                                  // while a code is open: who is asking?
+  if (setCur !== "devices" || !document.querySelector('.view.active[data-view="settings"]')) return;
+  const r = await post("/api/devices/load", {}), j = r && r.ok ? await r.json().catch(() => null) : null; if (!j) return;
+  const same = JSON.stringify([j.pairing && j.pairing.code, j.pairing && j.pairing.asks, j.devices.length]) === JSON.stringify([dvD.pairing && dvD.pairing.code, dvD.pairing && dvD.pairing.asks, dvD.devices.length]);
+  dvD = j; if (!same) return dvDraw();                                      // (what you ticked isn't drawn over)
+  if ($("dvLeft") && j.pairing) $("dvLeft").textContent = j.pairing.left; if (j.pairing) dvTimer = setTimeout(dvWatch, 1200);
+}
+$("dvOn").onclick = async () => { const on = !$("dvOn").classList.contains("on"); const j = await dvPost("save", { on }); if (!j.error) bkTell(on ? "On. Now add a phone." : "Off. Nothing can come in.", true, "dvMsg"); };
+$("dvVpn").onclick = () => dvPost("save", { vpn: !$("dvVpn").classList.contains("on") });
+$("dvPortSet").onclick = async () => { const j = await dvPost("save", { port: +$("dvPort").value }); if (!j.error) bkTell(`Now on port ${j.status.port}.`, true, "dvMsg"); };
+$("dvAdd").onclick = async () => { bkTell("", false, "dvMsg"); const j = await dvPost("pair", { kind: "phone" }); if (!j.error) $("dvPair").scrollIntoView({ block: "nearest", behavior: "smooth" }); };
+// ---------- settings: API and connections ----------
+async function cnPost(action, body = {}, where = "cnMsg") { const j = await bkPost(action, body, "dev"); if (j.error) bkTell(j.error, false, where); else { cnD = j; cnDraw(); } return j; }
+function cnDraw() {
+  const d = cnD, kind = id => d.kinds.find(k => k.id === id);
+  if (!$("cnKind").options.length) setHTML($("cnKind"), d.kinds.map(k => `<option value="${k.id}">${esc(k.name)}</option>`).join(""));
+  setHTML($("cnList"), d.connections.map(c => `<div class="pvline"><div><b>${esc(c.name)}</b><small>${esc([kind(c.kind).name, c.host, c.about, c.used ? `${c.last} ${dvSeen(c.used)}` : "not used yet", c.on ? "" : "off"].filter(Boolean).join(" · "))}</small></div><button class="btn" data-cnt="${c.id}">Test</button><button class="btn" data-cne="${c.id}">Edit</button><button class="btn" data-cno="${c.id}">${c.on ? "Turn off" : "Turn on"}</button><button class="btn danger" data-cnx="${c.id}">Delete</button></div>`).join("") || '<div class="empty">No connections.</div>');
+  const on = (k, fn) => document.querySelectorAll(`[data-${k}]`).forEach(b => b.onclick = () => fn(b.dataset[k], b)), one = id => d.connections.find(c => c.id === id);
+  on("cnt", async (id, b) => { b.disabled = true; bkTell("Sending…", true, "cnMsg"); const j = await cnPost("test", { id }); if (!j.error) bkTell(j.said, true, "cnMsg"); else cnPost("load"); b.disabled = false; });
+  on("cne", id => cnOpen(one(id).kind, one(id))); on("cno", id => cnPost("on", { id, on: !one(id).on })); on("cnx", (id, b) => lnArm("cn" + id, b, () => cnPost("delete", { id })));
+  $("apAddr").textContent = `http://127.0.0.1:${d.port}/v1/`;
+  if (!$("apScopes").children.length) setHTML($("apScopes"), Object.entries(d.scopes).map(([k, v]) => `<label class="bkpart"><input type="checkbox" value="${k}"${k === "status" ? " checked" : ""}> <span>${esc(v)}</span></label>`).join(""));
+  setHTML($("apList"), d.keys.map(k => `<div class="pvline"><div><b>${esc(k.name)}</b><small>${esc(k.scopes.join(", "))} · ${k.ended ? "ended" : k.until ? "good until " + esc(k.until.slice(0, 10)) : "good until removed"} · ${k.n ? `used ${k.n}×, last ${esc(dvSeen(k.used))}` : "not used yet"}</small></div><button class="btn danger" data-apx="${k.id}">Remove</button></div>`).join("") || '<div class="empty">No keys.</div>');
+  on("apx", (id, b) => lnArm2("ap" + id, b, "Remove it?", () => cnPost("key_remove", { id }, "apMsg")));
+  setHTML($("apRoutes"), d.routes.map(r => `<div class="pvline"><div><b style="font-family:var(--mono);font-size:13px">${r.method} ${esc(r.path)}</b><small>${esc(r.about)}</small></div><em>${esc(r.scope)}</em></div>`).join("") + '<small class="dxnote">Everything in machine form: /v1/openapi.json</small>');
+}
+function cnOpen(kindId, c = null) {
+  const k = cnD.kinds.find(x => x.id === kindId), f = $("cnForm"); cnEdit = c; f.hidden = false;
+  f.innerHTML = `<b>${esc(k.name)}</b><small>${esc(k.help)}</small><form class="cnf" autocomplete="off"><label>Name<input class="txt" id="cnN" maxlength="40" placeholder="What you call it"></label><label>What it is for<input class="txt" id="cnA" maxlength="120" placeholder="So the assistant knows when"></label>`
+    + k.fields.map(x => `<label>${esc(x.label)}<input class="txt" data-cnf="${x.id}" ${x.secret ? `type="password" autocomplete="new-password"${c ? ' placeholder="unchanged"' : ""}` : ""} maxlength="2000" spellcheck="false"></label>`).join("") + `<div class="bkpw"><button class="btn on" type="submit">Save</button><button class="btn" type="button" id="cnNo">Cancel</button></div></form>`;
+  if (c) { $("cnN").value = c.name; $("cnA").value = c.about; document.querySelectorAll("[data-cnf]").forEach(i => { i.value = c.values[i.dataset.cnf] || ""; }); }
+  $("cnNo").onclick = () => { f.hidden = true; f.innerHTML = ""; bkTell("", false, "cnMsg"); };
+  f.querySelector("form").onsubmit = async e => { e.preventDefault(); const values = {}; document.querySelectorAll("[data-cnf]").forEach(i => { values[i.dataset.cnf] = i.value; }); const j = await cnPost("save", { id: c ? c.id : "", kind: kindId, name: $("cnN").value, about: $("cnA").value, values }); if (!j.error) { f.hidden = true; f.innerHTML = ""; bkTell("Saved. Press Test to try it.", true, "cnMsg"); } };
+  $("cnN").focus(); f.scrollIntoView({ block: "nearest", behavior: "smooth" });
+}
+$("cnAdd").onclick = () => cnOpen($("cnKind").value);
+$("apForm").onsubmit = async e => {
+  e.preventDefault(); const scopes = [...document.querySelectorAll("#apScopes input")].filter(c => c.checked).map(c => c.value), j = await cnPost("key", { name: $("apName").value, days: +$("apDays").value, scopes }, "apMsg"); if (j.error) return;
+  $("apName").value = ""; bkTell("Copy it now: it isn't shown again.", true, "apMsg"); $("apNew").hidden = false; $("apNew").textContent = j.made.key;
+  setTimeout(() => { $("apNew").hidden = true; $("apNew").textContent = ""; bkTell("", false, "apMsg"); }, 120000);
+};
+$("apCopy").onclick = async () => { const t = `Invoke-RestMethod http://127.0.0.1:${cnD ? cnD.port : 8765}/v1/ask -Method Post -Headers @{Authorization="Bearer YOUR_KEY"} -ContentType application/json -Body '{"text":"What is on my list today?"}'`; try { await navigator.clipboard.writeText(t); bkTell("Copied (PowerShell).", true, "apMsg"); } catch (e) { bkTell(t, true, "apMsg"); } };
+function setLoad() { if (!document.querySelector('.view.active[data-view="settings"]')) return; if (setCur === "backup") bkLoad(); if (setCur === "health") hcLoad(); if (setCur === "devices") dvPost("load"); if (setCur === "dev") cnPost("load"); }
 
 // ---------- settings tabs ----------
 function setTab(name) {

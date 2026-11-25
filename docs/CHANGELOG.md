@@ -2,6 +2,21 @@
 
 Each version is also a git tag (`git tag -n20 vX.Y.Z` shows its notes). Newest first.
 
+## 1.31.6 — 2026-11-25 (not pushed yet)
+Phone access, API and connections (Phase 9 part 4).
+- Settings › Devices (off by default): your phone reaches the app in your own Wi-Fi, encrypted (HTTPS with this PC's own key). A QR
+  picture or a code good once for three minutes; you allow each phone here. A small page: chat, tasks and agenda, Stop, and, only if you
+  allow it, answering questions. Rights per phone, changed or taken away at once. Nothing is opened to the internet; Tailscale if you
+  turn that on.
+- Never reachable from outside: the vault, settings, files, permissions, the lock. While the app is locked only Stop works. Local only
+  closes the door.
+- Also where the router hands out unusual numbers: the app knows the network it is in.
+- Settings › API: keys for your own programs on this PC, each with its own scopes and an end; ask, notices, tasks, agenda, notes,
+  memories. A program can't undo Stop, and what it wrote makes the assistant ask before it goes online.
+- Connections: ntfy, Home Assistant, Telegram, Discord, Slack, any address. The assistant asks before every sending and never sees the
+  secrets.
+- What was asked from a phone or by a program isn't read out loud into the room.
+
 ## 1.31.5 — 2026-11-25 (not pushed yet)
 Backup, health and repair (Phase 9 part 3).
 - Settings › Backup: one button makes one encrypted file with conversations, memories, planner, notes, settings and the vault (still

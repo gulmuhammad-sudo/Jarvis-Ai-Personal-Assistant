@@ -26,7 +26,7 @@ from urllib.parse import parse_qs, quote
 
 from . import __version__
 from . import live as live_mod
-from . import agents, alerts, approvals, audit, automations, backup, clock, denoise, docindex, doctor, fit, gpu, guard, hello, images, languages, learn, life, local_ai, lock, mail, local_stt, local_tts, media, meet, memory, netlog, news, notes, people, planner, plans, privacy, schedule, screenrec, netcheck, skills, software, stt, storage, timeline, tools, travel, tts, urdu, vault, wake, winmgr
+from . import access, agents, alerts, approvals, audit, automations, backup, clock, connections, denoise, devapi, docindex, doctor, fit, gpu, guard, hello, images, languages, learn, life, local_ai, lock, mail, local_stt, local_tts, media, meet, memory, netlog, news, notes, people, planner, plans, privacy, qr, remote, schedule, screenrec, netcheck, skills, software, stt, storage, timeline, tools, travel, tts, urdu, vault, wake, winmgr
 from .brain import make_brain
 from .config import NOTES_DIR
 from .providers import provider_status
@@ -59,7 +59,8 @@ class Hub:
     def __init__(self) -> None:
         self.subscribers: list[queue.Queue] = []
         self.sub_lock = threading.Lock()
-        self.inbox: queue.Queue[str] = queue.Queue()
+        self.inbox: queue.Queue[tuple[str, str, dict | None]] = queue.Queue()      # (text, where it came from, who waits for the answer)
+        self._now_from, self._now_slot = "", None            # the message the AI is answering
         self.pending: dict[str, dict] = {}  # confirm id -> {"event", "allow"}
         self.state = "idle"  # idle | listening | thinking
         # spoken replies: as you left them (demo copies with JARVIS_NO_SPEAK=1 stay quiet)
@@ -193,7 +194,10 @@ class Hub:
     def on_text(self, text: str) -> None:
         # The HUD page speaks replies itself (natural neural voice in Edge).
         rid = self._next_id()
-        self.emit("jarvis", keep=True, text=text, provider=getattr(self.brain, "current", ""), id=rid)
+        away = self._now_from in self.AWAY                   # (asked from elsewhere: shown, not said out loud into the room)
+        self.emit("jarvis", keep=True, text=text, provider=getattr(self.brain, "current", ""), id=rid, **({"quiet": True} if away else {}))
+        if self._now_slot is not None:
+            self._now_slot["texts"].append(text)
         self._chat_script_later(rid, text)                # (it is spoken as written; only the chat text changes)
         self.recent_replies = [(t, r) for t, r in self.recent_replies if time.time() - t < 120][-6:]
         self.recent_replies.append((time.time(), text))
@@ -842,6 +846,7 @@ class Hub:
         "meeting": "Reading what was said in a meeting, for an answer",
         "image_online": "Making a picture online (the words go to Pollinations.ai)",
         "history": "Reading your saved conversations, for an answer",
+        "connection": "Sending a text over one of your connections",
     }
 
     def permission(self, kind: str | None) -> str:
@@ -904,8 +909,11 @@ class Hub:
         if netlog.local_only():
             self.live_stop("Local only")
             mail.close()
-        elif self.standby_wanted():
-            self.standby_start(1)
+            threading.Thread(target=remote.stop, daemon=True).start()
+        else:
+            remote.start()
+            if self.standby_wanted():
+                self.standby_start(1)
         self.emit("settings", local_only=netlog.local_only())
         self.emit("notify", keep=True, kind="info", text="Local only is on: nothing this app does goes online." if netlog.local_only() else "Local only is off.")
 
@@ -1029,16 +1037,38 @@ class Hub:
     # ---------- workers ----------
     def brain_worker(self) -> None:
         while True:
-            text = self.inbox.get()
+            text, self._now_from, self._now_slot = self.inbox.get()
+            slot = self._now_slot
+            if slot is not None and slot["gone"]:            # whoever asked doesn't wait any more: not done behind their back
+                continue
             self.busy = True
             self.set_state("thinking")
             try:
+                if self._now_from in ("api", "pc"):
+                    mail.seen_by_ai(self.AWAY[self._now_from])
                 self.brain.ask(text)
             except Exception as e:  # keep the HUD alive whatever happens
                 self.emit("error", keep=True, text=f"{type(e).__name__}: {e}")
             finally:
                 self.busy = False
+                self._now_from, self._now_slot = "", None
+                if slot is not None:
+                    slot["event"].set()
                 self.set_state("idle")
+
+    AWAY = {"phone": "your phone", "api": "What a program of yours wrote is in this conversation", "pc": "What another of your PCs wrote is in this conversation"}
+
+    def ask_and_wait(self, text: str, source: str, seconds: float) -> dict | None:
+        """A program or another PC asks: its answer, or done=False when it takes longer. None: Stop was pressed (they can't undo that)."""
+        if lock.is_locked() or tools.STOP.is_set():
+            return None
+        slot = {"event": threading.Event(), "texts": [], "gone": False}
+        self.emit("user", keep=True, text=text, source=source, id=self._next_id())
+        self.inbox.put((text, source, slot))
+        done = slot["event"].wait(seconds)
+        if not done and not slot["texts"] and self._now_slot is not slot:
+            slot["gone"] = True                              # it was still in the queue
+        return {"done": done, "answer": "\n".join(slot["texts"]), "waiting_for_owner": bool(self.pending)}
 
     VOICE_HINT = ("[Spoken by voice: answer in one or two short, natural sentences unless the user asks "
                   "for detail; no lists or markdown.]\n")
@@ -1053,20 +1083,20 @@ class Hub:
             return
         if source != "scheduled":
             tools.STOP.clear()                 # a new instruction: Stop is over
-            plans.new_message("" if source in ("typed", "skill") else text)
+            plans.new_message("" if source in ("typed", "skill", "phone") else text)
         rid = self._next_id()
         self.emit("user", keep=True, text=text, source=source, id=rid)
         if source not in ("scheduled", "skill"):        # a skill's own text isn't you talking about yourself
             self._suggest_memory(text)
-        if source not in ("typed", "scheduled", "skill"):             # what you typed stays exactly as you typed it
+        if source not in ("typed", "scheduled", "skill", "phone"):    # what you typed stays exactly as you typed it
             self._chat_script_later(rid, text)
         if source != "scheduled":
             self.last_source = source
-        if source == "typed" and self.live and self.live.active:   # typed during a call: Jarvis answers out loud
+        if source in ("typed", "phone") and self.live and self.live.active:   # typed during a call: Jarvis answers out loud
             self._live_user = text
             self.live.send_text(text)
             return
-        self.inbox.put((self.VOICE_HINT + text) if source == "voice" else text)
+        self.inbox.put(((self.VOICE_HINT + text) if source == "voice" else text, source, None))
 
     def is_echo(self, text: str) -> bool:
         """True if the mic most likely picked up Jarvis's own voice from the speakers."""
@@ -1417,6 +1447,8 @@ class Handler(BaseHTTPRequestHandler):
         if not self._host_ok():
             return self._json({"error": "bad host"}, 403)
         path, _, query = self.path.partition("?")
+        if path.startswith("/v1/"):                        # your own programs, with a key (devapi.py)
+            return self._api_v1()
         if path == "/favicon.ico":                         # the app icon in the window / browser tab
             from .config import ICON
             try:
@@ -1829,7 +1861,7 @@ class Handler(BaseHTTPRequestHandler):
         """The Daily page's Travel, Meetings and People: your own clicks."""
         try:
             num = lambda k="id": int(data.get(k))                                        # noqa: E731
-            out = {"travel": self._travel, "meet": self._meet, "people": self._people, "media": self._media, "rec": self._rec, "images": self._images, "privacy": self._privacy, "time": self._time, "lock": self._lock_api, "backup": self._backup, "health": self._health}[page](action, data, num)
+            out = {"travel": self._travel, "meet": self._meet, "people": self._people, "media": self._media, "rec": self._rec, "images": self._images, "privacy": self._privacy, "time": self._time, "lock": self._lock_api, "backup": self._backup, "health": self._health, "devices": self._devices, "dev": self._dev}[page](action, data, num)
         except (ValueError, TypeError, KeyError, AttributeError) as e:
             return self._json({"error": str(e) if isinstance(e, ValueError) and str(e)[:1].isupper() else "Something is missing or wrong."}, 400)
         except OSError as e:
@@ -2020,6 +2052,9 @@ class Handler(BaseHTTPRequestHandler):
             {"id": "agents", "name": "Agents that may see your memories", "state": ", ".join(a["name"] for a in ag) or "none", "go": "agents"},
             {"id": "auto", "name": "Automations that are on", "state": ", ".join(a["name"] for a in au)[:200] or "none", "go": "auto"},
             {"id": "rules", "name": "Your rules it always follows", "state": ", ".join(x["name"] for x in rules)[:200] or "none", "go": "tools"},
+            {"id": "devices", "name": "Phones and PCs that may come in", "state": ", ".join(d["name"] for d in access.devices())[:200] or "none", "go": "devices"},
+            {"id": "keys", "name": "Programs with an API key", "state": ", ".join(k["name"] for k in access.keys() if not k["ended"])[:200] or "none", "go": "dev"},
+            {"id": "conns", "name": "Connections it may send a text to", "state": (", ".join(c["name"] for c in connections.listing() if c["on"])[:200] + " (asks first)") if connections.listing() else "none", "go": "dev"},
             {"id": "never", "name": "The vault, AI keys, the Gmail password, phone numbers of your people, this page", "state": "never", "go": ""},
         ]
 
@@ -2132,6 +2167,56 @@ class Handler(BaseHTTPRequestHandler):
             raise ValueError("End the Live call first.")
         if HUB.meeting_on() or HUB.screen.state() or HUB.recording:
             raise ValueError("Something is being recorded. End that first.")
+
+    @staticmethod
+    def _devices(action: str, data: dict, num) -> dict | None:
+        """Settings: Devices. Who may come in; the owner's own clicks."""
+        if action == "save":
+            remote.set_settings({k: v for k, v in data.items() if k in ("on", "vpn", "port")})
+        elif action == "pair":
+            if not remote.status()["running"]:
+                raise ValueError("Turn it on first.")
+            access.start_pairing(data.get("kind"))
+        elif action == "pair_stop":
+            access.stop_pairing()
+        elif action == "answer":
+            access.answer(data.get("id"), data.get("allow") is True, data.get("rights"))
+        elif action == "rights":
+            access.set_rights(data.get("id"), data.get("rights"))
+        elif action == "rename":
+            access.rename(data.get("id"), data.get("name"))
+        elif action == "remove":
+            access.remove(data.get("id"))
+        elif action == "firewall":
+            os.startfile("ms-settings:network-wifi")
+        elif action != "load":
+            return None
+        st, p = remote.status(), access.pairing()
+        if p and p["code"] and st["addresses"]:
+            urls = [f"https://{a}:{st['port']}/" for a in st["addresses"][:1]]
+            p["svg"] = qr.svg(f"{urls[0]}#{p['code'].replace('-', '')}") if p["kind"] == "phone" else ""
+        return {"status": st, "pairing": p, "devices": access.devices(), "rights": {"phone": access.PHONE_RIGHTS, "pc": access.PC_RIGHTS}}
+
+    @staticmethod
+    def _dev(action: str, data: dict, num) -> dict | None:
+        """Settings: API (keys for your programs, your connections to other services)."""
+        out: dict = {}
+        if action == "key":
+            out["made"] = access.make_key(data.get("name"), data.get("scopes"), data.get("days") or 0)
+        elif action == "key_remove":
+            access.remove_key(data.get("id"))
+        elif action == "save":
+            out["saved"] = connections.save(data.get("kind"), data.get("name"), data.get("about"), data.get("values"), data.get("id") or None)
+        elif action == "on":
+            connections.set_on(data.get("id"), data.get("on") is True)
+        elif action == "delete":
+            connections.delete(data.get("id"))
+        elif action == "test":                            # your own click: no question
+            out["said"] = connections.send(data.get("id"), "Test from Personal Assistant")
+        elif action != "load":
+            return None
+        return {**out, "port": PORT, "keys": access.keys(), "scopes": access.SCOPES, "routes": [{"method": m, "path": p, "scope": s, "about": a} for m, p, s, a, _ in devapi.ROUTES],
+                "connections": connections.listing(), "kinds": connections.kinds()}
 
     @staticmethod
     def _backup(action: str, data: dict, num) -> dict | None:
@@ -2442,7 +2527,21 @@ class Handler(BaseHTTPRequestHandler):
         HUB.emit("automations_changed")
         return self._json(out)
 
+    def _api_v1(self) -> None:
+        if not self._host_ok():
+            return self._json({"error": "bad host"}, 403)
+        try:
+            n = int(self.headers.get("Content-Length") or 0)
+        except ValueError:
+            n = -1
+        if not 0 <= n <= devapi.MAX_BODY:
+            return self._json({"error": "That is too big."}, 413)
+        status, out = devapi.handle(HUB, PORT, self.command, self.path, self.headers, self.rfile.read(n) if n else b"")
+        return self._json(out, status)
+
     def do_POST(self) -> None:
+        if self.path.startswith("/v1/"):
+            return self._api_v1()
         if not self._host_ok() or not self._token_ok(self.headers.get("X-Jarvis-Token")):
             return self._json({"error": "forbidden"}, 403)
         if lock.is_locked() and self.path.partition("?")[0] not in WHILE_LOCKED:
@@ -2707,7 +2806,7 @@ class Handler(BaseHTTPRequestHandler):
             return self._learn(self.path.rsplit("/", 1)[1], data)
         elif self.path.startswith("/api/fit/"):        # Daily page: Fitness
             return self._fit(self.path.rsplit("/", 1)[1], data)
-        elif self.path.startswith(("/api/travel/", "/api/meet/", "/api/people/", "/api/media/", "/api/rec/", "/api/images/", "/api/privacy/", "/api/time/", "/api/lock/", "/api/backup/", "/api/health/")):       # Daily, Studio, Privacy pages; Settings
+        elif self.path.startswith(("/api/travel/", "/api/meet/", "/api/people/", "/api/media/", "/api/rec/", "/api/images/", "/api/privacy/", "/api/time/", "/api/lock/", "/api/backup/", "/api/health/", "/api/devices/", "/api/dev/")):       # Daily, Studio, Privacy pages; Settings
             return self._daily_api(*self.path.split("/")[2:4], data)
         elif self.path.startswith("/api/news/"):       # Daily page: News
             return self._news(self.path.rsplit("/", 1)[1], data)
@@ -3046,6 +3145,7 @@ def main(open_window: bool = True, watchdog: bool = True, ready: threading.Event
     HUB = Hub()
     privacy.start()
     lock.start()
+    remote.start()                                  # (only if it is on)
     threading.Thread(target=HUB.brain_worker, daemon=True).start()
     threading.Thread(target=HUB.cpu_sampler, daemon=True).start()
     gpu.monitor()                                   # GPU usage, sampled every 2 s

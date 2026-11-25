@@ -639,12 +639,12 @@ def execute(name: str, tool_input: dict, ctx: ToolContext, from_ai: bool = False
         real = tool_input if isinstance(tool_input, dict) else {}
         # what an email said may be steering the AI: it doesn't go online, or leave orders behind, without you (an agent can't have email at all)
         if mail.recently_seen() and guard.held_after_email(name, real) and getattr(ctx, "allowed_tools", None) is None and not ctx.approve(
-                f"An email or a meeting was read in this conversation. Let the assistant use {name.replace('_', ' ')} now?\n\n{json.dumps(real, ensure_ascii=False)[:700]}", kind="after_email"):
+                f"{mail.why_seen()}. Let the assistant use {name.replace('_', ' ')} now?\n\n{json.dumps(real, ensure_ascii=False)[:700]}", kind="after_email"):
             audit.record("tool", tool=name, args=args, ok=False, result="held: after an email")
-            return "Not done: the user was asked, because an email or a meeting was read in this conversation, and didn't allow it. Don't try it another way.", True
+            return f"Not done: the user was asked ({mail.why_seen()[:1].lower() + mail.why_seen()[1:]}), and didn't allow it. Don't try it another way.", True
     out, err = _execute(name, tool_input, ctx)
     # (email: every answer, since they name people; the journal: what was read)
-    shown = "(not kept)" if name in ("email", "fitness", "meetings", "people", "history") or (name == "journal" and str(args.get("action")).lower() == "read" and not err) else out
+    shown = "(not kept)" if name in ("email", "fitness", "meetings", "people", "history", "connection") or (name == "journal" and str(args.get("action")).lower() == "read" and not err) else out
     audit.record("tool", tool=name, args=args, ok=not err,
                  result=(shown if isinstance(shown, str) else "[image]")[:120])
     if RESULT_HOOK:
@@ -2101,6 +2101,24 @@ def self_check_tool(inp: dict, ctx: ToolContext) -> str:
     return doctor.for_ai(hud.HUB)
 
 
+def connection_tool(inp: dict, ctx: ToolContext) -> str:
+    """A text over one of the user's own connections (the address and the secrets aren't known here)."""
+    from . import connections
+    if str(inp.get("action") or "list").lower() == "list":
+        return "\n".join(f"- {c['name']} ({connections.KINDS[c['kind']]['name']}): {c['about'] or 'no description'}" for c in connections.listing() if c["on"]) or "There are no connections. The user can make one in Settings > API."
+    got = connections.find(inp.get("name"))
+    if not got:
+        return f"I can't tell which connection {str(inp.get('name'))[:60]!r} is. Use action list."
+    text = str(inp.get("text") or "").strip()
+    c = next(x for x in connections.listing() if x["id"] == got[0])
+    if not ctx.approve(f"Send this over {c['name']} ({c['host']})?\n\n{text[:connections.MAX_TEXT] or '(no text)'}", kind="connection"):
+        return "Okay, I didn't send it."
+    try:
+        return connections.send(got[0], text)
+    except connections.ConnError as e:
+        return str(e)
+
+
 def people_tool(inp: dict, ctx: ToolContext) -> str:
     from . import people
     action = str(inp.get("action") or "list").lower()
@@ -2335,6 +2353,10 @@ PLANNER_TOOLS = [
       "description": "This app itself. check: is everything in it working (AI, microphone, voices, database, backup, internet), for 'something is wrong with you / check yourself'; backup: make an "
                      "encrypted backup now. Repairs and restoring are done only by the user in Settings > Health / Backup.",
       "input_schema": _obj({"action": {"type": "string", "enum": ["check", "backup"]}}, ["action"])}, self_check_tool),
+    ({"name": "connection",
+      "description": "The user's own connections to other services and devices (a notice to the phone, Telegram, Discord, a lamp of Home Assistant, a webhook). list, or send (name, text). "
+                     "Every sending asks the user with the whole text.",
+      "input_schema": _obj({"action": {"type": "string", "enum": ["list", "send"]}, "name": _STR, "text": _STR}, ["action"])}, connection_tool),
     ({"name": "people",
       "description": "People who matter to the user. list (query), coming (days): birthdays, add / update (name, relation, birthday like 14 May or 14 May 2001, notes).",
       "input_schema": _obj({"action": {"type": "string", "enum": ["list", "coming", "add", "update"]}, "name": _STR, "relation": _STR, "birthday": _STR, "notes": _STR, "query": _STR, "days": _INT},

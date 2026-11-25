@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content">
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#05080c">
+<title>__NAME__</title>
+<style nonce="__NONCE__">
+:root { --bg: #05080c; --card: #0c131b; --line: #1c2a38; --text: #e8f1f8; --dim: #8ca2b5; --acc: #4cc3ff; --me: #10324a; --green: #3ddc97; --amber: #ffb84d; --red: #ff6b7a; color-scheme: dark; }
+@media (prefers-color-scheme: light) { :root { --bg: #eef2f6; --card: #fff; --line: #d3dde6; --text: #12202c; --dim: #536779; --acc: #0369a1; --me: #d6ebfa; --green: #15803d; --amber: #b45309; --red: #be123c; color-scheme: light; } }
+* { box-sizing: border-box; }
+html, body { height: 100%; margin: 0; }
+body { background: var(--bg); color: var(--text); font: 16px/1.5 system-ui, "Segoe UI", Roboto, sans-serif; display: flex; flex-direction: column; overflow: hidden; padding: env(safe-area-inset-top) 0 env(safe-area-inset-bottom); }
+header { display: flex; align-items: center; gap: 10px; padding: 10px 16px; border-bottom: 1px solid var(--line); flex: none; }
+header b { font-size: 17px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; } header small { color: var(--dim); flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.dot { width: 9px; height: 9px; border-radius: 50%; background: var(--green); flex: none; } .dot.off { background: var(--red); } .dot.busy { background: var(--amber); }
+button { font: inherit; color: var(--text); background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 9px 14px; min-height: 44px; cursor: pointer; } button.on { background: var(--acc); border-color: var(--acc); color: #00131f; font-weight: 600; } @media (prefers-color-scheme: light) { button.on { color: #fff; } }
+button.red { color: var(--red); border-color: var(--red); } button:disabled { opacity: .5; } button:focus-visible, input:focus-visible { outline: 2px solid var(--acc); outline-offset: 2px; }
+main { flex: 1; min-height: 0; overflow-y: auto; padding: 14px 16px; -webkit-overflow-scrolling: touch; }
+[hidden] { display: none !important; }
+.msg { max-width: 88%; margin: 0 0 10px; padding: 9px 13px; border-radius: 14px; background: var(--card); border: 1px solid var(--line); white-space: pre-wrap; overflow-wrap: anywhere; unicode-bidi: plaintext; width: fit-content; } .msg.user { background: var(--me); margin-inline-start: auto; } .msg.notify { font-size: 14px; color: var(--dim); } .msg.error { color: var(--red); } .msg time { display: block; font-size: 11.5px; color: var(--dim); }
+#send { display: flex; gap: 8px; padding: 10px 16px; border-top: 1px solid var(--line); flex: none; } #send textarea { flex: 1; min-width: 0; resize: none; height: 44px; max-height: 130px; }
+input, textarea { font: inherit; color: var(--text); background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 9px 13px; width: 100%; min-height: 44px; }
+nav { display: flex; border-top: 1px solid var(--line); flex: none; } nav button { flex: 1; border: 0; border-radius: 0; background: none; color: var(--dim); } nav button.sel { color: var(--acc); font-weight: 600; box-shadow: inset 0 2px 0 var(--acc); }
+.ask { border: 1px solid var(--amber); border-radius: 14px; padding: 12px; margin: 10px 16px 0; background: var(--card); flex: none; max-height: 45%; overflow-y: auto; } .ask p { margin: 0 0 10px; white-space: pre-wrap; overflow-wrap: anywhere; } .ask div { display: flex; gap: 8px; } .ask button { flex: 1; }
+.row { display: flex; gap: 10px; align-items: center; padding: 10px 2px; border-bottom: 1px solid var(--line); } .row span { flex: 1; min-width: 0; overflow-wrap: anywhere; unicode-bidi: plaintext; } .row small { color: var(--dim); display: block; } .row input[type=checkbox] { width: 24px; height: 24px; min-height: 0; flex: none; }
+h2 { font-size: 13px; letter-spacing: .08em; text-transform: uppercase; color: var(--dim); margin: 18px 0 4px; } .hint { color: var(--dim); font-size: 14px; } .err { color: var(--red); min-height: 1.5em; }
+#pair { max-width: 420px; margin: 6vh auto 0; width: 100%; } #pair input { margin: 6px 0 12px; } #code { font: 600 22px/1.2 ui-monospace, Consolas, monospace; letter-spacing: .14em; text-transform: uppercase; text-align: center; } form.line { display: flex; gap: 8px; margin-top: 8px; }
+</style>
+</head>
+<body>
+<header><i class="dot off" id="dot"></i><b id="name">__NAME__</b><small id="sub" role="status"></small><button class="red" id="stop" hidden>Stop</button></header>
+<main id="pairView" hidden><form id="pair" autocomplete="off"><h1>Connect this device</h1><p class="hint">On the PC: Settings, Devices, Add a phone. Type the code it shows, or scan its picture.</p>
+  <label>Code<input id="code" maxlength="9" autocapitalize="characters" autocorrect="off" spellcheck="false" placeholder="ABCD-2345" required></label>
+  <label>Name of this device<input id="dname" maxlength="40" placeholder="My phone"></label>
+  <button class="on" type="submit" id="pairGo">Connect</button><p class="err" id="pairErr" role="alert"></p></form></main>
+<main id="chat" hidden aria-live="polite"></main>
+<main id="lists" hidden><h2>Tasks</h2><form class="line" id="addForm"><input id="addT" maxlength="200" placeholder="New task" aria-label="New task"><button class="on" type="submit">Add</button></form><div id="tasks"></div><h2>Today and next</h2><div id="agenda"></div><p class="err" id="lErr" role="alert"></p></main>
+<main id="more" hidden><h2>This device</h2><p id="who"></p><p class="hint">What it may do is chosen on the PC (Settings, Devices). It never sees the vault, the settings or files.</p><button class="red" id="leave">Disconnect this device</button></main>
+<main id="locked" hidden><p class="hint">The app on the PC is locked. Open it there; only Stop works from here.</p></main>
+<div class="ask" id="ask" hidden role="alertdialog" aria-labelledby="askQ"><p id="askQ"></p><div><button class="on" id="askY">Allow</button><button id="askN">Deny</button></div></div>
+<form id="send" hidden><textarea id="text" maxlength="4000" rows="1" placeholder="Write…" aria-label="Message" dir="auto"></textarea><button class="on" type="submit">Send</button></form>
+<nav id="nav" hidden><button data-v="chat" class="sel">Chat</button><button data-v="lists">Lists</button><button data-v="more">More</button></nav>
+<script nonce="__NONCE__">
+"use strict";
+const $ = id => document.getElementById(id);
+let mark = "", view = "chat", paired = null, rights = [], locked = false, askId = "", timer = 0, askKey = "", fails = 0, lastList = 0, hold = 0;
+async function post(path, body = {}) {
+  const r = await fetch(path, { method: "POST", headers: { "Content-Type": "application/json", "X-PA": "1" }, body: JSON.stringify(body), credentials: "same-origin", cache: "no-store" });
+  let j = {}; try { j = await r.json(); } catch (e) { }
+  return { status: r.status, ...j };
+}
+const el = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text !== undefined) e.textContent = text; return e; };
+function show() {
+  const p = paired === true, v = locked ? "locked" : view;
+  $("pairView").hidden = paired !== false;
+  for (const id of ["chat", "lists", "more", "locked"]) $(id).hidden = !p || id !== v;
+  $("nav").hidden = !p || locked; $("stop").hidden = !p; $("send").hidden = !p || v !== "chat" || !rights.includes("chat");
+  document.querySelectorAll("#nav button").forEach(b => b.classList.toggle("sel", b.dataset.v === view));
+  document.querySelector('#nav [data-v="lists"]').hidden = !rights.includes("lists");
+}
+function drawChat(rows) {
+  const m = $("chat"), atEnd = m.scrollHeight - m.scrollTop - m.clientHeight < 90;
+  m.replaceChildren(...rows.map(r => { const d = el("div", "msg " + r.type); d.append(el("span", "", r.text), el("time", "", r.time + (r.src === "phone" ? "" : r.src === "voice" || r.src === "live" ? " · by voice" : r.src === "api" ? " · a program" : r.src === "pc" ? " · another PC" : ""))); return d; }));
+  if (!rows.length) m.append(el("p", "hint", rights.includes("chat") ? "Write something to begin." : "This device may not chat."));
+  if (atEnd) m.scrollTop = m.scrollHeight;
+}
+async function tick() {
+  clearTimeout(timer);
+  if (paired === false || document.hidden) return;
+  try {
+    const s = await post("/api/state", { have: mark }); fails = 0;
+    if (s.status === 401) { paired = false; mark = ""; $("sub").textContent = ""; $("dot").className = "dot off"; show(); return; }
+    if (s.status !== 200) throw new Error(s.error || "");
+    const first = paired !== true; paired = true;
+    if (!s.same) {
+      mark = s.mark; rights = s.rights; locked = s.locked; $("name").textContent = s.name; document.title = s.name; $("who").textContent = s.device;
+      drawChat(s.chat);
+      const a = (s.asks || [])[0]; askId = a ? a.id : ""; $("ask").hidden = !a; if (a) $("askQ").textContent = a.question;
+      if (Date.now() > hold) $("sub").textContent = locked ? "locked" : s.waiting && !a ? "waiting for an answer on the PC" : s.state === "thinking" || s.busy ? "thinking…" : "connected";
+      $("dot").className = "dot" + (locked ? " off" : s.busy ? " busy" : "");
+      show(); if (first) $("chat").scrollTop = $("chat").scrollHeight;
+    }
+    if (view === "lists" && Date.now() - lastList > 15000) loadLists();
+  } catch (e) { fails++; $("sub").textContent = "no connection to the PC"; $("dot").className = "dot off"; mark = ""; }
+  timer = setTimeout(tick, fails ? Math.min(15000, 2000 * fails) : 1500);
+}
+document.addEventListener("visibilitychange", () => { if (!document.hidden) tick(); });
+async function loadLists(path = "/api/lists", body = {}) {
+  lastList = Date.now(); const j = await post(path, body); $("lErr").textContent = j.error || ""; if (j.error) return;
+  $("tasks").replaceChildren(...j.tasks.map(t => { const r = el("label", "row"), c = el("input"), s = el("span", "", t.title); c.type = "checkbox"; c.onchange = () => loadLists("/api/lists/done", { id: t.id, done: true }); if (t.due) s.append(el("small", "", t.due.replace("T", " "))); r.append(c, s); return r; }));
+  if (!j.tasks.length) $("tasks").append(el("p", "hint", "Nothing to do."));
+  $("agenda").replaceChildren(...j.agenda.flatMap(d => d.items.length ? [el("p", "hint", new Date(d.day + "T12:00").toLocaleDateString(undefined, { weekday: "long", day: "numeric", month: "long" })), ...d.items.map(i => { const r = el("div", "row"); r.append(el("small", "", i.at || "all day"), el("span", "", i.text)); return r; })] : []));
+  if (!$("agenda").children.length) $("agenda").append(el("p", "hint", "Nothing planned."));
+}
+$("addForm").onsubmit = e => { e.preventDefault(); const t = $("addT").value.trim(); if (t) { $("addT").value = ""; loadLists("/api/lists/add", { title: t }); } };
+document.querySelectorAll("#nav button").forEach(b => b.onclick = () => { view = b.dataset.v; show(); if (view === "lists") loadLists(); if (view === "chat") $("chat").scrollTop = $("chat").scrollHeight; });
+async function send() {
+  const t = $("text").value.trim(); if (!t) return; $("text").value = ""; grow();
+  const j = await post("/api/send", { text: t }).catch(() => ({ error: "No connection to the PC." }));
+  if (j.error) { $("text").value = t; $("sub").textContent = j.error; } else { $("chat").scrollTop = $("chat").scrollHeight; tick(); }
+}
+function grow() { const t = $("text"); t.style.height = "44px"; t.style.height = Math.min(130, t.scrollHeight + 2) + "px"; }
+$("text").oninput = grow; $("send").onsubmit = e => { e.preventDefault(); send(); };
+$("text").onkeydown = e => { if (e.key === "Enter" && !e.shiftKey && !e.isComposing && matchMedia("(pointer: fine)").matches) { e.preventDefault(); send(); } };
+const answer = async allow => { const id = askId; askId = ""; $("ask").hidden = true; if (id) await post("/api/confirm", { id, allow }); mark = ""; tick(); };
+$("askY").onclick = () => answer(true); $("askN").onclick = () => answer(false);
+$("stop").onclick = async () => { await post("/api/stop").catch(() => { }); hold = Date.now() + 4000; $("sub").textContent = "stopped"; mark = ""; };
+$("leave").onclick = async () => { if ($("leave").dataset.sure) { await post("/api/leave"); location.reload(); } else { $("leave").dataset.sure = 1; $("leave").textContent = "Really disconnect?"; setTimeout(() => { delete $("leave").dataset.sure; $("leave").textContent = "Disconnect this device"; }, 4000); } };
+$("pair").onsubmit = async e => {
+  e.preventDefault(); $("pairGo").disabled = true; $("pairErr").textContent = "";
+  const kind = /iphone|ipad/i.test(navigator.userAgent) ? "iPhone" : /android/i.test(navigator.userAgent) ? "Android phone" : "Browser";
+  const j = await post("/pair/code", { code: $("code").value, name: $("dname").value.trim() || kind }).catch(() => ({ error: "No connection to the PC." }));
+  if (j.error) { $("pairErr").textContent = j.error; $("pairGo").disabled = false; return; }
+  askKey = j.ask; $("pairErr").textContent = "Now press Allow on the PC…"; wait();
+};
+async function wait() {
+  const s = await post("/pair/state", { ask: askKey }).catch(() => ({ state: "waiting" }));
+  if (s.state === "waiting") return setTimeout(wait, 1200);
+  askKey = ""; $("pairGo").disabled = false;
+  if (s.state === "allowed") { paired = null; mark = ""; $("pairErr").textContent = ""; return tick(); }
+  $("pairErr").textContent = s.state === "denied" ? "It was denied on the PC." : "That took too long. Make a new code.";
+}
+if (location.hash.length > 5) { $("code").value = location.hash.slice(1, 5) + "-" + location.hash.slice(5, 9); history.replaceState(null, "", "/"); }
+tick();
+</script>
+</body>
+</html>

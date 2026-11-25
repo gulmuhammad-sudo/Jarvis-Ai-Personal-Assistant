@@ -1,5 +1,20 @@
 # Security review
 
+## 2026-11-25 — v1.31.6 (phone access, API, connections)
+
+| Area | How | Where |
+|---|---|---|
+| A second door, off by default | its own server with its own few requests; the window's page, token and requests aren't there; TLS 1.2+, a P-256 key made on this PC, kept with DPAPI, only encrypted on the disk while Python loads it | `remote.Server`, `_context` |
+| Who may knock | home ranges and the PC's own network (not larger than /20); VPN range only if turned on; 40 connections in all, 12 an address, 10 s for the greeting, 240 requests a minute, 20 wrong tries hold an address ten minutes | `remote.allowed_ip`, `access.held` |
+| Pairing | eight letters (39 bits), once, three minutes, five tries; then the owner's click on the PC with name and address | `access.phone_code`, `answer` |
+| A phone's secret | 256 bits in a `__Host-` cookie (Secure, HttpOnly, SameSite=Strict); only its SHA-256 is kept; 90 days unused ends it; rights read at every request | `access.check` |
+| Other web pages | Host and Origin checked, JSON only, a header of our own, no CORS; the page: CSP with nonces, nothing from elsewhere, text never as HTML | `remote.RemoteHandler` |
+| Left over | whoever stands in the Wi-Fi between phone and PC at the moment of the first visit could pose as the PC (the browser's warning): the page shows the certificate's mark to compare | Devices tab |
+| Not from afar | vault, settings, files, permissions, lock; a yes from a phone counts once, never "don't ask again" | `_phone`, `answer_confirm(once=True)` |
+| API | this PC only, Host checked, refused with an Origin or from a page; keys as SHA-256, scopes, end, 60 a minute; no undoing Stop; its words taint the conversation like an email's | `devapi.handle`, `mail.seen_by_ai` |
+| Connections | owner makes them; address and secrets unknown to the AI and the page; asked with the whole text every time; HTTPS outside the home network; no redirects followed, the answer's words not given on; a kept secret never goes to a changed address; not to the app itself | `connections` |
+| access.dat | DPAPI, not in backups (a removed device must not come back), a secret file; unreadable: nobody comes in, the file is put aside | `access._data` |
+
 ## 2026-11-25 — v1.31.5 (backup, health, repair)
 
 | Area | How | Where |
