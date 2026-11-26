@@ -2,6 +2,15 @@
 
 Each version is also a git tag (`git tag -n20 vX.Y.Z` shows its notes). Newest first.
 
+## 1.31.12 — 2026-11-26 (not pushed yet)
+A scan of every file for faults.
+- Fixed: after a headset was plugged in, hands-free could try to open the old microphone by its old number, which now was another
+  device ("Blocking API not supported yet", WDM-KS) and didn't start. The microphone is now found by its name.
+- Fixed two tests that could never fail (a page check that was always true; a name that wasn't defined); unused imports taken out.
+- Checked: every Python file (pyflakes, compiled with warnings as errors), the three pages' scripts (Node), every page and tab of the
+  running app (no error), the app's own log of real use (the other faults there were fixed earlier).
+- Commits are now made as gulmuhammad-sudo.
+
 ## 1.31.11 — 2026-11-26 (not pushed yet)
 The final security audit (Phase 10 part 2).
 - No other website can show the app's window inside its own page (a hidden frame could have made you click Allow); the window and

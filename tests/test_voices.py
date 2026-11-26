@@ -195,3 +195,22 @@ def test_the_voice_on_this_pc_is_like_the_online_one(tmp_path, monkeypatch, sett
     shutil.rmtree(tmp_path / local_tts.VOICES["aegis"][2])
     setting("local_voice_ur", None)
     assert local_tts.pick("سلام") == "fasih"                            # a man's voice is better than none
+
+
+
+def test_a_headset_plugged_in_doesn_t_make_the_mic_another_device(monkeypatch):
+    """PortAudio numbers its devices anew after a rescan: the mic kept from before must be found by its name, not its old number
+    (once it pointed at a WDM-KS device that can't be opened, and hands-free didn't start)."""
+    from jarvis import recorder
+    apis = [{"name": "MME"}, {"name": "Windows WASAPI"}, {"name": "Windows WDM-KS"}]
+    before = [{"name": "Microphone Array (AMD Audio Device)", "max_input_channels": 2, "hostapi": 1, "default_samplerate": 48000}]
+    after = [{"name": "Headset (Airbud 690 Ion)", "max_input_channels": 1, "hostapi": 1, "default_samplerate": 16000},
+             {"name": "Microphone Array (AMD Audio Device)", "max_input_channels": 2, "hostapi": 2, "default_samplerate": 48000},
+             {"name": "Microphone Array (AMD Audio Device)", "max_input_channels": 2, "hostapi": 1, "default_samplerate": 48000}]
+    now = {"list": before}
+    monkeypatch.setattr(recorder.sd, "query_hostapis", lambda: apis)
+    monkeypatch.setattr(recorder.sd, "query_devices", lambda *a, **k: now["list"])
+    monkeypatch.setattr(recorder, "_chosen", {"index": 0, "name": "Microphone Array (AMD Audio Device)", "api": "Windows WASAPI", "rate": 48000})
+    now["list"] = after                                                           # the rescan after the headset came
+    dev = recorder.choose_mic()
+    assert dev["index"] == 2 and dev["api"] == "Windows WASAPI" and recorder._chosen["index"] == 2

@@ -354,7 +354,7 @@ def test_hiding_folders_never_deletes(tmp_path, monkeypatch):
 def test_the_build_takes_every_python_library_along(tmp_path):
     """The vault couldn't be made in the exe: python3t.dll wasn't in it, and nothing said so until it was used."""
     import build
-    src = (ROOT / "packaging" / "build.py").read_text(encoding="utf-8") if "ROOT" in globals() else open(build.__file__, encoding="utf-8").read()
+    src = open(build.__file__, encoding="utf-8").read()
     assert "--add-binary={f}{SEP}." in src and "missing_python_dlls(app_dir)" in src
     assert build.missing_python_dlls(tmp_path) == []
 

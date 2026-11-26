@@ -2,6 +2,16 @@
 
 Newest first. Each entry: what was done, how it was tested, what is open, the next task.
 
+## 2026-11-26 — Session 2, part 29: identity and a scan of every file (v1.31.12)
+
+**Asked by the owner** — commits as gulmuhammad-sudo instead of zuha-aziz; scan all files and fix bugs and errors.
+
+**Done** — repo-local git identity gulmuhammad-sudo (noreply address); the two unpushed commits re-authored and their tags moved (pushed
+history untouched: no force push). Scan: pyflakes, compile warnings, Node syntax, every page and tab, the real log's kinds of faults.
+Fixed the stale microphone number after a hot-plug (`recorder.choose_mic`), two tests that couldn't fail, unused imports.
+
+**Open** — GitHub sign-in as gulmuhammad-sudo has to be finished by the owner (`gh auth login`); then zuha-aziz is signed out.
+
 ## 2026-11-26 — Session 2, part 28: Phase 10 part 2 — final audit, regression run, documentation (v1.31.11)
 
 **Done** — went through every security requirement of the master plan (SECURITY_REVIEW.md): requests and tokens, commands, paths,

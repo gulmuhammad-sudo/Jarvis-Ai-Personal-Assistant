@@ -5,13 +5,12 @@ assistant, when asked) sends the destination's name to the weather service. Pass
 """
 from __future__ import annotations
 
-import json
 import re
 from datetime import date, datetime, timedelta
 from typing import Any, Callable
 
 from . import planner
-from .planner import _db, _now, _text, parse_clock, parse_day, say_when
+from .planner import _db, _now, _text, parse_clock, parse_day
 
 MAX_TRIPS, MAX_ITEMS = 300, 400
 KINDS = ("plan", "pack", "papers")

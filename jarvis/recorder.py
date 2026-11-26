@@ -171,7 +171,12 @@ def choose_mic(force: bool = False) -> dict | None:
     global _chosen
     with _lock:
         if _chosen and not force:
-            return _chosen
+            # PortAudio numbers its devices anew after every rescan (a headset plugged in): the number kept from before may now
+            # be another device, even one that can't be opened this way (WDM-KS). The same microphone, by name, as it is now:
+            now = next((d for d in _inputs() if d["name"] == _chosen["name"] and d["api"] == _chosen["api"]), None)
+            if now:
+                _chosen = now
+                return _chosen
         _refresh_devices()
         devices = _inputs()
         if not devices:

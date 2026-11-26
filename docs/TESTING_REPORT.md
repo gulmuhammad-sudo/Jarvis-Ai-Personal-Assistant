@@ -11,6 +11,15 @@ set PA_TEST_NETWORK=1 && .venv\Scripts\python -m pytest tests   # also the onlin
 .venv\Scripts\python packaging\build.py              # then smoke-test the packaged exe (see below)
 ```
 
+## 2026-11-26 — A scan of every file (v1.31.12)
+
+| Suite | Result | Notes |
+|---|---|---|
+| `pytest tests` | 1546 passed, 4 skipped | new: the microphone after a headset is plugged in; two tests that could never fail now check what they say |
+| Static checks | clean | pyflakes on jarvis/, packaging/, tests/ (only deliberate availability imports left); every .py compiled with warnings as errors; Node `--check` on the scripts of hud.html, remote.html, setup.html |
+| Running app (test copy) | no error | all 14 pages and their 58 tabs opened one by one, with console and server errors watched |
+| Log of real use | 1 open fault found and fixed | kinds of faults only (no words); the others (scheduler TypeError, Live's closed event loop, a locked profile.json) were fixed in earlier versions |
+
 ## 2026-11-26 — Final security audit and regression run (v1.31.11)
 
 | Suite | Result | Notes |

@@ -26,7 +26,7 @@ from urllib.parse import parse_qs, quote
 
 from . import __version__
 from . import live as live_mod
-from . import access, agents, alerts, approvals, audit, automations, backup, clock, connections, denoise, devapi, docindex, doctor, fit, parts, updates, gpu, guard, hello, images, languages, learn, life, local_ai, lock, mail, local_stt, local_tts, media, meet, memory, netlog, news, notes, peers, people, planner, plans, privacy, qr, remote, schedule, screenrec, netcheck, skills, software, stt, storage, sync, timeline, tools, travel, tts, urdu, vault, wake, winmgr
+from . import access, agents, alerts, approvals, audit, automations, backup, clock, connections, denoise, devapi, docindex, doctor, fit, parts, updates, gpu, guard, images, languages, learn, life, local_ai, lock, mail, local_stt, local_tts, media, meet, memory, netlog, news, notes, peers, people, planner, plans, privacy, qr, remote, schedule, screenrec, netcheck, skills, software, stt, storage, sync, timeline, tools, travel, tts, urdu, vault, wake, winmgr
 from .brain import make_brain
 from .config import NOTES_DIR
 from .providers import provider_status

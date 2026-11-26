@@ -143,7 +143,7 @@ def test_the_left_menu_is_short_and_nothing_is_lost():
     nav = HTML[HTML.index('<nav id="nav"'):HTML.index("</nav>")]
     views = re.findall(r'class="navi[^"]*" data-view="(\w+)"', nav)
     assert sorted(views) == sorted(["dash", "conv", "memory", "planner", "daily", "studio", "profile", "tools", "auto", "agents", "models", "vault", "privacy", "settings"])
-    assert all(f'<section class="view' in HTML and f'data-view="{v}"' in HTML for v in views)
+    assert all(re.search(rf'<section class="view[^"]*" data-view="{v}"', HTML) for v in views)          # every menu entry has its page
     assert nav.count('class="ngroup"') == 3 and nav.count('aria-expanded="false"') == 3
     outside = re.sub(r'<div class="nsub">.*?</div></div></div>', "", nav, flags=re.S)
     assert re.findall(r'data-view="(\w+)"', outside) == ["dash", "conv", "memory", "settings"]
