@@ -33,7 +33,8 @@ To update, run the newer Setup: your settings, memories and keys stay. Problems?
 - **Talk:** press the mic or **Ctrl+Space** — or just say its name (wake word). **Type:** **Ctrl+K**.
 - **Stop everything:** the red square button, **Esc twice**, or *Stop everything* in the tray menu.
 - **Closing the window** only hides it by the clock (tray). Right-click the tray icon to quit.
-- **Settings** has tabs: General · Voice & Mic · AI · Privacy · Permissions · Alerts.
+- **Settings** has tabs: General · Voice & Mic · AI · Privacy · Permissions · Alerts · Backup · Health · Devices · API · Updates.
+- **Top right:** Lock, Stop, Details, Settings; the menu (☰) has your profile, a new conversation, spoken replies, language and theme.
 
 ## What it can do
 
@@ -58,6 +59,13 @@ To update, run the newer Setup: your settings, memories and keys stay. Problems?
 - Goals and habits, a private journal, and your own record of money, on your PC
 - Documents: reads and makes Word, Excel, PowerPoint and PDF files, and searches inside the folders you choose
 - Planner: calendar, tasks and notes on your PC, with reminders
+- Backup: one encrypted file of everything, by button or by itself; put back all or parts; a restore point before every new version
+- Health: looks at every part of itself, with Fix buttons and repairs
+- Your phone: chat, tasks and Stop from your phone in your own Wi-Fi, encrypted (off until you turn it on)
+- Other PCs: ask them, send files, and keep memories, notes, tasks and calendar the same, straight from PC to PC
+- API and connections: keys for your own programs; a notice to your phone, Telegram, Discord, Slack, Home Assistant (asks first)
+- Updates: looks for a new version only with your consent, checks the download twice; go back to an earlier one; turn parts off
+- Answers in the language you ask for ("Urdu mein batao"), in its own letters
 - Agents: specialists with their own tools; web or your private things, never both
 - Automations (by hand, at a time, or when the app opens) and visible plans for longer tasks
 - Software updates and installs through winget (always asks first), internet check and speed test, dev helpers
@@ -71,7 +79,10 @@ To update, run the newer Setup: your settings, memories and keys stay. Problems?
 - Risky actions ask first; you choose **Ask / Allow / Never** per kind of action (Settings › Permissions).
   Dangerous commands (formatting disks, deleting Windows, switching off Defender…) are always refused.
 - Text from web pages and files is treated as information, never as instructions.
-- Settings › Privacy: keep or clear the saved conversation, and see a record of everything it did.
+- Settings › Privacy: keep or clear the saved conversation, and see a record of everything it did; **Local only** keeps everything on this PC.
+- A lock for the whole app (Windows Hello or a PIN) and a vault the AI can't reach.
+- Nothing comes in from other devices unless you turn it on and allow each one; new versions are looked for only with your consent.
+- Security review: [docs/SECURITY_REVIEW.md](docs/SECURITY_REVIEW.md).
 
 ## For developers
 

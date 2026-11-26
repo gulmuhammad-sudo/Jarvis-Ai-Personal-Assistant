@@ -1433,7 +1433,9 @@ class Hub:
 HUB: Hub | None = None
 # what a locked app still does: opening it, stopping, silencing an alarm, showing its window, and ending or finishing a recording
 WHILE_LOCKED = {"/api/lock/state", "/api/lock/hello", "/api/lock/pin", "/api/stop", "/api/window", "/api/clock/ring_stop", "/api/rec/piece", "/api/rec/stop", "/api/rec/stop_any", "/api/meet/stop"}
-LOCAL_CSP = "default-src 'self' data: blob:; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; media-src 'self' data: blob:; connect-src 'self' data: blob:; font-src 'self' data:; frame-src blob:; form-action 'self'"
+# every page: no other site may show it inside its own (a hidden frame could make you click Allow), no plugins, no other base
+FRAME_RULES = "frame-ancestors 'none'; object-src 'none'; base-uri 'none'"
+LOCAL_CSP = "default-src 'self' data: blob:; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; media-src 'self' data: blob:; connect-src 'self' data: blob:; font-src 'self' data:; frame-src blob:; form-action 'self'; " + FRAME_RULES
 REC_HOOK = None                                # desktop.py: shows or hides the REC window above all others
 
 
@@ -1459,9 +1461,15 @@ class Handler(BaseHTTPRequestHandler):
     def _token_ok(value: str | None) -> bool:
         return secrets.compare_digest(value or "", TOKEN)
 
+    def _page_headers(self) -> None:
+        self.send_header("X-Frame-Options", "DENY")
+        self.send_header("X-Content-Type-Options", "nosniff")
+        self.send_header("Referrer-Policy", "no-referrer")
+
     def _json(self, data, status: int = 200) -> None:
         body = json.dumps(data).encode()
         self.send_response(status)
+        self.send_header("X-Content-Type-Options", "nosniff")
         self.send_header("Content-Type", "application/json")
         self.send_header("Content-Length", str(len(body)))
         self.send_header("Cache-Control", "no-store")
@@ -1498,8 +1506,8 @@ class Handler(BaseHTTPRequestHandler):
                 html = re.sub(r"<link[^>]+fonts\.g[^>]+>\s*", "", html)
             body = html.encode()
             self.send_response(200)
-            if netlog.local_only():
-                self.send_header("Content-Security-Policy", LOCAL_CSP)
+            self.send_header("Content-Security-Policy", LOCAL_CSP if netlog.local_only() else FRAME_RULES)
+            self._page_headers()
             if os.environ.get("JARVIS_NO_MIC") == "1":          # demo copies: the page can't open the microphone either
                 self.send_header("Permissions-Policy", "microphone=()")
             self.send_header("Content-Type", "text/html; charset=utf-8")
@@ -1517,6 +1525,8 @@ class Handler(BaseHTTPRequestHandler):
         if path == "/recpill":                               # the small REC window above all others
             body = _PILL.replace("__TOKEN__", TOKEN).encode()
             self.send_response(200)
+            self.send_header("Content-Security-Policy", FRAME_RULES)
+            self._page_headers()
             self.send_header("Content-Type", "text/html; charset=utf-8")
             self.send_header("Content-Length", str(len(body)))
             self.end_headers()

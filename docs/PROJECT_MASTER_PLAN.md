@@ -41,6 +41,17 @@ handling, faces, focus mode, alarms/timers/prayers/weather/briefing.
 5. Local speech (faster-whisper) and local voice (Piper) as optional components. — Phase 2/3
 6. Personal Intelligence Engine shared by memory, profile, learning, knowledge graph, skills. — Phase 4
 
+## Where it stands — 2026-11-26 (v1.31.11)
+
+All ten phases of the roadmap are done: foundation and security, local and cloud AI, voice, memory and the Personal Intelligence
+Engine, PC control, agents and automations, productivity and knowledge, daily life and studio, privacy and integrations, updates and
+release. The final security audit is in SECURITY_REVIEW.md; the last full test run in TESTING_REPORT.md (1545 passed, 4 skipped, the packaged exe
+80 / 80 and 227 / 227, a new user 15 / 15).
+
+Of the 110 decisions: 1 verified by a person, 49 implemented with automated tests but waiting for a
+person's check, 35 partial, 15 not started, 10 not applicable. The exact list and what each needs is in
+FEATURE_STATUS.md; the order of what comes next in NEXT_STEPS.md.
+
 ## How work is tracked
 
 | File | Purpose |

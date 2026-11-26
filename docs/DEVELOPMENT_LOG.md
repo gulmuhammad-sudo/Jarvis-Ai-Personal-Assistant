@@ -2,6 +2,16 @@
 
 Newest first. Each entry: what was done, how it was tested, what is open, the next task.
 
+## 2026-11-26 — Session 2, part 28: Phase 10 part 2 — final audit, regression run, documentation (v1.31.11)
+
+**Done** — went through every security requirement of the master plan (SECURITY_REVIEW.md): requests and tokens, commands, paths,
+secrets in logs (also counted in the owner's real log and database, nothing read out: none), injected text, the page's HTML. Two
+findings fixed (framing; vault links), the audit kept as tests. Full regression: 1545 passed, 4 skipped; exe 80 / 80 and 227 / 227; new user 15 / 15.
+README, master plan, roadmap and next steps brought up to date.
+
+**The roadmap of the master plan is complete.** What is left: the decisions marked NOT IMPLEMENTED or PARTIALLY IMPLEMENTED in
+FEATURE_STATUS.md, and the owner's own checks.
+
 ## 2026-11-26 — Session 2, part 27: Phase 10 part 1 — updates and parts (v1.31.10)
 
 **Done** — `updates.py` (GitHub Releases, double checksum, file version, restore point, going back through `backup.prepare`), `parts.py`

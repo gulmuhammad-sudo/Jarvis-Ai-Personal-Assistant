@@ -1,5 +1,53 @@
 # Security review
 
+## 2026-11-26 — Final audit (v1.31.11)
+
+Every requirement of the master plan's security part, how the app meets it, and where. Checked by reading the code, by the tests named,
+and in the packaged exe.
+
+| Requirement | How | Where / tests |
+|---|---|---|
+| Permission-based computer control | every action that changes the PC asks; per kind Ask / Allow / Never; shutting down, deleting, replacing and closing unsaved work always ask | `hud.confirm`, `PERMISSION_KINDS`; test_permissions, test_safety |
+| Confirmation before sensitive actions | the same, plus email, meetings, history, connections, other PCs, pictures online, everything after an email or a program's words | `tools.execute`, `guard.held_after_email` |
+| Secure credential storage | API keys, Gmail, lock PIN, backup password, devices, connections: Windows DPAPI; the vault: AES-256-GCM with scrypt | `keystore`, `mail`, `lock`, `access`, `vault`; test_keystore, test_vault_lock |
+| Local-first memory, editable | SQLite on this PC; Memory page edits, merges, forgets | `memory`, `storage`; test_memory |
+| Encryption of sensitive data | vault; backups (AES-256-GCM, DPAPI or a password); keys | `vault`, `backup`; test_backup_health |
+| Audit logging | every tool call and every question with the answer, secrets hidden, long texts as lengths; a timeline | `audit`, `timeline`; test_guard_audit, test_privacy |
+| Prompt-injection defences | text from pages, files, email, the screen, other PCs and old conversations is marked as data; after an email or a program's words nothing goes online or leaves orders without asking; agents have hard tool lists | `guard`, `tools.execute`, `agents` |
+| Validation of generated commands | PowerShell deny-list (disks, Windows, Defender, users…), refused even when allowed; no shell anywhere | `guard._DENY`; test_guard_audit; test_final_audit |
+| File access | the AI writes only in your own folders; files that run code ask; network paths refused or asked; password-looking files ask | `guard.runs_code`, `secret_file`, `elsewhere` |
+| Emergency stop | button, Esc twice, tray, voice; ends tools, plans, calls, recordings, questions; a program can't undo it | `hud.emergency_stop` |
+| Privacy lock | the server refuses all but unlocking and stopping; Windows Hello or PIN, never voice | `lock`, `hud.WHILE_LOCKED`; test_vault_lock |
+| Microphone and camera indicators | a pill while the microphone is used; the app never uses a camera | `privacy.active`, page |
+| No silent screen recording | your button, Windows' own picker, a red bar and a REC window above all others | `screenrec`, `desktop.rec_pill` |
+| No automatic upload of documents or screenshots | the AI sees a file or the screen only when asked; Local only stops everything going out | `netlog`, `tools` |
+| Secure API authentication | the window: a random token per start, Host checked, no CORS, no framing; the API: keys stored as SHA-256 with scopes; phones and PCs: pairing with your click, 256-bit secrets, TLS | `hud`, `devapi`, `access`, `remote`; test_remote_api, test_final_audit |
+| User and device isolation | each device its own rights, looked up every time; nothing from afar reaches the vault, settings, files or the lock | `remote`, `peers` |
+| Safe plugin and workflow execution | automations only from a fixed list of steps, checked when saved and when run; agents only their tools; no plugins from others | `automations`, `agents` |
+| Backup and restore protection | encrypted, checked when made and before use; made-up files refused; all or nothing; a restore point first | `backup`; test_backup_health |
+| Voice is not authentication | the lock and the vault never open by voice; a spoken "yes" only answers a question you see | `lock`, `vault`, `approvals` |
+| The vault is out of the AI's reach | no tool, agent or automation; no screen looks while open | `vault`, `tools._execute` |
+| No secrets in code, logs or GitHub | key patterns scanned in every commit, in the built app and in the tests; log and record redact | test_final_audit, `audit.redact` |
+
+**Found and fixed in this audit**
+
+| Finding | Risk | Fix |
+|---|---|---|
+| The window's page had no rule against being shown inside another site's page | a site open in your browser could put the app in a hidden frame and trick a click (Allow, a setting) | `X-Frame-Options: DENY` and `frame-ancestors 'none'` on the window and the REC window; `nosniff` on every answer; no referrer |
+| A vault entry's address became an Open link whatever it was | an imported `javascript:` address would run inside the app with its token | only `http(s)://` addresses get the button |
+
+**Known limits (accepted, written down)**
+
+- The app isn't code-signed (a certificate costs money): Windows warns at the first start; the checksums are on GitHub.
+- A phone's first visit trusts the PC's own certificate after the browser's warning; somebody in your Wi-Fi at that very moment could
+  pose as the PC. The Devices tab shows the certificate's mark to compare. PC to PC is safe against this (both prove the code).
+- Programs running as you on this PC can read the window's token (as they can read your files); the app protects against websites and
+  other machines, not against malware already on the PC.
+- Known security problems in the libraries the app uses weren't looked up online in this audit (that needs a download of a checking
+  tool; with your OK it can be done).
+- The PowerShell deny-list stops known dangerous commands; everything else PowerShell does is still asked first.
+
+
 ## 2026-11-26 — v1.31.10 (updates, parts)
 
 | Area | How | Where |

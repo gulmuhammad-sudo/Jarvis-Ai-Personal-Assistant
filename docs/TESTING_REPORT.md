@@ -11,6 +11,16 @@ set PA_TEST_NETWORK=1 && .venv\Scripts\python -m pytest tests   # also the onlin
 .venv\Scripts\python packaging\build.py              # then smoke-test the packaged exe (see below)
 ```
 
+## 2026-11-26 — Final security audit and regression run (v1.31.11)
+
+| Suite | Result | Notes |
+|---|---|---|
+| `pytest tests` | 1545 passed, 4 skipped | new tests/test_final_audit.py (7): framing refused also in Local only, answers never sniffed, nothing without the token, vault links, nothing secret in the repository, no shell or eval, the token check before every change |
+| Packaged exe 1.31.11 | 80 / 80 and 227 / 227 | everything of the earlier versions again, plus: the Updates tab, parts off and their tools refusing, every piece of the app present, framing refused |
+| What a new user gets (the release files) | 15 / 15 | download, ZIP, fresh install, update, the installed app |
+| Leak check of the built app | nothing found | 755 files, all modules, the values of the real keys |
+| Not tested | — | installing a real update from the installed app; a real phone, a second real PC, a real Live call in Urdu and Hindi |
+
 ## 2026-11-26 — Updates and parts (v1.31.10)
 
 | Suite | Result | Notes |

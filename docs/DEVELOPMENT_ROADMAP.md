@@ -67,4 +67,4 @@ enough to finish, test and release on its own. Numbers in brackets are decisions
 ## Phase 10 — Expansion and release
 - [x] Update check with consent from GitHub Releases [13]
 - [x] Modular feature install and version checks [110]; rollback
-- [ ] Final security audit and regression run; documentation
+- [x] Final security audit and regression run; documentation (1.31.11)
