@@ -9,12 +9,12 @@ import sys
 import threading
 import time
 import types
-from datetime import datetime, timedelta
+from datetime import datetime
 from pathlib import Path
 
 import pytest
 
-from jarvis import access, agents, audit, automations, config, guard, hud, lock, mail, memory, netlog, notes, peers, planner, plans, providers, remote, schedule, storage, sync, timeline, tools
+from jarvis import access, agents, audit, automations, config, guard, hud, lock, mail, memory, netlog, peers, planner, plans, providers, remote, schedule, storage, sync, timeline, tools
 
 ROOT = Path(__file__).parent.parent
 HTML = hud.HTML_FILE.read_text(encoding="utf-8").replace("\r\n", "\n")

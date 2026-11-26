@@ -1,7 +1,6 @@
 """Phase 10, part 1: new versions with your consent, going back, parts on and off. GitHub is pretended (nothing goes out)."""
 import hashlib
 import json
-import os
 import re
 import types
 from datetime import datetime, timedelta

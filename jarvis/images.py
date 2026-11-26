@@ -167,6 +167,7 @@ def generate(prompt: Any, size: Any = "square") -> bytes:
         with urllib.request.urlopen(urllib.request.Request(url, headers={"User-Agent": "PersonalAssistant"}), timeout=120) as r:
             raw = r.read(MAX_IN + 1)
     except urllib.error.HTTPError as e:
+        e.close()                                         # (its answer holds a connection)
         raise ValueError("The free service refused that description." if e.code in (400, 403, 451) else "The free service is busy. Try again in a minute." if e.code in (429, 500, 502, 503) else
                          f"The free service answered with an error ({e.code}).") from None
     except OSError:

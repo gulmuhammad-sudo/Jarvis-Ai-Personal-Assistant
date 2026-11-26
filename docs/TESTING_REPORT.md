@@ -11,6 +11,15 @@ set PA_TEST_NETWORK=1 && .venv\Scripts\python -m pytest tests   # also the onlin
 .venv\Scripts\python packaging\build.py              # then smoke-test the packaged exe (see below)
 ```
 
+## 2026-11-26 — Bugs and bugs fixed (v1.31.13)
+
+| Suite | Result | Notes |
+|---|---|---|
+| `pytest tests` | 1546 passed, 4 skipped | also once in Python's development mode with every resource warning shown: what is left open belongs to the tests' own fake servers and files |
+| Packaged exe 1.31.13 | 80 / 80 and 227 / 227 | as 1.31.11 |
+| What a new user gets (the release files) | 15 / 15 | |
+| Leak check of the built app | nothing found | |
+
 ## 2026-11-26 — A scan of every file (v1.31.12)
 
 | Suite | Result | Notes |

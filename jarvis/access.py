@@ -10,7 +10,6 @@ and that they speak with each other's own key (so nobody can stand in between).
 """
 from __future__ import annotations
 
-import base64
 import hashlib
 import hmac
 import json
@@ -444,6 +443,3 @@ def save_connection(i: str, d: dict | None) -> None:
             _data()["connections"][i] = d
         _save()
 
-
-def b64(data: bytes) -> str:
-    return base64.b64encode(data).decode("ascii")

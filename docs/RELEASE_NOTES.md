@@ -1,4 +1,4 @@
-# Personal Assistant 1.31.9
+# Personal Assistant 1.31.13
 
 A personal AI assistant for Windows: it talks, listens and gets things done on your PC, in English, Urdu or almost any language. Free.
 
@@ -7,7 +7,7 @@ A personal AI assistant for Windows: it talks, listens and gets things done on y
 | File | For whom |
 |---|---|
 | **`Personal-Assistant-Setup.exe`** | everyone: the one file you need |
-| `Personal-Assistant-1.31.9.zip` | the same Setup in a folder with the instructions (if your browser blocks `.exe` files) |
+| `Personal-Assistant-1.31.13.zip` | the same Setup in a folder with the instructions (if your browser blocks `.exe` files) |
 | `SHA256.txt` | to check the download (optional) |
 | *Source code (zip / tar.gz)* | developers only: **there is no app inside** |
 
@@ -18,6 +18,17 @@ A personal AI assistant for Windows: it talks, listens and gets things done on y
 Windows 10 (1809 or newer) or 11, 64-bit. Updating: run this Setup; your settings, memories and keys stay. Problems: [Install help](https://github.com/gulmuhammad-sudo/Jarvis-Ai-Personal-Assistant/blob/main/docs/INSTALL.md).
 
 **Urdu:** `Personal-Assistant-Setup.exe` download karke kholein. Windows roke to **More info → Run anyway**. Phir Next dabate jayen. *Source code* wali file mein app nahi hoti.
+
+## 1.31.13: bugs and bugs fixed
+
+- **Fixed:** after a headset was plugged in, hands-free could pick the wrong device and not start; error answers from news and the picture service left a connection open.
+- **Cleaner code:** unused functions and imports taken out; every file checked.
+
+## 1.31.10 to 1.31.12: updates, parts, a security audit
+
+- **Settings › Updates:** looks for a new version only with your consent, checks a download twice, installs with a restore point first; go back to an earlier version with your data from then.
+- **Parts of the app** you don't use can be turned off (their page and the AI's tools go, nothing is deleted).
+- **Security audit:** no website can show the app inside its own page; vault addresses open only as web pages.
 
 ## 1.31.9: empty space is full
 

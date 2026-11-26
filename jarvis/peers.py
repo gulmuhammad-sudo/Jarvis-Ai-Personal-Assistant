@@ -374,7 +374,7 @@ def _take_file(h: Any, d: dict) -> dict:
         part.unlink(missing_ok=True)
         raise
     try:
-        with open(f"{out}:Zone.Identifier", "w") as z:   # Windows warns before it runs something that came from elsewhere
+        with open(f"{out}:Zone.Identifier", "w", encoding="ascii") as z:   # Windows warns before it runs something that came from elsewhere
             z.write("[ZoneTransfer]\nZoneId=3\n")
     except OSError:
         pass

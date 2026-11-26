@@ -1,6 +1,6 @@
 # Next steps
 
-The ten phases of the master plan are done (1.31.11). What comes next, in this order.
+The ten phases of the master plan are done (1.31.11); the newest release is 1.31.13. What comes next, in this order.
 
 1. **Owner checks** (things only a real person, phone or PC can do): install the newest release; a Live call in Urdu and Hindi
    ("Urdu mein batao"); a phone in the Wi-Fi (Settings › Devices; Windows may ask about the network: allow private networks);

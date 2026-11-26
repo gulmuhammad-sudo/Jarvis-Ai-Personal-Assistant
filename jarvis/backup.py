@@ -570,10 +570,6 @@ def prepare(path: Any, parts: Any, password: Any = None) -> dict:
     return {"parts": sorted(want), "point": point["path"]}
 
 
-def cancel_pending() -> None:
-    shutil.rmtree(pending_dir(), ignore_errors=True)
-
-
 def apply_pending() -> str:
     """At the start, before anything is opened: all of it, or everything as it was. Returns what to tell ("" for nothing)."""
     pend = pending_dir()

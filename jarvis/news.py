@@ -96,6 +96,7 @@ def _once(url: str) -> bytes:
         with urllib.request.build_opener(_Redirect).open(req, timeout=TIMEOUT) as r:
             raw = r.read(MAX_BYTES + 1)
     except urllib.error.HTTPError as e:
+        e.close()                                         # (its answer holds a connection)
         raise ConnectionError(f"The site answered with an error ({e.code}).") from None
     except urllib.error.URLError as e:
         if isinstance(e.reason, ValueError):

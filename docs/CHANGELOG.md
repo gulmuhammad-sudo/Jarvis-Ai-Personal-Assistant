@@ -2,7 +2,7 @@
 
 Each version is also a git tag (`git tag -n20 vX.Y.Z` shows its notes). Newest first.
 
-## 1.31.12 — 2026-11-26 (not pushed yet)
+## 1.31.12 — 2026-11-26
 A scan of every file for faults.
 - Fixed: after a headset was plugged in, hands-free could try to open the old microphone by its old number, which now was another
   device ("Blocking API not supported yet", WDM-KS) and didn't start. The microphone is now found by its name.
@@ -11,14 +11,14 @@ A scan of every file for faults.
   running app (no error), the app's own log of real use (the other faults there were fixed earlier).
 - Commits are now made as gulmuhammad-sudo.
 
-## 1.31.11 — 2026-11-26 (not pushed yet)
+## 1.31.11 — 2026-11-26
 The final security audit (Phase 10 part 2).
 - No other website can show the app's window inside its own page (a hidden frame could have made you click Allow); the window and
   the REC window say so in every answer, and no answer can be read as a page.
 - A web address in the vault gets an Open button only when it is an http(s) address (an entry imported with "javascript:" can't run).
 - The audit is kept as tests: nothing secret in the repository, no shell, no eval, every request that changes something needs the token.
 
-## 1.31.10 — 2026-11-26 (not pushed yet)
+## 1.31.10 — 2026-11-26
 Updates and parts of the app (Phase 10 part 1).
 - Settings › Updates: Look now, or once a day by itself (off by default); a new version's notes; Download, checked twice (GitHub's own
   checksum and the release's SHA256.txt) and its version read from the file; Install makes a restore point and opens Setup.

@@ -15,7 +15,7 @@ from pathlib import Path
 
 import pytest
 
-from jarvis import access, agents, audit, automations, backup, config, connections, devapi, doctor, guard, hud, lock, mail, netlog, notes, planner, plans, privacy, providers, qr, remote, schedule, storage, timeline, tools
+from jarvis import access, agents, audit, automations, backup, config, connections, devapi, doctor, guard, hud, lock, mail, netlog, planner, plans, privacy, providers, qr, remote, schedule, storage, timeline, tools
 
 HTML = hud.HTML_FILE.read_text(encoding="utf-8").replace("\r\n", "\n")
 PAGE = remote.PAGE.read_text(encoding="utf-8")

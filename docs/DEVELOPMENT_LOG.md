@@ -2,6 +2,14 @@
 
 Newest first. Each entry: what was done, how it was tested, what is open, the next task.
 
+## 2026-11-26 — Session 2, part 30: bugs and bugs fixed (v1.31.13)
+
+**Asked by the owner** — clean the code, fix the bugs, build, push everything and release; the commit says "bugs and bugs fixed".
+
+**Done** — functions nothing calls (`access.b64`, `backup.cancel_pending`) and unused imports taken out; HTTP error answers closed in
+`news._once` and `images.generate`; a run of all tests in development mode. Tests 1546 passed, 4 skipped, exe 80 / 80 and 227 / 227, new user 15 / 15.
+Released as 1.31.13 from the account gulmuhammad-sudo (1.31.10 to 1.31.13 pushed together).
+
 ## 2026-11-26 — Session 2, part 29: identity and a scan of every file (v1.31.12)
 
 **Asked by the owner** — commits as gulmuhammad-sudo instead of zuha-aziz; scan all files and fix bugs and errors.

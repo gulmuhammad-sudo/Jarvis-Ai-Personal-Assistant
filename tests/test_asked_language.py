@@ -1,5 +1,4 @@
 """1.31.8: an answer asked for in a language stays in that language's own script. No AI is called (the rewriting is watched)."""
-import re
 import threading
 import time
 from pathlib import Path
