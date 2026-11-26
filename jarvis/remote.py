@@ -273,7 +273,8 @@ def start() -> bool:
     from . import netlog
     with _LOCK:
         s = settings()
-        if _STATE["server"] or not s["on"] or netlog.local_only():
+        from . import parts
+        if _STATE["server"] or not s["on"] or netlog.local_only() or not parts.is_on("devices"):
             return bool(_STATE["server"])
         _STATE["error"] = ""
         try:

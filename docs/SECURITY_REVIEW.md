@@ -1,5 +1,15 @@
 # Security review
 
+## 2026-11-26 — v1.31.10 (updates, parts)
+
+| Area | How | Where |
+|---|---|---|
+| Looking | only on your click or once a day if you turned it on; HTTPS with certificate check, only GitHub's own hosts (also where it hands a download on to), only a user agent; Local only holds it | `updates._get` |
+| A Setup | only from this app's releases, size limited; its SHA-256 must equal GitHub's own and the release's SHA256.txt; it must start as a program and carry the version it claims; checked again just before it runs | `updates.download`, `verified` |
+| Running it | only the installed app, only your click, not during a call or recording; a restore point first (none, no start); Setup itself asks and shows what it does | `updates.install` |
+| Going back | 1.31.5 and newer only (they put a restore point back at their start); the point of that time is made ready, a point of now first | `updates.install`, `backup.prepare` |
+| Parts off | their tools aren't given to any AI and refuse if asked anyway; their background work stops; devices off closes the door and the API; nothing deleted | `parts` |
+
 ## 2026-11-25 — v1.31.7 (other PCs, sync)
 
 | Area | How | Where |

@@ -73,6 +73,9 @@ def handle(hub: Any, port: int, method: str, target: str, headers: Any, body: by
         return 403, {"error": "Not from a web page."}
     if path == "/v1/openapi.json" and method == "GET":
         return 200, openapi(port)
+    from . import parts
+    if not parts.is_on("devices"):
+        return 403, {"error": "The API is turned off (Settings > Updates & parts)."}
     if access.held("127.0.0.1 api"):
         return 429, {"error": "Too many wrong keys. Wait ten minutes."}
     m = re.fullmatch(r"Bearer\s+(\S+)", headers.get("Authorization") or "")

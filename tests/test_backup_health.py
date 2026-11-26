@@ -680,7 +680,7 @@ def test_the_ai_looks_and_backs_up_only(hub, full):
     assert "Database" not in out.split("\n")[0] and "Settings › Health" in out and "problem" in out
     assert "backup was made" in tools.self_check_tool({"action": "backup"}, ctx) and len(backup.listing()) == 1
     d = next(x for x in tools.TOOL_DEFINITIONS if x["name"] == "self_check")
-    assert d["input_schema"]["properties"]["action"]["enum"] == ["check", "backup"]
+    assert d["input_schema"]["properties"]["action"]["enum"] == ["check", "backup", "updates"]
     assert "self_check" not in agents.AGENT_TOOLS and "self_check" not in automations.STEP_TOOLS
     assert "self_check" in providers.LOCAL_TOOLS and "self_check:check" in plans.LOOKING and "self_check:backup" not in plans.LOOKING
     for said in ("khud ko check karo", "something is wrong with you", "make a backup", "awaz theek nahi"):

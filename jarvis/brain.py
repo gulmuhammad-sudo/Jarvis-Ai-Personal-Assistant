@@ -99,7 +99,8 @@ class Brain:
         self.messages: list[dict] = []
         self._pending_system: str | None = None
         self.system = system_prompt()
-        self.tool_defs = tools.TOOL_DEFINITIONS + tools.SERVER_TOOLS
+        from . import parts
+        self.tool_defs = parts.offered(tools.TOOL_DEFINITIONS) + tools.SERVER_TOOLS
 
     def reset(self) -> None:
         self.messages = []

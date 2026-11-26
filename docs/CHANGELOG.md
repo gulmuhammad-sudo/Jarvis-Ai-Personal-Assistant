@@ -2,6 +2,16 @@
 
 Each version is also a git tag (`git tag -n20 vX.Y.Z` shows its notes). Newest first.
 
+## 1.31.10 — 2026-11-26 (not pushed yet)
+Updates and parts of the app (Phase 10 part 1).
+- Settings › Updates: Look now, or once a day by itself (off by default); a new version's notes; Download, checked twice (GitHub's own
+  checksum and the release's SHA256.txt) and its version read from the file; Install makes a restore point and opens Setup.
+- Go back to an earlier version (1.31.5 or newer), with your data from when you used it.
+- Parts of the app: Studio, Daily extras, Email, Documents, Automations, Agents, Vault, Phones/PCs/API can be turned off: the page and
+  the AI's tools go, nothing is deleted.
+- What you downloaded (speech models, voices, a Setup) with its size, and Remove; what the app is made of, with versions.
+- The assistant can look for a new version when asked; installing is your click.
+
 ## 1.31.9 — 2026-11-25
 - The left menu has no empty space any more: its rows share the whole height, one group is open, and in a tall window all three are.
 

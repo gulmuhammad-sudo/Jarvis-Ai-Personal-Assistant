@@ -19,7 +19,7 @@ from typing import Callable
 
 import numpy as np
 
-from . import languages, memory, netlog, privacy, schedule, tools
+from . import languages, memory, netlog, privacy, schedule, tools, parts
 from .brain import system_prompt
 
 try:
@@ -428,7 +428,7 @@ class LiveSession:
                 f"{user}: {u[:300]}\n{me}: {r[:300]}" for u, r in self.history)
         decls = [types.FunctionDeclaration(name=d["name"], description=d["description"],
                                            parameters_json_schema=d["input_schema"])
-                 for d in tools.TOOL_DEFINITIONS + tools.WEB_TOOL_DEFINITIONS + [END_TOOL]]
+                 for d in parts.offered(tools.TOOL_DEFINITIONS + tools.WEB_TOOL_DEFINITIONS) + [END_TOOL]]
         extra = {}
         if "2.5" in self.model:          # no "thinking" before speaking: answers ~0.6 s sooner
             extra["thinking_config"] = types.ThinkingConfig(thinking_budget=0)

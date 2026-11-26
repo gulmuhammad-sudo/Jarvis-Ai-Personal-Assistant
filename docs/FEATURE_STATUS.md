@@ -33,7 +33,7 @@ audio, installer, uninstaller, packaged-exe smoke test). They are being moved in
 | 10 | Plugin marketplace | NOT IMPLEMENTED | — | 110, 26 | — | Needs a module system first (Phase 10) |
 | 11 | Futuristic JARVIS HUD | IMPLEMENTED BUT NEEDS TESTING | `jarvis/hud.html`, `jarvis/hud.py` | — | Manual browser checks only | Automated UI smoke test (page loads, no console errors) |
 | 12 | Full offline support | PARTIALLY IMPLEMENTED | `jarvis/local_ai.py`, `jarvis/local_stt.py`, `jarvis/stt.py`, page `speechSynthesis` fallback, local tools | 5 | test_local_ai, test_local_stt | Offline brain (Ollama, 1.9.0) and offline speech-to-text (whisper.cpp, 1.10.0). Still online: neural voices (offline falls back to the page's Windows voice), Live calls. Next: local TTS |
-| 13 | Automatic updates with consent | NOT IMPLEMENTED | — | GitHub Releases | — | Check GitHub Releases API for a newer `Personal.Assistant.Setup.exe`, ask, download, run Setup (it already upgrades in place) |
+| 13 | Automatic updates with consent | IMPLEMENTED BUT NEEDS TESTING | `updates.py`, Settings › Updates | GitHub Releases | test_updates_parts.py; a real look at GitHub | Downloading and installing for real in the installed app; going back |
 | 14 | Multi-model support and routing | IMPLEMENTED BUT NEEDS TESTING | `jarvis/providers.py` (`MultiBrain`, `chain`, `route`, `needs_vision`, `online`), AI Models page | 5 | test_local_ai 7, test_routing 14; running app: "photo" question with Groq chosen went to Gemini | 1.9.1: screen/picture questions go to an AI that can see; offline → local only; fallback inside the routed order. Missing: long-document routing (comes with document reading, 25/32) |
 | 15 | Unlimited local usage | IMPLEMENTED BUT NEEDS TESTING | `jarvis/local_ai.py` | 5 | test_local_ai | No limits on local models (only the PC's speed/memory) |
 
@@ -155,7 +155,7 @@ audio, installer, uninstaller, packaged-exe smoke test). They are being moved in
 | 107 | Universal command and search bar | PARTIALLY IMPLEMENTED | top input box (Ctrl+K) in `jarvis/hud.html` | 109 | none | Sends to the assistant; doesn't search settings, memories or history |
 | 108 | Workflow marketplace and templates | PARTIALLY IMPLEMENTED | templates, export / import in `jarvis/automations.py` | 35 | test_automations | 1.18.0: 4 templates, sharing as text (imports are checked and arrive off). No online marketplace |
 | 109 | Command history and activity timeline | IMPLEMENTED BUT NEEDS TESTING | `jarvis/timeline.py`, tool `history`, Privacy › Timeline | — | test_privacy, running app | 1.31.0: days, search, kinds, take out, CSV, ask again, most used. Tool not tried with a real AI |
-| 110 | Modular expansion and upgrade system | NOT IMPLEMENTED | — | 13 | — | — |
+| 110 | Modular expansion and upgrade system | IMPLEMENTED BUT NEEDS TESTING | `parts.py`: parts on/off, downloaded parts, versions; going back | 13 | test_updates_parts.py | Plugins from others (not planned: safety) |
 
 ## Totals (after v1.31.2, 24 Nov 2026)
 

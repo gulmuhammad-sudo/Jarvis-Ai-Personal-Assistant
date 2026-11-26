@@ -668,6 +668,9 @@ def _execute(name: str, tool_input: dict, ctx: ToolContext) -> tuple[Any, bool]:
         return f"Unknown tool: {name}", True
     if not isinstance(tool_input, dict):
         return "Tool input must be a JSON object.", True
+    from . import parts
+    if not parts.tool_on(name):
+        return f"The user turned the part '{parts.owner(name)}' of this app off (Settings > Updates & parts), so I can't do that. Tell them.", True
     allowed = getattr(ctx, "allowed_tools", None)          # an agent: only its own tools, whatever it asks for
     if allowed is not None:
         if name not in allowed:
@@ -2091,6 +2094,13 @@ def history_tool(inp: dict, ctx: ToolContext) -> str:
 def self_check_tool(inp: dict, ctx: ToolContext) -> str:
     """The app looks at itself, or makes a backup. Repairing and putting back are the owner's clicks only."""
     from . import backup, doctor
+    if str(inp.get("action") or "check").lower() == "updates":
+        from . import updates
+        try:
+            s = updates.check()
+        except updates.UpdateError as e:
+            return str(e)
+        return (f"Version {s['latest']['version']} is ready ({s['latest']['date']}). The user installs it in Settings > Updates; you can't." if s["latest"] else f"This is the newest version ({s['version']}).")
     if str(inp.get("action") or "check").lower() == "backup":
         try:
             r = backup.make(why="asked for")
@@ -2379,8 +2389,8 @@ PLANNER_TOOLS = [
       "input_schema": _obj({"action": {"type": "string", "enum": ["search", "day"]}, "query": _STR, "day": _STR}, ["action"])}, history_tool),
     ({"name": "self_check",
       "description": "This app itself. check: is everything in it working (AI, microphone, voices, database, backup, internet), for 'something is wrong with you / check yourself'; backup: make an "
-                     "encrypted backup now. Repairs and restoring are done only by the user in Settings > Health / Backup.",
-      "input_schema": _obj({"action": {"type": "string", "enum": ["check", "backup"]}}, ["action"])}, self_check_tool),
+                     "encrypted backup now; updates: is there a newer version (asks GitHub). Repairs, restoring and installing are done only by the user in Settings > Health / Backup.",
+      "input_schema": _obj({"action": {"type": "string", "enum": ["check", "backup", "updates"]}}, ["action"])}, self_check_tool),
     ({"name": "connection",
       "description": "The user's own connections to other services and devices (a notice to the phone, Telegram, Discord, a lamp of Home Assistant, a webhook). list, or send (name, text). "
                      "Every sending asks the user with the whole text.",

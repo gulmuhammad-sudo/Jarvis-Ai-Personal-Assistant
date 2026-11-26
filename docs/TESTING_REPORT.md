@@ -11,6 +11,14 @@ set PA_TEST_NETWORK=1 && .venv\Scripts\python -m pytest tests   # also the onlin
 .venv\Scripts\python packaging\build.py              # then smoke-test the packaged exe (see below)
 ```
 
+## 2026-11-26 — Updates and parts (v1.31.10)
+
+| Suite | Result | Notes |
+|---|---|---|
+| `pytest tests` | 1538 passed, 4 skipped | new tests/test_updates_parts.py (26): versions as numbers; drafts, pre-releases and releases without files left out; only GitHub's addresses, certificate checked, nothing but a user agent; a changed file, a list of checksums that disagrees, a wrong version inside, odd sizes; a file changed after the download; install only from the installed app, a restore point first; going back with the data of then (put back like the older app does); by itself only when on, once a day, told once; Local only; parts off take tools away and refuse, every AI's list, devices off closes the door and the API; downloaded parts; versions |
+| Running app (test copy) | pass | a real look at GitHub (9 releases, 1.31.8 to go back to); parts off and on, menu and tabs follow, also after a reload; 1534x787 and 640x760 |
+| Not tested | — | downloading and installing a real Setup from the installed app; going back for real |
+
 ## 2026-11-25 — The left menu's empty space (v1.31.9)
 
 | Suite | Result | Notes |

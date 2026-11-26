@@ -75,7 +75,8 @@ class OpenAICompatBrain:
         self.client = openai.OpenAI(api_key=os.environ[key_env], base_url=base_url,
                                     max_retries=1, timeout=60)
         self.ctx, self.on_text, self.on_tool = ctx, on_text, on_tool
-        defs = tools.TOOL_DEFINITIONS + tools.WEB_TOOL_DEFINITIONS
+        from . import parts
+        defs = parts.offered(tools.TOOL_DEFINITIONS + tools.WEB_TOOL_DEFINITIONS)
         self.tool_defs = [{"type": "function", "function": {
             "name": d["name"], "description": d["description"], "parameters": d["input_schema"]}}
             for d in defs]
@@ -255,7 +256,8 @@ class OllamaBrain:
         self.models = [m["name"] for m in have if m["tools"]] or [model]
         self.model = model
         self.vision = any(m["name"] == model and m["vision"] for m in have)
-        defs = [d for d in tools.TOOL_DEFINITIONS + tools.WEB_TOOL_DEFINITIONS if d["name"] in LOCAL_TOOLS]
+        from . import parts
+        defs = [d for d in parts.offered(tools.TOOL_DEFINITIONS + tools.WEB_TOOL_DEFINITIONS) if d["name"] in LOCAL_TOOLS]
         self.tool_defs = [{"type": "function", "function": {"name": d["name"], "description": d["description"],
                                                             "parameters": d["input_schema"]}} for d in defs]
         self.language = "en"

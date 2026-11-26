@@ -26,7 +26,7 @@ from urllib.parse import parse_qs, quote
 
 from . import __version__
 from . import live as live_mod
-from . import access, agents, alerts, approvals, audit, automations, backup, clock, connections, denoise, devapi, docindex, doctor, fit, gpu, guard, hello, images, languages, learn, life, local_ai, lock, mail, local_stt, local_tts, media, meet, memory, netlog, news, notes, peers, people, planner, plans, privacy, qr, remote, schedule, screenrec, netcheck, skills, software, stt, storage, sync, timeline, tools, travel, tts, urdu, vault, wake, winmgr
+from . import access, agents, alerts, approvals, audit, automations, backup, clock, connections, denoise, devapi, docindex, doctor, fit, parts, updates, gpu, guard, hello, images, languages, learn, life, local_ai, lock, mail, local_stt, local_tts, media, meet, memory, netlog, news, notes, peers, people, planner, plans, privacy, qr, remote, schedule, screenrec, netcheck, skills, software, stt, storage, sync, timeline, tools, travel, tts, urdu, vault, wake, winmgr
 from .brain import make_brain
 from .config import NOTES_DIR
 from .providers import provider_status
@@ -150,6 +150,7 @@ class Hub:
         self.scheduler.on_tick = self._tick
         tools.PLANNER_CHANGED = lambda: self.emit("planner_changed")
         tools.DAILY_CHANGED = lambda what: self.emit("daily_changed", what=what)
+        parts.CHANGED = lambda: (self.rebuild_brain(), self.emit("settings", parts_off=parts.off()))
         docindex.CHANGED = lambda: self.emit("docs_changed")
         self._docs_next = time.time() + 180           # look for new documents a few minutes after the start, then every 6 hours
 
@@ -336,7 +337,7 @@ class Hub:
             planner.tick(now, self.notify)
         except Exception as e:
             print(f"[planner] {type(e).__name__}: {e}")
-        for part in (life, learn, fit, travel, people, vault, backup, peers):
+        for part in (life, learn, fit, travel, people, vault, backup, peers, updates):
             try:
                 part.tick(now, self.notify)
             except Exception as e:
@@ -344,11 +345,11 @@ class Hub:
         try:
             if time.time() >= self._docs_next:
                 self._docs_next = time.time() + 6 * 3600
-                if not tools.STOP.is_set() and docindex.folders():
+                if not tools.STOP.is_set() and docindex.folders() and parts.is_on("documents"):
                     docindex.start()
         except Exception as e:
             print(f"[documents] {type(e).__name__}: {e}")
-        if not lock.is_locked():                       # timed automations wait while the app is locked
+        if not lock.is_locked() and parts.is_on("automations"):                       # timed automations wait while the app is locked
             self.runner.tick(now)
 
     def _upcoming(self) -> list[dict]:
@@ -1389,7 +1390,7 @@ class Hub:
                "assistant_name": schedule.agent_name(), "theme": schedule.theme(),
                "version": __version__, "trusted": sorted(self.trusted), "languages": languages.choices(),
                "permissions": self.permissions(), "hour": {k: self.hour_left(k) for k in list(self.hour) if self.hour_left(k)},
-               "sensors": privacy.active(), "local_only": netlog.local_only(),
+               "sensors": privacy.active(), "local_only": netlog.local_only(), "parts_off": parts.off(),
                "stt_mode": stt.mode(), "local_stt": {**local_stt.status(), "downloading": self._stt_downloading},
                "tts_mode": tts.mode(), "voice_speed": tts.speed_pct(), "voice_pitch": tts.pitch_hz(),
                "local_tts": {**local_tts.status(), "downloading": self._tts_downloading},
@@ -1584,7 +1585,7 @@ class Handler(BaseHTTPRequestHandler):
         try:
             shut = lock.is_locked()
             first = {"type": "replay", "client": cid, "speaker": HUB.speaker, "events": [], "state": "idle", "voice_mode": False, "speak": False, "language": HUB.language, "pending": []}
-            self.wfile.write(f"data: {json.dumps(first if shut else {'type': 'replay', 'client': cid, 'speaker': HUB.speaker, 'events': HUB.history, 'state': HUB.state, 'voice_mode': HUB.voice_mode, 'speak': HUB.speak, 'language': HUB.language, 'pending': [{'id': k, 'question': v['question']} for k, v in list(HUB.pending.items())]})}\n\n".encode())
+            self.wfile.write(f"data: {json.dumps(first if shut else {'type': 'replay', 'client': cid, 'speaker': HUB.speaker, 'events': HUB.history, 'state': HUB.state, 'voice_mode': HUB.voice_mode, 'speak': HUB.speak, 'language': HUB.language, 'parts_off': parts.off(), 'pending': [{'id': k, 'question': v['question']} for k, v in list(HUB.pending.items())]})}\n\n".encode())
             self.wfile.flush()
             while True:
                 try:
@@ -1885,7 +1886,7 @@ class Handler(BaseHTTPRequestHandler):
         """The Daily page's Travel, Meetings and People: your own clicks."""
         try:
             num = lambda k="id": int(data.get(k))                                        # noqa: E731
-            out = {"travel": self._travel, "meet": self._meet, "people": self._people, "media": self._media, "rec": self._rec, "images": self._images, "privacy": self._privacy, "time": self._time, "lock": self._lock_api, "backup": self._backup, "health": self._health, "devices": self._devices, "dev": self._dev}[page](action, data, num)
+            out = {"travel": self._travel, "meet": self._meet, "people": self._people, "media": self._media, "rec": self._rec, "images": self._images, "privacy": self._privacy, "time": self._time, "lock": self._lock_api, "backup": self._backup, "health": self._health, "devices": self._devices, "dev": self._dev, "updates": self._updates, "parts": self._parts}[page](action, data, num)
         except (ValueError, TypeError, KeyError, AttributeError) as e:
             return self._json({"error": str(e) if isinstance(e, ValueError) and str(e)[:1].isupper() else "Something is missing or wrong."}, 400)
         except OSError as e:
@@ -2191,6 +2192,33 @@ class Handler(BaseHTTPRequestHandler):
             raise ValueError("End the Live call first.")
         if HUB.meeting_on() or HUB.screen.state() or HUB.recording:
             raise ValueError("Something is being recorded. End that first.")
+
+    @staticmethod
+    def _updates(action: str, data: dict, num) -> dict | None:
+        """Settings: Updates. Looking, downloading and installing are the owner's own clicks."""
+        out: dict = {}
+        if action == "check":
+            updates.check()
+        elif action == "auto":
+            updates.set_auto(data.get("on") is True)
+        elif action == "download":
+            updates.start_download(data.get("version"))
+        elif action == "install":
+            Handler._may_restart()
+            out["said"] = updates.install(data.get("version"))
+        elif action != "load":
+            return None
+        return {**out, **updates.status()}
+
+    @staticmethod
+    def _parts(action: str, data: dict, num) -> dict | None:
+        if action == "set":
+            parts.set_on(data.get("id"), data.get("on") is True)
+        elif action == "remove":
+            parts.remove(data.get("id"))
+        elif action != "load":
+            return None
+        return parts.page()
 
     @staticmethod
     def _devices(action: str, data: dict, num) -> dict | None:
@@ -2850,7 +2878,7 @@ class Handler(BaseHTTPRequestHandler):
             return self._learn(self.path.rsplit("/", 1)[1], data)
         elif self.path.startswith("/api/fit/"):        # Daily page: Fitness
             return self._fit(self.path.rsplit("/", 1)[1], data)
-        elif self.path.startswith(("/api/travel/", "/api/meet/", "/api/people/", "/api/media/", "/api/rec/", "/api/images/", "/api/privacy/", "/api/time/", "/api/lock/", "/api/backup/", "/api/health/", "/api/devices/", "/api/dev/")):       # Daily, Studio, Privacy pages; Settings
+        elif self.path.startswith(("/api/travel/", "/api/meet/", "/api/people/", "/api/media/", "/api/rec/", "/api/images/", "/api/privacy/", "/api/time/", "/api/lock/", "/api/backup/", "/api/health/", "/api/devices/", "/api/dev/", "/api/updates/", "/api/parts/")):       # Daily, Studio, Privacy pages; Settings
             return self._daily_api(*self.path.split("/")[2:4], data)
         elif self.path.startswith("/api/news/"):       # Daily page: News
             return self._news(self.path.rsplit("/", 1)[1], data)

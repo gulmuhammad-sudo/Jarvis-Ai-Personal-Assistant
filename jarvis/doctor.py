@@ -340,6 +340,16 @@ def _remote(hub: Any) -> dict:
     return _row("remote", "Phones and other PCs", OK if s["addresses"] else WARN, f"Open in your home network, {n} device{'' if n == 1 else 's'}" if s["addresses"] else "On, but this PC isn't in a network", go="devices")
 
 
+def _updates(hub: Any) -> dict:
+    from . import updates
+    s = updates.status()
+    if s["latest"]:
+        return _row("updates", "Version", WARN, f"{s['version']}; {s['latest']['version']} is ready", go="updates")
+    if not s["checked"]:
+        return _row("updates", "Version", INFO, f"{s['version']}; never looked for a newer one" + ("" if s["auto"] else " (Settings › Updates)"), go="updates")
+    return _row("updates", "Version", OK, f"{s['version']}, the newest when last looked ({s['checked'][:10]})", go="updates")
+
+
 def _parts(hub: Any) -> dict:
     names = {t.name for t in threading.enumerate()}
     need = {"scheduler": "reminders", "clock": "timers", "privacy": "lists", "lock-watch": "lock"}
@@ -391,7 +401,7 @@ def _documents(hub: Any) -> dict:
     return _row("docs", "Document search", OK, f"{n} documents" + (f", {bad} couldn't be read" if bad else ""), "index" if bad else "", "tools")
 
 
-CHECKS = [_app, _windows, _crashed, _disk, _memory, _database, _files, _backup, _ais, _net, _mic, _speaker, _hearing, _voice, _live, _vault, _hello, _start, _remote, _parts, _documents, _errors]
+CHECKS = [_app, _windows, _crashed, _disk, _memory, _database, _files, _backup, _ais, _net, _mic, _speaker, _hearing, _voice, _live, _vault, _hello, _start, _remote, _updates, _parts, _documents, _errors]
 
 
 def check(hub: Any) -> dict:

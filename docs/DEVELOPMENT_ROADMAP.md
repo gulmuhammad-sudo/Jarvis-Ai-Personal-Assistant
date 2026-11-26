@@ -65,6 +65,6 @@ enough to finish, test and release on its own. Numbers in brackets are decisions
 - [x] Multi-PC pairing and optional remote access (TLS + pairing codes) [21, 28, 74]; API and integrations [91, 106]
 
 ## Phase 10 — Expansion and release
-- [ ] Update check with consent from GitHub Releases [13]
-- [ ] Modular feature install and version checks [110]; rollback
+- [x] Update check with consent from GitHub Releases [13]
+- [x] Modular feature install and version checks [110]; rollback
 - [ ] Final security audit and regression run; documentation

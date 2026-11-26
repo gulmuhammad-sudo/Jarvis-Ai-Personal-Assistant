@@ -742,7 +742,7 @@ svg.ic { transition: transform .28s cubic-bezier(.3, 1.5, .5, 1), color .2s, fil
 @keyframes icDrop { 40% { transform: translateY(3px); } }
 /* settings: tabs with icons, every row = label on the left, controls on the right */
 .settab { display: inline-flex; align-items: center; justify-content: center; gap: 7px; }
-.settab svg.ic { width: 15px; height: 15px; } .settings .settabs { gap: 3px; } .settings .settab { padding: 8px 7px; gap: 5px; }
+.settab svg.ic { width: 15px; height: 15px; } .settings .settabs { gap: 3px; display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); } @media (max-width: 760px) { .settings .settabs { grid-template-columns: repeat(3, minmax(0, 1fr)); } } .settings .settab { padding: 8px 7px; gap: 5px; }
 .settab.on { box-shadow: inset 0 -2px 0 var(--cyan), 0 0 16px rgba(var(--c-accent), .12); }
 .settings h4.sec { display: flex; align-items: center; gap: 8px; }
 .settings h4.sec svg.ic { width: 15px; height: 15px; padding: 4px; border-radius: 7px; box-sizing: content-box;
@@ -761,6 +761,9 @@ svg.ic { transition: transform .28s cubic-bezier(.3, 1.5, .5, 1), color .2s, fil
 .bkpw { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin: 0; } .hcbox .bkpw { margin: 4px 0 8px; } .setrow .bkpw input.txt { width: 150px; } .hcbox input.txt { height: 36px; width: 220px; max-width: 100%; border-radius: 10px; border: 1px solid var(--hair-2); background: var(--bg); color: var(--text); padding: 0 12px; font: 14px var(--sans); outline: none; } .hcbox input.txt:focus { border-color: rgba(var(--c-accent), .5); }
 .bkpart { display: flex; gap: 9px; align-items: flex-start; padding: 6px 0; font-size: 13.5px; cursor: pointer; } .bkpart input { margin-top: 3px; } .bkpart small { display: block; color: var(--muted); font-size: 12.5px; }
 .dvcode { display: flex; gap: 18px; align-items: center; flex-wrap: wrap; padding: 8px 0; } .dvqr { width: 190px; max-width: 100%; line-height: 0; } .dvqr svg { width: 100%; border-radius: 8px; } .dvcode > div:last-child { flex: 1; min-width: 200px; } .dvbig { font: 600 30px/1.3 var(--mono); letter-spacing: .12em; display: block; } .dvcode small { display: block; color: var(--muted); font-size: 13px; margin: 6px 0 10px; line-height: 1.5; }
+body[data-off~="studio"] .navi[data-view="studio"], body[data-off~="automations"] .navi[data-view="auto"], body[data-off~="agents"] .navi[data-view="agents"], body[data-off~="vault"] .navi[data-view="vault"],
+body[data-off~="daily"] [data-dy]:not([data-dy="clock"]), body[data-off~="email"] [data-pl="email"], body[data-off~="devices"] :is([data-settab="devices"], [data-settab="dev"]), body[data-off~="vault"] [data-go="vault"], body[data-off~="studio"] [data-go="studio"] { display: none !important; }
+.upnotes { max-height: 220px; overflow: auto; font-size: 13.5px; line-height: 1.55; margin: 4px 0 8px; padding: 8px 12px; border: 1px solid var(--hair); border-radius: 10px; } .upnotes :is(h1, h2, h3) { font-size: 14px; margin: 8px 0 4px; } .pvline em.bad { color: var(--red); }
 .dvpc { margin-top: 8px; padding-top: 6px; border-top: 1px dashed var(--hair); } .dvpc .bkpw { margin: 8px 0 0; } .dvpc form input.txt { flex: 1; min-width: 160px; } #dvJoin .txt { width: 170px; }
 .dvline { align-items: flex-start; } .dvrights { display: flex; flex-wrap: wrap; gap: 4px 16px; margin-top: 4px; font-size: 13px; color: var(--muted); } .dvrights label { display: flex; gap: 6px; align-items: center; cursor: pointer; }
 .cnf { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px 12px; margin: 4px 0 8px; } .cnf label { display: grid; gap: 3px; font-size: 12.5px; color: var(--muted); } .cnf input.txt { width: 100%; } .cnf .bkpw { grid-column: 1 / -1; } @media (max-width: 760px) { .cnf { grid-template-columns: 1fr; } }
@@ -1754,7 +1757,7 @@ body.focus .hero { background: none; box-shadow: none; }
       <section class="card page">
         <h3>Settings <span class="more" id="appVer" style="cursor:default"></span></h3>
         <div class="body"><div class="settings">
-          <div class="settabs" role="tablist" aria-label="Settings sections"><button class="settab" role="tab" data-settab="general">General</button><button class="settab" role="tab" data-settab="voice">Voice &amp; Mic</button><button class="settab" role="tab" data-settab="ai">AI</button><button class="settab" role="tab" data-settab="privacy">Privacy</button><button class="settab" role="tab" data-settab="permissions">Permissions</button><button class="settab" role="tab" data-settab="alerts">Alerts</button><button class="settab" role="tab" data-settab="backup">Backup</button><button class="settab" role="tab" data-settab="health">Health</button><button class="settab" role="tab" data-settab="devices">Devices</button><button class="settab" role="tab" data-settab="dev">API</button></div>
+          <div class="settabs" role="tablist" aria-label="Settings sections"><button class="settab" role="tab" data-settab="general">General</button><button class="settab" role="tab" data-settab="voice">Voice &amp; Mic</button><button class="settab" role="tab" data-settab="ai">AI</button><button class="settab" role="tab" data-settab="privacy">Privacy</button><button class="settab" role="tab" data-settab="permissions">Permissions</button><button class="settab" role="tab" data-settab="alerts">Alerts</button><button class="settab" role="tab" data-settab="backup">Backup</button><button class="settab" role="tab" data-settab="health">Health</button><button class="settab" role="tab" data-settab="devices">Devices</button><button class="settab" role="tab" data-settab="dev">API</button><button class="settab" role="tab" data-settab="updates">Updates</button></div>
           <div class="setgroup" data-setgroup="general" role="tabpanel">
           <h4 class="sec">ASSISTANT</h4>
           <div class="setrow"><div class="lbl"><b>Name</b><small id="agentMsg">What your assistant is called everywhere: in replies, on calls and on this screen. You can also just say "your name is Maya now".</small></div>
@@ -1923,6 +1926,22 @@ body.focus .hero { background: none; box-shadow: none; }
           <div class="hcbox"><form class="bkpw" id="apForm" autocomplete="off" style="margin-top:8px"><input class="txt" id="apName" maxlength="40" placeholder="Name of the program" aria-label="Name of the program"><select id="apDays" aria-label="Good for"><option value="0">Good until removed</option><option value="30">30 days</option><option value="90">90 days</option><option value="365">One year</option></select><button class="btn on" type="submit">Make a key</button></form><div id="apScopes" class="apsc"></div><div class="bkmsg" id="apMsg" role="status"></div><div id="apNew" class="apnew" hidden></div></div>
           <div class="hcbox" id="apList"></div>
           <div class="hcbox"><details><summary>What a program can call</summary><div id="apRoutes"></div></details></div>
+
+          </div>
+          <div class="setgroup" data-setgroup="updates" role="tabpanel">
+          <h4 class="sec">UPDATES</h4>
+          <div class="setrow"><div class="lbl"><b id="upNow">Version</b><small id="upInfo">Looks on GitHub, where this app comes from. Nothing about you goes with it.</small></div>
+            <button class="btn on" id="upCheck"><i data-ic="refresh"></i>Look now</button></div>
+          <div class="setrow"><div class="lbl"><b>Look by itself</b><small>Once a day while the app runs; it tells you, it never installs by itself.</small></div><button class="btn switch" id="upAuto" role="switch" aria-label="Look for new versions by itself">Off</button></div>
+          <div class="bkmsg" id="upMsg" role="status"></div>
+          <div class="hcbox" id="upNew" hidden></div>
+          <div class="hcbox" id="upBack" hidden></div>
+          <h4 class="sec">PARTS OF THE APP</h4>
+          <div class="hcbox" id="ptList"></div>
+          <h4 class="sec">DOWNLOADED</h4>
+          <div class="hcbox" id="ptDown"></div>
+          <h4 class="sec">WHAT IT IS MADE OF</h4>
+          <div class="hcbox" id="ptVer"></div>
 
           </div>
         </div></div>
@@ -2138,7 +2157,7 @@ function md(s) {
   return s.replace(/\u0000(\d+)\u0000/g, (_, i) => `<pre><code>${esc(blocks[+i])}</code></pre>`);
 }
 // What you choose wins over older news: an answer about the settings that was asked for before your click (or while it is on its way) is never painted.
-const CHANGES = /^\/api\/(settings|live|mic|mic_unmute|mic_boost|local|setup|profile|approvals\/reset|history\/clear|privacy\/(local_only|access|rule|hour|ask_again|kept|clear)|health\/repair)$/;
+const CHANGES = /^\/api\/(settings|live|mic|mic_unmute|mic_boost|local|setup|profile|approvals\/reset|history\/clear|privacy\/(local_only|access|rule|hour|ask_again|kept|clear)|health\/repair|parts\/set)$/;
 let chgSeq = 0, chgBusy = 0, chgTimer = 0, setCur = "";
 const chosen = {};                                       // key -> { v, until }: what you just chose; an older echo of it isn't painted either
 async function post(path, body = {}) {
@@ -2163,7 +2182,7 @@ function nowT() { return new Date().toLocaleTimeString([], { hour: "2-digit", mi
 
 // ---------- navigation ----------
 function go(view) {
-  if (["backup", "health", "devices", "dev"].includes(view)) { go("settings"); return setTab(view); }
+  if (["backup", "health", "devices", "dev", "updates"].includes(view)) { go("settings"); return setTab(view); }
   if (xpEl) xpClose(true);
   if (view !== "dash") $("subs").classList.remove("show");
   document.querySelectorAll(".view").forEach(v => v.classList.toggle("active", v.dataset.view === view));
@@ -2735,6 +2754,7 @@ function applySettings(s) {
   if (s.assistant_name && s.assistant_name !== AGENT) { location.reload(); return; }   // renamed: every label changes
   if (s.theme) applyTheme(s.theme);
   if ("voice_mode" in s) settings.voice_mode = s.voice_mode;
+  if ("parts_off" in s) applyParts(s.parts_off);
   if ("language" in s && s.language) {
     settings.language = s.language;
     const ur = s.language === "ur", other = s.language !== "en";
@@ -5621,10 +5641,10 @@ loadMics();
     "PLAYING ON THIS PC": "speaker", "PLAYER": "play", "MY LIBRARY": "layers", "PLAYLISTS": "tasks", "RADIO": "wifi", "FOLDERS": "note", "RECORD THE SCREEN": "pc", "RECORDINGS": "layers",
     "MAKE A PICTURE": "zap", "MY PICTURES": "layers", "EDIT": "edit",
     "PRIVACY LOCK": "lock", "WHO MAY READ WHAT": "eye", "WHERE IT WENT TO": "globe", "THE LAST 14 DAYS": "clock", "ABOUT THIS LIST": "note", "THIS APP": "mic", "ALL PROGRAMS": "pc", "EACH KIND OF ACTION": "check", "WHAT IS KEPT": "db", "HOW LONG": "clock",
-    "PHONES AND OTHER PCS": "phone", "PAIRED": "check", "CONNECTIONS": "globe", "SET ASIDE BY SYNC": "db", "API FOR YOUR PROGRAMS": "layers", "BACKUP": "db", "PUT BACK": "refresh", "HEALTH": "shield", "REPAIR": "wrench", "WINDOWS' OWN TOOLS": "pc",
+    "UPDATES": "download", "PARTS OF THE APP": "layers", "DOWNLOADED": "download", "WHAT IT IS MADE OF": "info", "PHONES AND OTHER PCS": "phone", "PAIRED": "check", "CONNECTIONS": "globe", "SET ASIDE BY SYNC": "db", "API FOR YOUR PROGRAMS": "layers", "BACKUP": "db", "PUT BACK": "refresh", "HEALTH": "shield", "REPAIR": "wrench", "WINDOWS' OWN TOOLS": "pc",
     "RECORDINGS OF YOUR VOICE": "mic", "TIMELINE": "clock", "YOU ASK OFTEN": "chat" };
   document.querySelectorAll("h4.sec").forEach(h => { const n = SEC[(h.firstChild ? h.firstChild.textContent : "").trim().toUpperCase()]; if (n) h.insertAdjacentHTML("afterbegin", icon(n)); });
-  const TAB = { general: "gear", voice: "mic", ai: "layers", privacy: "shield", permissions: "check", alerts: "bell", backup: "db", health: "shield", devices: "phone", dev: "layers" };
+  const TAB = { general: "gear", voice: "mic", ai: "layers", privacy: "shield", permissions: "check", alerts: "bell", backup: "db", health: "shield", devices: "phone", dev: "layers", updates: "download" };
   document.querySelectorAll("[data-settab]").forEach(b => b.insertAdjacentHTML("afterbegin", icon(TAB[b.dataset.settab] || "info")));
   document.querySelectorAll(".settings .setrow").forEach(row => {       // label left, all controls together on the right
     const items = [...row.children].filter(c => !c.classList.contains("lbl") && !(c.tagName === "INPUT" && c.type === "file"));
@@ -5801,7 +5821,48 @@ $("apForm").onsubmit = async e => {
   setTimeout(() => { $("apNew").hidden = true; $("apNew").textContent = ""; bkTell("", false, "apMsg"); }, 120000);
 };
 $("apCopy").onclick = async () => { const t = `Invoke-RestMethod http://127.0.0.1:${cnD ? cnD.port : 8765}/v1/ask -Method Post -Headers @{Authorization="Bearer YOUR_KEY"} -ContentType application/json -Body '{"text":"What is on my list today?"}'`; try { await navigator.clipboard.writeText(t); bkTell("Copied (PowerShell).", true, "apMsg"); } catch (e) { bkTell(t, true, "apMsg"); } };
-function setLoad() { if (!document.querySelector('.view.active[data-view="settings"]')) return; if (setCur === "backup") bkLoad(); if (setCur === "health") hcLoad(); if (setCur === "devices") dvPost("load"); if (setCur === "dev") cnPost("load"); }
+// ---------- settings: updates and parts ----------
+let upD = null, upTimer = 0, ptD = null;
+async function upPost(action, body = {}) { const j = await bkPost(action, body, "updates"); if (j.error) bkTell(j.error, false, "upMsg"); else { upD = j; upDraw(); } return j; }
+let ptSeq = 0;
+async function ptPost(action, body = {}) { const n = ++ptSeq, j = await bkPost(action, body, "parts"); if (j.error) bkTell(j.error, false, "upMsg"); else if (n === ptSeq) { ptD = j; ptDraw(); } return j; }      // (an older answer never draws over a newer click)
+function upDraw() {
+  const d = upD, mb = n => `${Math.round(n / 1048576)} MB`;
+  $("upNow").textContent = `Version ${d.version}`; pvSw($("upAuto"), d.auto); $("upCheck").disabled = !!d.busy;
+  $("upInfo").textContent = d.busy ? `${d.busy}${d.done ? ` · ${Math.round(d.done * 100)}%` : ""}…` : d.error ? d.error : d.latest ? `Version ${d.latest.version} is ready.` : d.checked ? `The newest, when looked at ${dvSeen(d.checked)}.` : "Looks on GitHub, where this app comes from. Nothing about you goes with it.";
+  $("upNew").hidden = !d.latest;
+  if (d.latest) {
+    const ready = d.ready.includes(d.latest.version);
+    setHTML($("upNew"), `<b>Version ${esc(d.latest.version)}</b><small>${esc(d.latest.date)} · ${mb(d.latest.size)} · a restore point is made first; Setup asks before it changes anything and keeps your settings, memories and keys.</small><div class="upnotes">${md(d.latest.notes)}</div>
+      <div class="bkpw">${ready ? `<button class="btn on" data-upi="${esc(d.latest.version)}">Install ${esc(d.latest.version)}</button>` : `<button class="btn on" data-upd="${esc(d.latest.version)}"${d.busy ? " disabled" : ""}><i data-ic="download"></i>Download (${mb(d.latest.size)})</button>`}</div>`);
+  }
+  $("upBack").hidden = !d.back.length;
+  setHTML($("upBack"), `<b>Go back to an earlier version</b><small>If the new one doesn't suit you. Your data from when you used that version comes back with it (a restore point of now is made first).</small>` + d.back.map(b => `<div class="pvline"><div>${esc(b.version)}<small>${esc(b.date)} · ${b.data ? "your data from then is kept" : "no data from then: today's stays"}</small></div>${d.ready.includes(b.version) ? `<button class="btn" data-upi="${esc(b.version)}">Go back to ${esc(b.version)}</button>` : `<button class="btn" data-upd="${esc(b.version)}"${d.busy ? " disabled" : ""}>Download</button>`}</div>`).join(""));
+  document.querySelectorAll("[data-upd]").forEach(b => b.onclick = async () => { bkTell("", false, "upMsg"); const j = await upPost("download", { version: b.dataset.upd }); if (!j.error) upWatch(); });
+  document.querySelectorAll("[data-upi]").forEach(b => b.onclick = () => lnArm2("upi" + b.dataset.upi, b, "Sure? The app closes", async () => { const j = await upPost("install", { version: b.dataset.upi }); if (!j.error) bkTell(j.said, true, "upMsg"); }));
+  if (!d.installed) $("upInfo").textContent += " (This copy runs from the source code: installing is only for the installed app.)";
+}
+function upWatch() { clearTimeout(upTimer); upTimer = setTimeout(async () => { const j = await upPost("load"); if (j.busy && setCur === "updates") upWatch(); else if (!j.error && !j.busy && !j.error) bkTell(j.ready.length ? "Downloaded and checked." : "", true, "upMsg"); }, 1000); }
+function ptDraw() {
+  const d = ptD;
+  setHTML($("ptList"), d.features.map(f => `<div class="pvline"><div><b>${esc(f.name)}</b><small>${esc(f.about)}</small></div><button class="btn switch${f.on ? " on" : ""}" role="switch" aria-checked="${f.on}" aria-label="${esc(f.name)}" data-pt="${f.id}">${f.on ? "On" : "Off"}</button></div>`).join("") + '<small class="dxnote">Off: its page and its tools are gone until you turn it on again. Nothing of yours is deleted.</small>');
+  setHTML($("ptDown"), d.downloaded.map(x => `<div class="pvline"><div><b>${esc(x.name)}</b><small>${esc(x.about)} · ${pvSize(x.size)}</small></div><button class="btn danger" data-ptx="${esc(x.id)}">Remove</button></div>`).join("") || '<div class="empty">Nothing downloaded. Voices, speech models and local AI models come from Settings › Voice &amp; Mic and AI Models.</div>');
+  setHTML($("ptVer"), d.versions.map(v => `<div class="pvline"><div>${esc(v.name)}</div><em class="${v.ok ? "" : "bad"}">${esc(v.version)}</em></div>`).join(""));
+  document.querySelectorAll("[data-pt]").forEach(b => b.onclick = async () => { const on = !b.classList.contains("on"), j = await ptPost("set", { id: b.dataset.pt, on }); if (!j.error) { applyParts(j.features.filter(f => !f.on).map(f => f.id)); bkTell(on ? "On again." : "Off. Its page and tools are gone; nothing was deleted.", true, "upMsg"); } });
+  document.querySelectorAll("[data-ptx]").forEach(b => b.onclick = () => lnArm2("ptx" + b.dataset.ptx, b, "Remove it?", () => ptPost("remove", { id: b.dataset.ptx })));
+}
+const PART_VIEWS = { studio: ["studio"], automations: ["auto"], agents: ["agents"], vault: ["vault"] };
+function applyParts(list) {
+  document.body.dataset.off = (list || []).join(" ");
+  const v = document.querySelector(".view.active"); if (v && (list || []).some(p => (PART_VIEWS[p] || []).includes(v.dataset.view))) go("dash");
+  if ((list || []).includes("devices") && ["devices", "dev"].includes(setCur)) setTab("updates");
+  const on = q => document.querySelector(q);                    // a hidden tab that was open: the first one instead
+  if ((list || []).includes("daily") && on('[data-dy].on:not([data-dy="clock"])')) on('[data-dy="clock"]').click();
+  if ((list || []).includes("email") && on('[data-pl="email"].on')) on('[data-pl="agenda"]').click();
+}
+$("upCheck").onclick = async () => { bkTell("", false, "upMsg"); $("upInfo").textContent = "Looking on GitHub…"; const j = await upPost("check"); if (!j.error) bkTell(j.latest ? `Version ${j.latest.version} is ready.` : "This is the newest version.", true, "upMsg"); };
+$("upAuto").onclick = () => upPost("auto", { on: !$("upAuto").classList.contains("on") });
+function setLoad() { if (!document.querySelector('.view.active[data-view="settings"]')) return; if (setCur === "updates") { upPost("load").then(j => { if (j.busy) upWatch(); }); ptPost("load"); } if (setCur === "backup") bkLoad(); if (setCur === "health") hcLoad(); if (setCur === "devices") dvPost("load"); if (setCur === "dev") cnPost("load"); }
 
 // ---------- settings tabs ----------
 function setTab(name) {

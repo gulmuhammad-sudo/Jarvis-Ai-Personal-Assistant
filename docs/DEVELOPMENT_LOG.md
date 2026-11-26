@@ -2,6 +2,17 @@
 
 Newest first. Each entry: what was done, how it was tested, what is open, the next task.
 
+## 2026-11-26 — Session 2, part 27: Phase 10 part 1 — updates and parts (v1.31.10)
+
+**Done** — `updates.py` (GitHub Releases, double checksum, file version, restore point, going back through `backup.prepare`), `parts.py`
+(features off: `parts.offered` for every AI, `_execute` refuses, pages hidden by `body[data-off]`), Settings › Updates, doctor row
+"Version", `self_check` action `updates`.
+
+**Found** — a stale status answer drew over a parts switch (now in `CHANGES`, and an older parts answer never draws); the first page
+after a start didn't know which parts were off (now in the replay); eleven tabs wrapped one alone onto a second line (now two even rows).
+
+**Next** — Phase 10 part 2: final security audit and regression run, documentation.
+
 ## 2026-11-25 — Session 2, part 26: asked languages, top bar, menu (v1.31.8)
 
 **Asked by the owner** — what is asked for in Urdu must not be turned into Roman; fewer icons at the top right (a drop-down); the left menu

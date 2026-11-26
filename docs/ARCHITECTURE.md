@@ -41,6 +41,8 @@ One Python process (`Personal Assistant.exe`, or `pythonw -m jarvis` from source
      ├── devapi.py                 /v1 for your own programs on this PC
      ├── connections.py            a text to other services and devices
      ├── qr.py                     QR picture
+     ├── updates.py                new versions from GitHub Releases, checked twice; going back
+     ├── parts.py                  parts on/off, downloaded parts, versions
      ├── backup.py                 encrypted backups, restore points, putting back before anything is opened
      ├── doctor.py                 looks at every part, repairs, crash sign, report
      ├── vault.py                  passwords, cards, papers, notes, files: encrypted, no way in for the AI
